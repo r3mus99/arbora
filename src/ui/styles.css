@@ -222,3 +222,9 @@ button.link { display: inline; }
                    border-radius: 8px; padding: 7px 10px; width: 100%; resize: vertical; }
 .editor textarea:focus { outline: 3px solid var(--focus); outline-offset: 1px; }
 .editor .actions { display: flex; gap: 8px; margin-top: 2px; }
+.editor fieldset.list { grid-template-columns: 1fr; }
+.editor .item { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-bottom: 8px;
+                border-bottom: 1px solid var(--border); }
+.editor .item-head { grid-column: 1 / -1; display: flex; gap: 6px; }
+.editor .item-head input { flex: 1; min-width: 0; }
+.editor .add { justify-self: start; padding: 5px 10px; font-size: 14px; }

@@ -75,8 +75,8 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
 ### Úpravy a export do GEDCOM
 
 Formulár v detaile osoby mení údaje už existujúcich osôb: meno a priezvisko,
-pohlavie, narodenie, krst, úmrtie a pohreb (dátum a miesto), zamestnanie
-(viac zamestnaní oddelených čiarkou), poznámku a pri každom manželstve dátum
+pohlavie, narodenie, krst, úmrtie a pohreb (dátum a miesto), zamestnania
+(každé s vlastným dátumom a miestom), poznámku a pri každom manželstve dátum
 a miesto sobáša a rozvod. **Uložiť** (Ctrl+Enter) zmenu hneď ukáže v schéme
 aj v PDF, **Zrušiť** (Esc) ju zahodí. Pridávanie a mazanie osôb zatiaľ nie je.
 
@@ -181,7 +181,7 @@ Open https://r3mus99.github.io/arbora/ (12 European languages, switch with
 the flag in the top right), load a GEDCOM file, choose
 Ancestors or Descendants, pick the person and download a multi-page PDF chart.
 **Edit** in a person's details changes names, sex, birth, christening, death,
-burial, occupation, note and marriages of existing people (with undo);
+burial, occupations, note and marriages of existing people (with undo);
 **Download GEDCOM** writes the edited file back, keeping every line the app did
 not change, including tags it does not understand.
 Ancestors: root is no. 1 on the left, father above, mother below. Descendants:

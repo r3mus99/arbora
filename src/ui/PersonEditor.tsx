@@ -1,8 +1,8 @@
-import { Check, X } from "lucide-react";
+import { Check, Plus, X } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import {
   PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields,
-  type FamilyFields, type PersonFields,
+  type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
@@ -45,6 +45,7 @@ export function PersonEditor({ data, record, families, lang, onSave, onCancel, t
     const f = personFields(record);
     const shown = { ...f };
     for (const key of PERSON_EVENTS) shown[key] = shownEvent(f[key], lang);
+    shown.occupations = f.occupations.map((o) => ({ ...o, ...shownEvent(o, lang) }));
     const fams = families.map((r) => {
       const ff = familyFields(r);
       return { stored: ff, shown: { ...ff, marriage: shownEvent(ff.marriage, lang) } };
@@ -64,6 +65,9 @@ export function PersonEditor({ data, record, families, lang, onSave, onCancel, t
     for (const key of PERSON_EVENTS) {
       after[key] = { ...form[key], date: date(form[key].date, initial.shown[key].date, initial.stored[key].date) };
     }
+    after.occupations = form.occupations.map((o) => (o.origin < 0 ? { ...o, date: parseDate(o.date, lang).value } : {
+      ...o, date: date(o.date, initial.shown.occupations[o.origin].date, initial.stored.occupations[o.origin].date),
+    }));
     const changed: GedNode[] = [];
     const rec = applyPerson(record, initial.stored, after);
     if (rec !== record) changed.push(rec);
@@ -84,6 +88,8 @@ export function PersonEditor({ data, record, families, lang, onSave, onCancel, t
   };
 
   const set = <K extends keyof PersonFields>(key: K, value: PersonFields[K]) => setForm({ ...form, [key]: value });
+  const setOcc = (i: number, patch: Partial<Occupation>) =>
+    set("occupations", form.occupations.map((o, j) => (j === i ? { ...o, ...patch } : o)));
   const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}) =>
     setFams(fams.map((f, j) => (j === i ? { ...f, ...patch, marriage: { ...f.marriage, ...marriage } } : f)));
   const event = (key: (typeof PERSON_EVENTS)[number]) => (
@@ -117,8 +123,27 @@ export function PersonEditor({ data, record, families, lang, onSave, onCancel, t
           {!["M", "F", "U", ""].includes(form.sex) && <option value={form.sex}>{form.sex}</option>}
         </select></label>
       {PERSON_EVENTS.map(event)}
-      <label><span>{t("occupation")}</span>
-        <input type="text" value={form.occupation} onChange={(e) => set("occupation", e.target.value)} /></label>
+      <fieldset className="list">
+        <legend>{t("occupation")}</legend>
+        {form.occupations.map((o, i) => (
+          <div className="item" key={o.origin < 0 ? `new${i}` : o.origin}>
+            <div className="item-head">
+              <input type="text" value={o.value} aria-label={t("occupation")}
+                     onChange={(e) => setOcc(i, { value: e.target.value })} />
+              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                      onClick={() => set("occupations", form.occupations.filter((_, j) => j !== i))}>
+                <X className="icon" aria-hidden="true" /></button>
+            </div>
+            <DateField value={o.date} shown={o.origin < 0 ? "" : initial.shown.occupations[o.origin].date} lang={lang}
+                       t={t} onChange={(v) => setOcc(i, { date: v })} />
+            <label><span>{t("place")}</span>
+              <input type="text" value={o.place} onChange={(e) => setOcc(i, { place: e.target.value })} /></label>
+          </div>
+        ))}
+        <button type="button" className="add" onClick={() => set("occupations",
+          [...form.occupations, { origin: -1, value: "", date: "", place: "" }])}>
+          <Plus className="icon" aria-hidden="true" />{t("addOccupation")}</button>
+      </fieldset>
       {families.map((r, i) => (
         <fieldset key={r.xref}>
           <legend>{t("marriage")} · {spouseName(r)}</legend>

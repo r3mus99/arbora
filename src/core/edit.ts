@@ -19,11 +19,13 @@ export interface PersonFields {
   christening: EventFields;
   death: EventFields;
   burial: EventFields;
-  /** OCCU values joined with ", " */
-  occupation: string;
+  /** OCCU lines in file order; `origin` is the index among them, -1 for a new one */
+  occupations: Occupation[];
   /** the first NOTE written in the record (not a link to a NOTE record) */
   note: string;
 }
+
+export interface Occupation extends EventFields { origin: number; value: string }
 
 export interface FamilyFields { marriage: EventFields; divorced: boolean }
 
@@ -35,11 +37,11 @@ const first = (node: GedNode, tag: string) => node.children.find((c) => c.tag ==
 const isLink = (value: string) => /^@[^@]+@$/.test(value);
 const inlineNote = (rec: GedNode) => rec.children.find((c) => c.tag === "NOTE" && !isLink(c.value)) || null;
 
-function eventFields(rec: GedNode, tag: string): EventFields {
-  const ev = first(rec, tag);
+function datePlace(ev: GedNode | null): EventFields {
   const d = ev && first(ev, "DATE"), p = ev && first(ev, "PLAC");
   return { date: d ? d.value : "", place: p ? p.value : "" };
 }
+const eventFields = (rec: GedNode, tag: string) => datePlace(first(rec, tag));
 
 /** "Ján Pavol /Kováč/ ml." → given, surname and what follows the surname */
 function splitName(value: string): { given: string; surname: string; suffix: string } {
@@ -60,7 +62,8 @@ export function personFields(rec: GedNode): PersonFields {
     given, surname, sex: sex ? sex.value.toUpperCase() : "",
     birth: eventFields(rec, "BIRT"), christening: eventFields(rec, "CHR"),
     death: eventFields(rec, "DEAT"), burial: eventFields(rec, "BURI"),
-    occupation: rec.children.filter((c) => c.tag === "OCCU").map((c) => c.value).filter(Boolean).join(", "),
+    occupations: rec.children.filter((c) => c.tag === "OCCU")
+      .map((c, origin) => ({ origin, value: c.value, ...datePlace(c) })),
     note: inlineNote(rec)?.value || "",
   };
   return fields;
@@ -101,15 +104,20 @@ function setChild(parent: GedNode, tag: string, value: string, insertAt?: number
   return { ...parent, children };
 }
 
-function setEvent(rec: GedNode, tag: string, before: EventFields, after: EventFields): GedNode {
-  if (before.date === after.date && before.place === after.place) return rec;
-  const i = rec.children.findIndex((c) => c.tag === tag);
-  let ev = i >= 0 ? rec.children[i] : node(tag);
+/** DATE and PLAC of an event (or OCCU) node; its other lines stay */
+function setDatePlace(ev: GedNode, before: EventFields, after: EventFields): GedNode {
   if (after.date !== before.date) ev = setChild(ev, "DATE", after.date, 0);
   if (after.place !== before.place) {
     const d = ev.children.findIndex((c) => c.tag === "DATE");
     ev = setChild(ev, "PLAC", after.place, d + 1);
   }
+  return ev;
+}
+
+function setEvent(rec: GedNode, tag: string, before: EventFields, after: EventFields): GedNode {
+  if (before.date === after.date && before.place === after.place) return rec;
+  const i = rec.children.findIndex((c) => c.tag === tag);
+  const ev = setDatePlace(i >= 0 ? rec.children[i] : node(tag), before, after);
   // an event left without anything in it ("1 DEAT Y" says the person died, so it stays)
   const empty = !ev.children.length && !ev.value;
   if (i < 0) return empty ? rec : { ...rec, children: insert(rec.children, ev) };
@@ -131,17 +139,27 @@ function setName(rec: GedNode, before: PersonFields, after: PersonFields): GedNo
   return { ...rec, children: old ? rec.children.map((c, j) => (j === i ? name : c)) : insert(rec.children, name) };
 }
 
-/** OCCU lines from the comma-separated text; existing lines are reused in order. */
-function setOccupation(rec: GedNode, text: string): GedNode {
-  const values = text.split(",").map((v) => v.trim()).filter(Boolean);
-  let k = 0;
+const sameOccupation = (a: Occupation, b: Occupation) =>
+  a.value === b.value && a.date === b.date && a.place === b.place;
+
+/** OCCU lines from the rows: kept ones updated, missing ones removed, new ones added after the others. */
+function setOccupations(rec: GedNode, before: Occupation[], after: Occupation[]): GedNode {
+  const rows = after.map((o) => ({ ...o, value: o.value.trim(), date: o.date.trim(), place: o.place.trim() }))
+    .filter((o) => o.value || o.date || o.place);
+  if (rows.length === before.length && rows.every((o, i) => o.origin === i && sameOccupation(o, before[i]))) return rec;
+  let k = -1;
   const children: GedNode[] = [];
   for (const c of rec.children) {
-    if (c.tag !== "OCCU") children.push(c);
-    else if (k < values.length) children.push({ ...c, value: values[k++] });
+    if (c.tag !== "OCCU") { children.push(c); continue; }
+    k++;
+    const row = rows.find((o) => o.origin === k);
+    if (!row) continue;
+    children.push(setDatePlace(row.value === c.value ? c : { ...c, value: row.value }, before[k], row));
   }
   let out = { ...rec, children };
-  for (; k < values.length; k++) out = { ...out, children: insert(out.children, node("OCCU", values[k])) };
+  for (const row of rows.filter((o) => o.origin < 0)) {
+    out = { ...out, children: insert(out.children, setDatePlace(node("OCCU", row.value), { date: "", place: "" }, row)) };
+  }
   return out;
 }
 
@@ -163,7 +181,7 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   let out = setName(rec, before, after);
   if (after.sex !== before.sex) out = setChild(out, "SEX", after.sex);
   for (const key of PERSON_EVENTS) out = setEvent(out, EVENT_TAGS[key], before[key], tidy(after[key]));
-  if (after.occupation.trim() !== before.occupation) out = setOccupation(out, after.occupation);
+  out = setOccupations(out, before.occupations, after.occupations);
   if (after.note.trim() !== before.note.trim()) out = setNote(out, after.note);
   if (out === rec) return rec;
   const { raw: _, ...rest } = out;

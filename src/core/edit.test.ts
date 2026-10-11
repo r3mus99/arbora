@@ -68,8 +68,9 @@ describe("writing GEDCOM", () => {
   });
 
   test("new events, occupations and a note go to their places", () => {
-    const out = edit(PERSON, "@I1@", () => ({
-      death: { date: "1901", place: "" }, occupation: "roľník, kováč", note: "prvý riadok\ndruhý",
+    const out = edit(PERSON, "@I1@", (f) => ({
+      death: { date: "1901", place: "" }, note: "prvý riadok\ndruhý",
+      occupations: [f.occupations[0], { origin: -1, value: "kováč", date: "", place: "" }],
       sex: "",
     }));
     expect(out).not.toContain("1 SEX");
@@ -80,11 +81,24 @@ describe("writing GEDCOM", () => {
   });
 
   test("clearing an event removes only what is empty", () => {
-    const out = edit(PERSON, "@I1@", () => ({ birth: { date: "", place: "" }, occupation: "" }));
+    const out = edit(PERSON, "@I1@", () => ({ birth: { date: "", place: "" }, occupations: [] }));
     expect(out).toContain("1 BIRT\n2 SOUR @S1@");
     expect(out).not.toContain("OCCU");
     const bare = edit("0 @I2@ INDI\n1 DEAT\n2 DATE 1900\n", "@I2@", () => ({ death: { date: "", place: "" } }));
     expect(bare).toBe("0 @I2@ INDI\n");
+  });
+
+  test("occupations keep their own lines; removing one keeps the others' sources", () => {
+    const ged = "0 @I1@ INDI\n1 OCCU roľník\n2 DATE 1900\n1 OCCU kováč, podkúvač\n2 SOUR @S1@\n1 OCCU mlynár\n";
+    const rec = parseGedcom(ged)[0];
+    const f = personFields(rec);
+    expect(f.occupations.map((o) => o.value)).toEqual(["roľník", "kováč, podkúvač", "mlynár"]);
+    const after = applyPerson(rec, f, { ...f, occupations: [
+      f.occupations[1], { ...f.occupations[2], date: "1920", place: "Brezno" },
+      { origin: -1, value: "richtár", date: "1930", place: "" },
+    ] });
+    expect(writeGedcom([after])).toBe("0 @I1@ INDI\n1 OCCU kováč, podkúvač\n2 SOUR @S1@\n1 OCCU mlynár\n2 DATE 1920\n" +
+                                      "2 PLAC Brezno\n1 OCCU richtár\n2 DATE 1930\n");
   });
 
   test("names without slashes and empty names", () => {

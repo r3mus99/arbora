@@ -76,6 +76,7 @@ const STRINGS_RAW = {
     note: "Poznámka", date: "Dátum", place: "Miesto", dateHint: "napr. 14.5.1891, cca 1890",
     datePhrase: "Dátum nemá známy tvar, uloží sa ako text.", discard: "Máte neuložené zmeny. Naozaj ich zahodiť?",
     leadEdit: "Údaje osôb môžete upraviť a stiahnuť ako GEDCOM.",
+    remove: "Odstrániť", addOccupation: "Pridať zamestnanie",
   },
   cs: {
     name: "Čeština", language: "Jazyk",
@@ -119,6 +120,7 @@ const STRINGS_RAW = {
     note: "Poznámka", date: "Datum", place: "Místo", dateHint: "např. 14.5.1891, asi 1890",
     datePhrase: "Datum nemá známý tvar, uloží se jako text.", discard: "Máte neuložené změny. Opravdu je zahodit?",
     leadEdit: "Údaje osob můžete upravit a stáhnout jako GEDCOM.",
+    remove: "Odstranit", addOccupation: "Přidat zaměstnání",
   },
   pl: {
     name: "Polski", language: "Język",
@@ -163,6 +165,7 @@ const STRINGS_RAW = {
     datePhrase: "Data ma nieznany format, zostanie zapisana jako tekst.",
     discard: "Masz niezapisane zmiany. Na pewno je odrzucić?",
     leadEdit: "Dane osób można edytować i pobrać jako GEDCOM.",
+    remove: "Usuń", addOccupation: "Dodaj zawód",
   },
   hu: {
     name: "Magyar", language: "Nyelv",
@@ -207,6 +210,7 @@ const STRINGS_RAW = {
     datePhrase: "A dátum formája ismeretlen, szövegként lesz mentve.",
     discard: "Nem mentett módosításai vannak. Biztosan elveti őket?",
     leadEdit: "A személyek adatai szerkeszthetők és GEDCOM-ként letölthetők.",
+    remove: "Eltávolítás", addOccupation: "Foglalkozás hozzáadása",
   },
   de: {
     name: "Deutsch", language: "Sprache",
@@ -252,6 +256,7 @@ const STRINGS_RAW = {
     datePhrase: "Das Datum hat keine bekannte Form und wird als Text gespeichert.",
     discard: "Es gibt ungespeicherte Änderungen. Wirklich verwerfen?",
     leadEdit: "Personendaten lassen sich bearbeiten und als GEDCOM herunterladen.",
+    remove: "Entfernen", addOccupation: "Beruf hinzufügen",
   },
   en: {
     name: "English", language: "Language",
@@ -296,6 +301,7 @@ const STRINGS_RAW = {
     datePhrase: "The date has no known form; it will be saved as text.",
     discard: "You have unsaved changes. Discard them?",
     leadEdit: "People's details can be edited and downloaded as GEDCOM.",
+    remove: "Remove", addOccupation: "Add occupation",
   },
   fr: {
     name: "Français", language: "Langue",
@@ -340,6 +346,7 @@ const STRINGS_RAW = {
     datePhrase: "La date n'a pas de forme connue ; elle sera enregistrée comme texte.",
     discard: "Des modifications ne sont pas enregistrées. Les abandonner ?",
     leadEdit: "Les données des personnes peuvent être modifiées et téléchargées en GEDCOM.",
+    remove: "Supprimer", addOccupation: "Ajouter une profession",
   },
   it: {
     name: "Italiano", language: "Lingua",
@@ -384,6 +391,7 @@ const STRINGS_RAW = {
     dateHint: "es. 14/5/1891, ca. 1890", datePhrase: "La data non ha una forma nota; verrà salvata come testo.",
     discard: "Ci sono modifiche non salvate. Scartarle?",
     leadEdit: "I dati delle persone si possono modificare e scaricare come GEDCOM.",
+    remove: "Rimuovi", addOccupation: "Aggiungi professione",
   },
   es: {
     name: "Español", language: "Idioma",
@@ -428,6 +436,7 @@ const STRINGS_RAW = {
     datePhrase: "La fecha no tiene una forma conocida; se guardará como texto.",
     discard: "Hay cambios sin guardar. ¿Descartarlos?",
     leadEdit: "Los datos de las personas se pueden editar y descargar como GEDCOM.",
+    remove: "Quitar", addOccupation: "Añadir ocupación",
   },
   pt: {
     name: "Português", language: "Idioma",
@@ -473,6 +482,7 @@ const STRINGS_RAW = {
     datePhrase: "A data não tem uma forma conhecida; será guardada como texto.",
     discard: "Há alterações por guardar. Descartá-las?",
     leadEdit: "Os dados das pessoas podem ser editados e descarregados como GEDCOM.",
+    remove: "Remover", addOccupation: "Adicionar profissão",
   },
   nl: {
     name: "Nederlands", language: "Taal",
@@ -517,6 +527,7 @@ const STRINGS_RAW = {
     datePhrase: "De datum heeft geen bekende vorm en wordt als tekst opgeslagen.",
     discard: "Er zijn niet-opgeslagen wijzigingen. Weggooien?",
     leadEdit: "Gegevens van personen kunt u bewerken en als GEDCOM downloaden.",
+    remove: "Verwijderen", addOccupation: "Beroep toevoegen",
   },
   uk: {
     name: "Українська", language: "Мова",
@@ -560,6 +571,7 @@ const STRINGS_RAW = {
     divorcedLabel: "розлучені", note: "Примітка", date: "Дата", place: "Місце", dateHint: "напр. 14.05.1891, бл. 1890",
     datePhrase: "Дата має невідомий формат, її буде збережено як текст.", discard: "Є незбережені зміни. Відкинути їх?",
     leadEdit: "Дані осіб можна редагувати й завантажити як GEDCOM.",
+    remove: "Вилучити", addOccupation: "Додати заняття",
   },
 };
 
