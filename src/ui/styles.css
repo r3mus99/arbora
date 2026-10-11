@@ -112,12 +112,9 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .tree-row button:hover { background: var(--accent-soft); }
 .tree-row.root button { font-weight: 700; }
 .tree-row.spouse { color: var(--muted); }
-.tree-row.male button { background: color-mix(in srgb, var(--male) 11%, transparent);
-                        box-shadow: inset 2px 0 0 var(--male); }
-.tree-row.female button { background: color-mix(in srgb, var(--female) 11%, transparent);
-                          box-shadow: inset 2px 0 0 var(--female); }
-.tree-row.male button:hover { background: color-mix(in srgb, var(--male) 22%, transparent); }
-.tree-row.female button:hover { background: color-mix(in srgb, var(--female) 22%, transparent); }
+.tree-row.male button, .tree-row.female button { border-radius: 0 5px 5px 0; }
+.tree-row.male button { box-shadow: inset 2px 0 0 var(--male); }
+.tree-row.female button { box-shadow: inset 2px 0 0 var(--female); }
 .tree-row.sel button { background: var(--accent); color: var(--accent-text); box-shadow: none; }
 .tree-row .dup { color: var(--muted); font-size: 13px; }
 .viewer { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
