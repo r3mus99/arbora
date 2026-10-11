@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.pdf
+!example/*.pdf
+*.ged
+!example/*.ged
