@@ -28,8 +28,10 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
 Potrebný je Python 3.9+ a knižnica [reportlab](https://pypi.org/project/reportlab/):
 
 ```
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
+
+Na macOS a Linuxe sa používa `python3` a `pip3`, na Windows `python` a `pip`.
 
 Skript hľadá TTF písmo s diakritikou automaticky (DejaVu Sans, Liberation Sans,
 Arial, Segoe UI na Linuxe, Windows aj macOS). Iné písmo sa dá zadať cez `--font`.
@@ -37,7 +39,7 @@ Arial, Segoe UI na Linuxe, Windows aj macOS). Iné písmo sa dá zadať cez `--f
 ## Grafické okno (GUI)
 
 ```
-python rodostrom_gui.py
+python3 rodostrom_gui.py
 ```
 
 ![GUI](docs/gui.png)
@@ -45,21 +47,22 @@ python rodostrom_gui.py
 Vyberiete GEDCOM súbor, v zozname nájdete a označíte koreňovú osobu,
 nastavíte voľby a stlačíte **Vytvoriť PDF** (alebo dvojklik na osobu).
 Posledný súbor, osoba a nastavenia sa zapamätajú v `~/.rodostrom_gui.json`.
-GUI používa Tkinter, ktorý je súčasťou Pythonu na Windows aj macOS; na Linuxe
-ho treba doinštalovať (`sudo apt install python3-tk`).
+GUI používa Tkinter. Python z python.org ho obsahuje (Windows aj macOS). Ak sa
+objaví chyba `No module named '_tkinter'`, doinštalujte ho: macOS s Homebrew
+`brew install python-tk`, Linux `sudo apt install python3-tk`.
 
 ## Použitie z príkazového riadku
 
 ```
 # nájdi ID osoby
-python rodostrom.py example/ukazka.ged --find "Adam Sokol"
+python3 rodostrom.py example/ukazka.ged --find "Adam Sokol"
 
 # vygeneruj PDF (osoba podľa ID alebo jednoznačného mena)
-python rodostrom.py example/ukazka.ged -p I1
-python rodostrom.py example/ukazka.ged -p "Adam Sokol" -o moj_rodostrom.pdf
+python3 rodostrom.py example/ukazka.ged -p I1
+python3 rodostrom.py example/ukazka.ged -p "Adam Sokol" -o moj_rodostrom.pdf
 
 # s miestami a celými dátumami, len 6 generácií
-python rodostrom.py example/ukazka.ged -p I1 --places short --dates full -g 6
+python3 rodostrom.py example/ukazka.ged -p I1 --places short --dates full -g 6
 ```
 
 | Voľba | Význam | Predvolené |
@@ -102,7 +105,7 @@ obsahuje chýbajúcich rodičov, približné dátumy (`ABT`, `BEF`), rozvod a
 opakovaného predka. Nový súbor s inými dátami:
 
 ```
-python tools/generate_example.py --seed 42 -g 8 -o example/ukazka.ged
+python3 tools/generate_example.py --seed 42 -g 8 -o example/ukazka.ged
 ```
 
 `.gitignore` ignoruje všetky ostatné `.ged` a `.pdf` súbory, aby sa do
@@ -116,13 +119,13 @@ father above, mother below, with birth / parents' marriage / death years in
 parentheses. Repeated ancestors are printed once and referenced by page.
 
 ```
-pip install reportlab
-python rodostrom.py example/ukazka.ged --find "Sokol"
-python rodostrom.py example/ukazka.ged -p I1 --lang en --places short --dates full
+pip3 install reportlab
+python3 rodostrom.py example/ukazka.ged --find "Sokol"
+python3 rodostrom.py example/ukazka.ged -p I1 --lang en --places short --dates full
 ```
 
 `example/ukazka.ged` is fictional test data made by `tools/generate_example.py`.
-Run `python rodostrom.py -h` for all options, or `python rodostrom_gui.py` for a simple window (Tkinter).
+Run `python3 rodostrom.py -h` for all options, or `python3 rodostrom_gui.py` for a simple window (Tkinter).
 
 ## Licencia
 
