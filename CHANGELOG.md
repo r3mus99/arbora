@@ -22,6 +22,8 @@ not counted).
 - Suggestions of surnames, places and religions already in the file.
 - Dates typed in the local form (`14.5.1891`, `~1890`, ranges) are stored as GEDCOM.
 - Undo and redo; download of the edited GEDCOM that keeps every unchanged line.
+- The downloaded GEDCOM names Arbora and its version in `HEAD SOUR`, with the date
+  and time of saving in `HEAD DATE`.
 
 ### File check
 - Check of the header, IDs, links between people and families, date form and

@@ -198,4 +198,13 @@ describe("dates typed in the form", () => {
     expect(dateInput("FROM 1890 TO 1895", "sk")).toBe("FROM 1890 TO 1895");
     expect(dateInput("14 MAY 1891", "fr")).toBe("14 MAY 1891");
   });
+
+  test("a file saved by Arbora says so in its header", () => {
+    const writer = { version: "1.0.0", date: new Date(2026, 9, 11, 13, 5, 9) };
+    const old = "0 HEAD\n1 SOUR FTM\n2 VERS 9\n1 DEST ANY\n1 DATE 1 JAN 2000\n1 GEDC\n2 VERS 5.5.1\n1 CHAR UTF-8\n0 TRLR\n";
+    expect(writeGedcom(parseGedcom(old), "\n", writer)).toBe("0 HEAD\n1 SOUR ARBORA\n2 VERS 1.0.0\n2 NAME Arbora\n" +
+      "1 DEST ANY\n1 DATE 11 OCT 2026\n2 TIME 13:05:09\n1 GEDC\n2 VERS 5.5.1\n1 CHAR UTF-8\n0 TRLR\n");
+    expect(writeGedcom(parseGedcom("0 HEAD\n1 CHAR UTF-8\n0 TRLR\n"), "\n", writer)).toBe("0 HEAD\n1 SOUR ARBORA\n" +
+      "2 VERS 1.0.0\n2 NAME Arbora\n1 DATE 11 OCT 2026\n2 TIME 13:05:09\n1 CHAR UTF-8\n0 TRLR\n");
+  });
 });

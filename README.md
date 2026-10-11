@@ -105,7 +105,9 @@ The arrows next to the file (or Ctrl+Z / Ctrl+Y) undo and redo saved changes.
 downloaded, "unsaved changes" is shown below the button. Changed records are
 written anew; every other line stays exactly as it was, including tags Arbora
 does not know (sources, notes on events, `_UID`, coordinates…). Even in a
-changed record only the edited lines change. The file is saved as UTF-8. Before
+changed record only the edited lines change. The header records Arbora as the
+program that saved the file (`HEAD SOUR ARBORA` with its version) and the date and
+time of saving (`HEAD DATE`). The file is saved as UTF-8. Before
 you leave the page with unsaved changes, the browser asks.
 
 ### File check
