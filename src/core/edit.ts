@@ -23,6 +23,8 @@ export interface PersonFields {
   occupations: Occupation[];
   /** the first NOTE written in the record (not a link to a NOTE record) */
   note: string;
+  /** RELI, religious affiliation */
+  religion: string;
 }
 
 export interface Occupation extends EventFields { origin: number; value: string }
@@ -65,6 +67,7 @@ export function personFields(rec: GedNode): PersonFields {
     occupations: rec.children.filter((c) => c.tag === "OCCU")
       .map((c, origin) => ({ origin, value: c.value, ...datePlace(c) })),
     note: inlineNote(rec)?.value || "",
+    religion: first(rec, "RELI")?.value || "",
   };
   return fields;
 }
@@ -73,11 +76,12 @@ export function familyFields(rec: GedNode): FamilyFields {
   return { marriage: eventFields(rec, "MARR"), divorced: !!first(rec, "DIV") };
 }
 
-/** Surnames and places used in the file, sorted, for suggestions in the form. */
-export function suggestions(records: GedNode[]): { surnames: string[]; places: string[] } {
-  const surnames = new Set<string>(), places = new Set<string>();
+/** Surnames, places and religions used in the file, sorted, for suggestions in the form. */
+export function suggestions(records: GedNode[]): { surnames: string[]; places: string[]; religions: string[] } {
+  const surnames = new Set<string>(), places = new Set<string>(), religions = new Set<string>();
   const walk = (n: GedNode) => {
     if (n.tag === "PLAC" && n.value) places.add(n.value);
+    if (n.tag === "RELI" && n.value) religions.add(n.value);
     if (n.tag === "NAME") {
       const s = splitName(n.value).surname || first(n, "SURN")?.value || "";
       if (s) surnames.add(s);
@@ -86,7 +90,7 @@ export function suggestions(records: GedNode[]): { surnames: string[]; places: s
   };
   records.forEach(walk);
   const sort = (set: Set<string>) => [...set].sort((a, b) => a.localeCompare(b));
-  return { surnames: sort(surnames), places: sort(places) };
+  return { surnames: sort(surnames), places: sort(places), religions: sort(religions) };
 }
 
 // ------------------------------------------------------------ changing nodes
@@ -96,7 +100,7 @@ const node = (tag: string, value = "", children: GedNode[] = []): GedNode =>
 
 /** usual GEDCOM order of a person's or family's lines; new lines go to their place */
 const ORDER = ["NAME", "SEX", "HUSB", "WIFE", "BIRT", "CHR", "BAPM", "DEAT", "BURI", "CREM", "MARR", "DIV",
-               "OCCU", "NOTE"];
+               "OCCU", "RELI", "NOTE"];
 const LATE = new Set(["FAMC", "FAMS", "CHIL", "SOUR", "OBJE", "CHAN", "RIN", "REFN"]);
 
 function insert(children: GedNode[], added: GedNode): GedNode[] {
@@ -198,6 +202,7 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   if (after.sex !== before.sex) out = setChild(out, "SEX", after.sex);
   for (const key of PERSON_EVENTS) out = setEvent(out, EVENT_TAGS[key], before[key], tidy(after[key]));
   out = setOccupations(out, before.occupations, after.occupations);
+  if (after.religion.trim() !== before.religion) out = setChild(out, "RELI", after.religion.trim());
   if (after.note.trim() !== before.note.trim()) out = setNote(out, after.note);
   if (out === rec) return rec;
   const { raw: _, ...rest } = out;

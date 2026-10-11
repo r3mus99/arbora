@@ -101,6 +101,13 @@ describe("writing GEDCOM", () => {
                                       "2 PLAC Brezno\n1 OCCU richtár\n2 DATE 1930\n");
   });
 
+  test("religion is one RELI line", () => {
+    const out = edit(PERSON, "@I1@", () => ({ religion: "rímskokatolícke" }));
+    expect(out).toContain("1 OCCU roľník\n1 RELI rímskokatolícke\n1 FAMS @F1@");
+    expect(readRecords(parseGedcom(out)).people["@I1@"].religion).toBe("rímskokatolícke");
+    expect(edit(out, "@I1@", () => ({ religion: "" }))).not.toContain("RELI");
+  });
+
   test("names without slashes and empty names", () => {
     expect(edit("0 @I1@ INDI\n1 NAME Anna //\n", "@I1@", () => ({ surname: "Nová" })))
       .toBe("0 @I1@ INDI\n1 NAME Anna /Nová/\n");
@@ -145,7 +152,7 @@ describe("writing GEDCOM", () => {
 test("surnames and places for suggestions", () => {
   const ged = "0 @I1@ INDI\n1 NAME Ján /Kováč/\n1 BIRT\n2 PLAC Brezno\n0 @I2@ INDI\n1 NAME Eva\n2 SURN Malá\n" +
               "1 DEAT\n2 PLAC Brezno\n0 @F1@ FAM\n1 MARR\n2 PLAC Ábelová\n";
-  expect(suggestions(parseGedcom(ged))).toEqual({ surnames: ["Kováč", "Malá"], places: ["Ábelová", "Brezno"] });
+  expect(suggestions(parseGedcom(ged))).toEqual({ surnames: ["Kováč", "Malá"], places: ["Ábelová", "Brezno"], religions: [] });
 });
 
 describe("dates typed in the form", () => {

@@ -76,7 +76,7 @@ const STRINGS_RAW = {
     note: "Poznámka", date: "Dátum", place: "Miesto", dateHint: "napr. 14.5.1891, cca 1890",
     datePhrase: "Dátum nemá známy tvar, uloží sa ako text.", discard: "Máte neuložené zmeny. Naozaj ich zahodiť?",
     remove: "Odstrániť", addOccupation: "Pridať zamestnanie",
-    copyBirth: "Prevziať z narodenia", copyDeath: "Prevziať z úmrtia",
+    copyBirth: "Prevziať z narodenia", copyDeath: "Prevziať z úmrtia", religion: "Vierovyznanie",
   },
   cs: {
     name: "Čeština", language: "Jazyk",
@@ -120,7 +120,7 @@ const STRINGS_RAW = {
     note: "Poznámka", date: "Datum", place: "Místo", dateHint: "např. 14.5.1891, asi 1890",
     datePhrase: "Datum nemá známý tvar, uloží se jako text.", discard: "Máte neuložené změny. Opravdu je zahodit?",
     remove: "Odstranit", addOccupation: "Přidat zaměstnání",
-    copyBirth: "Převzít z narození", copyDeath: "Převzít z úmrtí",
+    copyBirth: "Převzít z narození", copyDeath: "Převzít z úmrtí", religion: "Vyznání",
   },
   pl: {
     name: "Polski", language: "Język",
@@ -165,7 +165,7 @@ const STRINGS_RAW = {
     datePhrase: "Data ma nieznany format, zostanie zapisana jako tekst.",
     discard: "Masz niezapisane zmiany. Na pewno je odrzucić?",
     remove: "Usuń", addOccupation: "Dodaj zawód",
-    copyBirth: "Skopiuj z urodzenia", copyDeath: "Skopiuj ze śmierci",
+    copyBirth: "Skopiuj z urodzenia", copyDeath: "Skopiuj ze śmierci", religion: "Wyznanie",
   },
   hu: {
     name: "Magyar", language: "Nyelv",
@@ -210,7 +210,7 @@ const STRINGS_RAW = {
     datePhrase: "A dátum formája ismeretlen, szövegként lesz mentve.",
     discard: "Nem mentett módosításai vannak. Biztosan elveti őket?",
     remove: "Eltávolítás", addOccupation: "Foglalkozás hozzáadása",
-    copyBirth: "Átvétel a születésből", copyDeath: "Átvétel a halálból",
+    copyBirth: "Átvétel a születésből", copyDeath: "Átvétel a halálból", religion: "Vallás",
   },
   de: {
     name: "Deutsch", language: "Sprache",
@@ -256,7 +256,7 @@ const STRINGS_RAW = {
     datePhrase: "Das Datum hat keine bekannte Form und wird als Text gespeichert.",
     discard: "Es gibt ungespeicherte Änderungen. Wirklich verwerfen?",
     remove: "Entfernen", addOccupation: "Beruf hinzufügen",
-    copyBirth: "Von Geburt übernehmen", copyDeath: "Von Tod übernehmen",
+    copyBirth: "Von Geburt übernehmen", copyDeath: "Von Tod übernehmen", religion: "Konfession",
   },
   en: {
     name: "English", language: "Language",
@@ -301,7 +301,7 @@ const STRINGS_RAW = {
     datePhrase: "The date has no known form; it will be saved as text.",
     discard: "You have unsaved changes. Discard them?",
     remove: "Remove", addOccupation: "Add occupation",
-    copyBirth: "Copy from birth", copyDeath: "Copy from death",
+    copyBirth: "Copy from birth", copyDeath: "Copy from death", religion: "Religion",
   },
   fr: {
     name: "Français", language: "Langue",
@@ -346,7 +346,7 @@ const STRINGS_RAW = {
     datePhrase: "La date n'a pas de forme connue ; elle sera enregistrée comme texte.",
     discard: "Des modifications ne sont pas enregistrées. Les abandonner ?",
     remove: "Supprimer", addOccupation: "Ajouter une profession",
-    copyBirth: "Copier de la naissance", copyDeath: "Copier du décès",
+    copyBirth: "Copier de la naissance", copyDeath: "Copier du décès", religion: "Religion",
   },
   it: {
     name: "Italiano", language: "Lingua",
@@ -391,7 +391,7 @@ const STRINGS_RAW = {
     dateHint: "es. 14/5/1891, ca. 1890", datePhrase: "La data non ha una forma nota; verrà salvata come testo.",
     discard: "Ci sono modifiche non salvate. Scartarle?",
     remove: "Rimuovi", addOccupation: "Aggiungi professione",
-    copyBirth: "Copia dalla nascita", copyDeath: "Copia dalla morte",
+    copyBirth: "Copia dalla nascita", copyDeath: "Copia dalla morte", religion: "Religione",
   },
   es: {
     name: "Español", language: "Idioma",
@@ -436,7 +436,7 @@ const STRINGS_RAW = {
     datePhrase: "La fecha no tiene una forma conocida; se guardará como texto.",
     discard: "Hay cambios sin guardar. ¿Descartarlos?",
     remove: "Quitar", addOccupation: "Añadir ocupación",
-    copyBirth: "Copiar del nacimiento", copyDeath: "Copiar de la defunción",
+    copyBirth: "Copiar del nacimiento", copyDeath: "Copiar de la defunción", religion: "Religión",
   },
   pt: {
     name: "Português", language: "Idioma",
@@ -482,7 +482,7 @@ const STRINGS_RAW = {
     datePhrase: "A data não tem uma forma conhecida; será guardada como texto.",
     discard: "Há alterações por guardar. Descartá-las?",
     remove: "Remover", addOccupation: "Adicionar profissão",
-    copyBirth: "Copiar do nascimento", copyDeath: "Copiar do falecimento",
+    copyBirth: "Copiar do nascimento", copyDeath: "Copiar do falecimento", religion: "Religião",
   },
   nl: {
     name: "Nederlands", language: "Taal",
@@ -527,7 +527,7 @@ const STRINGS_RAW = {
     datePhrase: "De datum heeft geen bekende vorm en wordt als tekst opgeslagen.",
     discard: "Er zijn niet-opgeslagen wijzigingen. Weggooien?",
     remove: "Verwijderen", addOccupation: "Beroep toevoegen",
-    copyBirth: "Overnemen van geboorte", copyDeath: "Overnemen van overlijden",
+    copyBirth: "Overnemen van geboorte", copyDeath: "Overnemen van overlijden", religion: "Geloof",
   },
   uk: {
     name: "Українська", language: "Мова",
@@ -571,7 +571,7 @@ const STRINGS_RAW = {
     divorcedLabel: "розлучені", note: "Примітка", date: "Дата", place: "Місце", dateHint: "напр. 14.05.1891, бл. 1890",
     datePhrase: "Дата має невідомий формат, її буде збережено як текст.", discard: "Є незбережені зміни. Відкинути їх?",
     remove: "Вилучити", addOccupation: "Додати заняття",
-    copyBirth: "Скопіювати з народження", copyDeath: "Скопіювати зі смерті",
+    copyBirth: "Скопіювати з народження", copyDeath: "Скопіювати зі смерті", religion: "Віросповідання",
   },
 };
 

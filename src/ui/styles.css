@@ -172,7 +172,8 @@ h1 .logo { width: .9em; height: .9em; color: var(--accent); stroke-width: 1.6; }
 .chart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px;
               flex-wrap: wrap; margin-bottom: 10px; }
 .chart-head h2 { font-size: 21px; margin: 0; }
-.finder { position: relative; width: min(100%, 380px); }
+/* as wide as the detail panel below it */
+.finder { position: relative; width: min(100%, 340px); }
 .finder > .icon { position: absolute; left: 10px; top: 10px; color: var(--muted); pointer-events: none; }
 .finder input { padding-left: 36px; }
 .found { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; width: max(100%, 460px);

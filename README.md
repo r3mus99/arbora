@@ -81,7 +81,7 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
 
 Formulár v detaile osoby mení údaje už existujúcich osôb: meno a priezvisko (ponúka priezviská zo súboru),
 pohlavie, narodenie, krst, úmrtie a pohreb (dátum a miesto), zamestnania
-(každé s vlastným dátumom a miestom), poznámku a pri každom manželstve dátum
+(každé s vlastným dátumom a miestom), vierovyznanie, poznámku a pri každom manželstve dátum
 a miesto sobáša a rozvod. Pri miestach ponúka miesta, ktoré už sú v súbore; krst a pohreb
 vedia prevziať dátum a miesto z narodenia a úmrtia. **Uložiť** (Ctrl+Enter) zmenu hneď ukáže v schéme
 aj v PDF, **Zrušiť** (Esc) ju zahodí. Pridávanie a mazanie osôb zatiaľ nie je.

@@ -15,7 +15,7 @@ interface Props {
   families: GedNode[];
   lang: Lang;
   /** surnames and places in the file, offered while typing */
-  suggest: { surnames: string[]; places: string[] };
+  suggest: { surnames: string[]; places: string[]; religions: string[] };
   /** changed records only; nothing when nothing changed */
   onSave: (changed: GedNode[]) => void;
   onCancel: () => void;
@@ -42,7 +42,7 @@ function DateField({ value, shown, lang, onChange, t }: {
 }
 
 // the lists of suggestions, once per page
-const SURNAMES = "arbora-surnames", PLACES = "arbora-places";
+const SURNAMES = "arbora-surnames", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
 
 /** christening and burial can take the date and place of birth and death */
 const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "death", StringKey]>> = {
@@ -179,10 +179,14 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
             <span>{t("divorcedLabel")}</span></label>
         </fieldset>
       ))}
+      <label><span>{t("religion")}</span>
+        <input type="text" value={form.religion} list={RELIGIONS}
+               onChange={(e) => set("religion", e.target.value)} /></label>
       <label><span>{t("note")}</span>
         <textarea rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
       <datalist id={SURNAMES}>{suggest.surnames.map((s) => <option key={s} value={s} />)}</datalist>
       <datalist id={PLACES}>{suggest.places.map((s) => <option key={s} value={s} />)}</datalist>
+      <datalist id={RELIGIONS}>{suggest.religions.map((s) => <option key={s} value={s} />)}</datalist>
       <div className="actions">
         <button className="primary" type="submit" title="Ctrl+Enter">
           <Check className="icon" aria-hidden="true" />{t("save")}</button>

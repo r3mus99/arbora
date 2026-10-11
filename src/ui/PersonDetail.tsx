@@ -45,6 +45,7 @@ export function PersonDetail({ data, id, rootId, lang, onFocus, onMakeRoot, onEd
   const marriages = p.fams.map((f) => data.families[f]).filter(Boolean);
   const facts: [string, string][] = [
     [t("thBirth"), event(p.birth)], [t("thDeath"), event(p.death)], [t("occupation"), p.occupation],
+    [t("religion"), p.religion],
   ];
 
   return (
