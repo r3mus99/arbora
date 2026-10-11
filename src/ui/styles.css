@@ -228,3 +228,4 @@ button.link { display: inline; }
 .editor .item-head { grid-column: 1 / -1; display: flex; gap: 6px; }
 .editor .item-head input { flex: 1; min-width: 0; }
 .editor .add { justify-self: start; padding: 5px 10px; font-size: 14px; }
+.file.compact .status { flex-basis: 100%; margin: 0; padding: 0 4px; }

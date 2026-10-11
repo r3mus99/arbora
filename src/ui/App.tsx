@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { chartRows } from "../core/chart";
-import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, ChevronDown, Download, FileDown, FileText, FileUp, Loader2,
+import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, ChevronDown, FileDown, FileText, FileUp, Loader2,
          Redo2, Search, Settings, TreeDeciduous, Undo2 } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
@@ -45,12 +45,21 @@ interface Place { root: string; focus: string }
 /** collapsed branches of one chart (`key`) */
 interface Folding { key: string; paths: ReadonlySet<string> }
 const NO_PATHS: ReadonlySet<string> = new Set();
-interface Result { url: string; name: string }
 /** the loaded file: its records (replaced, never changed in place, by edits) and line ending */
 interface Doc { records: GedNode[]; eol: string }
 /** edit history; `saved` is the version last loaded or downloaded */
 interface Edits { past: Doc[]; future: Doc[]; saved: Doc | null }
 const NO_EDITS: Edits = { past: [], future: [], saved: null };
+
+/** Hand a file to the browser as a download. */
+function saveFile(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 async function loadFonts(): Promise<Fonts> {
   const get = async (p: string) => {
@@ -88,7 +97,6 @@ export function App() {
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
-  const [result, setResult] = useState<Result | null>(null);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
   const t = useCallback((key: StringKey, vars: Vars = {}) =>
@@ -119,10 +127,7 @@ export function App() {
   const desc = form.chart === "descendants";
 
   // ------------------------------------------------------------ result
-  const resetResult = () => {
-    setResult((r) => { if (r) URL.revokeObjectURL(r.url); return null; });
-    setStatus(null);
-  };
+  const resetResult = () => setStatus(null);
 
   const fileName = (name: string, chart: ChartKind) =>
     `${fold(name).replace(/[^\w.-]+/g, "_")}_${t(chart === "descendants" ? "fileDesc" : "fileAnc")}.pdf`;
@@ -137,11 +142,8 @@ export function App() {
       const { generate } = await import("../core/pdf");
       const opts = toOptions(form, lang);
       const res = await generate(data, id, opts, f);
-      resetResult();
-      setResult({
-        url: URL.createObjectURL(new Blob([res.bytes as BlobPart], { type: "application/pdf" })),
-        name: fileName(data.people[id].name, opts.chart),
-      });
+      saveFile(new Blob([res.bytes as BlobPart], { type: "application/pdf" }),
+               fileName(data.people[id].name, opts.chart));
       setStatus({ key: "done", err: false, vars: {
         pages: res.pages, gens: res.generations, shrunkSize: res.shrunk ? res.fontSize.toFixed(1) : "" } });
     } catch (e) {
@@ -235,12 +237,7 @@ export function App() {
   const gedName = (loadedName || "ukazka").replace(/\.(ged|gedcom)$/i, "") + ".ged";
   const downloadGedcom = () => {
     if (!doc) return;
-    const url = URL.createObjectURL(new Blob([writeGedcom(doc.records, doc.eol)], { type: "text/plain;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = gedName;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    saveFile(new Blob([writeGedcom(doc.records, doc.eol)], { type: "text/plain;charset=utf-8" }), gedName);
     setEdits({ ...edits, saved: doc });
   };
 
@@ -399,11 +396,15 @@ export function App() {
                   title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
           <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
                   title={`${t("redo")} (Ctrl+Y)`} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
-          <button type="button" className={dirty ? "primary" : undefined} onClick={downloadGedcom}
+          <button type="button" onClick={downloadGedcom}
                   title={t("exportTip")}>
             <FileDown className="icon" aria-hidden="true" />{t("exportGed")}</button>
+          <button type="button" className="primary" disabled={busy} onClick={() => create()}>
+            {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
+            {t("go")}</button>
           {dirty && <span className="unsaved">{t("unsaved")}</span>}
         </div>}
+        {data && statusText && <p className={status?.err ? "status err" : "status"}>{statusText}</p>}
         {!data && <p className="note"><span>{t("privacy")}</span>{" "}
           <button className="link" type="button" onClick={loadSample}>{t("sample")}</button></p>}
       </section>
@@ -519,18 +520,6 @@ export function App() {
           </div>
         </details>
 
-        <section className="panel make">
-          <div className="row">
-            <button className="primary big" type="button" disabled={busy} onClick={() => create()}>
-              {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
-              {t("go")}</button>
-            {result && <a className="btn big" href={result.url} download={result.name}>
-              <Download className="icon" aria-hidden="true" />{t("download")}</a>}
-            <span className={status?.err ? "status err" : "status"}>{statusText}</span>
-          </div>
-          {result && <iframe className="preview" style={{ display: "block" }} src={result.url}
-                             title={t("preview")} />}
-        </section>
       </>}
 
       <footer>Open source · <a href="https://github.com/r3mus99/arbora">GitHub</a> · <span>{t("license")}</span></footer>

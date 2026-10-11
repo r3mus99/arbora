@@ -70,7 +70,7 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
    (zbalené vetvy sa do PDF neprenášajú).
 6. **Upraviť** v detaile osoby otvorí formulár s jej údajmi (pozri nižšie).
 7. **Nastavenia** sú skryté, otvoria sa kliknutím. Menia aj schému na stránke.
-8. **Vytvoriť PDF**, potom **Stiahnuť PDF**.
+8. **Vytvoriť PDF** (hore vedľa Stiahnuť GEDCOM) vytvorí PDF a hneď ho stiahne.
 
 ### Úpravy a export do GEDCOM
 
