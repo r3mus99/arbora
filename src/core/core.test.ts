@@ -6,7 +6,7 @@ import {
   parseGedcom, reveal, visibleRows, type ChartOptions,
 } from "./index";
 
-// fictional sample data shipped with the site
+// sample data shipped with the site: Habsburgs from Wikidata
 const sample = readFileSync(new URL("../../public/ukazka.ged", import.meta.url));
 const fonts = {
   regular: readFileSync(new URL("../../public/fonts/DejaVuSans.ttf", import.meta.url)),
@@ -17,9 +17,9 @@ const opts = (o: Partial<ChartOptions> = {}): ChartOptions => ({ ...DEFAULTS, ..
 
 describe("GEDCOM", () => {
   test("loads the sample", () => {
-    expect(Object.keys(data.people)).toHaveLength(792);
-    expect(Object.keys(data.families)).toHaveLength(354);
-    expect(data.people["@I13@"]).toMatchObject({ name: "Juraj Sokol", sex: "M" });
+    expect(Object.keys(data.people)).toHaveLength(1714);
+    expect(Object.keys(data.families)).toHaveLength(906);
+    expect(data.people["@I52@"]).toMatchObject({ name: "František I.", sex: "M" });
   });
 
   test("joins CONC/CONT and nests sub-records", () => {
@@ -52,12 +52,12 @@ describe("GEDCOM", () => {
   test("joins occupations", () => {
     const ged = "0 @I1@ INDI\n1 NAME Ján /Kováč/\n1 OCCU roľník\n1 OCCU kováč";
     expect(load(ged).people["@I1@"].occupation).toBe("roľník, kováč");
-    expect(data.people["@I13@"].occupation).toBe("");
+    expect(data.people["@I52@"].occupation).toBe("");
   });
 
   test("finds people by name without diacritics or by ID", () => {
-    expect(findPeople("juraj sokol", data.people).map((p) => p.id)).toContain("@I13@");
-    expect(findPeople("I13", data.people)).toEqual([data.people["@I13@"]]);
+    expect(findPeople("frantisek i.", data.people).map((p) => p.id)).toContain("@I52@");
+    expect(findPeople("I52", data.people)).toEqual([data.people["@I52@"]]);
   });
 });
 
@@ -98,42 +98,49 @@ describe("ancestor chart", () => {
   const rows = chartRows(data, "@I1@", opts());
 
   test("root is generation 1 with father's line above and mother's below", () => {
-    expect(rows).toHaveLength(269);
+    expect(rows).toHaveLength(1491);
     const root = rows.findIndex((r) => r.gen === 1);
-    expect(rows[root].text).toBe("1. Adam Sokol (*1994)");
-    expect(rows.slice(0, root).some((r) => r.text.startsWith("2. Ondrej Sokol"))).toBe(true);
-    expect(rows.slice(root + 1).some((r) => r.gen === 2)).toBe(true);
-    expect(rows[0].text).toBe("10. Štefan Sokol (†cca 1766)");
+    expect(rows[root].text).toBe("1. Karol I. (*1887, †1922)");
+    expect(rows.slice(0, root).some((r) => r.text.startsWith("2. Otto František Jozef Habsburský"))).toBe(true);
+    expect(rows.slice(root + 1).some((r) => r.text.startsWith("2. Mária Jozefa Saská"))).toBe(true);
+    expect(rows[0].text).toBe("13. František I. (*1517, ∞1541, †1545)");
   });
 
   test("repeated ancestor is printed once and then referenced", () => {
     const dups = rows.filter((r) => r.dup);
-    expect(dups.map((r) => r.text)).toEqual(["6. Samuel Gálik (*1830, †1873)"]);
-    expect(dups[0].target?.personId).toBe(dups[0].personId);
+    expect(dups).toHaveLength(403);
+    for (const r of dups) expect(r.target?.personId).toBe(r.personId);
   });
 
-  test("divorce, Ahnentafel numbers and generation limit", () => {
+  test("Ahnentafel numbers and generation limit", () => {
     const ahn = chartRows(data, "@I1@", opts({ numbering: "ahnentafel", generations: 3 }));
     expect(ahn.map((r) => r.text.split(".")[0]).sort((a, b) => +a - +b))
       .toEqual(["1", "2", "3", "4", "5", "6", "7"]);
-    expect(ahn.find((r) => r.text.startsWith("2. "))?.text).toContain("(rozv.)");
+    expect(ahn.find((r) => r.text.startsWith("2. "))?.text).toBe("2. Otto František Jozef Habsburský (*1865, ∞1886, †1906)");
   });
 });
 
 describe("descendant chart", () => {
   test("spouses with marriage year and children below", () => {
-    const rows = chartRows(data, "@I13@", opts({ chart: "descendants" }));
-    expect(rows).toHaveLength(145);
-    expect(rows.slice(0, 4).map((r) => [r.gen, r.text])).toEqual([
-      [1, "1. Juraj Sokol (*cca 1761, †cca 1806)"],
-      [1, "∞1791 Magdaléna Mlynárová (*cca 1762, †cca 1804)"],
-      [2, "2. Tomáš Sokol (*cca 1792, †1869)"],
-      [2, "∞cca 1821 Veronika Ondrušová (*1803, †cca 1845)"],
+    const rows = chartRows(data, "@I52@", opts({ chart: "descendants" }));
+    expect(rows).toHaveLength(699);
+    expect(rows.slice(0, 3).map((r) => [r.gen, r.text])).toEqual([
+      [1, "1. František I. (*1708, †1765)"],
+      [1, "∞1736 Mária Terézia (*1717, †1780)"],
+      [2, "2. Marie Alžběta Rakouská (*1737, †1740)"],
+    ]);
+  });
+
+  test("several marriages and a divorce", () => {
+    const spouses = chartRows(data, "@I416@", opts({ chart: "descendants" })).filter((r) => r.spouse);
+    expect(spouses.slice(0, 2).map((r) => r.text)).toEqual([
+      "∞1572 (rozv.) Margaréta Valois (*1553, †1615)",
+      "∞1600 Mária Medicejská (*1575, †1642)",
     ]);
   });
 
   test("spouse lines name the spouse", () => {
-    const rows = chartRows(data, "@I13@", opts({ chart: "descendants" }));
+    const rows = chartRows(data, "@I52@", opts({ chart: "descendants" }));
     const spouses = rows.filter((r) => r.spouse);
     expect(spouses.length).toBeGreaterThan(0);
     for (const r of spouses) {
@@ -143,16 +150,16 @@ describe("descendant chart", () => {
   });
 
   test("d'Aboville numbering and without spouses", () => {
-    const rows = chartRows(data, "@I13@", opts({ chart: "descendants", numbering: "ahnentafel",
+    const rows = chartRows(data, "@I52@", opts({ chart: "descendants", numbering: "ahnentafel",
                                                  showSpouses: false }));
     expect(rows.some((r) => r.spouse)).toBe(false);
-    expect(rows[1].text).toMatch(/^1\.1\. Tomáš Sokol/);
+    expect(rows[1].text).toMatch(/^1\.1\. Marie Alžběta Rakouská/);
   });
 });
 
 describe("collapsed branches", () => {
   const anc = chartRows(data, "@I1@", opts({ numbering: "ahnentafel" }));
-  const desc = chartRows(data, "@I13@", opts({ chart: "descendants" }));
+  const desc = chartRows(data, "@I52@", opts({ chart: "descendants" }));
 
   test("nothing collapsed shows every row with the same connectors", () => {
     const shown = visibleRows(anc, new Set());
@@ -181,10 +188,11 @@ describe("collapsed branches", () => {
   });
 
   test("descendants: spouse lines fold with the person", () => {
-    const tomas = desc.find((r) => r.ref === "1.1")!;
-    const shown = visibleRows(desc, new Set([tomas.path]));
-    expect(shown.some((r) => r.path.startsWith("1.1~") || r.path.startsWith("1.1."))).toBe(false);
-    expect(shown.find((r) => r.path === "1.1")!.hidden).toBe(desc.filter((r) => !r.spouse && r.path.startsWith("1.1.")).length);
+    const leopold = desc.find((r) => r.ref === "1.9")!;
+    expect(leopold.text).toBe("2. Leopold II. (*1747, †1792)");
+    const shown = visibleRows(desc, new Set([leopold.path]));
+    expect(shown.some((r) => r.path.startsWith("1.9~") || r.path.startsWith("1.9."))).toBe(false);
+    expect(shown.find((r) => r.path === "1.9")!.hidden).toBe(desc.filter((r) => !r.spouse && r.path.startsWith("1.9.")).length);
   });
 
   test("revealing a row opens the branches above it", () => {
@@ -196,17 +204,17 @@ describe("collapsed branches", () => {
 
 describe("PDF", () => {
   test("ancestors, A4 portrait", async () => {
-    const res = await generate(data, "@I1@", { lang: "sk" }, fonts);
-    expect(res).toMatchObject({ pages: 6, rows: 269, generations: 10, title: "Predkovia: Adam Sokol" });
+    const res = await generate(data, "@I1@", { lang: "sk", generations: 7 }, fonts);
+    expect(res).toMatchObject({ pages: 3, rows: 103, generations: 7, title: "Predkovia: Karol I." });
     const doc = await PDFDocument.load(res.bytes);
-    expect(doc.getPageCount()).toBe(6);
-    expect(doc.getTitle()).toBe("Predkovia: Adam Sokol");
+    expect(doc.getPageCount()).toBe(3);
+    expect(doc.getTitle()).toBe("Predkovia: Karol I.");
   });
 
   test("descendants in English, landscape", async () => {
-    const res = await generate(data, "@I13@", { chart: "descendants", lang: "en",
+    const res = await generate(data, "@I52@", { chart: "descendants", lang: "en",
                                                 orientation: "landscape" }, fonts);
-    expect(res.title).toBe("Descendants of Juraj Sokol");
+    expect(res.title).toBe("Descendants of František I.");
     const page = (await PDFDocument.load(res.bytes)).getPage(0);
     expect(page.getWidth()).toBeGreaterThan(page.getHeight());
   });

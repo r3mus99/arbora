@@ -5,7 +5,7 @@ import {
   readRecords, writeGedcom, type GedNode, type PersonFields,
 } from "./index";
 
-// fictional sample data shipped with the site
+// sample data shipped with the site: Habsburgs from Wikidata
 const sampleText = decode(readFileSync(new URL("../../public/ukazka.ged", import.meta.url)));
 
 const record = (records: GedNode[], xref: string) => records.find((r) => r.xref === xref)!;
@@ -134,11 +134,11 @@ describe("writing GEDCOM", () => {
 
   test("edited sample person shows in the people", () => {
     const records = parseGedcom(sampleText);
-    const rec = record(records, "@I13@");
+    const rec = record(records, "@I52@");
     const f = personFields(rec);
-    expect(f).toMatchObject({ given: "Juraj", surname: "Sokol", sex: "M" });
-    const changed = applyPerson(rec, f, { ...f, surname: "Sokolík" });
-    expect(readRecords(records.map((r) => (r === rec ? changed : r))).people["@I13@"].name).toBe("Juraj Sokolík");
+    expect(f).toMatchObject({ given: "František I.", surname: "", sex: "M" });
+    const changed = applyPerson(rec, f, { ...f, surname: "Lotrinský" });
+    expect(readRecords(records.map((r) => (r === rec ? changed : r))).people["@I52@"].name).toBe("František I. Lotrinský");
   });
 });
 

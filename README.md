@@ -15,12 +15,12 @@ odsadená doprava, otcova línia je nad osobou, matkina pod ňou. Za menom je
 v zátvorke rok narodenia (`*`), sobáša rodičov (`∞`) a úmrtia (`†`):
 
 ```
-            ┌ 3. Pavol Sokol (*1922, †1988)
-      ┌ 2. Ondrej Sokol (*1960, ∞1992 (rozv.), †2009)
-      │     └ 3. …
-1. Adam Sokol (*1994)
-      │     ┌ 3. …
-      └ 2. …
+            ┌ 3. Karol Ľudovít Habsburský (*1833, ∞1862, †1896)
+      ┌ 2. Otto František Jozef Habsburský (*1865, ∞1886, †1906)
+      │     └ 3. Marie Annunziata Neapolsko-Sicilská (*1843, †1871)
+1. Karol I. (*1887, †1922)
+      │     ┌ 3. Jiří I. Saský (*1832, ∞1859, †1904)
+      └ 2. Mária Jozefa Saská (*1867, †1944)
             └ 3. …
 ```
 
@@ -33,13 +33,18 @@ nimi odsadené deti zoradené podľa narodenia, ďalej vnúčatá atď. Pri viac
 manželstvách sú deti rozdelené podľa toho, s kým ich osoba mala:
 
 ```
-1. Juraj Sokol (*cca 1761, †cca 1806)
-∞1791 Magdaléna Mlynárová (*cca 1762, †cca 1804)
-   ├ 2. Tomáš Sokol (*cca 1792, †1869)
-   │  ∞cca 1821 Veronika Ondrušová (*1803, †cca 1845)
-   │     └ 3. Ján Sokol (*1822, †1875)
-   │        ∞1849 Mária Mlynárová (*1826, †1862)
-   │           └ 4. …
+1. František I. (*1708, †1765)
+∞1736 Mária Terézia (*1717, †1780)
+   ├ 2. …
+   ├ 2. Leopold II. (*1747, †1792)
+   │  ∞1765 Mária Ludovika Španielska (*1745, †1792)
+   │     ├ 3. František II. (*1768, †1835)
+   │     │  ∞1788 Alžbeta Wilhelmína Württemberská (*1767, †1790)
+   │     │     └ 4. …
+   │     │  ∞1790 Mária Terézia Neapolsko-sicílska (*1772, †1807)
+   │     │     ├ 4. Mária Lujza Habsbursko-lotrinská (*1791, †1847)
+   │     │     └ 4. Ferdinand I. (*1793, †1875)
+   │     └ 3. …
    └ 2. …
 ```
 
@@ -168,9 +173,14 @@ pri každom pushi do `main`; v nastaveniach repozitára je *Pages → Source: Gi
 
 ## Testovacie dáta
 
-`public/ukazka.ged` obsahuje **len vymyslené osoby, dátumy a obce**. Zámerne obsahuje
-chýbajúcich rodičov, približné dátumy (`ABT`, `BEF`), rozvod, opakovaného predka
-a rozvetvených potomkov (vyskúšajte napr. Juraj Sokol, I13).
+`public/ukazka.ged` je rodokmeň Habsburgovcov z [Wikidata](https://www.wikidata.org)
+(CC0): predkovia cisára Karola I. (I1) a potomkovia Františka I. Štefana Lotrinského
+(I52) po mužskej línii spolu s manželmi, spolu 1714 osôb. Nie je v ňom nikto
+narodený od roku 1950 a od roku 1900 len ľudia so známym dátumom úmrtia, teda
+žiadne žijúce osoby. Mená a miesta sú zo slovenských popisov Wikidata, kde chýbajú,
+z českých, nemeckých alebo anglických; pri každej osobe je jej Wikidata ID
+(`REFN … TYPE Wikidata`). Obsahuje približné dátumy, viac manželstiev, rozvod
+(napr. Henrich IV., I416), deti s neznámou matkou a veľa opakovaných predkov.
 
 `.gitignore` ignoruje všetky ostatné `.ged` a `.pdf` súbory, aby sa do
 repozitára omylom nedostal skutočný rodokmeň.
@@ -187,7 +197,8 @@ not change, including tags it does not understand.
 Ancestors: root is no. 1 on the left, father above, mother below. Descendants:
 the ancestor is no. 1, spouses with marriage year, children indented below.
 Birth / marriage / death years are in parentheses; repeated people are printed
-once with a page reference. Everything
+once with a page reference. The built-in sample is the Habsburg family tree from
+Wikidata (CC0, nobody born from 1950 on). Everything
 runs client-side; the file never leaves your browser.
 
 ## Licencia
