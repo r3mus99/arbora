@@ -373,7 +373,7 @@ export function App() {
       <header className="top">
         <div>
           <h1><TreeDeciduous className="logo" aria-hidden="true" />Arbora</h1>
-          {!data && <p className="lead">{t("lead")} {t("leadEdit")}</p>}
+          {!data && <p className="lead">{t("lead")}</p>}
         </div>
         <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
       </header>
