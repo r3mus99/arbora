@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Generate a fictional GEDCOM file for testing rodostrom.py.
+"""Generate a fictional GEDCOM file for testing the rodostrom web page.
 
 All people, dates and family links are random (seeded, so the output is
 reproducible). The file deliberately contains the cases the chart has to
 handle: missing parents, approximate dates (ABT/BEF), full and year-only
 dates, a divorce, and pedigree collapse (one ancestral couple appears twice).
 
-    python tools/generate_example.py -o example/ukazka.ged
+    python3 tools/generate_example.py -o docs/ukazka.ged
 """
 
 from __future__ import annotations
@@ -183,7 +183,7 @@ class Gen:
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("-o", "--output", default="example/ukazka.ged")
+    ap.add_argument("-o", "--output", default="docs/ukazka.ged")
     ap.add_argument("--seed", type=int, default=1848)
     ap.add_argument("-g", "--generations", type=int, default=10)
     a = ap.parse_args()

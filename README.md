@@ -1,7 +1,9 @@
 # gedcom-to-pdf (rodostrom)
 
-Generátor PDF schémy predkov (rodostromu) z GEDCOM súboru.
-*Ancestor chart PDF generator for GEDCOM files (English summary below).*
+**Online: https://r3mus99.github.io/gedcom-to-pdf/**
+
+Webová stránka, ktorá z GEDCOM súboru vytvorí PDF schému predkov (rodostrom).
+*Web page that turns a GEDCOM file into a PDF ancestor chart (English summary below).*
 
 Koreňová osoba má číslo 1 a je pri ľavom okraji. Každá ďalšia generácia je
 odsadená doprava, otcova línia je nad osobou, matkina pod ňou. Za menom je
@@ -17,95 +19,70 @@ v zátvorke rok narodenia (`*`), sobáša rodičov (`∞`) a úmrtia (`†`):
             └ 3. …
 ```
 
-Ukážka: [example/ukazka.pdf](example/ukazka.pdf) vygenerované z
-[example/ukazka.ged](example/ukazka.ged).
+Ukážka: [docs/ukazka.pdf](docs/ukazka.pdf) vytvorené z
+[docs/ukazka.ged](docs/ukazka.ged).
 
 Predok, ktorý sa v strome objaví viackrát (napr. príbuzenské sobáše), sa
 rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
 
-## Inštalácia
+## Použitie
 
-Potrebný je Python 3.9+ a knižnica [reportlab](https://pypi.org/project/reportlab/):
+1. Otvorte stránku a vyberte (alebo pretiahnite) svoj `.ged` súbor.
+2. V zozname nájdite a kliknite na koreňovú osobu.
+3. Nastavte voľby a stlačte **Vytvoriť PDF**, potom **Stiahnuť PDF**.
 
-```
-python3 -m pip install -r requirements.txt
-```
+**Súkromie:** všetko beží iba vo vašom prehliadači. GEDCOM súbor sa nikam
+neodosiela a stránka nemá žiadny server. Prehliadač si pamätá len nastavenia
+a ID poslednej osoby (localStorage), nie obsah súboru.
 
-Na macOS a Linuxe sa používa `python3`, na Windows `py` alebo `python` (napr. `py -m pip install -r requirements.txt`).
+### Nastavenia
 
-Skript hľadá TTF písmo s diakritikou automaticky (DejaVu Sans, Liberation Sans,
-Arial, Segoe UI na Linuxe, Windows aj macOS). Iné písmo sa dá zadať cez `--font`.
+| Voľba | Možnosti |
+|---|---|
+| Jazyk | slovensky, česky, English (nadpis, skratky, čísla strán) |
+| Popisky | symboly `* ∞ †` alebo skratky `nar. sob. zom.` |
+| Dátumy | len rok, alebo celý dátum (`14.5.1991`) |
+| Miesta | bez miest, len obec, celé miesto |
+| Číslovanie | generácia (1, 2, 3…), Ahnentafel (otec = 2n, matka = 2n+1), bez čísel |
+| Sobáš rodičov | pri otcovi, pri oboch rodičoch, nezobrazovať |
+| Formát a orientácia | A4, A3, A5, Letter, Legal; na výšku / na šírku |
+| Generácie | maximálny počet vrátane koreňa (0 = všetky) |
+| Ďalšie | veľkosť písma, vlastný nadpis, opakovaných predkov rozpísať znova, matka hore, zobraziť ID, dátum tlače |
 
-## Grafické okno (GUI)
-
-```
-python3 rodostrom_gui.py
-```
-
-![GUI](docs/gui.png)
-
-Vyberiete GEDCOM súbor, v zozname nájdete a označíte koreňovú osobu,
-nastavíte voľby a stlačíte **Vytvoriť PDF** (alebo dvojklik na osobu).
-Posledný súbor, osoba a nastavenia sa zapamätajú v `~/.rodostrom_gui.json`.
-GUI používa Tkinter. Python z python.org ho obsahuje (Windows aj macOS). Ak sa
-objaví chyba `No module named '_tkinter'`, doinštalujte ho: macOS s Homebrew
-`brew install python-tk`, Linux `sudo apt install python3-tk`.
-
-## Použitie z príkazového riadku
-
-```
-# nájdi ID osoby
-python3 rodostrom.py example/ukazka.ged --find "Adam Sokol"
-
-# vygeneruj PDF (osoba podľa ID alebo jednoznačného mena)
-python3 rodostrom.py example/ukazka.ged -p I1
-python3 rodostrom.py example/ukazka.ged -p "Adam Sokol" -o moj_rodostrom.pdf
-
-# s miestami a celými dátumami, len 6 generácií
-python3 rodostrom.py example/ukazka.ged -p I1 --places short --dates full -g 6
-```
-
-| Voľba | Význam | Predvolené |
-|---|---|---|
-| `-p, --person` | koreňová osoba: GEDCOM ID (`I1`) alebo časť mena | povinné |
-| `-o, --output` | výstupný PDF | `<meno>_rodostrom.pdf` |
-| `--find TEXT` | vypíše osoby, ktorých meno obsahuje TEXT (bez ohľadu na diakritiku) | |
-| `-g, --generations N` | maximálny počet generácií vrátane koreňa (0 = všetky) | 0 |
-| `--lang sk\|cs\|en` | jazyk nadpisu, skratiek a čísel strán | `sk` |
-| `--labels symbols\|abbr` | `* ∞ †` alebo `nar. sob. zom.` | `symbols` |
-| `--dates year\|full` | len rok, alebo celý dátum (`14.5.1991`) | `year` |
-| `--places none\|short\|full` | bez miest, len obec, alebo celé miesto | `none` |
-| `--numbering generation\|ahnentafel\|none` | číslo generácie (1, 2, 3…) alebo Kekulé číslo (otec = 2n, matka = 2n+1) | `generation` |
-| `--marriage-on father\|both\|none` | pri ktorom z rodičov uviesť ich sobáš | `father` |
-| `--repeat` | opakovaných predkov rozvinúť znova namiesto odkazu | |
-| `--mother-first` | matka hore, otec dole | |
-| `--show-ids` | za meno pridať GEDCOM ID | |
-| `--no-fallback-events` | nepoužiť krst/pohreb, keď chýba narodenie/úmrtie | |
-| `--title`, `--no-date` | vlastný nadpis, bez dátumu tlače | |
-| `--page-size a4\|a3\|a5\|letter\|legal`, `--orientation portrait\|landscape` | formát strany | `a4`, `portrait` |
-| `--font-size`, `--line-height`, `--indent`, `--margin` | typografia (body) | 8.5, 1.7, auto, 36 |
-| `--font cesta.ttf` | vlastné písmo | auto |
-
-Ak sa najdlhší riadok nezmestí na šírku strany, skript najprv zmenší
-odsadenie generácií a potom písmo. Pri veľmi dlhých riadkoch (napr. celé
-miesta) pomôže `--orientation landscape`, `--page-size a3` alebo `--places short`.
+Ak sa najdlhší riadok nezmestí na šírku strany, odsadenie generácií a potom
+písmo sa automaticky zmenšia.
 
 ### Poznámky k údajom
 
-- Dátumy GEDCOM `ABT`, `EST`, `CAL` sa zobrazia ako „cca“, `BEF` ako „pred“, `AFT` ako „po“,
+- Dátumy `ABT`, `EST`, `CAL` sa zobrazia ako „cca“, `BEF` ako „pred“, `AFT` ako „po“,
   rozsahy `BET … AND …` / `FROM … TO …` ako „1903–1905“.
 - Rozvod sa zobrazí („∞1991 (rozv.)“), ak má rodina v GEDCOM-e záznam `1 DIV`.
-- Ak osoba nemá narodenie, použije sa krst (`CHR`/`BAPM`), ak nemá úmrtie, použije sa pohreb (`BURI`).
+- Ak chýba narodenie, použije sa krst (`CHR`/`BAPM`); ak chýba úmrtie, použije sa pohreb (`BURI`).
+- Kódovanie súboru: UTF-8 (aj s BOM), UTF-16, inak Windows-1250.
+
+## Štruktúra
+
+```
+docs/               stránka pre GitHub Pages
+  index.html        formulár
+  app.js            logika stránky
+  rodostrom.js      generátor (GEDCOM → riadky → PDF), funguje aj v Node.js
+  vendor/           pdf-lib + fontkit (MIT), licencie v vendor/LICENSES.md
+  fonts/            DejaVu Sans (písmo s diakritikou)
+  ukazka.ged/.pdf   vymyslené testovacie dáta
+tools/generate_example.py   generátor testovacieho GEDCOM-u
+```
+
+Lokálne spustenie: `cd docs && python3 -m http.server`, potom http://localhost:8000.
 
 ## Testovacie dáta
 
-`example/ukazka.ged` obsahuje **len vymyslené osoby, dátumy a obce**, vygenerované
-skriptom `tools/generate_example.py` (náhodne, s pevným seedom). Súbor zámerne
-obsahuje chýbajúcich rodičov, približné dátumy (`ABT`, `BEF`), rozvod a
-opakovaného predka. Nový súbor s inými dátami:
+`docs/ukazka.ged` obsahuje **len vymyslené osoby, dátumy a obce**, vygenerované
+skriptom `tools/generate_example.py` (náhodne, s pevným seedom). Zámerne obsahuje
+chýbajúcich rodičov, približné dátumy (`ABT`, `BEF`), rozvod a opakovaného predka.
 
 ```
-python3 tools/generate_example.py --seed 42 -g 8 -o example/ukazka.ged
+python3 tools/generate_example.py --seed 42 -g 8 -o docs/ukazka.ged
 ```
 
 `.gitignore` ignoruje všetky ostatné `.ged` a `.pdf` súbory, aby sa do
@@ -113,20 +90,12 @@ repozitára omylom nedostal skutočný rodokmeň.
 
 ## English summary
 
-`rodostrom.py` turns a GEDCOM file into a multi-page PDF ancestor chart: the
-root person is no. 1 on the left, each generation is indented to the right,
-father above, mother below, with birth / parents' marriage / death years in
-parentheses. Repeated ancestors are printed once and referenced by page.
-
-```
-python3 -m pip install reportlab
-python3 rodostrom.py example/ukazka.ged --find "Sokol"
-python3 rodostrom.py example/ukazka.ged -p I1 --lang en --places short --dates full
-```
-
-`example/ukazka.ged` is fictional test data made by `tools/generate_example.py`.
-Run `python3 rodostrom.py -h` for all options, or `python3 rodostrom_gui.py` for a simple window (Tkinter).
+Open https://r3mus99.github.io/gedcom-to-pdf/, load a GEDCOM file, pick the
+root person and download a multi-page PDF ancestor chart: root is no. 1 on the
+left, father above, mother below, birth / parents' marriage / death years in
+parentheses, repeated ancestors printed once with a page reference. Everything
+runs client-side; the file never leaves your browser.
 
 ## Licencia
 
-MIT, pozri [LICENSE](LICENSE).
+MIT, pozri [LICENSE](LICENSE). Knižnice a písmo tretích strán: [docs/vendor/LICENSES.md](docs/vendor/LICENSES.md).
