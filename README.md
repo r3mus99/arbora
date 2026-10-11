@@ -21,7 +21,7 @@ v zátvorke rok narodenia (`*`), sobáša rodičov (`∞`) a úmrtia (`†`):
             └ 3. …
 ```
 
-Ukážka: [docs/ukazka_predkovia.pdf](docs/ukazka_predkovia.pdf).
+Ukážka: [public/ukazka_predkovia.pdf](public/ukazka_predkovia.pdf).
 
 ### Potomkovia
 
@@ -40,7 +40,7 @@ manželstvách sú deti rozdelené podľa toho, s kým ich osoba mala:
    └ 2. …
 ```
 
-Ukážka: [docs/ukazka_potomkovia.pdf](docs/ukazka_potomkovia.pdf).
+Ukážka: [public/ukazka_potomkovia.pdf](public/ukazka_potomkovia.pdf).
 
 Osoba, ktorá sa v strome objaví viackrát (napr. príbuzenské sobáše), sa
 rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
@@ -90,22 +90,35 @@ písmo sa automaticky zmenšia.
 
 ## Štruktúra
 
+Stránka je napísaná v TypeScripte s Reactom a zostavuje sa cez Vite.
+
 ```
-docs/               stránka pre GitHub Pages
-  index.html        formulár
-  app.js            logika stránky
-  i18n.js           preklady rozhrania a vlajky
-  rodostrom.js      generátor (GEDCOM → riadky → PDF), funguje aj v Node.js
-  vendor/           pdf-lib + fontkit (MIT), licencie v vendor/LICENSES.md
-  fonts/            DejaVu Sans (písmo s diakritikou)
-  ukazka*.ged/.pdf  vymyslené testovacie dáta a ukážkové PDF
+src/core/           jadro bez UI: GEDCOM → riadky schémy → PDF (pdf-lib + fontkit)
+  gedcom.ts         načítanie GEDCOM-u (kódovanie, záznamy, osoby, rodiny), vyhľadávanie
+  format.ts         voľby, dátumy, miesta, text riadku osoby
+  chart.ts          riadky schémy predkov a potomkov
+  pdf.ts            rozloženie na strany a PDF
+  texts.ts          texty v PDF v 12 jazykoch
+  core.test.ts      testy na ukážkových dátach
+src/ui/             stránka v Reacte, preklady rozhrania (i18n.ts) a vlajky
+public/             súbory stránky: písmo DejaVu Sans, ukážkový GEDCOM a PDF, licencie
 ```
 
-Lokálne spustenie: `cd docs && python3 -m http.server`, potom http://localhost:8000.
+Vývoj (Node.js 22):
+
+```
+npm install
+npm run dev       # http://localhost:5173
+npm test          # testy jadra
+npm run build     # stránka do dist/
+```
+
+Stránku na GitHub Pages zostaví a nasadí GitHub Actions (`.github/workflows/pages.yml`)
+pri každom pushi do `main`; v nastaveniach repozitára je *Pages → Source: GitHub Actions*.
 
 ## Testovacie dáta
 
-`docs/ukazka.ged` obsahuje **len vymyslené osoby, dátumy a obce**. Zámerne obsahuje
+`public/ukazka.ged` obsahuje **len vymyslené osoby, dátumy a obce**. Zámerne obsahuje
 chýbajúcich rodičov, približné dátumy (`ABT`, `BEF`), rozvod, opakovaného predka
 a rozvetvených potomkov (vyskúšajte napr. Juraj Sokol, I13).
 
@@ -125,4 +138,4 @@ runs client-side; the file never leaves your browser.
 
 ## Licencia
 
-MIT, pozri [LICENSE](LICENSE). Knižnice a písmo tretích strán: [docs/vendor/LICENSES.md](docs/vendor/LICENSES.md).
+MIT, pozri [LICENSE](LICENSE). Knižnice a písmo tretích strán: [public/LICENSES.md](public/LICENSES.md).
