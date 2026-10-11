@@ -25,6 +25,8 @@ export interface PersonFields {
   note: string;
   /** RELI, religious affiliation */
   religion: string;
+  /** died, even without a known date: a DEAT, BURI or CREM line */
+  deceased: boolean;
 }
 
 export interface Occupation extends EventFields { origin: number; value: string }
@@ -35,6 +37,7 @@ const EVENT_TAGS = { birth: "BIRT", christening: "CHR", death: "DEAT", burial: "
 type EventKey = keyof typeof EVENT_TAGS;
 export const PERSON_EVENTS = Object.keys(EVENT_TAGS) as EventKey[];
 
+const DEATH_TAGS = ["DEAT", "BURI", "CREM"];
 const first = (node: GedNode, tag: string) => node.children.find((c) => c.tag === tag) || null;
 const isLink = (value: string) => /^@[^@]+@$/.test(value);
 const inlineNote = (rec: GedNode) => rec.children.find((c) => c.tag === "NOTE" && !isLink(c.value)) || null;
@@ -68,6 +71,7 @@ export function personFields(rec: GedNode): PersonFields {
       .map((c, origin) => ({ origin, value: c.value, ...datePlace(c) })),
     note: inlineNote(rec)?.value || "",
     religion: first(rec, "RELI")?.value || "",
+    deceased: DEATH_TAGS.some((tag) => first(rec, tag)),
   };
   return fields;
 }
@@ -191,6 +195,17 @@ function setNote(rec: GedNode, text: string): GedNode {
                                    : rec.children.filter((c) => c !== note) };
 }
 
+/** "1 DEAT Y" for a death without any details, removed again when unticked */
+function setDeceased(rec: GedNode, before: boolean, after: boolean): GedNode {
+  const dead = DEATH_TAGS.some((tag) => first(rec, tag));
+  if (after && !dead) return { ...rec, children: insert(rec.children, node("DEAT", "Y")) };
+  if (!after && before) {
+    const bare = (c: GedNode) => c.tag === "DEAT" && c.value === "Y" && !c.children.length;
+    if (rec.children.some(bare)) return { ...rec, children: rec.children.filter((c) => !bare(c)) };
+  }
+  return rec;
+}
+
 const tidy = (e: EventFields): EventFields => ({ date: e.date.trim(), place: e.place.trim() });
 
 /**
@@ -201,6 +216,7 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   let out = setName(rec, before, after);
   if (after.sex !== before.sex) out = setChild(out, "SEX", after.sex);
   for (const key of PERSON_EVENTS) out = setEvent(out, EVENT_TAGS[key], before[key], tidy(after[key]));
+  out = setDeceased(out, before.deceased, after.deceased);
   out = setOccupations(out, before.occupations, after.occupations);
   if (after.religion.trim() !== before.religion) out = setChild(out, "RELI", after.religion.trim());
   if (after.note.trim() !== before.note.trim()) out = setNote(out, after.note);

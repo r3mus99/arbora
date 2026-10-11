@@ -226,9 +226,9 @@ button.link { display: inline; }
                    gap: 6px 12px; min-width: 0; }
 .editor legend { padding: 0; margin-bottom: 8px; color: var(--text); font-size: 12px; }
 .editor fieldset label > span { font-size: 10.5px; }
-.editor fieldset .check { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; color: var(--text);
+.editor .check { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; color: var(--text);
                           font-size: 14px; cursor: pointer; }
-.editor fieldset .check > span { display: inline; margin: 0; font-size: 14px; font-weight: 400; letter-spacing: 0;
+.editor .check > span { display: inline; margin: 0; font-size: 14px; font-weight: 400; letter-spacing: 0;
                                  text-transform: none; color: var(--text); }
 .editor .check input { width: 17px; height: 17px; accent-color: var(--accent); }
 .editor .hint { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
@@ -257,3 +257,5 @@ button.link { display: inline; }
 .editor .sex label:has(input:checked) { background: var(--accent-soft); border-color: var(--accent);
                                         color: var(--accent); font-weight: 600; }
 .editor .sex label:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 1px; }
+.editor .check:has(input:disabled) { cursor: default; }
+.editor .check:has(input:disabled) > span { color: var(--muted); }

@@ -84,8 +84,21 @@ describe("writing GEDCOM", () => {
     const out = edit(PERSON, "@I1@", () => ({ birth: { date: "", place: "" }, occupations: [] }));
     expect(out).toContain("1 BIRT\n2 SOUR @S1@");
     expect(out).not.toContain("OCCU");
-    const bare = edit("0 @I2@ INDI\n1 DEAT\n2 DATE 1900\n", "@I2@", () => ({ death: { date: "", place: "" } }));
+    const bare = edit("0 @I2@ INDI\n1 DEAT\n2 DATE 1900\n", "@I2@",
+                      () => ({ death: { date: "", place: "" }, deceased: false }));
     expect(bare).toBe("0 @I2@ INDI\n");
+  });
+
+  test("deceased without details is DEAT Y; still ticked, a cleared death keeps it", () => {
+    expect(personFields(parseGedcom("0 @I1@ INDI\n1 BURI\n2 PLAC Brezno\n")[0]).deceased).toBe(true);
+    expect(personFields(parseGedcom("0 @I1@ INDI\n1 NAME Ján\n")[0]).deceased).toBe(false);
+    const ticked = edit("0 @I1@ INDI\n1 NAME Ján\n1 FAMS @F1@\n", "@I1@", () => ({ deceased: true }));
+    expect(ticked).toBe("0 @I1@ INDI\n1 NAME Ján\n1 DEAT Y\n1 FAMS @F1@\n");
+    expect(edit(ticked, "@I1@", () => ({ deceased: false }))).toBe("0 @I1@ INDI\n1 NAME Ján\n1 FAMS @F1@\n");
+    expect(edit("0 @I1@ INDI\n1 DEAT\n2 DATE 1900\n", "@I1@", () => ({ death: { date: "", place: "" } })))
+      .toBe("0 @I1@ INDI\n1 DEAT Y\n");
+    const dated = edit("0 @I1@ INDI\n", "@I1@", () => ({ deceased: true, death: { date: "1900", place: "" } }));
+    expect(dated).toBe("0 @I1@ INDI\n1 DEAT\n2 DATE 1900\n");
   });
 
   test("occupations keep their own lines; removing one keeps the others' sources", () => {

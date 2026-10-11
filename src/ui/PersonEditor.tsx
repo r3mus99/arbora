@@ -118,6 +118,10 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
         <Copy className="icon" aria-hidden="true" />{t(from[1])}</button>}
     </fieldset>;
   };
+  const hasDeath = ["death", "burial"].some((k) => {
+    const e = form[k as "death" | "burial"];
+    return e.date.trim() || e.place.trim();
+  });
   const spouseName = (r: GedNode) => {
     const f = data.families[r.xref || ""];
     const other = f && (f.husb === record.xref ? f.wife : f.husb);
@@ -142,7 +146,14 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
         {!["M", "F", "U", ""].includes(form.sex) && <label>
           <input type="radio" name="sex" checked readOnly /> {form.sex}</label>}
       </div>
-      {PERSON_EVENTS.map(event)}
+      {event("birth")}
+      {event("christening")}
+      {/* death and burial only for someone who died; ticked for good once they hold something */}
+      <label className="check">
+        <input type="checkbox" checked={form.deceased} disabled={form.deceased && hasDeath}
+               onChange={(e) => set("deceased", e.target.checked)} />
+        <span>{t("deceased")}</span></label>
+      {form.deceased && <>{event("death")}{event("burial")}</>}
       <fieldset className="list">
         <legend>{t("occupation")}</legend>
         {form.occupations.map((o, i) => (
