@@ -1,16 +1,19 @@
 :root {
+  --male: #2f6fb8; --female: #c4446f;
   --bg: #f6f5f1; --panel: #ffffff; --text: #1d1f1c; --muted: #62675f;
   --border: #dcdad2; --accent: #2f6b4f; --accent-text: #ffffff; --accent-soft: #e3efe8;
   --danger: #a3341f; --focus: #2f6b4f55;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    --male: #7fb0ea; --female: #f08fb0;
     --bg: #151714; --panel: #1f221e; --text: #e8eae4; --muted: #a0a69b;
     --border: #363a33; --accent: #6fbf95; --accent-text: #0f1a14; --accent-soft: #24352b;
     --danger: #f08a73; --focus: #6fbf9566;
   }
 }
 :root[data-theme="dark"] {
+  --male: #7fb0ea; --female: #f08fb0;
   --bg: #151714; --panel: #1f221e; --text: #e8eae4; --muted: #a0a69b;
   --border: #363a33; --accent: #6fbf95; --accent-text: #0f1a14; --accent-soft: #24352b;
   --danger: #f08a73; --focus: #6fbf9566;
@@ -109,7 +112,13 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .tree-row button:hover { background: var(--accent-soft); }
 .tree-row.root button { font-weight: 700; }
 .tree-row.spouse { color: var(--muted); }
-.tree-row.sel button { background: var(--accent); color: var(--accent-text); }
+.tree-row.male button { background: color-mix(in srgb, var(--male) 11%, transparent);
+                        box-shadow: inset 2px 0 0 var(--male); }
+.tree-row.female button { background: color-mix(in srgb, var(--female) 11%, transparent);
+                          box-shadow: inset 2px 0 0 var(--female); }
+.tree-row.male button:hover { background: color-mix(in srgb, var(--male) 22%, transparent); }
+.tree-row.female button:hover { background: color-mix(in srgb, var(--female) 22%, transparent); }
+.tree-row.sel button { background: var(--accent); color: var(--accent-text); box-shadow: none; }
 .tree-row .dup { color: var(--muted); font-size: 13px; }
 .viewer { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
 @media (max-width: 900px) { .viewer { grid-template-columns: minmax(0, 1fr); } .detail { position: static; } }

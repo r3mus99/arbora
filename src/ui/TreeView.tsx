@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Row } from "../core/chart";
+import type { Person } from "../core/gedcom";
 import type { StringKey } from "./i18n";
 
 // same geometry as the PDF, in screen pixels
@@ -11,9 +12,12 @@ const GAP = LINE * 0.45;
 const x = (gen: number) => PAD + (gen - 1) * STEP;
 const textX = (gen: number) => x(gen) + (gen > 1 ? TICK + 4 : 0);
 const mid = (row: number) => row * LINE + LINE / 2;
+const SEX_CLASS: Record<string, string> = { M: "male", F: "female" };
 
 interface Props {
   rows: Row[];
+  /** for the colour accent by sex */
+  people: Record<string, Person>;
   focusId: string | null;
   /** bump to scroll the focused person into view */
   scrollKey: number;
@@ -22,7 +26,7 @@ interface Props {
 }
 
 /** The chart rows as on the PDF page: indented lines joined by connectors; people are clickable. */
-export function TreeView({ rows, focusId, scrollKey, onFocus, t }: Props) {
+export function TreeView({ rows, people, focusId, scrollKey, onFocus, t }: Props) {
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -56,7 +60,7 @@ export function TreeView({ rows, focusId, scrollKey, onFocus, t }: Props) {
         {rows.map((r, i) => {
           const id = r.personId ?? r.spouseId ?? null;
           const cls = ["tree-row", r.spouse ? "spouse" : "", r.gen === 1 && !r.spouse ? "root" : "",
-                       id && id === focusId ? "sel" : ""].filter(Boolean).join(" ");
+                       id && id === focusId ? "sel" : "", id ? SEX_CLASS[people[id]?.sex] ?? "" : ""].filter(Boolean).join(" ");
           return (
             <div key={i} className={cls} style={{ paddingLeft: textX(r.gen) }}>
               {id

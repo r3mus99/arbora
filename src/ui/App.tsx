@@ -277,7 +277,7 @@ export function App() {
           </div>
           <p className="note tree-hint">{t("treeHint")}</p>
           <div className="viewer">
-            <TreeView rows={rows} focusId={focusId} scrollKey={treeScroll}
+            <TreeView rows={rows} people={data.people} focusId={focusId} scrollKey={treeScroll}
                       onFocus={(id) => focus(id, false)} t={t} />
             {focusId && <PersonDetail data={data} id={focusId} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} t={t} />}
