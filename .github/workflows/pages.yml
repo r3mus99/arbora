@@ -1,4 +1,4 @@
-name: Testy a GitHub Pages
+name: Tests and GitHub Pages
 
 on:
   push:

@@ -2,17 +2,19 @@
 
 **Online: https://r3mus99.github.io/arbora/**
 
-Webová stránka na prezeranie a úpravu rodokmeňa z GEDCOM súboru, ktorá z neho
-vytvorí PDF schému **predkov** alebo **potomkov**. Upravený rodokmeň sa dá
-stiahnuť späť ako GEDCOM.
-*Web page to view and edit a GEDCOM family tree and turn it into a PDF ancestor or
-descendant chart (English summary below).*
+A web page to view, check and edit a family tree from a GEDCOM file and turn it
+into a PDF chart of **ancestors** or **descendants**. The edited tree can be
+downloaded again as GEDCOM. Everything runs in your browser; the file is never
+uploaded anywhere.
 
-### Predkovia
+Current version: **1.0.0**, see [CHANGELOG.md](CHANGELOG.md).
 
-Koreňová osoba má číslo 1 a je pri ľavom okraji. Každá ďalšia generácia je
-odsadená doprava, otcova línia je nad osobou, matkina pod ňou. Za menom je
-v zátvorke rok narodenia (`*`), sobáša rodičov (`∞`) a úmrtia (`†`):
+### Ancestors
+
+The root person is no. 1 at the left edge. Each further generation is indented
+to the right, the father's line above the person and the mother's below. After
+the name, the years of birth (`*`), the parents' marriage (`∞`) and death (`†`)
+are in parentheses:
 
 ```
             ┌ 3. Karol Ľudovít Habsburský (*1833, ∞1862, †1896)
@@ -24,13 +26,14 @@ v zátvorke rok narodenia (`*`), sobáša rodičov (`∞`) a úmrtia (`†`):
             └ 3. …
 ```
 
-Ukážka: [public/ukazka_predkovia.pdf](public/ukazka_predkovia.pdf).
+Sample: [public/sample_ancestors.pdf](public/sample_ancestors.pdf).
 
-### Potomkovia
+### Descendants
 
-Vybraný predok má číslo 1. Pod ním je manžel/manželka s rokom sobáša a pod
-nimi odsadené deti zoradené podľa narodenia, ďalej vnúčatá atď. Pri viacerých
-manželstvách sú deti rozdelené podľa toho, s kým ich osoba mala:
+The chosen ancestor is no. 1. Below them is the spouse with the year of
+marriage, and below both the children, indented and sorted by birth, then the
+grandchildren and so on. With several marriages the children are grouped by the
+spouse they had them with:
 
 ```
 1. František I. (*1708, †1765)
@@ -48,178 +51,178 @@ manželstvách sú deti rozdelené podľa toho, s kým ich osoba mala:
    └ 2. …
 ```
 
-Ukážka: [public/ukazka_potomkovia.pdf](public/ukazka_potomkovia.pdf).
+Sample: [public/sample_descendants.pdf](public/sample_descendants.pdf).
 
-Osoba, ktorá sa v strome objaví viackrát (napr. príbuzenské sobáše), sa
-rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
+A person who appears in the tree more than once (for example after marriages
+between relatives) is written out only once; later occurrences refer to it.
 
-## Použitie
+## Usage
 
-1. Otvorte stránku a vyberte (alebo pretiahnite) svoj `.ged` súbor. Potom sa
-   výber súboru zmenší na úzky pruh hore, kliknutím naň otvoríte iný súbor.
-2. Hlavnou časťou stránky je schéma na obrazovke v rovnakom rozložení ako v PDF.
-   Nad ňou sa prepína **Predkovia** / **Potomkovia**, osobu č. 1 nájdete
-   vyhľadávaním mena alebo ID v hlavičke schémy. Na začiatku je to naposledy
-   zvolená osoba, inak prvá osoba v súbore.
-3. Klik na osobu v schéme ukáže jej detail (na širokej obrazovke vedľa schémy,
-   na úzkej pod ňou): narodenie, úmrtie, zamestnanie, rodičov, manželstvá
-   a deti. Mená príbuzných sú odkazy a tlačidlo **Zobraziť schému tejto osoby**
-   z nej spraví osobu číslo 1.
-4. Opakujúci sa predok má namiesto svojej vetvy odkaz **pozri č. X** (pri
-   číslovaní Ahnentafel / d'Aboville, inak **pozri vyššie / nižšie**), ktorý
-   skočí na miesto, kde je vetva rozpísaná, a zvýrazní ho. Šípky vedľa nadpisu
-   (alebo Alt+← / Alt+→) vracajú späť a vpred po prezeraných osobách.
-5. Znamienko **−** na spojnici pred menom zbalí vetvu osoby, **+** ju znova
-   rozbalí; so Shiftom sa zbalí alebo rozbalí celá generácia. Počet generácií
-   a ostatné voľby sa berú z Nastavení, takže PDF zodpovedá schéme na stránke
-   (zbalené vetvy sa do PDF neprenášajú).
-6. **Upraviť** v detaile osoby otvorí formulár s jej údajmi (pozri nižšie).
-7. **Nastavenia** otvorí ikona ozubeného kolieska vedľa jazyka. Menia aj schému na stránke.
-8. **Vytvoriť PDF** (hore vedľa Stiahnuť GEDCOM) vytvorí PDF a hneď ho stiahne.
+1. Open the page and choose (or drop) your `.ged` file, or try the built-in
+   sample. The file picker then shrinks to a narrow bar at the top; click it
+   to open another file.
+2. The main part of the page is the chart, laid out the same way as the PDF.
+   Switch between **Ancestors** and **Descendants** above it and find person
+   no. 1 by name or ID in the search field of the chart header. At first it is
+   the person chosen last time, otherwise the first person in the file.
+3. Clicking a person shows their details next to the chart (below it on narrow
+   screens), with icons and in the same order as the edit form: birth,
+   christening, religion, parents, marriages with children, occupations, note,
+   death and burial. Relatives are links; the crosshair button makes the person
+   no. 1 of the chart and the pencil opens the edit form.
+4. A repeated ancestor shows a link **see no. X** instead of their branch (with
+   Ahnentafel or d'Aboville numbering, otherwise **see above / below**) that
+   jumps to the written-out branch and highlights it. The arrows next to the
+   title (or Alt+← / Alt+→) go back and forward through the people you viewed.
+5. The **−** on the connector before a name collapses that person's branch and
+   **+** expands it again; with Shift, the whole generation. The chart and the
+   PDF share all settings, so the PDF matches the chart (collapsed branches are
+   not carried into the PDF).
+6. The gear icon next to the language opens the **Settings** window.
+7. **Create PDF** creates the PDF and downloads it at once.
 
-### Úpravy a export do GEDCOM
+### Editing and GEDCOM export
 
-Formulár v detaile osoby mení údaje už existujúcich osôb: meno a priezvisko (ponúka priezviská zo súboru),
-pohlavie, narodenie, krst, úmrtie a pohreb (dátum a miesto), zamestnania
-(každé s vlastným dátumom a miestom), vierovyznanie, poznámku a pri každom manželstve dátum
-a miesto sobáša a rozvod. Pri miestach ponúka miesta, ktoré už sú v súbore; krst a pohreb
-vedia prevziať dátum a miesto z narodenia a úmrtia. **Uložiť** (Ctrl+Enter) zmenu hneď ukáže v schéme
-aj v PDF, **Zrušiť** (Esc) ju zahodí. Pridávanie a mazanie osôb zatiaľ nie je.
+The edit form changes the data of existing people, in this order: given name and
+surname (surnames from the file are suggested), sex, birth and christening (date
+and place; christening can copy them from birth), religion (values from the file
+are suggested), the date and place of each marriage and whether the couple
+divorced, occupations (each with its own date and place), a note, and last
+**Died**: ticking it shows death and burial (burial can copy date and place from
+death). Ticked without any details it is stored as `1 DEAT Y`; unticking it and
+saving clears death and burial. Place fields suggest the places already in the
+file. **Save** (Ctrl+Enter) shows the change at once in the chart and the PDF,
+**Cancel** (Esc) drops it. Adding and deleting people is not possible yet.
 
-Dátum sa dá zapísať ako `14.5.1891`, `5/1891`, `1891`, `cca 1890` (alebo `~1890`),
-`pred 1890`, `po 1890`, `1890–1895` alebo priamo v tvare GEDCOM (`ABT 1890`,
-`14 MAY 1891`). Pod políčkom je vidieť, ako sa dátum uloží. Iný text sa uloží
-ako textový dátum v zátvorkách.
+A date can be typed as `14.5.1891`, `5/1891`, `1891`, `~1890`, `<1890`, `>1890`,
+`1890–1895`, with the "about / before / after" words of the page language, or
+directly in GEDCOM form (`ABT 1890`, `14 MAY 1891`). Below the field you see how
+the date will be stored. Any other text is stored as a date phrase in
+parentheses.
 
-Šípky vedľa súboru (alebo Ctrl+Z / Ctrl+Y) vracajú a opakujú uložené zmeny.
-**Stiahnuť GEDCOM** stiahne upravený súbor: zmenené záznamy sa zapíšu nanovo,
-všetky ostatné riadky ostanú presne také, ako boli, vrátane značiek, ktoré
-Arbora nepozná (zdroje, poznámky pri udalostiach, `_UID`, súradnice…). Aj
-v zmenenom zázname sa menia len upravené riadky. Súbor sa ukladá v UTF-8.
-Pred zatvorením stránky s neuloženými zmenami sa prehliadač opýta.
+The arrows next to the file (or Ctrl+Z / Ctrl+Y) undo and redo saved changes.
+**Download GEDCOM** downloads the edited file; while there are changes not yet
+downloaded, "unsaved changes" is shown below the button. Changed records are
+written anew; every other line stays exactly as it was, including tags Arbora
+does not know (sources, notes on events, `_UID`, coordinates…). Even in a
+changed record only the edited lines change. The header records Arbora as the
+program that saved the file (`HEAD SOUR ARBORA` with its version) and the date and
+time of saving (`HEAD DATE`). The file is saved as UTF-8. Before
+you leave the page with unsaved changes, the browser asks.
 
-### Kontrola súboru
+### File check
 
-Tlačidlo so štítom vedľa súboru ukazuje počet nájdených problémov, po kliknutí
-ich vypíše a mená v zozname otvoria detail osoby. Čo sa dá opraviť bezpečne,
-má vpravo čarovnú ceruzku (oprava po jednom, dá sa vrátiť): chýbajúca hlavička
-alebo `TRLR`, odkaz na neexistujúci záznam sa odstráni, chýbajúci spätný odkaz
-sa doplní a dátum `1885-12-12` sa prepíše na `12 DEC 1885`. Kontroluje sa (GEDCOM 5.5.1):
-hlavička `HEAD` a koniec `TRLR`, duplicitné ID, odkazy na neexistujúce osoby
-a rodiny, odkazy bez spätného odkazu (`FAMS`/`FAMC` oproti `HUSB`/`WIFE`/`CHIL`),
-dátumy mimo tvaru GEDCOM (napr. `1885-12-12`), pohlavie oproti úlohe v rodine
-a nemožné dátumy (úmrtie pred narodením, dieťa pred rodičom, rodič mladší ako
-12 rokov, narodenie po smrti matky alebo viac ako rok po smrti otca).
-Približné dátumy (`ABT`) sa porovnávajú len vtedy, ak sú od seba roky.
+The shield button next to the file shows the number of problems found
+(GEDCOM 5.5.1). When there are none it only says so in its tooltip; otherwise a
+click lists them, and the names in the list open the person's details. It checks:
 
-**Súkromie:** všetko beží iba vo vašom prehliadači. GEDCOM súbor sa nikam
-neodosiela a stránka nemá žiadny server; upravený súbor si stiahnete sami. Prehliadač si pamätá len nastavenia
-a ID poslednej osoby (localStorage), nie obsah súboru.
+- the `HEAD` header and the `TRLR` end of the file, and duplicate IDs;
+- links to people or families that are not in the file, and links without a
+  link back (`FAMS`/`FAMC` against `HUSB`/`WIFE`/`CHIL`);
+- dates not in GEDCOM form (e.g. `1885-12-12`), and sex against the role in a family;
+- impossible dates: death before birth, a child born before a parent, a parent
+  younger than 12, birth after the mother's death or more than a year after the
+  father's. Approximate dates (`ABT`) are compared only when they are years apart.
 
-### Jazyk
+What can be fixed safely has a magic wand on the right; each fix is one step
+that can be undone. A missing header or `TRLR` is added, a link to nothing is
+removed, a missing link back is added and a date like `1885-12-12` is rewritten
+as `12 DEC 1885`. The list closes once everything is fixed.
 
-Jazyk sa prepína vlajkou vpravo hore: slovenčina, čeština, poľština, maďarčina,
-nemčina, angličtina, francúzština, taliančina, španielčina, portugalčina,
-holandčina a ukrajinčina. Zvolený jazyk platí pre stránku aj pre vytvorené PDF
-(nadpis, skratky, formát dátumov, čísla strán). Pri prvej návšteve sa vyberie
-podľa jazyka prehliadača.
+**Privacy:** everything runs only in your browser. The GEDCOM file is not sent
+anywhere and the page has no server; you download the edited file yourself. The
+browser remembers only the settings and the ID of the last person
+(localStorage), never the file's content.
 
-### Nastavenia
+### Language
 
-Nastavenia sa otvoria v okne cez ikonu ozubeného kolieska vedľa jazyka. Prvá časť platí pre schému na stránke aj pre PDF:
+The language is switched with the flag in the top right: Slovak, Czech, Polish,
+Hungarian, German, English, French, Italian, Spanish, Portuguese, Dutch and
+Ukrainian. The chosen language applies to the page and to the PDF (title,
+abbreviations, date format, page numbers). On the first visit it follows the
+browser's language.
 
-| Voľba | Možnosti |
+### Settings
+
+The first part of the Settings window applies to both the chart and the PDF:
+
+| Option | Choices |
 |---|---|
-| Popisky | symboly `* ∞ †` alebo skratky `nar. sob. zom.` |
-| Dátumy | len rok, alebo celý dátum (`14.5.1991`) |
-| Miesta | bez miest, len obec, celé miesto |
-| Číslovanie | generácia (1, 2, 3…); pri predkoch Ahnentafel (otec = 2n, matka = 2n+1), pri potomkoch d'Aboville (1.2.1); bez čísel |
-| Sobáš rodičov | pri predkoch: pri otcovi, pri oboch rodičoch, nezobrazovať |
-| Generácie | maximálny počet vrátane koreňa (0 = všetky) |
-| Manželia | pri potomkoch: zobraziť manžela/manželku s rokom sobáša, alebo len pokrvných potomkov |
+| Labels | symbols `* ∞ †` or abbreviations (`b. m. d.` in English) |
+| Dates | year only, or the full date |
+| Places | none, first part only (village), full place |
+| Numbering | generation (1, 2, 3…); Ahnentafel for ancestors (father = 2n, mother = 2n+1), d'Aboville for descendants (1.2.1); none |
+| Parents' marriage | for ancestors: next to the father, next to both parents, not shown |
+| Generations | maximum number including the root (0 = all) |
+| Spouses | for descendants: show the spouse with the year of marriage, or blood descendants only |
 
-**Nastavenie tlače** (len pre PDF): formát strany (A4, A3, A5, Letter, Legal), orientácia, veľkosť
-písma, vlastný nadpis a dátum tlače v hlavičke.
+**Print settings** (PDF only): page size (A4, A3, A5, Letter, Legal),
+orientation, font size, custom title and the print date in the header.
 
-Opakovaná osoba sa rozpíše len raz, ďalej je na ňu odkaz.
+If the longest line does not fit the page width, the generation indent and then
+the font size are reduced automatically.
 
-Ak sa najdlhší riadok nezmestí na šírku strany, odsadenie generácií a potom
-písmo sa automaticky zmenšia.
+### Notes on the data
 
-### Poznámky k údajom
+- `ABT`, `EST`, `CAL` dates are shown as "about", `BEF` as "before", `AFT` as
+  "after" (in the page language), ranges `BET … AND …` / `FROM … TO …` as
+  "1903–1905".
+- A divorce is shown ("∞1991 (div.)") when the family has a `1 DIV` line.
+- In the chart and the PDF a missing birth falls back to christening
+  (`CHR`/`BAPM`) and a missing death to burial (`BURI`/`CREM`).
+- File encoding: UTF-8 (with or without BOM), UTF-16, otherwise Windows-1250.
 
-- Dátumy `ABT`, `EST`, `CAL` sa zobrazia ako „cca“, `BEF` ako „pred“, `AFT` ako „po“,
-  rozsahy `BET … AND …` / `FROM … TO …` ako „1903–1905“.
-- Rozvod sa zobrazí („∞1991 (rozv.)“), ak má rodina v GEDCOM-e záznam `1 DIV`.
-- Ak chýba narodenie, použije sa krst (`CHR`/`BAPM`); ak chýba úmrtie, použije sa pohreb (`BURI`).
-- Kódovanie súboru: UTF-8 (aj s BOM), UTF-16, inak Windows-1250.
+## Structure
 
-## Štruktúra
-
-Stránka je napísaná v TypeScripte s Reactom a zostavuje sa cez Vite.
+The page is written in TypeScript with React and built with Vite.
 
 ```
-src/core/           jadro bez UI: GEDCOM → riadky schémy → PDF (pdf-lib + fontkit)
-  gedcom.ts         načítanie GEDCOM-u (kódovanie, záznamy, osoby, rodiny), vyhľadávanie
-  edit.ts           úpravy záznamov, zápis dátumov, zápis GEDCOM-u
-  check.ts          kontrola súboru: odkazy, ID, tvar dátumov, nemožné dátumy
-  format.ts         voľby, dátumy, miesta, text riadku osoby
-  chart.ts          riadky schémy predkov a potomkov
-  collapse.ts       zbalené vetvy: ktoré riadky ostanú viditeľné
-  pdf.ts            rozloženie na strany a PDF
-  texts.ts          texty v PDF v 12 jazykoch
-  *.test.ts         testy na ukážkových dátach
-src/ui/             stránka v Reacte: schéma na obrazovke (TreeView), detail osoby
-                    (PersonDetail), formulár úprav (PersonEditor), kontrola súboru
-                    (CheckPanel), preklady
-                    rozhrania (i18n.ts) a vlajky
-public/             súbory stránky: písmo DejaVu Sans, ukážkový GEDCOM a PDF, licencie
+src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fontkit)
+  gedcom.ts         reading GEDCOM (encoding, records, people, families), search
+  edit.ts           editing records, typed dates, writing GEDCOM
+  check.ts          file check and safe fixes
+  format.ts         options, dates, places, the text of a person's line
+  chart.ts          ancestor and descendant chart rows
+  collapse.ts       collapsed branches: which rows stay visible
+  pdf.ts            page layout and PDF
+  texts.ts          PDF texts in 12 languages
+  *.test.ts         tests on the sample data
+src/ui/             the React page: chart (TreeView), person details (PersonDetail),
+                    edit form (PersonEditor), file check (CheckPanel), language
+                    menu, UI translations (i18n.ts) and flags
+public/             static files: DejaVu Sans font, sample GEDCOM and PDFs, licenses
 ```
 
-Vývoj (Node.js 22):
+Development (Node.js 22):
 
 ```
 npm install
 npm run dev       # http://localhost:5173
-npm test          # testy jadra
-npm run build     # stránka do dist/
+npm test          # core tests
+npm run build     # the page into dist/
 ```
 
-Stránku na GitHub Pages zostaví a nasadí GitHub Actions (`.github/workflows/pages.yml`)
-pri každom pushi do `main`; v nastaveniach repozitára je *Pages → Source: GitHub Actions*.
+GitHub Actions (`.github/workflows/pages.yml`) runs the tests, builds the page
+and deploys it to GitHub Pages on every push to `main`; the repository setting
+is *Pages → Source: GitHub Actions*.
 
-## Testovacie dáta
+## Test data
 
-`public/ukazka.ged` je rodokmeň Habsburgovcov z [Wikidata](https://www.wikidata.org)
-(CC0): predkovia cisára Karola I. (I1) a potomkovia Františka I. Štefana Lotrinského
-(I52) po mužskej línii spolu s manželmi, spolu 1714 osôb. Nie je v ňom nikto
-narodený od roku 1950 a od roku 1900 len ľudia so známym dátumom úmrtia, teda
-žiadne žijúce osoby. Mená a miesta sú zo slovenských popisov Wikidata, kde chýbajú,
-z českých, nemeckých alebo anglických; pri každej osobe je jej Wikidata ID
-(`REFN … TYPE Wikidata`). Obsahuje približné dátumy, viac manželstiev, rozvod
-(napr. Henrich IV., I416), deti s neznámou matkou a veľa opakovaných predkov.
+`public/sample.ged` is the Habsburg family tree from
+[Wikidata](https://www.wikidata.org) (CC0): the ancestors of Emperor Charles I
+(I1) and the male-line descendants of Francis I of Lorraine (I52) with their
+spouses, 1714 people in all. Nobody in it was born in 1950 or later, and from
+1900 on only people with a known date of death, so there are no living persons.
+Names and places come from the Slovak Wikidata labels, where missing from the
+Czech, German or English ones; every person carries their Wikidata ID
+(`REFN … TYPE Wikidata`). It has approximate dates, several marriages, a divorce
+(e.g. Henry IV, I416), children with an unknown mother and many repeated
+ancestors.
 
-`.gitignore` ignoruje všetky ostatné `.ged` a `.pdf` súbory, aby sa do
-repozitára omylom nedostal skutočný rodokmeň.
+`.gitignore` ignores every other `.ged` and `.pdf` file so that a real family
+tree does not end up in the repository by mistake.
 
-## English summary
+## License
 
-Open https://r3mus99.github.io/arbora/ (12 European languages, switch with
-the flag in the top right), load a GEDCOM file, choose
-Ancestors or Descendants, pick the person and download a multi-page PDF chart.
-**Edit** in a person's details changes names, sex, birth, christening, death,
-burial, occupations, note and marriages of existing people (with undo);
-**Download GEDCOM** writes the edited file back, keeping every line the app did
-not change, including tags it does not understand. The shield button runs a
-basic file check (links, IDs, GEDCOM date form, impossible dates) and lists the
-problems with links to the people.
-Ancestors: root is no. 1 on the left, father above, mother below. Descendants:
-the ancestor is no. 1, spouses with marriage year, children indented below.
-Birth / marriage / death years are in parentheses; repeated people are printed
-once with a page reference. The built-in sample is the Habsburg family tree from
-Wikidata (CC0, nobody born from 1950 on). Everything
-runs client-side; the file never leaves your browser.
-
-## Licencia
-
-MIT, pozri [LICENSE](LICENSE). Knižnice a písmo tretích strán: [public/LICENSES.md](public/LICENSES.md).
+MIT, see [LICENSE](LICENSE). Third-party libraries and fonts:
+[public/LICENSES.md](public/LICENSES.md).

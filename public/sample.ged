@@ -1,13 +1,12 @@
 0 HEAD
 1 SOUR arbora-sample
-2 NAME Habsburgovci z Wikidata
+2 NAME Habsburgs from Wikidata
 1 GEDC
 2 VERS 5.5.1
 2 FORM LINEAGE-LINKED
 1 CHAR UTF-8
 1 DATE 11 OCT 2026
-1 NOTE Habsburgovci a ich predkovia podľa Wikidata (https://www.wikidata.org), CC0.
-2 CONT Habsburgs and their ancestors from Wikidata, CC0. Only people born before 1950, no living persons.
+1 NOTE Habsburgs and their ancestors from Wikidata (https://www.wikidata.org), CC0. Only people born before 1950, no living persons.
 0 @I1@ INDI
 1 NAME Karol I.
 2 GIVN Karol I.

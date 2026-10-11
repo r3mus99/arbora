@@ -4,6 +4,7 @@ import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, FileDown, Fi
          Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, X } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
+import { version } from "../../package.json";
 import { checkGedcom, fixIssue } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
@@ -204,7 +205,7 @@ export function App() {
   const loadSample = async () => {
     if (!keepEdits()) return;
     try {
-      const r = await fetch(import.meta.env.BASE_URL + "ukazka.ged");
+      const r = await fetch(import.meta.env.BASE_URL + "sample.ged");
       if (!r.ok) throw new Error(String(r.status));
       loadBytes(await r.arrayBuffer(), null);
     } catch {
@@ -250,10 +251,10 @@ export function App() {
   const undoRef = useRef(undoRedo);
   undoRef.current = undoRedo;
 
-  const gedName = (loadedName || "ukazka").replace(/\.(ged|gedcom)$/i, "") + ".ged";
+  const gedName = (loadedName || "sample").replace(/\.(ged|gedcom)$/i, "") + ".ged";
   const downloadGedcom = () => {
     if (!doc) return;
-    saveFile(new Blob([writeGedcom(doc.records, doc.eol)], { type: "text/plain;charset=utf-8" }), gedName);
+    saveFile(new Blob([writeGedcom(doc.records, doc.eol, { version, date: new Date() })], { type: "text/plain;charset=utf-8" }), gedName);
     setEdits({ ...edits, saved: doc });
   };
 

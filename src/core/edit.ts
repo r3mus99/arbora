@@ -350,13 +350,40 @@ export function recordLines(rec: GedNode): string[] {
   return out;
 }
 
-/** The whole file as UTF-8 GEDCOM text (the header then says CHAR UTF-8). */
-export function writeGedcom(records: GedNode[], eol = "\n"): string {
+/** The program writing the file, recorded in the header as HEAD SOUR and DATE. */
+export interface Writer { version: string; date: Date }
+
+/** HEAD saying the file was saved by Arbora at that time; the old SOUR and DATE are replaced */
+function stampHead(head: GedNode, w: Writer): GedNode {
+  const d = w.date, pad = (n: number) => String(n).padStart(2, "0");
+  const sour = node("SOUR", "ARBORA", [node("VERS", w.version), node("NAME", "Arbora")]);
+  const date = node("DATE", `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`,
+                    [node("TIME", `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`)]);
+  let children = head.children;
+  for (const added of [sour, date]) {
+    const i = children.findIndex((c) => c.tag === added.tag);
+    if (i >= 0) children = children.map((c, j) => (j === i ? added : c));
+    else {
+      // SOUR first, DATE after SOUR and DEST
+      const tags = children.map((c) => c.tag);
+      const at = added.tag === "SOUR" ? 0 : Math.max(tags.lastIndexOf("SOUR"), tags.lastIndexOf("DEST")) + 1;
+      children = [...children.slice(0, at), added, ...children.slice(at)];
+    }
+  }
+  return { tag: head.tag, value: head.value, xref: head.xref, children };
+}
+
+/**
+ * The whole file as UTF-8 GEDCOM text (the header then says CHAR UTF-8). With a
+ * writer the header names Arbora as the program that saved the file.
+ */
+export function writeGedcom(records: GedNode[], eol = "\n", writer?: Writer): string {
   const lines: string[] = [];
   for (let rec of records) {
     if (rec.tag === "HEAD") {
       const char = first(rec, "CHAR");
       if (char && char.value.toUpperCase() !== "UTF-8") rec = { ...setChild(rec, "CHAR", "UTF-8"), raw: undefined };
+      if (writer) rec = stampHead(rec, writer);
     }
     lines.push(...recordLines(rec));
   }

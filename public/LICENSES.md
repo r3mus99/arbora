@@ -1,6 +1,6 @@
-# Licencie knižníc a písma tretích strán
+# Third-party libraries and fonts
 
-## pdf-lib 1.17.1 (npm, pribalené v JavaScripte stránky)
+## pdf-lib 1.17.1 (npm, bundled in the page JavaScript)
 
 ```
 MIT License
@@ -26,11 +26,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @pdf-lib/fontkit 1.1.1 (npm, pribalené v JavaScripte stránky)
+## @pdf-lib/fontkit 1.1.1 (npm, bundled in the page JavaScript)
 
 MIT License – https://github.com/Hopding/fontkit (fork of foliojs/fontkit, Copyright (c) 2014 Devon Govett).
 
-## lucide-react 1.55.0 (npm, ikony pribalené v JavaScripte stránky)
+## lucide-react 1.55.0 (npm, icons bundled in the page JavaScript)
 
 ```
 ISC License
@@ -78,7 +78,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Spectral (npm @fontsource/spectral, písmo nadpisov stránky)
+## Spectral (npm @fontsource/spectral, heading font of the page)
 
 ```
 Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-ExtraLightItalic.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-Light.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-LightItalic.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-Regular.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-Italic.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-Medium.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-MediumItalic.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-SemiBold.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-SemiBoldItalic.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-Bold.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-BoldItalic.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-ExtraBold.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral) Spectral-ExtraBoldItalic.ttf: Copyright 2017 The Spectral Project Authors (https://github.com/productiontype/Spectral)
