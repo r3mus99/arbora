@@ -47,7 +47,7 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
   const years = (q: Person) => {
     const b = q.birth ? formatDate(q.birth.date, false, lang) : "";
     const d = q.death ? formatDate(q.death.date, false, lang) : "";
-    return b || d ? `${b}–${d}` : "";
+    return d ? `${b}–${d}` : b;
   };
   const link = (pid: string | null) => {
     const q = pid ? data.people[pid] : null;
