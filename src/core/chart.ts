@@ -1,7 +1,7 @@
 /** Chart rows: the ancestor or descendant tree flattened into printed lines. */
 
-import type { Family, Person } from "./gedcom";
-import { formatEvent, label, personLine, type ChartOptions } from "./format";
+import type { Family, GedcomData, Person } from "./gedcom";
+import { DEFAULTS, formatEvent, label, personLine, type ChartOptions } from "./format";
 import { TEXTS } from "./texts";
 
 /** Vertical connector at column `gen` from row a to row b. */
@@ -29,6 +29,8 @@ export interface Row {
   page: number;
   target: Row | null;
   spouse?: boolean;
+  /** the spouse on a spouse line, if known */
+  spouseId?: string | null;
 }
 
 const SELF = -1;
@@ -151,7 +153,7 @@ export function buildDescRows(rootId: string, people: Record<string, Person>,
       if (o.showSpouses && (spouse || (kids.length && withKids.length > 1))) {
         rows.push({ gen, text: spouseLine(fam, spouse, o), personId: null,
                     dup: false, tick: false, links: [], page: 0, target: null,
-                    spouse: true });
+                    spouse: true, spouseId: spouse ? spouseId : null });
         anchor = rows.length - 1;
       }
       if (!kids.length) continue;
@@ -174,4 +176,20 @@ export function buildDescRows(rootId: string, people: Record<string, Person>,
   visit(rootId, 1, "1", new Set());
   for (const r of rows) if (r.dup) r.target = expanded.get(r.personId!) || null;
   return rows;
+}
+
+/** Rows of the chart for the chosen kind, with numbering matched to the kind. */
+export function chartRows(data: GedcomData, rootId: string, options: Partial<ChartOptions>): Row[] {
+  const o = normalize(options);
+  return o.chart === "descendants" ? buildDescRows(rootId, data.people, data.families, o)
+                                   : buildRows(rootId, data.people, data.families, o);
+}
+
+/** Options with defaults filled in and numbering matched to the chart kind. */
+export function normalize(options: Partial<ChartOptions>): ChartOptions {
+  const o = { ...DEFAULTS, ...options };
+  const desc = o.chart === "descendants";
+  if (desc && o.numbering === "ahnentafel") o.numbering = "daboville";
+  if (!desc && o.numbering === "daboville") o.numbering = "ahnentafel";
+  return o;
 }

@@ -49,7 +49,11 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
 
 1. Otvorte stránku a vyberte (alebo pretiahnite) svoj `.ged` súbor.
 2. Zvoľte **Predkovia** alebo **Potomkovia** a v zozname kliknite na osobu.
-3. Nastavte voľby a stlačte **Vytvoriť PDF**, potom **Stiahnuť PDF**.
+3. Schéma sa hneď zobrazí na stránke v rovnakom rozložení ako v PDF. Klik na
+   osobu v schéme ukáže vedľa jej detail: narodenie, úmrtie, zamestnanie,
+   rodičov, manželstvá a deti. Mená príbuzných v detaile sú odkazy a tlačidlo
+   **Zobraziť schému tejto osoby** z nej spraví osobu číslo 1.
+4. Nastavte voľby (menia aj schému na stránke) a stlačte **Vytvoriť PDF**, potom **Stiahnuť PDF**.
 
 **Súkromie:** všetko beží iba vo vašom prehliadači. GEDCOM súbor sa nikam
 neodosiela a stránka nemá žiadny server. Prehliadač si pamätá len nastavenia
@@ -100,7 +104,8 @@ src/core/           jadro bez UI: GEDCOM → riadky schémy → PDF (pdf-lib + f
   pdf.ts            rozloženie na strany a PDF
   texts.ts          texty v PDF v 12 jazykoch
   core.test.ts      testy na ukážkových dátach
-src/ui/             stránka v Reacte, preklady rozhrania (i18n.ts) a vlajky
+src/ui/             stránka v Reacte: schéma na obrazovke (TreeView), detail osoby
+                    (PersonDetail), preklady rozhrania (i18n.ts) a vlajky
 public/             súbory stránky: písmo DejaVu Sans, ukážkový GEDCOM a PDF, licencie
 ```
 

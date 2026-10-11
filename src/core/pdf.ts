@@ -2,8 +2,8 @@
 
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont } from "pdf-lib";
-import { buildDescRows, buildRows, type Row } from "./chart";
-import { DEFAULTS, fmt, formatDMY, type ChartOptions } from "./format";
+import { chartRows, normalize, type Row } from "./chart";
+import { fmt, formatDMY, type ChartOptions } from "./format";
 import type { GedcomData } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
 
@@ -145,21 +145,6 @@ export interface ChartResult {
   /** the font had to be shrunk noticeably */
   shrunk: boolean;
   title: string;
-}
-
-/** Rows of the chart for the chosen kind, with numbering matched to the kind. */
-export function chartRows(data: GedcomData, rootId: string, options: Partial<ChartOptions>): Row[] {
-  const o = normalize(options);
-  return o.chart === "descendants" ? buildDescRows(rootId, data.people, data.families, o)
-                                   : buildRows(rootId, data.people, data.families, o);
-}
-
-function normalize(options: Partial<ChartOptions>): ChartOptions {
-  const o = { ...DEFAULTS, ...options };
-  const desc = o.chart === "descendants";
-  if (desc && o.numbering === "ahnentafel") o.numbering = "daboville";
-  if (!desc && o.numbering === "daboville") o.numbering = "ahnentafel";
-  return o;
 }
 
 /** Build the chart for rootId as a PDF. */

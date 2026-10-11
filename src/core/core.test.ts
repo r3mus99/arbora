@@ -49,6 +49,12 @@ describe("GEDCOM", () => {
     expect(load(ged, false).people["@I1@"].birth).toBeNull();
   });
 
+  test("joins occupations", () => {
+    const ged = "0 @I1@ INDI\n1 NAME Ján /Kováč/\n1 OCCU roľník\n1 OCCU kováč";
+    expect(load(ged).people["@I1@"].occupation).toBe("roľník, kováč");
+    expect(data.people["@I13@"].occupation).toBe("");
+  });
+
   test("finds people by name without diacritics or by ID", () => {
     expect(findPeople("juraj sokol", data.people).map((p) => p.id)).toContain("@I13@");
     expect(findPeople("I13", data.people)).toEqual([data.people["@I13@"]]);
@@ -125,6 +131,16 @@ describe("descendant chart", () => {
       [2, "2. Tomáš Sokol (*cca 1792, †1869)"],
       [2, "∞cca 1821 Veronika Ondrušová (*1803, †cca 1845)"],
     ]);
+  });
+
+  test("spouse lines name the spouse", () => {
+    const rows = chartRows(data, "@I13@", opts({ chart: "descendants" }));
+    const spouses = rows.filter((r) => r.spouse);
+    expect(spouses.length).toBeGreaterThan(0);
+    for (const r of spouses) {
+      expect(r.personId).toBeNull();
+      if (r.spouseId) expect(r.text).toContain(data.people[r.spouseId].name);
+    }
   });
 
   test("d'Aboville numbering and without spouses", () => {

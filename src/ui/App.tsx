@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useRef, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { chartRows } from "../core/chart";
 import { DEFAULTS, type ChartKind, type ChartOptions } from "../core/format";
 import { fold, load, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { TEXTS, type Lang } from "../core/texts";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { LanguageMenu } from "./LanguageMenu";
+import { PersonDetail } from "./PersonDetail";
 import { PersonList } from "./PersonList";
 import { readStore, updateStore } from "./store";
+import { TreeView } from "./TreeView";
 
 type Vars = Record<string, string | number>;
 const fill = (s: string, vars: Vars) => s.replace(/\{(\w+)\}/g, (_, k: string) => (k in vars ? String(vars[k]) : `{${k}}`));
@@ -55,6 +58,9 @@ export function App() {
   const [loadedName, setLoadedName] = useState<string | null>("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [scrollKey, setScrollKey] = useState(0);
+  // person shown in the detail panel next to the on-screen chart
+  const [focusId, setFocusId] = useState<string | null>(null);
+  const [treeScroll, setTreeScroll] = useState(0);
   const [query, setQuery] = useState("");
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -143,6 +149,8 @@ export function App() {
     const last = readStore().root;
     if (last && parsed.people[last]) { setSelectedId(last); setScrollKey((k) => k + 1); }
     else setSelectedId(null);
+    setFocusId(last && parsed.people[last] ? last : null);
+    setTreeScroll((k) => k + 1);
     resetResult();
     if (!fonts.current) fonts.current = loadFonts();
     import("../core/pdf").catch(() => { /* retried when the PDF is made */ });
@@ -166,9 +174,23 @@ export function App() {
 
   const select = (id: string) => {
     setSelectedId(id);
+    setFocusId(id);
+    setTreeScroll((k) => k + 1);
     updateStore({ root: id });
   };
   const chosen = selectedId && data ? data.people[selectedId] : null;
+
+  // ------------------------------------------------------------ on-screen chart
+  const rows = useMemo(() => (data && chosen ? chartRows(data, chosen.id, toOptions(form, lang)) : []),
+                       [data, chosen, form, lang]);
+  const focus = (id: string, scroll: boolean) => {
+    setFocusId(id);
+    if (scroll) setTreeScroll((k) => k + 1);
+  };
+  const makeRoot = (id: string) => {
+    select(id);
+    setScrollKey((k) => k + 1);
+  };
 
   // ------------------------------------------------------------ status text
   let statusText = "";
@@ -237,8 +259,19 @@ export function App() {
           </div>
         </section>
 
+        {chosen && <section className="panel">
+          <h2><span className="step">3</span><span>{t("stepTree")}</span></h2>
+          <p className="note tree-hint">{t("treeHint")}</p>
+          <div className="viewer">
+            <TreeView rows={rows} focusId={focusId} scrollKey={treeScroll}
+                      onFocus={(id) => focus(id, false)} t={t} />
+            {focusId && <PersonDetail data={data} id={focusId} rootId={chosen.id} lang={lang}
+                                      onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} t={t} />}
+          </div>
+        </section>}
+
         <section className="panel">
-          <h2><span className="step">3</span><span>{t("step3")}</span></h2>
+          <h2><span className="step">{chosen ? 4 : 3}</span><span>{t("step3")}</span></h2>
           <div className="grid">
             <label><span>{t("labels")}</span>
               <select {...sel("labels")}>
