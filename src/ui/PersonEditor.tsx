@@ -1,4 +1,4 @@
-import { Check, Plus, X } from "lucide-react";
+import { Check, Copy, Plus, X } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import {
   PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields,
@@ -14,6 +14,8 @@ interface Props {
   record: GedNode;
   families: GedNode[];
   lang: Lang;
+  /** surnames and places in the file, offered while typing */
+  suggest: { surnames: string[]; places: string[]; religions: string[] };
   /** changed records only; nothing when nothing changed */
   onSave: (changed: GedNode[]) => void;
   onCancel: () => void;
@@ -39,8 +41,16 @@ function DateField({ value, shown, lang, onChange, t }: {
   </label>;
 }
 
+// the lists of suggestions, once per page
+const SURNAMES = "arbora-surnames", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
+
+/** christening and burial can take the date and place of birth and death */
+const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "death", StringKey]>> = {
+  christening: ["birth", "copyBirth"], burial: ["death", "copyDeath"],
+};
+
 /** Form for the facts of one person and of their marriages. */
-export function PersonEditor({ data, record, families, lang, onSave, onCancel, t }: Props) {
+export function PersonEditor({ data, record, families, lang, suggest, onSave, onCancel, t }: Props) {
   const [initial] = useState(() => {
     const f = personFields(record);
     const shown = { ...f };
@@ -92,16 +102,26 @@ export function PersonEditor({ data, record, families, lang, onSave, onCancel, t
     set("occupations", form.occupations.map((o, j) => (j === i ? { ...o, ...patch } : o)));
   const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}) =>
     setFams(fams.map((f, j) => (j === i ? { ...f, ...patch, marriage: { ...f.marriage, ...marriage } } : f)));
-  const event = (key: (typeof PERSON_EVENTS)[number]) => (
-    <fieldset key={key}>
+  const event = (key: (typeof PERSON_EVENTS)[number]) => {
+    const from = COPY_FROM[key];
+    const source = from && form[from[0]];
+    return <fieldset key={key}>
       <legend>{t(EVENT_LABEL[key])}</legend>
       <DateField value={form[key].date} shown={initial.shown[key].date} lang={lang} t={t}
                  onChange={(v) => set(key, { ...form[key], date: v })} />
       <label><span>{t("place")}</span>
-        <input type="text" value={form[key].place} onChange={(e) => set(key, { ...form[key], place: e.target.value })} />
+        <input type="text" value={form[key].place} list={PLACES}
+               onChange={(e) => set(key, { ...form[key], place: e.target.value })} />
       </label>
-    </fieldset>
-  );
+      {from && <button type="button" className="copy" disabled={!source?.date && !source?.place}
+                       onClick={() => set(key, { ...source! })}>
+        <Copy className="icon" aria-hidden="true" />{t(from[1])}</button>}
+    </fieldset>;
+  };
+  const hasDeath = ["death", "burial"].some((k) => {
+    const e = form[k as "death" | "burial"];
+    return e.date.trim() || e.place.trim();
+  });
   const spouseName = (r: GedNode) => {
     const f = data.families[r.xref || ""];
     const other = f && (f.husb === record.xref ? f.wife : f.husb);
@@ -114,15 +134,37 @@ export function PersonEditor({ data, record, families, lang, onSave, onCancel, t
         <label><span>{t("givenName")}</span>
           <input ref={firstInput} type="text" value={form.given} onChange={(e) => set("given", e.target.value)} /></label>
         <label><span>{t("surname")}</span>
-          <input type="text" value={form.surname} onChange={(e) => set("surname", e.target.value)} /></label>
+          <input type="text" value={form.surname} list={SURNAMES}
+                 onChange={(e) => set("surname", e.target.value)} /></label>
       </div>
-      <label><span>{t("sex")}</span>
-        <select value={form.sex} onChange={(e) => set("sex", e.target.value)}>
-          <option value="M">{t("male")}</option><option value="F">{t("female")}</option>
-          <option value={form.sex === "" ? "" : "U"}>{t("sexUnknown")}</option>
-          {!["M", "F", "U", ""].includes(form.sex) && <option value={form.sex}>{form.sex}</option>}
-        </select></label>
-      {PERSON_EVENTS.map(event)}
+      <div className="sex" role="radiogroup" aria-label={t("sex")}>
+        <span>{t("sex")}</span>
+        {([["M", "male"], ["F", "female"], [form.sex === "" ? "" : "U", "sexUnknown"]] as [string, StringKey][])
+          .map(([value, key]) => <label key={key}>
+            <input type="radio" name="sex" value={value} checked={form.sex === value}
+                   onChange={() => set("sex", value)} /> {t(key)}</label>)}
+        {!["M", "F", "U", ""].includes(form.sex) && <label>
+          <input type="radio" name="sex" checked readOnly /> {form.sex}</label>}
+      </div>
+      {event("birth")}
+      {event("christening")}
+      <label><span>{t("religion")}</span>
+        <input type="text" value={form.religion} list={RELIGIONS}
+               onChange={(e) => set("religion", e.target.value)} /></label>
+      {families.map((r, i) => (
+        <fieldset key={r.xref}>
+          <legend>{t("marriage")} · {spouseName(r)}</legend>
+          <DateField value={fams[i].marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
+                     onChange={(v) => setFam(i, {}, { date: v })} />
+          <label><span>{t("place")}</span>
+            <input type="text" value={fams[i].marriage.place} list={PLACES}
+                   onChange={(e) => setFam(i, {}, { place: e.target.value })} />
+          </label>
+          <label className="check"><input type="checkbox" checked={fams[i].divorced}
+                   onChange={(e) => setFam(i, { divorced: e.target.checked })} />
+            <span>{t("divorcedLabel")}</span></label>
+        </fieldset>
+      ))}
       <fieldset className="list">
         <legend>{t("occupation")}</legend>
         {form.occupations.map((o, i) => (
@@ -137,29 +179,25 @@ export function PersonEditor({ data, record, families, lang, onSave, onCancel, t
             <DateField value={o.date} shown={o.origin < 0 ? "" : initial.shown.occupations[o.origin].date} lang={lang}
                        t={t} onChange={(v) => setOcc(i, { date: v })} />
             <label><span>{t("place")}</span>
-              <input type="text" value={o.place} onChange={(e) => setOcc(i, { place: e.target.value })} /></label>
+              <input type="text" value={o.place} list={PLACES}
+                     onChange={(e) => setOcc(i, { place: e.target.value })} /></label>
           </div>
         ))}
         <button type="button" className="add" onClick={() => set("occupations",
           [...form.occupations, { origin: -1, value: "", date: "", place: "" }])}>
           <Plus className="icon" aria-hidden="true" />{t("addOccupation")}</button>
       </fieldset>
-      {families.map((r, i) => (
-        <fieldset key={r.xref}>
-          <legend>{t("marriage")} · {spouseName(r)}</legend>
-          <DateField value={fams[i].marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
-                     onChange={(v) => setFam(i, {}, { date: v })} />
-          <label><span>{t("place")}</span>
-            <input type="text" value={fams[i].marriage.place}
-                   onChange={(e) => setFam(i, {}, { place: e.target.value })} />
-          </label>
-          <label className="check"><input type="checkbox" checked={fams[i].divorced}
-                   onChange={(e) => setFam(i, { divorced: e.target.checked })} />
-            <span>{t("divorcedLabel")}</span></label>
-        </fieldset>
-      ))}
       <label><span>{t("note")}</span>
         <textarea rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
+      {/* death and burial only for someone who died; ticked for good once they hold something */}
+      <label className="check">
+        <input type="checkbox" checked={form.deceased} disabled={form.deceased && hasDeath}
+               onChange={(e) => set("deceased", e.target.checked)} />
+        <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
+      {form.deceased && <>{event("death")}{event("burial")}</>}
+      <datalist id={SURNAMES}>{suggest.surnames.map((s) => <option key={s} value={s} />)}</datalist>
+      <datalist id={PLACES}>{suggest.places.map((s) => <option key={s} value={s} />)}</datalist>
+      <datalist id={RELIGIONS}>{suggest.religions.map((s) => <option key={s} value={s} />)}</datalist>
       <div className="actions">
         <button className="primary" type="submit" title="Ctrl+Enter">
           <Check className="icon" aria-hidden="true" />{t("save")}</button>

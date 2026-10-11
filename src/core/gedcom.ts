@@ -23,6 +23,8 @@ export interface Person {
   death: GedEvent | null;
   /** OCCU values joined with ", " */
   occupation: string;
+  /** RELI */
+  religion: string;
   /** families where the person is a child, birth family first */
   famc: string[];
   /** families where the person is a spouse */
@@ -140,6 +142,7 @@ export function readRecords(records: GedNode[], fallbackEvents = true): GedcomDa
         id: rec.xref, name, sex: sex ? sex.value.toUpperCase() : "",
         birth: eventOf(rec, birthTags), death: eventOf(rec, deathTags),
         occupation: all(rec, "OCCU").map((n) => n.value).filter(Boolean).join(", "), famc,
+        religion: first(rec, "RELI")?.value || "",
         fams: all(rec, "FAMS").map((n) => n.value).filter(Boolean),
       };
     } else if (rec.tag === "FAM" && rec.xref) {

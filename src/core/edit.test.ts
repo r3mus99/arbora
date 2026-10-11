@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
+  applyFamily, applyPerson, suggestions, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
   readRecords, writeGedcom, type GedNode, type PersonFields,
 } from "./index";
 
@@ -84,8 +84,21 @@ describe("writing GEDCOM", () => {
     const out = edit(PERSON, "@I1@", () => ({ birth: { date: "", place: "" }, occupations: [] }));
     expect(out).toContain("1 BIRT\n2 SOUR @S1@");
     expect(out).not.toContain("OCCU");
-    const bare = edit("0 @I2@ INDI\n1 DEAT\n2 DATE 1900\n", "@I2@", () => ({ death: { date: "", place: "" } }));
+    const bare = edit("0 @I2@ INDI\n1 DEAT\n2 DATE 1900\n", "@I2@",
+                      () => ({ death: { date: "", place: "" }, deceased: false }));
     expect(bare).toBe("0 @I2@ INDI\n");
+  });
+
+  test("deceased without details is DEAT Y; still ticked, a cleared death keeps it", () => {
+    expect(personFields(parseGedcom("0 @I1@ INDI\n1 BURI\n2 PLAC Brezno\n")[0]).deceased).toBe(true);
+    expect(personFields(parseGedcom("0 @I1@ INDI\n1 NAME Ján\n")[0]).deceased).toBe(false);
+    const ticked = edit("0 @I1@ INDI\n1 NAME Ján\n1 FAMS @F1@\n", "@I1@", () => ({ deceased: true }));
+    expect(ticked).toBe("0 @I1@ INDI\n1 NAME Ján\n1 DEAT Y\n1 FAMS @F1@\n");
+    expect(edit(ticked, "@I1@", () => ({ deceased: false }))).toBe("0 @I1@ INDI\n1 NAME Ján\n1 FAMS @F1@\n");
+    expect(edit("0 @I1@ INDI\n1 DEAT\n2 DATE 1900\n", "@I1@", () => ({ death: { date: "", place: "" } })))
+      .toBe("0 @I1@ INDI\n1 DEAT Y\n");
+    const dated = edit("0 @I1@ INDI\n", "@I1@", () => ({ deceased: true, death: { date: "1900", place: "" } }));
+    expect(dated).toBe("0 @I1@ INDI\n1 DEAT\n2 DATE 1900\n");
   });
 
   test("occupations keep their own lines; removing one keeps the others' sources", () => {
@@ -99,6 +112,13 @@ describe("writing GEDCOM", () => {
     ] });
     expect(writeGedcom([after])).toBe("0 @I1@ INDI\n1 OCCU kováč, podkúvač\n2 SOUR @S1@\n1 OCCU mlynár\n2 DATE 1920\n" +
                                       "2 PLAC Brezno\n1 OCCU richtár\n2 DATE 1930\n");
+  });
+
+  test("religion is one RELI line", () => {
+    const out = edit(PERSON, "@I1@", () => ({ religion: "rímskokatolícke" }));
+    expect(out).toContain("1 OCCU roľník\n1 RELI rímskokatolícke\n1 FAMS @F1@");
+    expect(readRecords(parseGedcom(out)).people["@I1@"].religion).toBe("rímskokatolícke");
+    expect(edit(out, "@I1@", () => ({ religion: "" }))).not.toContain("RELI");
   });
 
   test("names without slashes and empty names", () => {
@@ -140,6 +160,12 @@ describe("writing GEDCOM", () => {
     const changed = applyPerson(rec, f, { ...f, surname: "Lotrinský" });
     expect(readRecords(records.map((r) => (r === rec ? changed : r))).people["@I52@"].name).toBe("František I. Lotrinský");
   });
+});
+
+test("surnames and places for suggestions", () => {
+  const ged = "0 @I1@ INDI\n1 NAME Ján /Kováč/\n1 BIRT\n2 PLAC Brezno\n0 @I2@ INDI\n1 NAME Eva\n2 SURN Malá\n" +
+              "1 DEAT\n2 PLAC Brezno\n0 @F1@ FAM\n1 MARR\n2 PLAC Ábelová\n";
+  expect(suggestions(parseGedcom(ged))).toEqual({ surnames: ["Kováč", "Malá"], places: ["Ábelová", "Brezno"], religions: [] });
 });
 
 describe("dates typed in the form", () => {

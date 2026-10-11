@@ -1,13 +1,19 @@
-import { Crosshair, Pencil } from "lucide-react";
-import { Fragment, type ReactNode } from "react";
+import {
+  Baby, Briefcase, Church, Cross, Crosshair, Droplets, Flower2, Heart, HeartCrack, Mars, Pencil, StickyNote, Users,
+  Venus, type LucideIcon,
+} from "lucide-react";
+import type { ReactNode } from "react";
+import { personFields, type EventFields } from "../core/edit";
 import { formatDate } from "../core/format";
-import type { GedEvent, GedcomData, Person } from "../core/gedcom";
+import type { GedNode, GedcomData, Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 
 interface Props {
   data: GedcomData;
   id: string;
+  /** the person's GEDCOM record, read the same way as the edit form reads it */
+  record?: GedNode;
   rootId: string;
   lang: Lang;
   onFocus: (id: string) => void;
@@ -18,18 +24,30 @@ interface Props {
   t: (key: StringKey) => string;
 }
 
-const SEX: Record<string, string> = { M: "♂", F: "♀" };
+/** one fact: an icon, a small label and the value below it */
+function Fact({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children?: ReactNode }) {
+  return <div className="fact">
+    <span className="fact-icon"><Icon className="icon" aria-hidden="true" /></span>
+    <div className="fact-body">
+      <div className="fact-label">{label}</div>
+      {children}
+    </div>
+  </div>;
+}
 
-/** Facts and close family of one person; relatives are links. */
-export function PersonDetail({ data, id, rootId, lang, onFocus, onMakeRoot, onEdit, editor, t }: Props) {
+/** Facts and close family of one person, in the order of the edit form; relatives are links. */
+export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRoot, onEdit, editor, t }: Props) {
   const p = data.people[id];
   if (!p) return null;
-  const event = (ev: GedEvent | null) =>
-    ev ? [formatDate(ev.date, true, lang), ev.place].filter(Boolean).join(", ") : "";
+  const f = record ? personFields(record) : null;
+  const when = (e: EventFields | null) => e && (e.date || e.place) ? <div className="fact-value">
+    {e.date && <span>{formatDate(e.date, true, lang)}</span>}
+    {e.place && <span className="place">{e.place}</span>}
+  </div> : null;
   const years = (q: Person) => {
     const b = q.birth ? formatDate(q.birth.date, false, lang) : "";
     const d = q.death ? formatDate(q.death.date, false, lang) : "";
-    return b || d ? `${b}–${d}` : "";
+    return d ? `${b}–${d}` : b;
   };
   const link = (pid: string | null) => {
     const q = pid ? data.people[pid] : null;
@@ -42,15 +60,17 @@ export function PersonDetail({ data, id, rootId, lang, onFocus, onMakeRoot, onEd
 
   const birthFam = p.famc.length ? data.families[p.famc[0]] : null;
   const parents = birthFam ? [birthFam.husb, birthFam.wife].filter((x): x is string => !!x) : [];
-  const marriages = p.fams.map((f) => data.families[f]).filter(Boolean);
-  const facts: [string, string][] = [
-    [t("thBirth"), event(p.birth)], [t("thDeath"), event(p.death)], [t("occupation"), p.occupation],
-  ];
+  const marriages = p.fams.map((fid) => data.families[fid]).filter(Boolean);
+  const birth = f ? f.birth : p.birth, death = f ? f.death : p.death;
+  const deceased = f ? f.deceased : !!p.death;
+  const SexIcon = p.sex === "M" ? Mars : p.sex === "F" ? Venus : null;
 
   return (
     <aside className="detail" aria-live="polite">
       <div className="detail-head">
-        <h3>{p.name || "?"} {SEX[p.sex] && <span className="muted">{SEX[p.sex]}</span>}</h3>
+        <h3>{p.name || "?"}
+          {SexIcon && <SexIcon className={`icon sex-${p.sex}`} aria-label={t(p.sex === "M" ? "male" : "female")} />}
+        </h3>
         {!editor && <div className="tools">
           <button type="button" className="icon-btn" onClick={onEdit} title={t("edit")} aria-label={t("edit")}>
             <Pencil className="icon" aria-hidden="true" /></button>
@@ -60,30 +80,38 @@ export function PersonDetail({ data, id, rootId, lang, onFocus, onMakeRoot, onEd
         </div>}
       </div>
       <p className="id">{p.id.replace(/@/g, "")}</p>
-      {editor || <>
-        <dl>
-          {facts.filter(([, v]) => v).map(([k, v]) => <Fragment key={k}><dt>{k}</dt><dd>{v}</dd></Fragment>)}
-        </dl>
-        {parents.length > 0 && <>
-          <h4>{t("parents")}</h4>
+      {editor || <div className="facts">
+        {when(birth) && <Fact icon={Baby} label={t("thBirth")}>{when(birth)}</Fact>}
+        {f && when(f.christening) && <Fact icon={Droplets} label={t("christening")}>{when(f.christening)}</Fact>}
+        {p.religion && <Fact icon={Church} label={t("religion")}><div className="fact-value">{p.religion}</div></Fact>}
+        {parents.length > 0 && <Fact icon={Users} label={t("parents")}>
           <ul>{parents.map((pid) => <li key={pid}>{link(pid)}</li>)}</ul>
-        </>}
-        {marriages.length > 0 && <>
-          <h4>{t("spouses")}</h4>
-          <ul>{marriages.map((f) => {
-            const marr = [event(f.marriage), f.divorced ? TEXTS[lang].divorced : ""].filter(Boolean).join(", ");
-            const kids = f.children.filter((c) => c in data.people);
-            return <li key={f.id}>
-              {link(f.husb === id ? f.wife : f.husb)}
-              {marr && <div className="muted">∞ {marr}</div>}
-              {kids.length > 0 && <>
-                <div className="muted">{t("children")}:</div>
-                <ul>{kids.map((c) => <li key={c}>{link(c)}</li>)}</ul>
-              </>}
-            </li>;
-          })}</ul>
-        </>}
-      </>}
+        </Fact>}
+        {marriages.map((fam) => {
+          const kids = fam.children.filter((c) => c in data.people);
+          const m = fam.marriage;
+          return <Fact key={fam.id} icon={fam.divorced ? HeartCrack : Heart} label={t("marriage")}>
+            <div>{link(fam.husb === id ? fam.wife : fam.husb)}</div>
+            {when(m && { date: m.date, place: m.place })}
+            {fam.divorced && <div className="muted">{TEXTS[lang].divorced}</div>}
+            {kids.length > 0 && <>
+              <div className="fact-sub">{t("children")}</div>
+              <ul className="kids">{kids.map((c) => <li key={c}>{link(c)}</li>)}</ul>
+            </>}
+          </Fact>;
+        })}
+        {f && f.occupations.length > 0 && <Fact icon={Briefcase} label={t("occupation")}>
+          {f.occupations.map((o) => <div key={o.origin}>
+            <div className="fact-value">{o.value}</div>{when(o)}
+          </div>)}
+        </Fact>}
+        {!f && p.occupation && <Fact icon={Briefcase} label={t("occupation")}>
+          <div className="fact-value">{p.occupation}</div></Fact>}
+        {f?.note && <Fact icon={StickyNote} label={t("note")}><div className="note-text">{f.note}</div></Fact>}
+        {deceased && <Fact icon={Cross} label={when(death) ? t("thDeath")
+          : t(p.sex === "M" ? "deceasedM" : p.sex === "F" ? "deceasedF" : "deceased")}>{when(death)}</Fact>}
+        {f && when(f.burial) && <Fact icon={Flower2} label={t("burial")}>{when(f.burial)}</Fact>}
+      </div>}
     </aside>
   );
 }
