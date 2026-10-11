@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { chartRows } from "../core/chart";
-import { DEFAULTS, type ChartKind, type ChartOptions } from "../core/format";
+import { ArrowDownFromLine, ArrowUpFromLine, ChevronDown, Download, FileText, FileUp, Loader2, Network, Search,
+         Settings } from "lucide-react";
+import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
 import { fold, load, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { TEXTS, type Lang } from "../core/texts";
@@ -147,9 +149,11 @@ export function App() {
     setLoadedName(name);
     setQuery("");
     const last = readStore().root;
-    if (last && parsed.people[last]) { setSelectedId(last); setScrollKey((k) => k + 1); }
-    else setSelectedId(null);
-    setFocusId(last && parsed.people[last] ? last : null);
+    // the chart shows at once: last chosen person, else the first one in the file
+    const root = last && parsed.people[last] ? last : Object.keys(parsed.people)[0];
+    setSelectedId(root);
+    setFocusId(root);
+    setScrollKey((k) => k + 1);
     setTreeScroll((k) => k + 1);
     resetResult();
     if (!fonts.current) fonts.current = loadFonts();
@@ -211,56 +215,66 @@ export function App() {
     onChange: (e: { target: { checked: boolean } }) => setOpt(key, e.target.checked),
   });
 
+  const pick = (id: string) => {
+    select(id);
+    setQuery("");
+  };
+  const chartTitle = chosen
+    ? fmt(TEXTS[lang][desc ? "titleDesc" : "title"], { name: chosen.name || "?" }) : "";
+
   return (
-    <main>
+    <main className={data ? "loaded" : undefined}>
       <header className="top">
         <div>
-          <h1>Rodostrom</h1>
-          <p className="lead">{t("lead")}</p>
+          <h1><Network className="logo" aria-hidden="true" />Rodostrom</h1>
+          {!data && <p className="lead">{t("lead")}</p>}
         </div>
         <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
       </header>
 
-      <section className="panel">
-        <h2><span className="step">1</span><span>{t("step1")}</span></h2>
+      <section className={data ? "file compact" : "panel file"}>
         <label className={over ? "drop over" : "drop"}
                onDragEnter={(e) => onDrag(e, true)} onDragOver={(e) => onDrag(e, true)}
                onDragLeave={(e) => onDrag(e, false)}
                onDrop={(e) => { onDrag(e, false); openFile(e.dataTransfer.files[0]); }}>
           <input type="file" accept=".ged,.GED,.gedcom,text/plain" hidden
                  onChange={(e) => { openFile(e.target.files?.[0]); e.target.value = ""; }} />
+          <FileUp className="icon" aria-hidden="true" />
           {data
             ? <div><strong>{loadedName === null ? t("sampleName") : loadedName}</strong>
                 {" – " + t("loaded", { count: Object.keys(data.people).length })}</div>
             : <div dangerouslySetInnerHTML={{ __html: t("drop") }} />}
         </label>
-        <p className="note"><span>{t("privacy")}</span>{" "}
-          <button className="link" type="button" onClick={loadSample}>{t("sample")}</button></p>
+        {!data && <p className="note"><span>{t("privacy")}</span>{" "}
+          <button className="link" type="button" onClick={loadSample}>{t("sample")}</button></p>}
       </section>
 
-      {data && <>
-        <section className="panel">
-          <h2><span className="step">2</span><span>{t("step2")}</span></h2>
-          <div className="seg" role="radiogroup">
-            <label><input type="radio" name="chart" value="ancestors" checked={form.chart === "ancestors"}
-                          onChange={() => setOpt("chart", "ancestors")} />
-              <span><b>{t("anc")}</b><small>{t("ancDesc1")}<br />{t("ancDesc2")}</small></span></label>
-            <label><input type="radio" name="chart" value="descendants" checked={desc}
-                          onChange={() => setOpt("chart", "descendants")} />
-              <span><b>{t("desc")}</b><small>{t("descDesc1")}<br />{t("descDesc2")}</small></span></label>
-          </div>
-          <input type="search" placeholder={t("search")} autoComplete="off" value={query}
-                 onChange={(e) => setQuery(e.target.value)} />
-          <PersonList people={data.people} query={query} lang={lang} selectedId={selectedId}
-                      scrollKey={scrollKey} onSelect={select}
-                      onOpen={(id) => { select(id); create(id); }} t={t} />
-          <div className="chosen">
-            {chosen ? t("chosen", { name: chosen.name, id: chosen.id.replace(/@/g, "") }) : t("choose")}
-          </div>
-        </section>
+      {data && chosen && <>
+        <div className="seg" role="radiogroup">
+          <label><input type="radio" name="chart" value="ancestors" checked={form.chart === "ancestors"}
+                        onChange={() => setOpt("chart", "ancestors")} />
+            <span><ArrowUpFromLine className="icon" aria-hidden="true" />
+              <span><b>{t("anc")}</b><small>{t("ancDesc1")}<br />{t("ancDesc2")}</small></span></span></label>
+          <label><input type="radio" name="chart" value="descendants" checked={desc}
+                        onChange={() => setOpt("chart", "descendants")} />
+            <span><ArrowDownFromLine className="icon" aria-hidden="true" />
+              <span><b>{t("desc")}</b><small>{t("descDesc1")}<br />{t("descDesc2")}</small></span></span></label>
+        </div>
 
-        {chosen && <section className="panel">
-          <h2><span className="step">3</span><span>{t("stepTree")}</span></h2>
+        <section className="panel chart">
+          <div className="chart-head">
+            <h2>{chartTitle}</h2>
+            <div className="finder">
+              <Search className="icon" aria-hidden="true" />
+              <input type="search" placeholder={t("search")} autoComplete="off" value={query}
+                     onChange={(e) => setQuery(e.target.value)}
+                     onKeyDown={(e) => { if (e.key === "Escape") setQuery(""); }} />
+              {query.trim() && <div className="found">
+                <PersonList people={data.people} query={query} lang={lang} selectedId={selectedId}
+                            scrollKey={scrollKey} onSelect={pick} t={t} />
+              </div>}
+            </div>
+          </div>
           <p className="note tree-hint">{t("treeHint")}</p>
           <div className="viewer">
             <TreeView rows={rows} focusId={focusId} scrollKey={treeScroll}
@@ -268,10 +282,11 @@ export function App() {
             {focusId && <PersonDetail data={data} id={focusId} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} t={t} />}
           </div>
-        </section>}
+        </section>
 
-        <section className="panel">
-          <h2><span className="step">{chosen ? 4 : 3}</span><span>{t("step3")}</span></h2>
+        <details className="panel settings">
+          <summary><Settings className="icon" aria-hidden="true" /><span>{t("step3")}</span>
+            <ChevronDown className="icon chev" aria-hidden="true" /></summary>
           <div className="grid">
             <label><span>{t("labels")}</span>
               <select {...sel("labels")}>
@@ -319,13 +334,15 @@ export function App() {
             <label><input {...check("showIds")} /> <span>{t("showIds")}</span></label>
             <label><input {...check("showDate")} /> <span>{t("showDate")}</span></label>
           </div>
-        </section>
+        </details>
 
-        <section className="panel">
+        <section className="panel make">
           <div className="row">
-            <button className="primary" type="button" disabled={!chosen || busy}
-                    onClick={() => create()}>{t("go")}</button>
-            {result && <a className="btn" href={result.url} download={result.name}>{t("download")}</a>}
+            <button className="primary big" type="button" disabled={busy} onClick={() => create()}>
+              {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
+              {t("go")}</button>
+            {result && <a className="btn big" href={result.url} download={result.name}>
+              <Download className="icon" aria-hidden="true" />{t("download")}</a>}
             <span className={status?.err ? "status err" : "status"}>{statusText}</span>
           </div>
           {result && <iframe className="preview" style={{ display: "block" }} src={result.url}

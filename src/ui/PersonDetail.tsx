@@ -1,3 +1,4 @@
+import { Crosshair } from "lucide-react";
 import { Fragment } from "react";
 import { formatDate } from "../core/format";
 import type { GedEvent, GedcomData, Person } from "../core/gedcom";
@@ -70,7 +71,8 @@ export function PersonDetail({ data, id, rootId, lang, onFocus, onMakeRoot, t }:
         })}</ul>
       </>}
       {id !== rootId && <div className="actions">
-        <button type="button" onClick={() => onMakeRoot(id)}>{t("makeRoot")}</button>
+        <button type="button" onClick={() => onMakeRoot(id)}>
+          <Crosshair className="icon" aria-hidden="true" />{t("makeRoot")}</button>
       </div>}
     </aside>
   );
