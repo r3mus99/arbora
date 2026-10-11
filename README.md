@@ -28,10 +28,10 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
 Potrebný je Python 3.9+ a knižnica [reportlab](https://pypi.org/project/reportlab/):
 
 ```
-pip3 install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
-Na macOS a Linuxe sa používa `python3` a `pip3`, na Windows `python` a `pip`.
+Na macOS a Linuxe sa používa `python3`, na Windows `py` alebo `python` (napr. `py -m pip install -r requirements.txt`).
 
 Skript hľadá TTF písmo s diakritikou automaticky (DejaVu Sans, Liberation Sans,
 Arial, Segoe UI na Linuxe, Windows aj macOS). Iné písmo sa dá zadať cez `--font`.
@@ -119,7 +119,7 @@ father above, mother below, with birth / parents' marriage / death years in
 parentheses. Repeated ancestors are printed once and referenced by page.
 
 ```
-pip3 install reportlab
+python3 -m pip install reportlab
 python3 rodostrom.py example/ukazka.ged --find "Sokol"
 python3 rodostrom.py example/ukazka.ged -p I1 --lang en --places short --dates full
 ```

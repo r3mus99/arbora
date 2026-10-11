@@ -25,7 +25,7 @@ try:
     from reportlab.pdfbase.ttfonts import TTFont
     from reportlab.pdfgen import canvas
 except ImportError:  # pragma: no cover
-    sys.exit("Chýba knižnica reportlab / reportlab is missing:  pip install reportlab")
+    sys.exit("Chýba knižnica reportlab / reportlab is missing:\n    python3 -m pip install reportlab   (Windows: py -m pip install reportlab)")
 
 __version__ = "1.0.0"
 
