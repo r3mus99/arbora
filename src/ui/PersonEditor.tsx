@@ -75,6 +75,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
     for (const key of PERSON_EVENTS) {
       after[key] = { ...form[key], date: date(form[key].date, initial.shown[key].date, initial.stored[key].date) };
     }
+    if (!form.deceased) after.death = after.burial = { date: "", place: "" };
     after.occupations = form.occupations.map((o) => (o.origin < 0 ? { ...o, date: parseDate(o.date, lang).value } : {
       ...o, date: date(o.date, initial.shown.occupations[o.origin].date, initial.stored.occupations[o.origin].date),
     }));
@@ -118,10 +119,6 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
         <Copy className="icon" aria-hidden="true" />{t(from[1])}</button>}
     </fieldset>;
   };
-  const hasDeath = ["death", "burial"].some((k) => {
-    const e = form[k as "death" | "burial"];
-    return e.date.trim() || e.place.trim();
-  });
   const spouseName = (r: GedNode) => {
     const f = data.families[r.xref || ""];
     const other = f && (f.husb === record.xref ? f.wife : f.husb);
@@ -189,9 +186,10 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
       </fieldset>
       <label><span>{t("note")}</span>
         <textarea rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
-      {/* death and burial only for someone who died; ticked for good once they hold something */}
+      {/* death and burial only for someone who died; unticking hides them and saving clears them,
+          ticking again before saving brings them back */}
       <label className="check">
-        <input type="checkbox" checked={form.deceased} disabled={form.deceased && hasDeath}
+        <input type="checkbox" checked={form.deceased}
                onChange={(e) => set("deceased", e.target.checked)} />
         <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
       {form.deceased && <>{event("death")}{event("burial")}</>}
