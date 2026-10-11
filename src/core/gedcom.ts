@@ -19,6 +19,8 @@ export interface Person {
   sex: string;
   birth: GedEvent | null;
   death: GedEvent | null;
+  /** OCCU values joined with ", " */
+  occupation: string;
   /** families where the person is a child, birth family first */
   famc: string[];
   /** families where the person is a spouse */
@@ -118,7 +120,8 @@ export function load(input: string | ArrayBuffer | Uint8Array, fallbackEvents = 
       }).sort((a, b) => a.rank - b.rank || a.i - b.i).map((x) => x.id).filter(Boolean);
       people[rec.xref] = {
         id: rec.xref, name, sex: sex ? sex.value.toUpperCase() : "",
-        birth: eventOf(rec, birthTags), death: eventOf(rec, deathTags), famc,
+        birth: eventOf(rec, birthTags), death: eventOf(rec, deathTags),
+        occupation: all(rec, "OCCU").map((n) => n.value).filter(Boolean).join(", "), famc,
         fams: all(rec, "FAMS").map((n) => n.value).filter(Boolean),
       };
     } else if (rec.tag === "FAM" && rec.xref) {

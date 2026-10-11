@@ -96,3 +96,34 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .lang li button:hover, .lang li button:focus-visible { background: var(--accent-soft); }
 .lang li button[aria-selected="true"] { font-weight: 600; color: var(--accent); }
 @media (max-width: 560px) { .lang > button .lname { display: none; } }
+.tree { border: 1px solid var(--border); border-radius: 8px; overflow: auto; max-height: 70vh;
+        background: var(--bg); }
+.tree-inner { position: relative; width: max-content; min-width: 100%; padding: 6px 12px 6px 0;
+              font-size: 14px; }
+.tree-lines { position: absolute; left: 0; top: 6px; pointer-events: none; }
+.tree-lines path { fill: none; stroke: var(--muted); stroke-width: 1; shape-rendering: crispEdges; }
+.tree-row { height: 24px; line-height: 24px; white-space: nowrap; }
+.tree-row button { font: inherit; color: inherit; background: none; border: 0; border-radius: 5px;
+                   padding: 0 4px; margin-left: -4px; cursor: pointer; display: inline; }
+.tree-row button:hover { background: var(--accent-soft); }
+.tree-row.root button { font-weight: 700; }
+.tree-row.spouse { color: var(--muted); }
+.tree-row.sel button { background: var(--accent); color: var(--accent-text); }
+.tree-row .dup { color: var(--muted); font-size: 13px; }
+.viewer { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 14px; align-items: start; }
+@media (max-width: 760px) { .viewer { grid-template-columns: minmax(0, 1fr); } .detail { position: static; } }
+.detail { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 14px;
+          position: sticky; top: 12px; }
+.detail h3 { font-size: 17px; margin: 0; }
+.detail .id { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+.detail h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+             margin: 12px 0 4px; font-weight: 600; }
+.detail dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; }
+.detail dt { color: var(--muted); }
+.detail dd { margin: 0; }
+.detail ul { list-style: none; margin: 0; padding: 0; }
+.detail li { padding: 1px 0; }
+.detail ul ul { padding-left: 14px; border-left: 1px solid var(--border); margin: 2px 0 4px 4px; }
+.detail .muted { color: var(--muted); }
+.detail .actions { margin-top: 14px; }
+.tree-hint { margin: -6px 0 10px; }

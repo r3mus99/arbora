@@ -64,6 +64,8 @@ const STRINGS_RAW = {
     errLoad: "Súbor sa nepodarilo načítať: {msg}", errEmpty: "V súbore sa nenašli žiadne osoby. Je to naozaj GEDCOM?",
     errSample: "Ukážku sa nepodarilo načítať.", errPdf: "PDF sa nepodarilo vytvoriť: {msg}",
     license: "MIT licencia", fileAnc: "predkovia", fileDesc: "potomkovia",
+    stepTree: "Schéma na obrazovke", treeHint: "Kliknite na osobu, zobrazí sa jej detail.", occupation: "Zamestnanie",
+    parents: "Rodičia", spouses: "Manželstvá", children: "Deti", makeRoot: "Zobraziť schému tejto osoby", repeated: "opakuje sa",
   },
   cs: {
     name: "Čeština", language: "Jazyk",
@@ -95,6 +97,8 @@ const STRINGS_RAW = {
     errLoad: "Soubor se nepodařilo načíst: {msg}", errEmpty: "V souboru nebyly nalezeny žádné osoby. Je to opravdu GEDCOM?",
     errSample: "Ukázku se nepodařilo načíst.", errPdf: "PDF se nepodařilo vytvořit: {msg}",
     license: "licence MIT", fileAnc: "predkove", fileDesc: "potomci",
+    stepTree: "Schéma na obrazovce", treeHint: "Klikněte na osobu, zobrazí se její detail.", occupation: "Zaměstnání",
+    parents: "Rodiče", spouses: "Manželství", children: "Děti", makeRoot: "Zobrazit schéma této osoby", repeated: "opakuje se",
   },
   pl: {
     name: "Polski", language: "Język",
@@ -126,6 +130,8 @@ const STRINGS_RAW = {
     errLoad: "Nie udało się wczytać pliku: {msg}", errEmpty: "W pliku nie znaleziono żadnych osób. Czy to na pewno GEDCOM?",
     errSample: "Nie udało się wczytać przykładu.", errPdf: "Nie udało się utworzyć PDF: {msg}",
     license: "licencja MIT", fileAnc: "przodkowie", fileDesc: "potomkowie",
+    stepTree: "Schemat na ekranie", treeHint: "Kliknij osobę, aby zobaczyć szczegóły.", occupation: "Zawód",
+    parents: "Rodzice", spouses: "Małżeństwa", children: "Dzieci", makeRoot: "Pokaż schemat tej osoby", repeated: "powtórzenie",
   },
   hu: {
     name: "Magyar", language: "Nyelv",
@@ -157,6 +163,8 @@ const STRINGS_RAW = {
     errLoad: "A fájlt nem sikerült betölteni: {msg}", errEmpty: "A fájlban nem található személy. Biztosan GEDCOM fájl?",
     errSample: "A mintát nem sikerült betölteni.", errPdf: "A PDF-et nem sikerült elkészíteni: {msg}",
     license: "MIT licenc", fileAnc: "felmenok", fileDesc: "leszarmazottak",
+    stepTree: "Ábra a képernyőn", treeHint: "Kattintson egy személyre a részletekért.", occupation: "Foglalkozás",
+    parents: "Szülők", spouses: "Házasságok", children: "Gyermekek", makeRoot: "E személy ábrájának megjelenítése", repeated: "ismétlődik",
   },
   de: {
     name: "Deutsch", language: "Sprache",
@@ -188,6 +196,8 @@ const STRINGS_RAW = {
     errLoad: "Die Datei konnte nicht geladen werden: {msg}", errEmpty: "In der Datei wurden keine Personen gefunden. Ist es wirklich GEDCOM?",
     errSample: "Das Beispiel konnte nicht geladen werden.", errPdf: "Das PDF konnte nicht erstellt werden: {msg}",
     license: "MIT-Lizenz", fileAnc: "vorfahren", fileDesc: "nachkommen",
+    stepTree: "Tafel am Bildschirm", treeHint: "Klicken Sie auf eine Person, um Details zu sehen.", occupation: "Beruf",
+    parents: "Eltern", spouses: "Ehen", children: "Kinder", makeRoot: "Tafel dieser Person anzeigen", repeated: "wiederholt",
   },
   en: {
     name: "English", language: "Language",
@@ -219,6 +229,8 @@ const STRINGS_RAW = {
     errLoad: "Could not load the file: {msg}", errEmpty: "No people found in the file. Is it really GEDCOM?",
     errSample: "Could not load the sample.", errPdf: "Could not create the PDF: {msg}",
     license: "MIT license", fileAnc: "ancestors", fileDesc: "descendants",
+    stepTree: "Chart on screen", treeHint: "Click a person to see their details.", occupation: "Occupation",
+    parents: "Parents", spouses: "Marriages", children: "Children", makeRoot: "Show this person's chart", repeated: "repeated",
   },
   fr: {
     name: "Français", language: "Langue",
@@ -250,6 +262,8 @@ const STRINGS_RAW = {
     errLoad: "Impossible de charger le fichier : {msg}", errEmpty: "Aucune personne trouvée dans le fichier. Est-ce bien un GEDCOM ?",
     errSample: "Impossible de charger l'exemple.", errPdf: "Impossible de créer le PDF : {msg}",
     license: "licence MIT", fileAnc: "ascendance", fileDesc: "descendance",
+    stepTree: "Tableau à l'écran", treeHint: "Cliquez sur une personne pour voir le détail.", occupation: "Profession",
+    parents: "Parents", spouses: "Mariages", children: "Enfants", makeRoot: "Afficher le tableau de cette personne", repeated: "répété",
   },
   it: {
     name: "Italiano", language: "Lingua",
@@ -281,6 +295,8 @@ const STRINGS_RAW = {
     errLoad: "Impossibile caricare il file: {msg}", errEmpty: "Nessuna persona trovata nel file. È davvero un GEDCOM?",
     errSample: "Impossibile caricare l'esempio.", errPdf: "Impossibile creare il PDF: {msg}",
     license: "licenza MIT", fileAnc: "antenati", fileDesc: "discendenti",
+    stepTree: "Schema sullo schermo", treeHint: "Fai clic su una persona per vederne i dettagli.", occupation: "Professione",
+    parents: "Genitori", spouses: "Matrimoni", children: "Figli", makeRoot: "Mostra lo schema di questa persona", repeated: "ripetuto",
   },
   es: {
     name: "Español", language: "Idioma",
@@ -312,6 +328,8 @@ const STRINGS_RAW = {
     errLoad: "No se pudo cargar el archivo: {msg}", errEmpty: "No se encontraron personas en el archivo. ¿Es realmente un GEDCOM?",
     errSample: "No se pudo cargar el ejemplo.", errPdf: "No se pudo crear el PDF: {msg}",
     license: "licencia MIT", fileAnc: "antepasados", fileDesc: "descendientes",
+    stepTree: "Esquema en pantalla", treeHint: "Haga clic en una persona para ver sus detalles.", occupation: "Ocupación",
+    parents: "Padres", spouses: "Matrimonios", children: "Hijos", makeRoot: "Mostrar el esquema de esta persona", repeated: "repetido",
   },
   pt: {
     name: "Português", language: "Idioma",
@@ -343,6 +361,8 @@ const STRINGS_RAW = {
     errLoad: "Não foi possível carregar o ficheiro: {msg}", errEmpty: "Não foram encontradas pessoas no ficheiro. É mesmo um GEDCOM?",
     errSample: "Não foi possível carregar o exemplo.", errPdf: "Não foi possível criar o PDF: {msg}",
     license: "licença MIT", fileAnc: "antepassados", fileDesc: "descendentes",
+    stepTree: "Esquema no ecrã", treeHint: "Clique numa pessoa para ver os detalhes.", occupation: "Profissão",
+    parents: "Pais", spouses: "Casamentos", children: "Filhos", makeRoot: "Mostrar o esquema desta pessoa", repeated: "repetido",
   },
   nl: {
     name: "Nederlands", language: "Taal",
@@ -374,6 +394,8 @@ const STRINGS_RAW = {
     errLoad: "Het bestand kon niet worden geladen: {msg}", errEmpty: "Geen personen gevonden in het bestand. Is het echt GEDCOM?",
     errSample: "Het voorbeeld kon niet worden geladen.", errPdf: "De PDF kon niet worden gemaakt: {msg}",
     license: "MIT-licentie", fileAnc: "voorouders", fileDesc: "nakomelingen",
+    stepTree: "Schema op het scherm", treeHint: "Klik op een persoon voor details.", occupation: "Beroep",
+    parents: "Ouders", spouses: "Huwelijken", children: "Kinderen", makeRoot: "Schema van deze persoon tonen", repeated: "herhaald",
   },
   uk: {
     name: "Українська", language: "Мова",
@@ -405,6 +427,8 @@ const STRINGS_RAW = {
     errLoad: "Не вдалося завантажити файл: {msg}", errEmpty: "У файлі не знайдено жодної особи. Це справді GEDCOM?",
     errSample: "Не вдалося завантажити приклад.", errPdf: "Не вдалося створити PDF: {msg}",
     license: "ліцензія MIT", fileAnc: "predky", fileDesc: "nashchadky",
+    stepTree: "Схема на екрані", treeHint: "Натисніть на особу, щоб побачити подробиці.", occupation: "Професія",
+    parents: "Батьки", spouses: "Шлюби", children: "Діти", makeRoot: "Показати схему цієї особи", repeated: "повторюється",
   },
 };
 
