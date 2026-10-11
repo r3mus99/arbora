@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { chartRows } from "../core/chart";
 import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, ChevronDown, Download, FileDown, FileText, FileUp, Loader2,
-         Network, Redo2, Search, Settings, Undo2 } from "lucide-react";
+         Redo2, Search, Settings, TreeDeciduous, Undo2 } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
 import { lineEnding, writeGedcom } from "../core/edit";
@@ -375,7 +375,7 @@ export function App() {
     <main className={data ? "loaded" : undefined}>
       <header className="top">
         <div>
-          <h1><Network className="logo" aria-hidden="true" />Arbora</h1>
+          <h1><TreeDeciduous className="logo" aria-hidden="true" />Arbora</h1>
           {!data && <p className="lead">{t("lead")} {t("leadEdit")}</p>}
         </div>
         <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />

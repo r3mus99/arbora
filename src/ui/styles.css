@@ -91,7 +91,7 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
            margin: 0; padding: 6px; background: var(--panel); border: 1px solid var(--border);
            border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.15); min-width: 190px;
            max-height: 70vh; overflow: auto; }
-.lang li button { display: flex; align-items: center; gap: 10px; width: 100%; border: 0;
+.lang li button { display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%; border: 0;
                   background: none; padding: 7px 10px; border-radius: 6px; text-align: left; }
 .lang li button:hover, .lang li button:focus-visible { background: var(--accent-soft); }
 .lang li button[aria-selected="true"] { font-weight: 600; color: var(--accent); }
@@ -140,6 +140,8 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .detail { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 14px;
           position: sticky; top: 12px; }
 .detail h3 { font-size: 17px; margin: 0; }
+.detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.detail-head .tools { display: flex; gap: 4px; flex: none; margin-top: -2px; }
 .detail .id { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
 .detail h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
              margin: 12px 0 4px; font-weight: 600; }
@@ -150,7 +152,6 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .detail li { padding: 1px 0; }
 .detail ul ul { padding-left: 14px; border-left: 1px solid var(--border); margin: 2px 0 4px 4px; }
 .detail .muted { color: var(--muted); }
-.detail .actions { margin-top: 14px; }
 .tree-hint { margin: -6px 0 10px; }
 .nav { display: flex; align-items: center; gap: 4px; min-width: 0; }
 .nav h2 { margin-left: 6px; }
@@ -219,4 +220,3 @@ button.link { display: inline; }
                    border-radius: 8px; padding: 7px 10px; width: 100%; resize: vertical; }
 .editor textarea:focus { outline: 3px solid var(--focus); outline-offset: 1px; }
 .editor .actions { display: flex; gap: 8px; margin-top: 2px; }
-.detail .actions { display: flex; flex-wrap: wrap; gap: 8px; }

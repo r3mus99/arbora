@@ -49,7 +49,16 @@ export function PersonDetail({ data, id, rootId, lang, onFocus, onMakeRoot, onEd
 
   return (
     <aside className="detail" aria-live="polite">
-      <h3>{p.name || "?"} {SEX[p.sex] && <span className="muted">{SEX[p.sex]}</span>}</h3>
+      <div className="detail-head">
+        <h3>{p.name || "?"} {SEX[p.sex] && <span className="muted">{SEX[p.sex]}</span>}</h3>
+        {!editor && <div className="tools">
+          <button type="button" className="icon-btn" onClick={onEdit} title={t("edit")} aria-label={t("edit")}>
+            <Pencil className="icon" aria-hidden="true" /></button>
+          {id !== rootId && <button type="button" className="icon-btn" onClick={() => onMakeRoot(id)}
+                                    title={t("makeRoot")} aria-label={t("makeRoot")}>
+            <Crosshair className="icon" aria-hidden="true" /></button>}
+        </div>}
+      </div>
       <p className="id">{p.id.replace(/@/g, "")}</p>
       {editor || <>
         <dl>
@@ -58,27 +67,22 @@ export function PersonDetail({ data, id, rootId, lang, onFocus, onMakeRoot, onEd
         {parents.length > 0 && <>
           <h4>{t("parents")}</h4>
           <ul>{parents.map((pid) => <li key={pid}>{link(pid)}</li>)}</ul>
-      </>}
-      {marriages.length > 0 && <>
-        <h4>{t("spouses")}</h4>
-        <ul>{marriages.map((f) => {
-          const marr = [event(f.marriage), f.divorced ? TEXTS[lang].divorced : ""].filter(Boolean).join(", ");
-          const kids = f.children.filter((c) => c in data.people);
-          return <li key={f.id}>
-            {link(f.husb === id ? f.wife : f.husb)}
-            {marr && <div className="muted">∞ {marr}</div>}
-            {kids.length > 0 && <>
-              <div className="muted">{t("children")}:</div>
-              <ul>{kids.map((c) => <li key={c}>{link(c)}</li>)}</ul>
-            </>}
-          </li>;
-        })}</ul>
-      </>}
-      <div className="actions">
-        <button type="button" onClick={onEdit}><Pencil className="icon" aria-hidden="true" />{t("edit")}</button>
-        {id !== rootId && <button type="button" onClick={() => onMakeRoot(id)}>
-          <Crosshair className="icon" aria-hidden="true" />{t("makeRoot")}</button>}
-      </div>
+        </>}
+        {marriages.length > 0 && <>
+          <h4>{t("spouses")}</h4>
+          <ul>{marriages.map((f) => {
+            const marr = [event(f.marriage), f.divorced ? TEXTS[lang].divorced : ""].filter(Boolean).join(", ");
+            const kids = f.children.filter((c) => c in data.people);
+            return <li key={f.id}>
+              {link(f.husb === id ? f.wife : f.husb)}
+              {marr && <div className="muted">∞ {marr}</div>}
+              {kids.length > 0 && <>
+                <div className="muted">{t("children")}:</div>
+                <ul>{kids.map((c) => <li key={c}>{link(c)}</li>)}</ul>
+              </>}
+            </li>;
+          })}</ul>
+        </>}
       </>}
     </aside>
   );
