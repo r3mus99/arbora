@@ -3,6 +3,7 @@
  * between people and families, the form of dates, and dates that cannot be true.
  */
 
+import { addLine } from "./edit";
 import type { GedNode } from "./gedcom";
 
 export type IssueKind =
@@ -17,6 +18,8 @@ export interface Issue {
   person: string | null;
   /** values for the message: id, tag, value, other (another person's ID) */
   args: Record<string, string>;
+  /** `fixIssue` can repair it */
+  fixable: boolean;
 }
 
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -85,7 +88,7 @@ function dates(node: GedNode, parent: string, out: [string, string][] = []): [st
 export function checkGedcom(records: GedNode[]): Issue[] {
   const issues: Issue[] = [];
   const add = (kind: IssueKind, level: Issue["level"], person: string | null, args: Record<string, string> = {}) =>
-    issues.push({ kind, level, person, args });
+    issues.push({ kind, level, person, args, fixable: false });
 
   if (records[0]?.tag !== "HEAD") add("noHead", "error", null);
   if (records[records.length - 1]?.tag !== "TRLR") add("noTrlr", "error", null);
@@ -161,5 +164,81 @@ export function checkGedcom(records: GedNode[]): Issue[] {
       if (fd && before(plusYears(fd, 1), cb)) add("afterFather", "warn", c, { id: c, other: father });
     }
   }
+  for (const i of issues) i.fixable = fixIssue(records, i) !== records;
   return issues;
+}
+
+/** "1885-12-12" → "12 DEC 1885", "1922-03" → "MAR 1922" inside a date value */
+export function isoToGedcom(value: string): string {
+  return value.replace(/\b(\d{4})-(\d{2})(?:-(\d{2}))?\b/g, (all, y: string, m: string, d?: string) => {
+    const month = MONTHS[+m - 1];
+    if (!month || (d && (+d < 1 || +d > DAYS[+m - 1]))) return all;
+    return `${d ? `${+d} ` : ""}${month} ${y}`;
+  });
+}
+
+const without = (rec: GedNode, drop: (c: GedNode) => boolean): GedNode => {
+  const { raw: _, ...rest } = rec;
+  return { ...rest, children: rec.children.filter((c) => !drop(c)) };
+};
+
+/** dates in the record (any depth) under events with the tag, set from `from` to `to` */
+function setDates(node: GedNode, tag: string, from: string, to: string): GedNode {
+  let changed = false;
+  const children = node.children.map((c) => {
+    if (c.tag === "DATE" && node.tag === tag && c.value === from) { changed = true; return { ...c, value: to }; }
+    const next = c.children.length ? setDates(c, tag, from, to) : c;
+    if (next !== c) changed = true;
+    return next;
+  });
+  if (!changed) return node;
+  const { raw: _, ...rest } = node;
+  return { ...rest, children };
+}
+
+/**
+ * The records with one issue repaired, or the same array when it cannot be done
+ * safely: a missing header or trailer is added, a link to nothing removed, a missing
+ * link back added, and a date like 1885-12-12 rewritten as 12 DEC 1885.
+ */
+export function fixIssue(records: GedNode[], issue: Issue): GedNode[] {
+  const a = issue.args;
+  const at = (id: string) => records.findIndex((r) => r.xref === id);
+  const swap = (i: number, rec: GedNode) => (rec === records[i] ? records : records.map((r, j) => (j === i ? rec : r)));
+  switch (issue.kind) {
+    case "noHead":
+      return [{ tag: "HEAD", value: "", xref: null, children: [
+        { tag: "GEDC", value: "", xref: null, children: [
+          { tag: "VERS", value: "5.5.1", xref: null, children: [] },
+          { tag: "FORM", value: "LINEAGE-LINKED", xref: null, children: [] }] },
+        { tag: "CHAR", value: "UTF-8", xref: null, children: [] }] }, ...records];
+    case "noTrlr":
+      return [...records, { tag: "TRLR", value: "", xref: null, children: [] }];
+    case "missingRef": {
+      const i = at(a.id);
+      return i < 0 ? records : swap(i, without(records[i], (c) => c.tag === a.tag && c.value === a.value));
+    }
+    case "oneWay": {
+      // a person's FAMC/FAMS: the family gets CHIL, HUSB or WIFE
+      if (a.tag === "FAMC" || a.tag === "FAMS") {
+        const i = at(a.value), p = records[at(a.id)];
+        if (i < 0 || !p) return records;
+        const sex = p.children.find((c) => c.tag === "SEX")?.value.toUpperCase();
+        const role = a.tag === "FAMC" ? "CHIL" : sex === "M" ? "HUSB" : sex === "F" ? "WIFE" : "";
+        if (!role || role !== "CHIL" && records[i].children.some((c) => c.tag === role)) return records;
+        return swap(i, addLine(records[i], role, a.id));
+      }
+      // a family's HUSB/WIFE/CHIL: the person gets FAMS or FAMC
+      const i = at(a.value);
+      return i < 0 ? records : swap(i, addLine(records[i], a.tag === "CHIL" ? "FAMC" : "FAMS", a.id));
+    }
+    case "badDate": {
+      const fixed = isoToGedcom(a.value);
+      const i = at(a.id);
+      if (fixed === a.value || !validDateValue(fixed) || i < 0) return records;
+      return swap(i, setDates(records[i], a.tag, a.value, fixed.toUpperCase()));
+    }
+    default:
+      return records;
+  }
 }

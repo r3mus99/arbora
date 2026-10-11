@@ -74,7 +74,7 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
    a ostatné voľby sa berú z Nastavení, takže PDF zodpovedá schéme na stránke
    (zbalené vetvy sa do PDF neprenášajú).
 6. **Upraviť** v detaile osoby otvorí formulár s jej údajmi (pozri nižšie).
-7. **Nastavenia** sú skryté, otvoria sa kliknutím. Menia aj schému na stránke.
+7. **Nastavenia** otvorí ikona ozubeného kolieska vedľa jazyka. Menia aj schému na stránke.
 8. **Vytvoriť PDF** (hore vedľa Stiahnuť GEDCOM) vytvorí PDF a hneď ho stiahne.
 
 ### Úpravy a export do GEDCOM
@@ -101,7 +101,10 @@ Pred zatvorením stránky s neuloženými zmenami sa prehliadač opýta.
 ### Kontrola súboru
 
 Tlačidlo so štítom vedľa súboru ukazuje počet nájdených problémov, po kliknutí
-ich vypíše a mená v zozname otvoria detail osoby. Kontroluje sa (GEDCOM 5.5.1):
+ich vypíše a mená v zozname otvoria detail osoby. Čo sa dá opraviť bezpečne,
+má vpravo čarovnú ceruzku (oprava po jednom, dá sa vrátiť): chýbajúca hlavička
+alebo `TRLR`, odkaz na neexistujúci záznam sa odstráni, chýbajúci spätný odkaz
+sa doplní a dátum `1885-12-12` sa prepíše na `12 DEC 1885`. Kontroluje sa (GEDCOM 5.5.1):
 hlavička `HEAD` a koniec `TRLR`, duplicitné ID, odkazy na neexistujúce osoby
 a rodiny, odkazy bez spätného odkazu (`FAMS`/`FAMC` oproti `HUSB`/`WIFE`/`CHIL`),
 dátumy mimo tvaru GEDCOM (napr. `1885-12-12`), pohlavie oproti úlohe v rodine
@@ -123,7 +126,7 @@ podľa jazyka prehliadača.
 
 ### Nastavenia
 
-Nastavenia majú dve časti. **Spoločné** platia pre schému na stránke aj pre PDF:
+Nastavenia sa otvoria v okne cez ikonu ozubeného kolieska vedľa jazyka. Prvá časť platí pre schému na stránke aj pre PDF:
 
 | Voľba | Možnosti |
 |---|---|
@@ -135,7 +138,7 @@ Nastavenia majú dve časti. **Spoločné** platia pre schému na stránke aj pr
 | Generácie | maximálny počet vrátane koreňa (0 = všetky) |
 | Manželia | pri potomkoch: zobraziť manžela/manželku s rokom sobáša, alebo len pokrvných potomkov |
 
-**Len pre PDF:** formát strany (A4, A3, A5, Letter, Legal), orientácia, veľkosť
+**Nastavenie tlače** (len pre PDF): formát strany (A4, A3, A5, Letter, Legal), orientácia, veľkosť
 písma, vlastný nadpis a dátum tlače v hlavičke.
 
 Opakovaná osoba sa rozpíše len raz, ďalej je na ňu odkaz.

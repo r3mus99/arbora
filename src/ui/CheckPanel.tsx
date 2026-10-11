@@ -1,4 +1,4 @@
-import { CircleAlert, ShieldCheck, TriangleAlert, X } from "lucide-react";
+import { CircleAlert, ShieldCheck, TriangleAlert, WandSparkles, X } from "lucide-react";
 import type { Issue } from "../core/check";
 import type { GedcomData } from "../core/gedcom";
 import type { StringKey } from "./i18n";
@@ -7,6 +7,8 @@ interface Props {
   issues: Issue[];
   data: GedcomData;
   onFocus: (id: string) => void;
+  /** repair one issue (only those marked fixable) */
+  onFix: (issue: Issue) => void;
   onClose: () => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
@@ -18,7 +20,7 @@ const EVENT: Record<string, StringKey> = {
 const WHO = "\u0000who\u0000", OTHER = "\u0000other\u0000";
 
 /** The list of problems the file check found; people in it are links. */
-export function CheckPanel({ issues, data, onFocus, onClose, t }: Props) {
+export function CheckPanel({ issues, data, onFocus, onFix, onClose, t }: Props) {
   const person = (id: string | null | undefined, key: string) => {
     const p = id ? data.people[id] : null;
     if (!p) return <span key={key}>{id ? id.replace(/@/g, "") : "?"}</span>;
@@ -56,8 +58,10 @@ export function CheckPanel({ issues, data, onFocus, onClose, t }: Props) {
           {i.level === "error" ? <CircleAlert className="icon" aria-hidden="true" />
                                : <TriangleAlert className="icon" aria-hidden="true" />}
           <span>{message(i)}</span>
+          {i.fixable && <button type="button" className="icon-btn fix" onClick={() => onFix(i)}
+                                title={t("fix")} aria-label={t("fix")}>
+            <WandSparkles className="icon" aria-hidden="true" /></button>}
         </li>)}</ul>
-        <p className="note">{t("checkNote")}</p>
       </>}
     </section>
   );

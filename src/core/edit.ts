@@ -107,6 +107,12 @@ const ORDER = ["NAME", "SEX", "HUSB", "WIFE", "BIRT", "CHR", "BAPM", "DEAT", "BU
                "OCCU", "RELI", "NOTE"];
 const LATE = new Set(["FAMC", "FAMS", "CHIL", "SOUR", "OBJE", "CHAN", "RIN", "REFN"]);
 
+/** A record with one more line `tag value`, put where GEDCOM usually has it; written anew. */
+export function addLine(rec: GedNode, tag: string, value: string): GedNode {
+  const { raw: _, ...rest } = rec;
+  return { ...rest, children: insert(rec.children, node(tag, value)) };
+}
+
 function insert(children: GedNode[], added: GedNode): GedNode[] {
   const rank = ORDER.indexOf(added.tag);
   // after the lines with the same tag, else before the first one that comes later

@@ -294,3 +294,18 @@ button.link { display: inline; }
 .check li.warn .icon { color: #b7791f; }
 .check .link:disabled { text-decoration: none; color: inherit; opacity: 1; cursor: default; }
 .check-ok { display: flex; gap: 8px; align-items: center; margin: 8px 0 0; color: var(--accent); }
+.settings-dialog { border: 0; border-radius: 16px; padding: 0; width: min(760px, calc(100vw - 32px));
+                   max-height: calc(100vh - 48px); background: var(--panel); color: var(--text);
+                   box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.settings-dialog::backdrop { background: rgba(20, 24, 20, .45); backdrop-filter: blur(2px); }
+.dialog-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; position: sticky; top: 0;
+               background: var(--panel); border-bottom: 1px solid var(--border); z-index: 1; }
+.dialog-head h2 { margin: 0; font-size: 17px; flex: 1; }
+.settings-dialog .set-group:first-of-type { padding-top: 14px; }
+.dialog-foot { display: flex; justify-content: flex-end; padding: 12px 18px; border-top: 1px solid var(--border);
+               position: sticky; bottom: 0; background: var(--panel); }
+.head-tools { display: flex; gap: 8px; align-items: center; flex: none; }
+.settings-btn { padding: 8px; }
+.check li > span { flex: 1; }
+.check li .fix { margin: -4px 0 -4px auto; padding: 4px; color: var(--accent); }
+.check li .fix .icon { color: var(--accent); margin: 0; }

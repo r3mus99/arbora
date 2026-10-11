@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
-import { checkGedcom, decode, parseGedcom, validDateValue } from "./index";
+import { checkGedcom, decode, fixIssue, isoToGedcom, parseGedcom, validDateValue, writeGedcom } from "./index";
 
 const kinds = (ged: string) => checkGedcom(parseGedcom(ged)).map((i) => i.kind);
 const wrap = (body: string) => `0 HEAD\n1 GEDC\n2 VERS 5.5.1\n${body}0 TRLR\n`;
@@ -58,5 +58,33 @@ describe("checkGedcom", () => {
   test("the sample file has no broken links", () => {
     const issues = checkGedcom(parseGedcom(decode(readFileSync("public/ukazka.ged"))));
     expect(issues.filter((i) => i.level === "error")).toEqual([]);
+  });
+
+  test("fixes, one issue at a time", () => {
+    const fixAll = (ged: string) => {
+      let records = parseGedcom(ged);
+      for (let n = 0; n < 20; n++) {
+        const issue = checkGedcom(records).find((i) => i.fixable);
+        if (!issue) break;
+        records = fixIssue(records, issue);
+      }
+      return { text: writeGedcom(records), left: checkGedcom(records).map((i) => i.kind) };
+    };
+    const { text, left } = fixAll("0 @I1@ INDI\n1 SEX M\n1 BIRT\n2 DATE 1885-12-12\n1 FAMS @F1@\n1 FAMC @F9@\n" +
+      "0 @I2@ INDI\n1 SEX F\n1 FAMS @F1@\n0 @I3@ INDI\n1 RESI\n2 DATE FROM 1903-04 TO 1921\n" +
+      "0 @F1@ FAM\n1 HUSB @I1@\n1 CHIL @I3@\n");
+    expect(left).toEqual([]);
+    expect(text).toBe("0 HEAD\n1 GEDC\n2 VERS 5.5.1\n2 FORM LINEAGE-LINKED\n1 CHAR UTF-8\n" +
+      "0 @I1@ INDI\n1 SEX M\n1 BIRT\n2 DATE 12 DEC 1885\n1 FAMS @F1@\n" +
+      "0 @I2@ INDI\n1 SEX F\n1 FAMS @F1@\n0 @I3@ INDI\n1 RESI\n2 DATE FROM APR 1903 TO 1921\n1 FAMC @F1@\n" +
+      "0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 CHIL @I3@\n0 TRLR\n");
+  });
+
+  test("what cannot be fixed safely stays", () => {
+    const issues = checkGedcom(parseGedcom(wrap("0 @I1@ INDI\n1 FAMS @F1@\n1 BIRT\n2 DATE PRED ROKOM 1841\n" +
+      "0 @I2@ INDI\n1 SEX M\n1 FAMS @F1@\n0 @F1@ FAM\n1 HUSB @I2@\n")));
+    // no sex, so no telling whether @I1@ is HUSB or WIFE; a date in words
+    expect(issues.map((i) => [i.kind, i.fixable])).toEqual([["oneWay", false], ["badDate", false]]);
+    expect(isoToGedcom("1922-13-01")).toBe("1922-13-01");
   });
 });
