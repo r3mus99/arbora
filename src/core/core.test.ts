@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
 import { describe, expect, test } from "vitest";
 import {
-  DEFAULTS, LANGS, TEXTS, chartRows, decode, findPeople, formatDate, formatPlace, generate, load,
-  parseGedcom, type ChartOptions,
+  DEFAULTS, LANGS, TEXTS, chartRows, collapseAt, decode, findPeople, formatDate, formatPlace, generate, load,
+  parseGedcom, reveal, visibleRows, type ChartOptions,
 } from "./index";
 
 // fictional sample data shipped with the site
@@ -148,6 +148,50 @@ describe("descendant chart", () => {
                                                  showSpouses: false }));
     expect(rows.some((r) => r.spouse)).toBe(false);
     expect(rows[1].text).toMatch(/^1\.1\. Tomáš Sokol/);
+  });
+});
+
+describe("collapsed branches", () => {
+  const anc = chartRows(data, "@I1@", opts({ numbering: "ahnentafel" }));
+  const desc = chartRows(data, "@I13@", opts({ chart: "descendants" }));
+
+  test("nothing collapsed shows every row with the same connectors", () => {
+    const shown = visibleRows(anc, new Set());
+    expect(shown).toHaveLength(anc.length);
+    expect(shown.map((r) => r.links)).toEqual(anc.map((r) => r.links));
+  });
+
+  test("collapsing the father's line hides his ancestors and counts them", () => {
+    const father = anc.find((r) => r.ref === "2")!;
+    expect(father.path).toBe("1.f");
+    const shown = visibleRows(anc, new Set([father.path]));
+    const row = shown.find((r) => r.path === "1.f")!;
+    expect(row.hidden).toBe(anc.filter((r) => r.path.startsWith("1.f.")).length);
+    expect(row.links).toEqual([]);
+    expect(shown).toHaveLength(anc.length - row.hidden);
+    expect(shown.some((r) => r.ref === "4")).toBe(false);
+    expect(shown.some((r) => r.ref === "3")).toBe(true);
+    // connectors point at rows that are still there
+    for (const r of shown) for (const l of r.links) expect(Math.max(l.a, l.b)).toBeLessThan(shown.length);
+  });
+
+  test("showing N generations", () => {
+    const shown = visibleRows(anc, collapseAt(anc, 3));
+    expect(shown.map((r) => r.ref).sort((a, b) => +a - +b)).toEqual(["1", "2", "3", "4", "5", "6", "7"]);
+    expect(shown.filter((r) => r.hidden).length).toBeGreaterThan(0);
+  });
+
+  test("descendants: spouse lines fold with the person", () => {
+    const tomas = desc.find((r) => r.ref === "1.1")!;
+    const shown = visibleRows(desc, new Set([tomas.path]));
+    expect(shown.some((r) => r.path.startsWith("1.1~") || r.path.startsWith("1.1."))).toBe(false);
+    expect(shown.find((r) => r.path === "1.1")!.hidden).toBe(desc.filter((r) => !r.spouse && r.path.startsWith("1.1.")).length);
+  });
+
+  test("revealing a row opens the branches above it", () => {
+    const deep = anc.find((r) => r.gen === 5)!;
+    const open = reveal(collapseAt(anc, 2), deep.path);
+    expect(visibleRows(anc, open).some((r) => r.index === anc.indexOf(deep))).toBe(true);
   });
 });
 

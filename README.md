@@ -57,8 +57,15 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
    na úzkej pod ňou): narodenie, úmrtie, zamestnanie, rodičov, manželstvá
    a deti. Mená príbuzných sú odkazy a tlačidlo **Zobraziť schému tejto osoby**
    z nej spraví osobu číslo 1.
-4. **Nastavenia** sú skryté, otvoria sa kliknutím. Menia aj schému na stránke.
-5. **Vytvoriť PDF**, potom **Stiahnuť PDF**.
+4. Opakujúci sa predok má namiesto svojej vetvy odkaz **pozri č. X** (pri
+   číslovaní Ahnentafel / d'Aboville, inak **pozri vyššie / nižšie**), ktorý
+   skočí na miesto, kde je vetva rozpísaná, a zvýrazní ho. Šípky vedľa nadpisu
+   (alebo Alt+← / Alt+→) vracajú späť a vpred po prezeraných osobách.
+5. Tlačidlo **−** pri osobe zbalí jej vetvu, **+ počet** ju znova rozbalí; so
+   Shiftom sa zbalí alebo rozbalí celá generácia. **Generácie: 1 2 3 … všetky**
+   nad schémou ukáže len prvých N generácií.
+6. **Nastavenia** sú skryté, otvoria sa kliknutím. Menia aj schému na stránke.
+7. **Vytvoriť PDF**, potom **Stiahnuť PDF**.
 
 **Súkromie:** všetko beží iba vo vašom prehliadači. GEDCOM súbor sa nikam
 neodosiela a stránka nemá žiadny server. Prehliadač si pamätá len nastavenia
@@ -106,6 +113,7 @@ src/core/           jadro bez UI: GEDCOM → riadky schémy → PDF (pdf-lib + f
   gedcom.ts         načítanie GEDCOM-u (kódovanie, záznamy, osoby, rodiny), vyhľadávanie
   format.ts         voľby, dátumy, miesta, text riadku osoby
   chart.ts          riadky schémy predkov a potomkov
+  collapse.ts       zbalené vetvy: ktoré riadky ostanú viditeľné
   pdf.ts            rozloženie na strany a PDF
   texts.ts          texty v PDF v 12 jazykoch
   core.test.ts      testy na ukážkových dátach

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { chartRows } from "../core/chart";
-import { ArrowDownFromLine, ArrowUpFromLine, ChevronDown, Download, FileText, FileUp, Loader2, Network, Search,
+import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, ChevronDown, Download, FileText, FileUp, Loader2, Network, Search,
          Settings } from "lucide-react";
+import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
 import { fold, load, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
@@ -37,6 +38,11 @@ const NUMBERING: Record<ChartKind, [ChartOptions["numbering"], StringKey][]> = {
 };
 
 interface Status { key: StringKey; vars: Vars; err: boolean }
+/** one step of the browsing history: whose chart and who is in the detail */
+interface Place { root: string; focus: string }
+/** collapsed branches of one chart (`key`); `level` = generations shown, when chosen from the toolbar */
+interface Folding { key: string; paths: ReadonlySet<string>; level: number | null }
+const NO_PATHS: ReadonlySet<string> = new Set();
 interface Result { url: string; name: string }
 
 async function loadFonts(): Promise<Fonts> {
@@ -63,6 +69,10 @@ export function App() {
   // person shown in the detail panel next to the on-screen chart
   const [focusId, setFocusId] = useState<string | null>(null);
   const [treeScroll, setTreeScroll] = useState(0);
+  // row to scroll to and highlight after "see no. X"
+  const [jumpRow, setJumpRow] = useState<number | null>(null);
+  const [folding, setFolding] = useState<Folding>({ key: "", paths: NO_PATHS, level: null });
+  const [hist, setHist] = useState<{ list: Place[]; at: number }>({ list: [], at: -1 });
   const [query, setQuery] = useState("");
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -153,6 +163,8 @@ export function App() {
     const root = last && parsed.people[last] ? last : Object.keys(parsed.people)[0];
     setSelectedId(root);
     setFocusId(root);
+    setJumpRow(null);
+    setHist({ list: [{ root, focus: root }], at: 0 });
     setScrollKey((k) => k + 1);
     setTreeScroll((k) => k + 1);
     resetResult();
@@ -176,21 +188,90 @@ export function App() {
 
   const onDrag = (e: DragEvent, on: boolean) => { e.preventDefault(); setOver(on); };
 
+  const remember = (place: Place) => setHist((h) => {
+    const cur = h.list[h.at];
+    if (cur && cur.root === place.root && cur.focus === place.focus) return h;
+    const list = [...h.list.slice(0, h.at + 1), place].slice(-200);
+    return { list, at: list.length - 1 };
+  });
+
   const select = (id: string) => {
     setSelectedId(id);
     setFocusId(id);
+    setJumpRow(null);
     setTreeScroll((k) => k + 1);
     updateStore({ root: id });
+    remember({ root: id, focus: id });
   };
   const chosen = selectedId && data ? data.people[selectedId] : null;
 
   // ------------------------------------------------------------ on-screen chart
   const rows = useMemo(() => (data && chosen ? chartRows(data, chosen.id, toOptions(form, lang)) : []),
                        [data, chosen, form, lang]);
+  // collapsed branches belong to one chart; another person or chart kind starts fully expanded
+  const treeKey = chosen ? `${form.chart}|${chosen.id}` : "";
+  const paths = folding.key === treeKey ? folding.paths : NO_PATHS;
+  const level = folding.key === treeKey ? folding.level : null;
+  const setPaths = (next: ReadonlySet<string>, lvl: number | null = null) =>
+    setFolding({ key: treeKey, paths: next, level: lvl });
+  const shown = useMemo(() => visibleRows(rows, paths), [rows, paths]);
+  const maxGen = rows.reduce((m, r) => Math.max(m, r.gen), 0);
+
+  /** open the collapsed branches that hide a person's (first) row */
+  const showPerson = (id: string) => {
+    const row = rows.find((r) => !r.dup && (r.personId ?? r.spouseId) === id);
+    if (row && paths.size) setPaths(reveal(paths, row.path));
+  };
   const focus = (id: string, scroll: boolean) => {
     setFocusId(id);
-    if (scroll) setTreeScroll((k) => k + 1);
+    setJumpRow(null);
+    if (scroll) {
+      showPerson(id);
+      setTreeScroll((k) => k + 1);
+    }
+    if (chosen) remember({ root: chosen.id, focus: id });
   };
+  const jump = (index: number) => {
+    const target = rows[index];
+    if (!target || !chosen) return;
+    setPaths(reveal(paths, target.path));
+    setFocusId(target.personId);
+    setJumpRow(index);
+    setTreeScroll((k) => k + 1);
+    if (target.personId) remember({ root: chosen.id, focus: target.personId });
+  };
+  const toggle = (row: { path: string; gen: number; hidden: number }, whole: boolean) => {
+    const next = new Set(paths);
+    const same = whole ? [...collapseAt(rows, row.gen)] : [row.path];
+    for (const p of same) if (row.hidden) next.delete(p); else next.add(p);
+    setPaths(next);
+  };
+  const showLevel = (gen: number | null) => setPaths(gen ? collapseAt(rows, gen) : NO_PATHS, gen);
+
+  const move = (step: number) => {
+    const place = hist.list[hist.at + step];
+    if (!place || !data?.people[place.root]) return;
+    setHist({ ...hist, at: hist.at + step });
+    setSelectedId(place.root);
+    setFocusId(place.focus);
+    setJumpRow(null);
+    updateStore({ root: place.root });
+    if (place.root === chosen?.id) showPerson(place.focus);
+    setTreeScroll((k) => k + 1);
+  };
+  const canBack = hist.at > 0, canForward = hist.at < hist.list.length - 1;
+  const moveRef = useRef(move);
+  moveRef.current = move;
+  useEffect(() => {
+    // Alt + arrow, as in the browser
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+      e.preventDefault();
+      moveRef.current(e.key === "ArrowLeft" ? -1 : 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const makeRoot = (id: string) => {
     select(id);
     setScrollKey((k) => k + 1);
@@ -263,7 +344,15 @@ export function App() {
 
         <section className="panel chart">
           <div className="chart-head">
-            <h2>{chartTitle}</h2>
+            <div className="nav">
+              <button type="button" className="icon-btn" disabled={!canBack} onClick={() => move(-1)}
+                      title={`${t("back")} (Alt+←)`} aria-label={t("back")}>
+                <ArrowLeft className="icon" aria-hidden="true" /></button>
+              <button type="button" className="icon-btn" disabled={!canForward} onClick={() => move(1)}
+                      title={`${t("forward")} (Alt+→)`} aria-label={t("forward")}>
+                <ArrowRight className="icon" aria-hidden="true" /></button>
+              <h2>{chartTitle}</h2>
+            </div>
             <div className="finder">
               <Search className="icon" aria-hidden="true" />
               <input type="search" placeholder={t("search")} autoComplete="off" value={query}
@@ -275,10 +364,22 @@ export function App() {
               </div>}
             </div>
           </div>
-          <p className="note tree-hint">{t("treeHint")}</p>
+          <div className="tree-tools">
+            <p className="note tree-hint">{t("treeHint")}</p>
+            {maxGen > 1 && <div className="levels" role="group" aria-label={t("showGens")}>
+              <span>{t("showGens")}:</span>
+              {Array.from({ length: maxGen - 1 }, (_, i) => i + 1).map((g) =>
+                <button key={g} type="button" className={level === g ? "on" : undefined}
+                        aria-pressed={level === g} onClick={() => showLevel(g)}>{g}</button>)}
+              <button type="button" className={paths.size ? undefined : "on"} aria-pressed={!paths.size}
+                      onClick={() => showLevel(null)}>{t("allGens")}</button>
+            </div>}
+          </div>
           <div className="viewer">
-            <TreeView rows={rows} focusId={focusId} scrollKey={treeScroll}
-                      onFocus={(id) => focus(id, false)} t={t} />
+            <TreeView rows={shown} focusId={focusId} scrollKey={treeScroll} scrollTo={jumpRow}
+                      numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
+                      onFocus={(id) => focus(id, false)} onToggle={toggle}
+                      onJump={(r) => jump(r.targetIndex)} t={t} />
             {focusId && <PersonDetail data={data} id={focusId} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} t={t} />}
           </div>
