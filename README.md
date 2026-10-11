@@ -57,8 +57,16 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
    na úzkej pod ňou): narodenie, úmrtie, zamestnanie, rodičov, manželstvá
    a deti. Mená príbuzných sú odkazy a tlačidlo **Zobraziť schému tejto osoby**
    z nej spraví osobu číslo 1.
-4. **Nastavenia** sú skryté, otvoria sa kliknutím. Menia aj schému na stránke.
-5. **Vytvoriť PDF**, potom **Stiahnuť PDF**.
+4. Opakujúci sa predok má namiesto svojej vetvy odkaz **pozri č. X** (pri
+   číslovaní Ahnentafel / d'Aboville, inak **pozri vyššie / nižšie**), ktorý
+   skočí na miesto, kde je vetva rozpísaná, a zvýrazní ho. Šípky vedľa nadpisu
+   (alebo Alt+← / Alt+→) vracajú späť a vpred po prezeraných osobách.
+5. Znamienko **−** na spojnici pred menom zbalí vetvu osoby, **+** ju znova
+   rozbalí; so Shiftom sa zbalí alebo rozbalí celá generácia. Počet generácií
+   a ostatné voľby sa berú z Nastavení, takže PDF zodpovedá schéme na stránke
+   (zbalené vetvy sa do PDF neprenášajú).
+6. **Nastavenia** sú skryté, otvoria sa kliknutím. Menia aj schému na stránke.
+7. **Vytvoriť PDF**, potom **Stiahnuť PDF**.
 
 **Súkromie:** všetko beží iba vo vašom prehliadači. GEDCOM súbor sa nikam
 neodosiela a stránka nemá žiadny server. Prehliadač si pamätá len nastavenia
@@ -74,6 +82,8 @@ podľa jazyka prehliadača.
 
 ### Nastavenia
 
+Nastavenia majú dve časti. **Spoločné** platia pre schému na stránke aj pre PDF:
+
 | Voľba | Možnosti |
 |---|---|
 | Popisky | symboly `* ∞ †` alebo skratky `nar. sob. zom.` |
@@ -81,10 +91,13 @@ podľa jazyka prehliadača.
 | Miesta | bez miest, len obec, celé miesto |
 | Číslovanie | generácia (1, 2, 3…); pri predkoch Ahnentafel (otec = 2n, matka = 2n+1), pri potomkoch d'Aboville (1.2.1); bez čísel |
 | Sobáš rodičov | pri predkoch: pri otcovi, pri oboch rodičoch, nezobrazovať |
-| Manželia | pri potomkoch: zobraziť manžela/manželku s rokom sobáša, alebo len pokrvných potomkov |
-| Formát a orientácia | A4, A3, A5, Letter, Legal; na výšku / na šírku |
 | Generácie | maximálny počet vrátane koreňa (0 = všetky) |
-| Ďalšie | veľkosť písma, vlastný nadpis, opakované osoby rozpísať znova, matka hore (predkovia), zobraziť ID, dátum tlače |
+| Manželia | pri potomkoch: zobraziť manžela/manželku s rokom sobáša, alebo len pokrvných potomkov |
+
+**Len pre PDF:** formát strany (A4, A3, A5, Letter, Legal), orientácia, veľkosť
+písma, vlastný nadpis a dátum tlače v hlavičke.
+
+Opakovaná osoba sa rozpíše len raz, ďalej je na ňu odkaz.
 
 Ak sa najdlhší riadok nezmestí na šírku strany, odsadenie generácií a potom
 písmo sa automaticky zmenšia.
@@ -106,6 +119,7 @@ src/core/           jadro bez UI: GEDCOM → riadky schémy → PDF (pdf-lib + f
   gedcom.ts         načítanie GEDCOM-u (kódovanie, záznamy, osoby, rodiny), vyhľadávanie
   format.ts         voľby, dátumy, miesta, text riadku osoby
   chart.ts          riadky schémy predkov a potomkov
+  collapse.ts       zbalené vetvy: ktoré riadky ostanú viditeľné
   pdf.ts            rozloženie na strany a PDF
   texts.ts          texty v PDF v 12 jazykoch
   core.test.ts      testy na ukážkových dátach

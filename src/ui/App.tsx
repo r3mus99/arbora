@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { chartRows } from "../core/chart";
-import { ArrowDownFromLine, ArrowUpFromLine, ChevronDown, Download, FileText, FileUp, Loader2, Network, Search,
+import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, ChevronDown, Download, FileText, FileUp, Loader2, Network, Search,
          Settings } from "lucide-react";
+import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
 import { fold, load, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
@@ -37,6 +38,11 @@ const NUMBERING: Record<ChartKind, [ChartOptions["numbering"], StringKey][]> = {
 };
 
 interface Status { key: StringKey; vars: Vars; err: boolean }
+/** one step of the browsing history: whose chart and who is in the detail */
+interface Place { root: string; focus: string }
+/** collapsed branches of one chart (`key`) */
+interface Folding { key: string; paths: ReadonlySet<string> }
+const NO_PATHS: ReadonlySet<string> = new Set();
 interface Result { url: string; name: string }
 
 async function loadFonts(): Promise<Fonts> {
@@ -63,6 +69,10 @@ export function App() {
   // person shown in the detail panel next to the on-screen chart
   const [focusId, setFocusId] = useState<string | null>(null);
   const [treeScroll, setTreeScroll] = useState(0);
+  // row to scroll to and highlight after "see no. X"
+  const [jumpRow, setJumpRow] = useState<number | null>(null);
+  const [folding, setFolding] = useState<Folding>({ key: "", paths: NO_PATHS });
+  const [hist, setHist] = useState<{ list: Place[]; at: number }>({ list: [], at: -1 });
   const [query, setQuery] = useState("");
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -153,6 +163,8 @@ export function App() {
     const root = last && parsed.people[last] ? last : Object.keys(parsed.people)[0];
     setSelectedId(root);
     setFocusId(root);
+    setJumpRow(null);
+    setHist({ list: [{ root, focus: root }], at: 0 });
     setScrollKey((k) => k + 1);
     setTreeScroll((k) => k + 1);
     resetResult();
@@ -176,21 +188,86 @@ export function App() {
 
   const onDrag = (e: DragEvent, on: boolean) => { e.preventDefault(); setOver(on); };
 
+  const remember = (place: Place) => setHist((h) => {
+    const cur = h.list[h.at];
+    if (cur && cur.root === place.root && cur.focus === place.focus) return h;
+    const list = [...h.list.slice(0, h.at + 1), place].slice(-200);
+    return { list, at: list.length - 1 };
+  });
+
   const select = (id: string) => {
     setSelectedId(id);
     setFocusId(id);
+    setJumpRow(null);
     setTreeScroll((k) => k + 1);
     updateStore({ root: id });
+    remember({ root: id, focus: id });
   };
   const chosen = selectedId && data ? data.people[selectedId] : null;
 
   // ------------------------------------------------------------ on-screen chart
   const rows = useMemo(() => (data && chosen ? chartRows(data, chosen.id, toOptions(form, lang)) : []),
                        [data, chosen, form, lang]);
+  // collapsed branches belong to one chart; another person or chart kind starts fully expanded
+  const treeKey = chosen ? `${form.chart}|${chosen.id}` : "";
+  const paths = folding.key === treeKey ? folding.paths : NO_PATHS;
+  const setPaths = (next: ReadonlySet<string>) => setFolding({ key: treeKey, paths: next });
+  const shown = useMemo(() => visibleRows(rows, paths), [rows, paths]);
+
+  /** open the collapsed branches that hide a person's (first) row */
+  const showPerson = (id: string) => {
+    const row = rows.find((r) => !r.dup && (r.personId ?? r.spouseId) === id);
+    if (row && paths.size) setPaths(reveal(paths, row.path));
+  };
   const focus = (id: string, scroll: boolean) => {
     setFocusId(id);
-    if (scroll) setTreeScroll((k) => k + 1);
+    setJumpRow(null);
+    if (scroll) {
+      showPerson(id);
+      setTreeScroll((k) => k + 1);
+    }
+    if (chosen) remember({ root: chosen.id, focus: id });
   };
+  const jump = (index: number) => {
+    const target = rows[index];
+    if (!target || !chosen) return;
+    setPaths(reveal(paths, target.path));
+    setFocusId(target.personId);
+    setJumpRow(index);
+    setTreeScroll((k) => k + 1);
+    if (target.personId) remember({ root: chosen.id, focus: target.personId });
+  };
+  const toggle = (row: { path: string; gen: number; hidden: number }, whole: boolean) => {
+    const next = new Set(paths);
+    const same = whole ? [...collapseAt(rows, row.gen)] : [row.path];
+    for (const p of same) if (row.hidden) next.delete(p); else next.add(p);
+    setPaths(next);
+  };
+
+  const move = (step: number) => {
+    const place = hist.list[hist.at + step];
+    if (!place || !data?.people[place.root]) return;
+    setHist({ ...hist, at: hist.at + step });
+    setSelectedId(place.root);
+    setFocusId(place.focus);
+    setJumpRow(null);
+    updateStore({ root: place.root });
+    if (place.root === chosen?.id) showPerson(place.focus);
+    setTreeScroll((k) => k + 1);
+  };
+  const canBack = hist.at > 0, canForward = hist.at < hist.list.length - 1;
+  const moveRef = useRef(move);
+  moveRef.current = move;
+  useEffect(() => {
+    // Alt + arrow, as in the browser
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.ctrlKey || e.metaKey || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+      e.preventDefault();
+      moveRef.current(e.key === "ArrowLeft" ? -1 : 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const makeRoot = (id: string) => {
     select(id);
     setScrollKey((k) => k + 1);
@@ -210,7 +287,7 @@ export function App() {
     value: form[key] as string,
     onChange: (e: { target: { value: string } }) => setOpt(key, e.target.value as Form[K]),
   });
-  const check = (key: "showSpouses" | "repeat" | "motherFirst" | "showIds" | "showDate") => ({
+  const check = (key: "showSpouses" | "showDate") => ({
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => setOpt(key, e.target.checked),
   });
@@ -263,7 +340,15 @@ export function App() {
 
         <section className="panel chart">
           <div className="chart-head">
-            <h2>{chartTitle}</h2>
+            <div className="nav">
+              <button type="button" className="icon-btn" disabled={!canBack} onClick={() => move(-1)}
+                      title={`${t("back")} (Alt+←)`} aria-label={t("back")}>
+                <ArrowLeft className="icon" aria-hidden="true" /></button>
+              <button type="button" className="icon-btn" disabled={!canForward} onClick={() => move(1)}
+                      title={`${t("forward")} (Alt+→)`} aria-label={t("forward")}>
+                <ArrowRight className="icon" aria-hidden="true" /></button>
+              <h2>{chartTitle}</h2>
+            </div>
             <div className="finder">
               <Search className="icon" aria-hidden="true" />
               <input type="search" placeholder={t("search")} autoComplete="off" value={query}
@@ -277,8 +362,10 @@ export function App() {
           </div>
           <p className="note tree-hint">{t("treeHint")}</p>
           <div className="viewer">
-            <TreeView rows={rows} focusId={focusId} scrollKey={treeScroll}
-                      onFocus={(id) => focus(id, false)} t={t} />
+            <TreeView rows={shown} focusId={focusId} scrollKey={treeScroll} scrollTo={jumpRow}
+                      numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
+                      onFocus={(id) => focus(id, false)} onToggle={toggle}
+                      onJump={(r) => jump(r.targetIndex)} t={t} />
             {focusId && <PersonDetail data={data} id={focusId} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} t={t} />}
           </div>
@@ -287,52 +374,59 @@ export function App() {
         <details className="panel settings">
           <summary><Settings className="icon" aria-hidden="true" /><span>{t("step3")}</span>
             <ChevronDown className="icon chev" aria-hidden="true" /></summary>
-          <div className="grid">
-            <label><span>{t("labels")}</span>
-              <select {...sel("labels")}>
-                <option value="symbols">{`${t("symbols")}  * ∞ †`}</option>
-                <option value="abbr">{`${t("abbr")}  ${ab.birt}${ab.marr}${ab.deat}`.trim()}</option>
-              </select></label>
-            <label><span>{t("dates")}</span>
-              <select {...sel("dates")}>
-                <option value="year">{t("year")}</option><option value="full">{t("fullDate")}</option>
-              </select></label>
-            <label><span>{t("places")}</span>
-              <select {...sel("places")}>
-                <option value="none">{t("noPlaces")}</option><option value="short">{t("shortPlace")}</option>
-                <option value="full">{t("fullPlace")}</option>
-              </select></label>
-            <label><span>{t("numbering")}</span>
-              <select {...sel("numbering")}>
-                {NUMBERING[form.chart].map(([v, key]) => <option key={v} value={v}>{t(key)}</option>)}
-              </select></label>
-            {!desc && <label><span>{t("marriageOn")}</span>
-              <select {...sel("marriageOn")}>
-                <option value="father">{t("marrFather")}</option><option value="both">{t("marrBoth")}</option>
-                <option value="none">{t("marrNone")}</option>
-              </select></label>}
-            <label><span>{t("pageSize")}</span>
-              <select {...sel("pageSize")}>
-                <option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option>
-                <option value="letter">Letter</option><option value="legal">Legal</option>
-              </select></label>
-            <label><span>{t("orientation")}</span>
-              <select {...sel("orientation")}>
-                <option value="portrait">{t("portrait")}</option><option value="landscape">{t("landscape")}</option>
-              </select></label>
-            <label><span>{t("generations")}</span>
-              <input type="number" min="0" max="99" step="1" {...sel("generations")} /></label>
-            <label><span>{t("fontSize")}</span>
-              <input type="number" min="5" max="20" step="0.5" {...sel("fontSize")} /></label>
-            <label className="wide"><span>{t("title")}</span>
-              <input type="text" placeholder={t("titlePh")} {...sel("title")} /></label>
+          <div className="set-group">
+            <h3>{t("setCommon")}</h3>
+            <div className="grid">
+              <label><span>{t("labels")}</span>
+                <select {...sel("labels")}>
+                  <option value="symbols">{`${t("symbols")}  * ∞ †`}</option>
+                  <option value="abbr">{`${t("abbr")}  ${ab.birt}${ab.marr}${ab.deat}`.trim()}</option>
+                </select></label>
+              <label><span>{t("dates")}</span>
+                <select {...sel("dates")}>
+                  <option value="year">{t("year")}</option><option value="full">{t("fullDate")}</option>
+                </select></label>
+              <label><span>{t("places")}</span>
+                <select {...sel("places")}>
+                  <option value="none">{t("noPlaces")}</option><option value="short">{t("shortPlace")}</option>
+                  <option value="full">{t("fullPlace")}</option>
+                </select></label>
+              <label><span>{t("numbering")}</span>
+                <select {...sel("numbering")}>
+                  {NUMBERING[form.chart].map(([v, key]) => <option key={v} value={v}>{t(key)}</option>)}
+                </select></label>
+              {!desc && <label><span>{t("marriageOn")}</span>
+                <select {...sel("marriageOn")}>
+                  <option value="father">{t("marrFather")}</option><option value="both">{t("marrBoth")}</option>
+                  <option value="none">{t("marrNone")}</option>
+                </select></label>}
+              <label><span>{t("generations")}</span>
+                <input type="number" min="0" max="99" step="1" {...sel("generations")} /></label>
+            </div>
+            {desc && <div className="checks">
+              <label><input {...check("showSpouses")} /> <span>{t("showSpouses")}</span></label>
+            </div>}
           </div>
-          <div className="checks">
-            {desc && <label><input {...check("showSpouses")} /> <span>{t("showSpouses")}</span></label>}
-            <label><input {...check("repeat")} /> <span>{t("repeat")}</span></label>
-            {!desc && <label><input {...check("motherFirst")} /> <span>{t("motherFirst")}</span></label>}
-            <label><input {...check("showIds")} /> <span>{t("showIds")}</span></label>
-            <label><input {...check("showDate")} /> <span>{t("showDate")}</span></label>
+          <div className="set-group">
+            <h3>{t("setPrint")}</h3>
+            <div className="grid">
+              <label><span>{t("pageSize")}</span>
+                <select {...sel("pageSize")}>
+                  <option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option>
+                  <option value="letter">Letter</option><option value="legal">Legal</option>
+                </select></label>
+              <label><span>{t("orientation")}</span>
+                <select {...sel("orientation")}>
+                  <option value="portrait">{t("portrait")}</option><option value="landscape">{t("landscape")}</option>
+                </select></label>
+              <label><span>{t("fontSize")}</span>
+                <input type="number" min="5" max="20" step="0.5" {...sel("fontSize")} /></label>
+              <label className="wide"><span>{t("title")}</span>
+                <input type="text" placeholder={t("titlePh")} {...sel("title")} /></label>
+            </div>
+            <div className="checks">
+              <label><input {...check("showDate")} /> <span>{t("showDate")}</span></label>
+            </div>
           </div>
         </details>
 

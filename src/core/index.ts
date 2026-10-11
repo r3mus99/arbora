@@ -6,4 +6,5 @@ export * from "./texts";
 export * from "./gedcom";
 export * from "./format";
 export * from "./chart";
+export * from "./collapse";
 export * from "./pdf";

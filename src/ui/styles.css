@@ -107,9 +107,33 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .tree-row button { font: inherit; color: inherit; background: none; border: 0; border-radius: 5px;
                    padding: 0 4px; margin-left: -4px; cursor: pointer; display: inline; }
 .tree-row button:hover { background: var(--accent-soft); }
-.tree-row.root button { font-weight: 700; }
+.tree-row.root .name { font-weight: 700; }
 .tree-row.spouse { color: var(--muted); }
-.tree-row.sel button { background: var(--accent); color: var(--accent-text); }
+.tree-row.sel .name { background: var(--accent); color: var(--accent-text); }
+.tree-row.flash .name { animation: flash 1.6s ease-out; }
+@keyframes flash { 0%, 40% { box-shadow: 0 0 0 4px var(--focus); } 100% { box-shadow: 0 0 0 4px transparent; } }
+.tree-row .jump { color: var(--accent); font-size: 13px; margin-left: 6px; gap: 3px; display: inline-flex;
+                  align-items: center; vertical-align: top; height: 24px; }
+.tree-row .jump .icon { width: 14px; height: 14px; }
+.tree-row .jump:hover { text-decoration: underline; }
+.tree-row { position: relative; }
+.tree-row button.fold { position: absolute; top: calc(50% - 5.5px); padding: 0; margin: 0; border: 0;
+                        border-radius: 2px; line-height: 0; background: none; }
+.tree-row .fold svg { display: block; }
+/* − only while pointing at the row (or on the selected one); + always */
+.tree-row .fold:not(.closed) { opacity: 0; }
+.tree-row:hover .fold, .tree-row.sel .fold, .tree-row .fold:focus-visible { opacity: 1; }
+.tree-row .more { font-size: 12px; color: var(--accent); margin-left: 6px; padding: 0 5px; line-height: 18px;
+                  border: 1px solid var(--accent); border-radius: 9px; vertical-align: 1px; display: inline-flex; }
+.tree-row .more:hover { background: var(--accent-soft); }
+.tree-row button.fold::before { content: ""; position: absolute; inset: -6px; }  /* larger tap target */
+.tree-row .fold rect { fill: var(--bg); stroke: var(--muted); }
+.tree-row .fold path { stroke: var(--muted); stroke-width: 1.2; shape-rendering: crispEdges; }
+.tree-row button.fold:hover { background: none; }
+.tree-row .fold:hover rect, .tree-row .fold.closed rect { stroke: var(--accent); }
+.tree-row .fold:hover path, .tree-row .fold.closed path { stroke: var(--accent); }
+.tree-row .fold.closed rect { fill: var(--accent-soft); }
+
 .tree-row .dup { color: var(--muted); font-size: 13px; }
 .viewer { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
 @media (max-width: 900px) { .viewer { grid-template-columns: minmax(0, 1fr); } .detail { position: static; } }
@@ -128,6 +152,9 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .detail .muted { color: var(--muted); }
 .detail .actions { margin-top: 14px; }
 .tree-hint { margin: -6px 0 10px; }
+.nav { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.nav h2 { margin-left: 6px; }
+.icon-btn { padding: 5px; border-radius: 6px; }
 
 main.loaded { max-width: 1440px; }
 .icon { width: 18px; height: 18px; flex: none; vertical-align: -3px; }
@@ -155,8 +182,10 @@ h1 .logo { width: 28px; height: 28px; color: var(--accent); }
 .settings summary::-webkit-details-marker { display: none; }
 .settings summary .chev { margin-left: auto; color: var(--muted); transition: transform .15s; }
 .settings[open] summary .chev { transform: rotate(180deg); }
-.settings > .grid, .settings > .checks { padding: 0 18px; }
-.settings > .checks { padding-bottom: 18px; }
+.set-group { padding: 0 18px 18px; }
+.set-group + .set-group { border-top: 1px solid var(--border); padding-top: 14px; }
+.set-group h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+                font-weight: 600; margin: 0 0 10px; }
 button.big, .btn.big { font-size: 17px; padding: 12px 24px; }
 button.link { display: inline; }
 .spin { animation: spin 1s linear infinite; }

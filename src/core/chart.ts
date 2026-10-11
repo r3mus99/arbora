@@ -31,6 +31,11 @@ export interface Row {
   spouse?: boolean;
   /** the spouse on a spouse line, if known */
   spouseId?: string | null;
+  /** position in the tree: "1", "1.f.m" (ancestors), "1.2.1" (descendants), "1.2~1" (spouse line);
+      a row hangs under every row whose path is a prefix ending before "." or "~" */
+  path: string;
+  /** Ahnentafel or d'Aboville number, whatever numbering is shown */
+  ref: string;
 }
 
 const SELF = -1;
@@ -43,13 +48,13 @@ export function buildRows(rootId: string, people: Record<string, Person>,
   const maxGen = o.generations || 10000;
 
   function visit(pid: string, gen: number, ahnen: number, childFam: Family | null,
-                 ancestors: Set<string>): number {
+                 ancestors: Set<string>, path: string): number {
     const p = people[pid];
     const fam = p.famc.length ? families[p.famc[0]] : null;
     let father = fam && fam.husb && fam.husb in people ? fam.husb : null;
     let mother = fam && fam.wife && fam.wife in people ? fam.wife : null;
     if (gen >= maxGen) father = mother = null;
-    const dup = expanded.has(pid) && !o.repeat;
+    const dup = expanded.has(pid);
     if (dup || ancestors.has(pid)) father = mother = null;
 
     let marr: Family | null = null;
@@ -61,18 +66,17 @@ export function buildRows(rootId: string, people: Record<string, Person>,
     const number = o.numbering === "generation" ? gen
       : o.numbering === "ahnentafel" ? ahnen : null;
     const row: Row = { gen, text: personLine(p, number, marr, o), personId: pid, dup,
-                       tick: gen > 1, links: [], page: 0, target: null };
+                       tick: gen > 1, links: [], page: 0, target: null, path, ref: String(ahnen) };
     if (!dup && !expanded.has(pid)) expanded.set(pid, row);
 
     const anc = new Set(ancestors).add(pid);
-    const order: [string | null, number, "f" | "m"][] = o.motherFirst
-      ? [[mother, 2 * ahnen + 1, "m"], [father, 2 * ahnen, "f"]]
-      : [[father, 2 * ahnen, "f"], [mother, 2 * ahnen + 1, "m"]];
+    const order: [string | null, number, "f" | "m"][] =
+      [[father, 2 * ahnen, "f"], [mother, 2 * ahnen + 1, "m"]];
     let self = SELF;
     order.forEach(([par, num, which], i) => {
       if (i === 1) { rows.push(row); self = rows.length - 1; }
       if (par) {
-        const r = visit(par, gen + 1, num, fam, anc);
+        const r = visit(par, gen + 1, num, fam, anc, `${path}.${which}`);
         // vertical line at the parents' column, broken around the person's own line
         row.links.push(which === "f" ? { gen: gen + 1, a: r, b: SELF, trimB: true }
                                      : { gen: gen + 1, a: SELF, b: r, trimA: true });
@@ -85,7 +89,7 @@ export function buildRows(rootId: string, people: Record<string, Person>,
     return self;
   }
 
-  visit(rootId, 1, 1, null, new Set());
+  visit(rootId, 1, 1, null, new Set(), "1");
   for (const r of rows) if (r.dup) r.target = expanded.get(r.personId!) || null;
   return rows;
 }
@@ -122,11 +126,11 @@ export function buildDescRows(rootId: string, people: Record<string, Person>,
 
   function visit(pid: string, gen: number, dab: string, ancestors: Set<string>): number {
     const p = people[pid];
-    const dup = expanded.has(pid) && !o.repeat;
+    const dup = expanded.has(pid);
     const number = o.numbering === "generation" ? gen
       : o.numbering === "daboville" ? dab : null;
     const row: Row = { gen, text: personLine(p, number, null, o), personId: pid, dup,
-                       tick: gen > 1, links: [], page: 0, target: null };
+                       tick: gen > 1, links: [], page: 0, target: null, path: dab, ref: dab };
     rows.push(row);
     const self = rows.length - 1;
     if (!dup && !expanded.has(pid)) expanded.set(pid, row);
@@ -153,7 +157,8 @@ export function buildDescRows(rootId: string, people: Record<string, Person>,
       if (o.showSpouses && (spouse || (kids.length && withKids.length > 1))) {
         rows.push({ gen, text: spouseLine(fam, spouse, o), personId: null,
                     dup: false, tick: false, links: [], page: 0, target: null,
-                    spouse: true, spouseId: spouse ? spouseId : null });
+                    spouse: true, spouseId: spouse ? spouseId : null,
+                    path: `${dab}~${fams.indexOf(fam) + 1}`, ref: "" });
         anchor = rows.length - 1;
       }
       if (!kids.length) continue;
