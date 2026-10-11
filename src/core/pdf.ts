@@ -168,8 +168,8 @@ export async function generate(data: GedcomData, rootId: string, options: Partia
   const { lay } = fitLayout(rows, base, fmt(TEXTS[o.lang].see, { page: 99 }));
   const title = o.title || fmt(TEXTS[o.lang][desc ? "titleDesc" : "title"], { name: root.name });
   doc.setTitle(title);
-  doc.setCreator("rodostrom");
-  doc.setProducer("rodostrom (pdf-lib)");
+  doc.setCreator("Arbora");
+  doc.setProducer("Arbora (pdf-lib)");
   const pages = render(doc, rows, title, o.lang, lay, o.showDate, 0.6);
   const bytes = await doc.save();
   return {

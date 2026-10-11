@@ -5,6 +5,8 @@ export interface GedNode {
   value: string;
   xref: string | null;
   children: GedNode[];
+  /** level-0 records: the original lines, so an unedited record is written back unchanged */
+  raw?: string[];
 }
 
 export interface GedEvent {
@@ -56,25 +58,36 @@ export function decode(bytes: string | ArrayBuffer | Uint8Array): string {
 
 const LINE_RE = /^\s*(\d+)\s+(?:(@[^@]+@)\s+)?(\S+)(?:\s(.*))?$/;
 
-/** Level-0 records with their sub-records; CONC/CONT are joined into the value. */
+/**
+ * Level-0 records with their sub-records; CONC/CONT are joined into the value.
+ * Each record keeps its original lines in `raw`.
+ */
 export function parseGedcom(text: string): GedNode[] {
   const records: GedNode[] = [];
   const stack: GedNode[] = [];
-  for (const line of text.split(/\r\n|\r|\n/)) {
+  const lines = text.split(/\r\n|\r|\n/);
+  if (lines[lines.length - 1] === "") lines.pop();
+  for (const line of lines) {
     const m = LINE_RE.exec(line);
-    if (!m) continue;
+    if (!m) {
+      records[records.length - 1]?.raw?.push(line);
+      continue;
+    }
     const level = parseInt(m[1], 10);
-    const node: GedNode = { tag: m[3].toUpperCase(), value: (m[4] || "").trim(), xref: m[2] || null,
-                            children: [] };
-    if ((node.tag === "CONC" || node.tag === "CONT") && stack.length) {
+    const tag = m[3].toUpperCase();
+    // spaces at the edges of a CONC/CONT piece belong to the joined text
+    const node: GedNode = { tag, value: tag === "CONC" || tag === "CONT" ? m[4] || "" : (m[4] || "").trim(),
+                            xref: m[2] || null, children: [] };
+    if (level > 0) records[records.length - 1]?.raw?.push(line);
+    if ((tag === "CONC" || tag === "CONT") && stack.length) {
       const parent = stack[Math.min(level, stack.length) - 1];
-      parent.value += (node.tag === "CONT" ? "\n" : "") + node.value;
+      parent.value += (tag === "CONT" ? "\n" : "") + node.value;
       continue;
     }
     stack.length = Math.min(stack.length, level);
-    if (level === 0) records.push(node);
+    if (level === 0) records.push({ ...node, raw: [line] });
     else if (stack.length) stack[stack.length - 1].children.push(node);
-    stack.push(node);
+    stack.push(level === 0 ? records[records.length - 1] : node);
   }
   return records;
 }
@@ -82,7 +95,7 @@ export function parseGedcom(text: string): GedNode[] {
 const first = (node: GedNode, tag: string) => node.children.find((c) => c.tag === tag) || null;
 const all = (node: GedNode, tag: string) => node.children.filter((c) => c.tag === tag);
 
-function cleanName(value: string): string {
+export function cleanName(value: string): string {
   return value.replace(/\//g, " ").replace(/\s+/g, " ").trim();
 }
 
@@ -102,10 +115,15 @@ function eventOf(rec: GedNode, tags: string[]): GedEvent | null {
  * With fallbackEvents a missing birth uses CHR/BAPM and a missing death BURI/CREM.
  */
 export function load(input: string | ArrayBuffer | Uint8Array, fallbackEvents = true): GedcomData {
+  return readRecords(parseGedcom(decode(input)), fallbackEvents);
+}
+
+/** People and families of parsed records (see `load`). */
+export function readRecords(records: GedNode[], fallbackEvents = true): GedcomData {
   const people: Record<string, Person> = {}, families: Record<string, Family> = {};
   const birthTags = fallbackEvents ? ["BIRT", "CHR", "BAPM"] : ["BIRT"];
   const deathTags = fallbackEvents ? ["DEAT", "BURI", "CREM"] : ["DEAT"];
-  for (const rec of parseGedcom(decode(input))) {
+  for (const rec of records) {
     if (rec.tag === "INDI" && rec.xref) {
       const nameNode = first(rec, "NAME");
       let name = nameNode ? cleanName(nameNode.value) : "";

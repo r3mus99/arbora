@@ -1,7 +1,9 @@
 /* Settings kept in localStorage: language, options and the last chosen person (never the file). */
 import type { ChartOptions, Lang } from "../core";
 
-const STORE_KEY = "rodostrom-options";
+const STORE_KEY = "arbora-options";
+// before the app was renamed
+const OLD_KEY = "rodostrom-options";
 
 export interface Stored {
   lang?: Lang;
@@ -10,7 +12,9 @@ export interface Stored {
 }
 
 export function readStore(): Stored {
-  try { return JSON.parse(localStorage.getItem(STORE_KEY) || "null") || {}; } catch { return {}; }
+  try {
+    return JSON.parse(localStorage.getItem(STORE_KEY) || localStorage.getItem(OLD_KEY) || "null") || {};
+  } catch { return {}; }
 }
 
 export function updateStore(patch: Stored) {

@@ -1,9 +1,12 @@
-# gedcom-to-pdf (rodostrom)
+# Arbora
 
-**Online: https://r3mus99.github.io/gedcom-to-pdf/**
+**Online: https://r3mus99.github.io/arbora/**
 
-Webová stránka, ktorá z GEDCOM súboru vytvorí PDF schému **predkov** alebo **potomkov**.
-*Web page that turns a GEDCOM file into a PDF ancestor or descendant chart (English summary below).*
+Webová stránka na prezeranie a úpravu rodokmeňa z GEDCOM súboru, ktorá z neho
+vytvorí PDF schému **predkov** alebo **potomkov**. Upravený rodokmeň sa dá
+stiahnuť späť ako GEDCOM.
+*Web page to view and edit a GEDCOM family tree and turn it into a PDF ancestor or
+descendant chart (English summary below).*
 
 ### Predkovia
 
@@ -65,11 +68,32 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
    rozbalí; so Shiftom sa zbalí alebo rozbalí celá generácia. Počet generácií
    a ostatné voľby sa berú z Nastavení, takže PDF zodpovedá schéme na stránke
    (zbalené vetvy sa do PDF neprenášajú).
-6. **Nastavenia** sú skryté, otvoria sa kliknutím. Menia aj schému na stránke.
-7. **Vytvoriť PDF**, potom **Stiahnuť PDF**.
+6. **Upraviť** v detaile osoby otvorí formulár s jej údajmi (pozri nižšie).
+7. **Nastavenia** sú skryté, otvoria sa kliknutím. Menia aj schému na stránke.
+8. **Vytvoriť PDF** (hore vedľa Stiahnuť GEDCOM) vytvorí PDF a hneď ho stiahne.
+
+### Úpravy a export do GEDCOM
+
+Formulár v detaile osoby mení údaje už existujúcich osôb: meno a priezvisko,
+pohlavie, narodenie, krst, úmrtie a pohreb (dátum a miesto), zamestnania
+(každé s vlastným dátumom a miestom), poznámku a pri každom manželstve dátum
+a miesto sobáša a rozvod. **Uložiť** (Ctrl+Enter) zmenu hneď ukáže v schéme
+aj v PDF, **Zrušiť** (Esc) ju zahodí. Pridávanie a mazanie osôb zatiaľ nie je.
+
+Dátum sa dá zapísať ako `14.5.1891`, `5/1891`, `1891`, `cca 1890` (alebo `~1890`),
+`pred 1890`, `po 1890`, `1890–1895` alebo priamo v tvare GEDCOM (`ABT 1890`,
+`14 MAY 1891`). Pod políčkom je vidieť, ako sa dátum uloží. Iný text sa uloží
+ako textový dátum v zátvorkách.
+
+Šípky vedľa súboru (alebo Ctrl+Z / Ctrl+Y) vracajú a opakujú uložené zmeny.
+**Stiahnuť GEDCOM** stiahne upravený súbor: zmenené záznamy sa zapíšu nanovo,
+všetky ostatné riadky ostanú presne také, ako boli, vrátane značiek, ktoré
+Arbora nepozná (zdroje, poznámky pri udalostiach, `_UID`, súradnice…). Aj
+v zmenenom zázname sa menia len upravené riadky. Súbor sa ukladá v UTF-8.
+Pred zatvorením stránky s neuloženými zmenami sa prehliadač opýta.
 
 **Súkromie:** všetko beží iba vo vašom prehliadači. GEDCOM súbor sa nikam
-neodosiela a stránka nemá žiadny server. Prehliadač si pamätá len nastavenia
+neodosiela a stránka nemá žiadny server; upravený súbor si stiahnete sami. Prehliadač si pamätá len nastavenia
 a ID poslednej osoby (localStorage), nie obsah súboru.
 
 ### Jazyk
@@ -117,14 +141,16 @@ Stránka je napísaná v TypeScripte s Reactom a zostavuje sa cez Vite.
 ```
 src/core/           jadro bez UI: GEDCOM → riadky schémy → PDF (pdf-lib + fontkit)
   gedcom.ts         načítanie GEDCOM-u (kódovanie, záznamy, osoby, rodiny), vyhľadávanie
+  edit.ts           úpravy záznamov, zápis dátumov, zápis GEDCOM-u
   format.ts         voľby, dátumy, miesta, text riadku osoby
   chart.ts          riadky schémy predkov a potomkov
   collapse.ts       zbalené vetvy: ktoré riadky ostanú viditeľné
   pdf.ts            rozloženie na strany a PDF
   texts.ts          texty v PDF v 12 jazykoch
-  core.test.ts      testy na ukážkových dátach
+  *.test.ts         testy na ukážkových dátach
 src/ui/             stránka v Reacte: schéma na obrazovke (TreeView), detail osoby
-                    (PersonDetail), preklady rozhrania (i18n.ts) a vlajky
+                    (PersonDetail) a formulár úprav (PersonEditor), preklady
+                    rozhrania (i18n.ts) a vlajky
 public/             súbory stránky: písmo DejaVu Sans, ukážkový GEDCOM a PDF, licencie
 ```
 
@@ -151,9 +177,13 @@ repozitára omylom nedostal skutočný rodokmeň.
 
 ## English summary
 
-Open https://r3mus99.github.io/gedcom-to-pdf/ (12 European languages, switch with
+Open https://r3mus99.github.io/arbora/ (12 European languages, switch with
 the flag in the top right), load a GEDCOM file, choose
 Ancestors or Descendants, pick the person and download a multi-page PDF chart.
+**Edit** in a person's details changes names, sex, birth, christening, death,
+burial, occupations, note and marriages of existing people (with undo);
+**Download GEDCOM** writes the edited file back, keeping every line the app did
+not change, including tags it does not understand.
 Ancestors: root is no. 1 on the left, father above, mother below. Descendants:
 the ancestor is no. 1, spouses with marriage year, children indented below.
 Birth / marriage / death years are in parentheses; repeated people are printed

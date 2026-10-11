@@ -1,15 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { chartRows } from "../core/chart";
-import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, ChevronDown, Download, FileText, FileUp, Loader2, Network, Search,
-         Settings } from "lucide-react";
+import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, ChevronDown, FileDown, FileText, FileUp, Loader2,
+         Redo2, Search, Settings, TreeDeciduous, Undo2 } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
-import { fold, load, type GedcomData } from "../core/gedcom";
+import { lineEnding, writeGedcom } from "../core/edit";
+import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { TEXTS, type Lang } from "../core/texts";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { LanguageMenu } from "./LanguageMenu";
 import { PersonDetail } from "./PersonDetail";
+import { PersonEditor } from "./PersonEditor";
 import { PersonList } from "./PersonList";
 import { readStore, updateStore } from "./store";
 import { TreeView } from "./TreeView";
@@ -43,7 +45,21 @@ interface Place { root: string; focus: string }
 /** collapsed branches of one chart (`key`) */
 interface Folding { key: string; paths: ReadonlySet<string> }
 const NO_PATHS: ReadonlySet<string> = new Set();
-interface Result { url: string; name: string }
+/** the loaded file: its records (replaced, never changed in place, by edits) and line ending */
+interface Doc { records: GedNode[]; eol: string }
+/** edit history; `saved` is the version last loaded or downloaded */
+interface Edits { past: Doc[]; future: Doc[]; saved: Doc | null }
+const NO_EDITS: Edits = { past: [], future: [], saved: null };
+
+/** Hand a file to the browser as a download. */
+function saveFile(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
 async function loadFonts(): Promise<Fonts> {
   const get = async (p: string) => {
@@ -61,7 +77,11 @@ export function App() {
     return isLang(l) ? l : detect();
   });
   const [form, setForm] = useState<Form>(() => toForm({ ...DEFAULTS, ...readStore().options }));
-  const [data, setData] = useState<GedcomData | null>(null);
+  const [doc, setDoc] = useState<Doc | null>(null);
+  const [edits, setEdits] = useState<Edits>(NO_EDITS);
+  const data = useMemo(() => (doc ? readRecords(doc.records) : null), [doc]);
+  // person whose facts are being edited in the detail panel
+  const [editId, setEditId] = useState<string | null>(null);
   // file name, or null for the sample
   const [loadedName, setLoadedName] = useState<string | null>("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -77,7 +97,6 @@ export function App() {
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
-  const [result, setResult] = useState<Result | null>(null);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
   const t = useCallback((key: StringKey, vars: Vars = {}) =>
@@ -85,7 +104,7 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.title = "Rodostrom – GEDCOM → PDF";
+    document.title = "Arbora – GEDCOM";
   }, [lang]);
 
   const changeLang = (code: Lang) => {
@@ -108,10 +127,7 @@ export function App() {
   const desc = form.chart === "descendants";
 
   // ------------------------------------------------------------ result
-  const resetResult = () => {
-    setResult((r) => { if (r) URL.revokeObjectURL(r.url); return null; });
-    setStatus(null);
-  };
+  const resetResult = () => setStatus(null);
 
   const fileName = (name: string, chart: ChartKind) =>
     `${fold(name).replace(/[^\w.-]+/g, "_")}_${t(chart === "descendants" ? "fileDesc" : "fileAnc")}.pdf`;
@@ -126,11 +142,8 @@ export function App() {
       const { generate } = await import("../core/pdf");
       const opts = toOptions(form, lang);
       const res = await generate(data, id, opts, f);
-      resetResult();
-      setResult({
-        url: URL.createObjectURL(new Blob([res.bytes as BlobPart], { type: "application/pdf" })),
-        name: fileName(data.people[id].name, opts.chart),
-      });
+      saveFile(new Blob([res.bytes as BlobPart], { type: "application/pdf" }),
+               fileName(data.people[id].name, opts.chart));
       setStatus({ key: "done", err: false, vars: {
         pages: res.pages, gens: res.generations, shrunkSize: res.shrunk ? res.fontSize.toFixed(1) : "" } });
     } catch (e) {
@@ -144,9 +157,11 @@ export function App() {
 
   // ------------------------------------------------------------ loading
   function loadBytes(bytes: ArrayBuffer, name: string | null) {
-    let parsed: GedcomData;
+    let parsed: GedcomData, next: Doc;
     try {
-      parsed = load(bytes);
+      const text = decode(bytes);
+      next = { records: parseGedcom(text), eol: lineEnding(text) };
+      parsed = readRecords(next.records);
     } catch (e) {
       alert(t("errLoad", { msg: (e as Error).message }));
       return;
@@ -155,7 +170,9 @@ export function App() {
       alert(t("errEmpty"));
       return;
     }
-    setData(parsed);
+    setDoc(next);
+    setEdits({ past: [], future: [], saved: next });
+    setEditId(null);
     setLoadedName(name);
     setQuery("");
     const last = readStore().root;
@@ -172,11 +189,15 @@ export function App() {
     import("../core/pdf").catch(() => { /* retried when the PDF is made */ });
   }
 
+  const dirty = !!doc && doc !== edits.saved;
+  const keepEdits = () => !dirty || confirm(t("discard"));
+
   const openFile = (f: File | undefined) => {
-    if (f) f.arrayBuffer().then((b) => loadBytes(b, f.name));
+    if (f && keepEdits()) f.arrayBuffer().then((b) => loadBytes(b, f.name));
   };
 
   const loadSample = async () => {
+    if (!keepEdits()) return;
     try {
       const r = await fetch(import.meta.env.BASE_URL + "ukazka.ged");
       if (!r.ok) throw new Error(String(r.status));
@@ -187,6 +208,46 @@ export function App() {
   };
 
   const onDrag = (e: DragEvent, on: boolean) => { e.preventDefault(); setOver(on); };
+
+  // ------------------------------------------------------------ editing
+  const recordOf = useMemo(() => new Map((doc?.records || []).filter((r) => r.xref).map((r) => [r.xref!, r])), [doc]);
+  useEffect(() => setEditId(null), [focusId]);
+
+  /** a new version of the file with the changed records; one step of undo */
+  const commit = (changed: GedNode[]) => {
+    setEditId(null);
+    if (!doc || !changed.length) return;
+    const by = new Map(changed.map((r) => [r.xref, r]));
+    setEdits({ ...edits, past: [...edits.past, doc].slice(-200), future: [] });
+    setDoc({ ...doc, records: doc.records.map((r) => (r.xref && by.get(r.xref)) || r) });
+    resetResult();
+  };
+  const undoRedo = (step: -1 | 1) => {
+    const next = step < 0 ? edits.past[edits.past.length - 1] : edits.future[0];
+    if (!doc || !next) return;
+    setEdits(step < 0 ? { ...edits, past: edits.past.slice(0, -1), future: [doc, ...edits.future] }
+                      : { ...edits, past: [...edits.past, doc], future: edits.future.slice(1) });
+    setDoc(next);
+    setEditId(null);
+    resetResult();
+  };
+  const undoRef = useRef(undoRedo);
+  undoRef.current = undoRedo;
+
+  const gedName = (loadedName || "ukazka").replace(/\.(ged|gedcom)$/i, "") + ".ged";
+  const downloadGedcom = () => {
+    if (!doc) return;
+    saveFile(new Blob([writeGedcom(doc.records, doc.eol)], { type: "text/plain;charset=utf-8" }), gedName);
+    setEdits({ ...edits, saved: doc });
+  };
+
+  useEffect(() => {
+    if (!dirty) return;
+    // the browser asks before leaving the page with unsaved changes
+    const onLeave = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", onLeave);
+    return () => window.removeEventListener("beforeunload", onLeave);
+  }, [dirty]);
 
   const remember = (place: Place) => setHist((h) => {
     const cur = h.list[h.at];
@@ -259,8 +320,16 @@ export function App() {
   const moveRef = useRef(move);
   moveRef.current = move;
   useEffect(() => {
-    // Alt + arrow, as in the browser
+    // Alt + arrow, as in the browser; Ctrl+Z / Ctrl+Y
     const onKey = (e: KeyboardEvent) => {
+      // Ctrl+Z / Ctrl+Y undo the edits, except in a text field, where they undo typing
+      const field = e.target instanceof HTMLElement && e.target.closest("input, textarea, select");
+      const key = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !field && (key === "z" || key === "y")) {
+        e.preventDefault();
+        undoRef.current(key === "y" || e.shiftKey ? 1 : -1);
+        return;
+      }
       if (!e.altKey || e.ctrlKey || e.metaKey || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
       e.preventDefault();
       moveRef.current(e.key === "ArrowLeft" ? -1 : 1);
@@ -303,8 +372,8 @@ export function App() {
     <main className={data ? "loaded" : undefined}>
       <header className="top">
         <div>
-          <h1><Network className="logo" aria-hidden="true" />Rodostrom</h1>
-          {!data && <p className="lead">{t("lead")}</p>}
+          <h1><TreeDeciduous className="logo" aria-hidden="true" />Arbora</h1>
+          {!data && <p className="lead">{t("lead")} {t("leadEdit")}</p>}
         </div>
         <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
       </header>
@@ -322,6 +391,20 @@ export function App() {
                 {" – " + t("loaded", { count: Object.keys(data.people).length })}</div>
             : <div dangerouslySetInnerHTML={{ __html: t("drop") }} />}
         </label>
+        {data && <div className="edits">
+          <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
+                  title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
+          <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
+                  title={`${t("redo")} (Ctrl+Y)`} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
+          <button type="button" onClick={downloadGedcom}
+                  title={t("exportTip")}>
+            <FileDown className="icon" aria-hidden="true" />{t("exportGed")}</button>
+          <button type="button" className="primary" disabled={busy} onClick={() => create()}>
+            {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
+            {t("go")}</button>
+          {dirty && <span className="unsaved">{t("unsaved")}</span>}
+        </div>}
+        {data && statusText && <p className={status?.err ? "status err" : "status"}>{statusText}</p>}
         {!data && <p className="note"><span>{t("privacy")}</span>{" "}
           <button className="link" type="button" onClick={loadSample}>{t("sample")}</button></p>}
       </section>
@@ -367,7 +450,14 @@ export function App() {
                       onFocus={(id) => focus(id, false)} onToggle={toggle}
                       onJump={(r) => jump(r.targetIndex)} t={t} />
             {focusId && <PersonDetail data={data} id={focusId} rootId={chosen.id} lang={lang}
-                                      onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} t={t} />}
+                                      onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot}
+                                      onEdit={() => setEditId(focusId)} t={t}
+                                      editor={editId === focusId && recordOf.has(focusId) &&
+                                        <PersonEditor key={focusId} data={data} record={recordOf.get(focusId)!}
+                                                      families={data.people[focusId].fams
+                                                        .map((f) => recordOf.get(f)).filter((r) => !!r)}
+                                                      lang={lang} onSave={commit} onCancel={() => setEditId(null)}
+                                                      t={t} />} />}
           </div>
         </section>
 
@@ -430,21 +520,9 @@ export function App() {
           </div>
         </details>
 
-        <section className="panel make">
-          <div className="row">
-            <button className="primary big" type="button" disabled={busy} onClick={() => create()}>
-              {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
-              {t("go")}</button>
-            {result && <a className="btn big" href={result.url} download={result.name}>
-              <Download className="icon" aria-hidden="true" />{t("download")}</a>}
-            <span className={status?.err ? "status err" : "status"}>{statusText}</span>
-          </div>
-          {result && <iframe className="preview" style={{ display: "block" }} src={result.url}
-                             title={t("preview")} />}
-        </section>
       </>}
 
-      <footer>Open source · <a href="https://github.com/r3mus99/gedcom-to-pdf">GitHub</a> · <span>{t("license")}</span></footer>
+      <footer>Open source · <a href="https://github.com/r3mus99/arbora">GitHub</a> · <span>{t("license")}</span></footer>
     </main>
   );
 }
