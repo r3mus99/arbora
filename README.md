@@ -70,20 +70,14 @@ docs/               stránka pre GitHub Pages
   vendor/           pdf-lib + fontkit (MIT), licencie v vendor/LICENSES.md
   fonts/            DejaVu Sans (písmo s diakritikou)
   ukazka.ged/.pdf   vymyslené testovacie dáta
-tools/generate_example.py   generátor testovacieho GEDCOM-u
 ```
 
 Lokálne spustenie: `cd docs && python3 -m http.server`, potom http://localhost:8000.
 
 ## Testovacie dáta
 
-`docs/ukazka.ged` obsahuje **len vymyslené osoby, dátumy a obce**, vygenerované
-skriptom `tools/generate_example.py` (náhodne, s pevným seedom). Zámerne obsahuje
+`docs/ukazka.ged` obsahuje **len vymyslené osoby, dátumy a obce**. Zámerne obsahuje
 chýbajúcich rodičov, približné dátumy (`ABT`, `BEF`), rozvod a opakovaného predka.
-
-```
-python3 tools/generate_example.py --seed 42 -g 8 -o docs/ukazka.ged
-```
 
 `.gitignore` ignoruje všetky ostatné `.ged` a `.pdf` súbory, aby sa do
 repozitára omylom nedostal skutočný rodokmeň.
