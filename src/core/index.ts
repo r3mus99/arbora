@@ -9,3 +9,4 @@ export * from "./format";
 export * from "./chart";
 export * from "./collapse";
 export * from "./pdf";
+export * from "./check";

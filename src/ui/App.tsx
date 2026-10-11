@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { chartRows } from "../core/chart";
 import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, ChevronDown, FileDown, FileText, FileUp, Loader2,
-         Redo2, Search, Settings, TreeDeciduous, Undo2 } from "lucide-react";
+         Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2 } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
+import { checkGedcom } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { TEXTS, type Lang } from "../core/texts";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
+import { CheckPanel } from "./CheckPanel";
 import { LanguageMenu } from "./LanguageMenu";
 import { PersonDetail } from "./PersonDetail";
 import { PersonEditor } from "./PersonEditor";
@@ -97,6 +99,7 @@ export function App() {
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
+  const [showCheck, setShowCheck] = useState(false);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
   const t = useCallback((key: StringKey, vars: Vars = {}) =>
@@ -173,6 +176,7 @@ export function App() {
     setDoc(next);
     setEdits({ past: [], future: [], saved: next });
     setEditId(null);
+    setShowCheck(false);
     setLoadedName(name);
     setQuery("");
     const last = readStore().root;
@@ -213,6 +217,7 @@ export function App() {
   const recordOf = useMemo(() => new Map((doc?.records || []).filter((r) => r.xref).map((r) => [r.xref!, r])), [doc]);
   useEffect(() => setEditId(null), [focusId]);
   const suggest = useMemo(() => suggestions(doc?.records || []), [doc]);
+  const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
 
   /** a new version of the file with the changed records; one step of undo */
   const commit = (changed: GedNode[]) => {
@@ -393,6 +398,11 @@ export function App() {
             : <div dangerouslySetInnerHTML={{ __html: t("drop") }} />}
         </label>
         {data && <div className="edits">
+          <button type="button" className={issues.length ? "check-btn warn" : "check-btn"} aria-expanded={showCheck}
+                  onClick={() => setShowCheck(!showCheck)} title={t("check")}>
+            {issues.length ? <ShieldAlert className="icon" aria-hidden="true" />
+                           : <ShieldCheck className="icon" aria-hidden="true" />}
+            {issues.length ? issues.length : t("check")}</button>
           <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
                   title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
           <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
@@ -406,6 +416,8 @@ export function App() {
           {dirty && <span className="unsaved">{t("unsaved")}</span>}
         </div>}
         {data && statusText && <p className={status?.err ? "status err" : "status"}>{statusText}</p>}
+        {data && showCheck && <CheckPanel issues={issues} data={data} t={t} onClose={() => setShowCheck(false)}
+                                          onFocus={(id) => focus(id, true)} />}
         {!data && <p className="note"><span>{t("privacy")}</span>{" "}
           <button className="link" type="button" onClick={loadSample}>{t("sample")}</button></p>}
       </section>
