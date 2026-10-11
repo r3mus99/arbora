@@ -7,7 +7,7 @@ import {
 } from "./index";
 
 // sample data shipped with the site: Habsburgs from Wikidata
-const sample = readFileSync(new URL("../../public/ukazka.ged", import.meta.url));
+const sample = readFileSync(new URL("../../public/sample.ged", import.meta.url));
 const fonts = {
   regular: readFileSync(new URL("../../public/fonts/DejaVuSans.ttf", import.meta.url)),
   bold: readFileSync(new URL("../../public/fonts/DejaVuSans-Bold.ttf", import.meta.url)),

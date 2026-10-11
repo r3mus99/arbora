@@ -56,7 +56,7 @@ describe("checkGedcom", () => {
   });
 
   test("the sample file has no broken links", () => {
-    const issues = checkGedcom(parseGedcom(decode(readFileSync("public/ukazka.ged"))));
+    const issues = checkGedcom(parseGedcom(decode(readFileSync("public/sample.ged"))));
     expect(issues.filter((i) => i.level === "error")).toEqual([]);
   });
 

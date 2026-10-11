@@ -6,7 +6,7 @@ import {
 } from "./index";
 
 // sample data shipped with the site: Habsburgs from Wikidata
-const sampleText = decode(readFileSync(new URL("../../public/ukazka.ged", import.meta.url)));
+const sampleText = decode(readFileSync(new URL("../../public/sample.ged", import.meta.url)));
 
 const record = (records: GedNode[], xref: string) => records.find((r) => r.xref === xref)!;
 const edit = (ged: string, xref: string, change: (f: PersonFields) => Partial<PersonFields>) => {

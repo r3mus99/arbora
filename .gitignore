@@ -1,7 +1,7 @@
 # only the fictional sample data may be committed, never a real family tree
 *.ged
-!public/ukazka.ged
+!public/sample.ged
 *.pdf
-!public/ukazka_*.pdf
+!public/sample_*.pdf
 node_modules/
 dist/
