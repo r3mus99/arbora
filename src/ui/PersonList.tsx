@@ -14,13 +14,11 @@ interface Props {
   /** bump to scroll the selected row into view */
   scrollKey: number;
   onSelect: (id: string) => void;
-  /** double click: create the PDF for this person */
-  onOpen: (id: string) => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
 /** Table of people matching the search, sorted by name. */
-export function PersonList({ people, query, lang, selectedId, scrollKey, onSelect, onOpen, t }: Props) {
+export function PersonList({ people, query, lang, selectedId, scrollKey, onSelect, t }: Props) {
   const body = useRef<HTMLTableSectionElement>(null);
   const found = useMemo(() => {
     const q = query.trim();
@@ -47,7 +45,7 @@ export function PersonList({ people, query, lang, selectedId, scrollKey, onSelec
         <tbody ref={body}>
           {found.slice(0, LIMIT).map((p) => (
             <tr key={p.id} className={p.id === selectedId ? "sel" : undefined}
-                onClick={() => onSelect(p.id)} onDoubleClick={() => onOpen(p.id)}>
+                onClick={() => onSelect(p.id)}>
               <td className="num hide-sm">{p.id.replace(/@/g, "")}</td>
               <td className="name">{p.name || "?"}</td>
               <td className="num">{year(p.birth)}</td>

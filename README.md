@@ -47,13 +47,18 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
 
 ## Použitie
 
-1. Otvorte stránku a vyberte (alebo pretiahnite) svoj `.ged` súbor.
-2. Zvoľte **Predkovia** alebo **Potomkovia** a v zozname kliknite na osobu.
-3. Schéma sa hneď zobrazí na stránke v rovnakom rozložení ako v PDF. Klik na
-   osobu v schéme ukáže vedľa jej detail: narodenie, úmrtie, zamestnanie,
-   rodičov, manželstvá a deti. Mená príbuzných v detaile sú odkazy a tlačidlo
-   **Zobraziť schému tejto osoby** z nej spraví osobu číslo 1.
-4. Nastavte voľby (menia aj schému na stránke) a stlačte **Vytvoriť PDF**, potom **Stiahnuť PDF**.
+1. Otvorte stránku a vyberte (alebo pretiahnite) svoj `.ged` súbor. Potom sa
+   výber súboru zmenší na úzky pruh hore, kliknutím naň otvoríte iný súbor.
+2. Hlavnou časťou stránky je schéma na obrazovke v rovnakom rozložení ako v PDF.
+   Nad ňou sa prepína **Predkovia** / **Potomkovia**, osobu č. 1 nájdete
+   vyhľadávaním mena alebo ID v hlavičke schémy. Na začiatku je to naposledy
+   zvolená osoba, inak prvá osoba v súbore.
+3. Klik na osobu v schéme ukáže jej detail (na širokej obrazovke vedľa schémy,
+   na úzkej pod ňou): narodenie, úmrtie, zamestnanie, rodičov, manželstvá
+   a deti. Mená príbuzných sú odkazy a tlačidlo **Zobraziť schému tejto osoby**
+   z nej spraví osobu číslo 1.
+4. **Nastavenia** sú skryté, otvoria sa kliknutím. Menia aj schému na stránke.
+5. **Vytvoriť PDF**, potom **Stiahnuť PDF**.
 
 **Súkromie:** všetko beží iba vo vašom prehliadači. GEDCOM súbor sa nikam
 neodosiela a stránka nemá žiadny server. Prehliadač si pamätá len nastavenia

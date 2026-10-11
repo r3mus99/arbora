@@ -26,7 +26,13 @@ export function TreeView({ rows, focusId, scrollKey, onFocus, t }: Props) {
   const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    box.current?.querySelector(".tree-row.sel")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    // scroll only the chart box, so the page itself stays where it is
+    const el = box.current, row = el?.querySelector<HTMLElement>(".tree-row.sel");
+    if (!el || !row) return;
+    const top = row.offsetTop, bottom = top + row.offsetHeight;
+    if (top < el.scrollTop || bottom > el.scrollTop + el.clientHeight) {
+      el.scrollTop = top - (el.clientHeight - row.offsetHeight) / 2;
+    }
   }, [scrollKey]);
 
   const maxGen = rows.reduce((m, r) => Math.max(m, r.gen), 1);
