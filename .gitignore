@@ -1,6 +1,6 @@
 *.ged
 !docs/ukazka.ged
 *.pdf
-!docs/ukazka.pdf
+!docs/ukazka_*.pdf
 __pycache__/
 node_modules/

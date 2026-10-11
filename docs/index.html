@@ -73,6 +73,16 @@
   .checks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; font-size: 14px; }
   .checks label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
   .wide { grid-column: 1 / -1; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .seg label { cursor: pointer; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg span { display: block; height: 100%; border: 1px solid var(--border); border-radius: 10px;
+              padding: 10px 12px; transition: border-color .15s, background .15s; }
+  .seg b { display: block; font-size: 15px; }
+  .seg small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.35; margin-top: 2px; }
+  .seg input:checked + span { border-color: var(--accent); background: var(--accent-soft);
+                              box-shadow: inset 0 0 0 1px var(--accent); }
+  .seg input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 1px; }
   .status { font-size: 14px; color: var(--muted); }
   .status.err { color: var(--danger); }
   .preview { margin-top: 14px; width: 100%; height: 75vh; border: 1px solid var(--border);
@@ -85,8 +95,8 @@
 <body>
 <main>
   <h1>Rodostrom</h1>
-  <p class="lead">PDF schéma predkov z GEDCOM súboru. Vy ste číslo 1, otcova línia je hore,
-    matkina dole, v zátvorke rok narodenia, sobáša a úmrtia.</p>
+  <p class="lead">PDF schéma predkov alebo potomkov z GEDCOM súboru. Vybraná osoba má číslo 1,
+    v zátvorke je rok narodenia, sobáša a úmrtia.</p>
 
   <section class="panel">
     <h2><span class="step">1</span>GEDCOM súbor</h2>
@@ -99,7 +109,13 @@
   </section>
 
   <section class="panel" id="personPanel" hidden>
-    <h2><span class="step">2</span>Koreňová osoba (číslo 1)</h2>
+    <h2><span class="step">2</span>Typ schémy a osoba (číslo 1)</h2>
+    <div class="seg" role="radiogroup" aria-label="Typ schémy">
+      <label><input type="radio" name="chart" data-opt="chart" value="ancestors">
+        <span><b>Predkovia</b><small>osoba a jej rodičia, starí rodičia…<br>otec hore, matka dole</small></span></label>
+      <label><input type="radio" name="chart" data-opt="chart" value="descendants">
+        <span><b>Potomkovia</b><small>osoba, jej deti, vnúčatá…<br>s manželmi a manželkami</small></span></label>
+    </div>
     <input type="search" id="search" placeholder="Hľadať meno alebo ID…" autocomplete="off">
     <div class="people">
       <table>
@@ -122,8 +138,8 @@
       <label>Miesta
         <select data-opt="places"><option value="none">bez miest</option><option value="short">len obec</option><option value="full">celé miesto</option></select></label>
       <label>Číslovanie
-        <select data-opt="numbering"><option value="generation">generácia (1, 2, 3…)</option><option value="ahnentafel">Ahnentafel (otec 2n, matka 2n+1)</option><option value="none">bez čísel</option></select></label>
-      <label>Sobáš rodičov
+        <select data-opt="numbering"><option value="generation">generácia (1, 2, 3…)</option><option value="ahnentafel">Ahnentafel (otec 2n, matka 2n+1)</option><option value="daboville">d'Aboville (1.2.1)</option><option value="none">bez čísel</option></select></label>
+      <label class="only-anc">Sobáš rodičov
         <select data-opt="marriageOn"><option value="father">pri otcovi</option><option value="both">pri oboch rodičoch</option><option value="none">nezobrazovať</option></select></label>
       <label>Formát strany
         <select data-opt="pageSize"><option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option><option value="letter">Letter</option><option value="legal">Legal</option></select></label>
@@ -134,11 +150,12 @@
       <label>Veľkosť písma (pt)
         <input type="number" data-opt="fontSize" min="5" max="20" step="0.5"></label>
       <label class="wide">Nadpis (prázdne = automaticky)
-        <input type="text" data-opt="title" placeholder="Predkovia: …"></label>
+        <input type="text" data-opt="title" placeholder="automaticky podľa typu a osoby"></label>
     </div>
     <div class="checks">
-      <label><input type="checkbox" data-opt="repeat"> opakovaných predkov rozpísať znova</label>
-      <label><input type="checkbox" data-opt="motherFirst"> matka hore, otec dole</label>
+      <label class="only-desc"><input type="checkbox" data-opt="showSpouses"> zobraziť manželov a manželky</label>
+      <label><input type="checkbox" data-opt="repeat"> opakované osoby rozpísať znova</label>
+      <label class="only-anc"><input type="checkbox" data-opt="motherFirst"> matka hore, otec dole</label>
       <label><input type="checkbox" data-opt="showIds"> zobraziť ID</label>
       <label><input type="checkbox" data-opt="showDate"> dátum tlače v hlavičke</label>
     </div>

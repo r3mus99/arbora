@@ -23,7 +23,8 @@
   function applyOptions(opts) {
     for (const el of inputs) {
       const v = opts[el.dataset.opt];
-      if (el.type === "checkbox") el.checked = !!v;
+      if (el.type === "radio") el.checked = el.value === v;
+      else if (el.type === "checkbox") el.checked = !!v;
       else el.value = v === undefined || v === null ? "" : v;
     }
   }
@@ -32,7 +33,8 @@
     const o = {};
     for (const el of inputs) {
       const k = el.dataset.opt;
-      if (el.type === "checkbox") o[k] = el.checked;
+      if (el.type === "radio") { if (el.checked) o[k] = el.value; }
+      else if (el.type === "checkbox") o[k] = el.checked;
       else if (el.type === "number") {
         const n = parseFloat(el.value);
         o[k] = Number.isFinite(n) ? n : R.DEFAULTS[k];
@@ -43,9 +45,31 @@
     return o;
   }
 
+  // options that only make sense for one chart type
+  const numbering = document.querySelector('[data-opt="numbering"]');
+  const NUMBERING = {
+    ancestors: [["generation", "generácia (1, 2, 3…)"],
+                ["ahnentafel", "Ahnentafel (otec 2n, matka 2n+1)"], ["none", "bez čísel"]],
+    descendants: [["generation", "generácia (1, 2, 3…)"],
+                  ["daboville", "d'Aboville (1, 1.1, 1.1.2…)"], ["none", "bez čísel"]],
+  };
+  function syncChart() {
+    const chart = currentOptions().chart || "ancestors";
+    const desc = chart === "descendants";
+    document.querySelectorAll(".only-anc").forEach((el) => { el.hidden = desc; });
+    document.querySelectorAll(".only-desc").forEach((el) => { el.hidden = !desc; });
+    let cur = numbering.value;
+    if (desc && cur === "ahnentafel") cur = "daboville";
+    if (!desc && cur === "daboville") cur = "ahnentafel";
+    numbering.textContent = "";
+    for (const [v, t] of NUMBERING[chart]) numbering.add(new Option(t, v, false, v === cur));
+  }
+
   const saved = readStore();
   applyOptions(Object.assign({}, R.DEFAULTS, saved.options || {}));
+  syncChart();
   inputs.forEach((el) => el.addEventListener("change", () => {
+    if (el.dataset.opt === "chart") { syncChart(); resetResult(); }
     writeStore(Object.assign(readStore(), { options: currentOptions() }));
   }));
 
@@ -216,7 +240,7 @@
       pdfUrl = URL.createObjectURL(new Blob([res.bytes], { type: "application/pdf" }));
       const a = $("download");
       a.href = pdfUrl;
-      a.download = R.defaultFileName(data.people[selectedId]);
+      a.download = R.defaultFileName(data.people[selectedId], opts.chart);
       a.hidden = false;
       const pv = $("preview");
       pv.src = pdfUrl;

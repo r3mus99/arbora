@@ -16,19 +16,19 @@
 
   const TEXTS = {
     sk: {
-      title: "Predkovia: {name}", page: "Strana {n} z {total}", see: "pozri str. {page}",
+      title: "Predkovia: {name}", titleDesc: "Potomkovia: {name}", page: "Strana {n} z {total}", see: "pozri str. {page}",
       abbr: { birt: "nar. ", marr: "sob. ", deat: "zom. " },
       qual: { ABT: "cca ", EST: "cca ", CAL: "cca ", BEF: "pred ", AFT: "po " },
       divorced: "rozv.", unknown: "?", months: null,
     },
     cs: {
-      title: "Předkové: {name}", page: "Strana {n} z {total}", see: "viz str. {page}",
+      title: "Předkové: {name}", titleDesc: "Potomci: {name}", page: "Strana {n} z {total}", see: "viz str. {page}",
       abbr: { birt: "nar. ", marr: "odd. ", deat: "zem. " },
       qual: { ABT: "asi ", EST: "asi ", CAL: "asi ", BEF: "před ", AFT: "po " },
       divorced: "rozv.", unknown: "?", months: null,
     },
     en: {
-      title: "Ancestors of {name}", page: "Page {n} of {total}", see: "see p. {page}",
+      title: "Ancestors of {name}", titleDesc: "Descendants of {name}", page: "Page {n} of {total}", see: "see p. {page}",
       abbr: { birt: "b. ", marr: "m. ", deat: "d. " },
       qual: { ABT: "abt ", EST: "abt ", CAL: "abt ", BEF: "bef ", AFT: "aft " },
       divorced: "div.", unknown: "?",
@@ -121,12 +121,14 @@
         people[rec.xref] = {
           id: rec.xref, name, sex: sex ? sex.value.toUpperCase() : "",
           birth: eventOf(rec, birthTags), death: eventOf(rec, deathTags), famc,
+          fams: all(rec, "FAMS").map((n) => n.value).filter(Boolean),
         };
       } else if (rec.tag === "FAM" && rec.xref) {
         const h = first(rec, "HUSB"), w = first(rec, "WIFE");
         families[rec.xref] = {
           id: rec.xref, husb: h ? h.value : null, wife: w ? w.value : null,
           marriage: eventOf(rec, ["MARR"]), divorced: !!first(rec, "DIV"),
+          children: all(rec, "CHIL").map((n) => n.value).filter(Boolean),
         };
       }
     }
@@ -234,7 +236,7 @@
       const number = o.numbering === "generation" ? gen
         : o.numbering === "ahnentafel" ? ahnen : null;
       const row = { gen, text: personLine(p, number, marr, o), personId: pid, dup,
-                    fatherRow: null, motherRow: null, page: 0, target: null };
+                    tick: gen > 1, links: [], page: 0, target: null };
       if (!dup && !expanded.has(pid)) expanded.set(pid, row);
 
       const anc = new Set(ancestors).add(pid);
@@ -246,13 +248,106 @@
         if (i === 1) { rows.push(row); self = rows.length - 1; }
         if (par) {
           const r = visit(par, gen + 1, num, fam, anc);
-          if (which === "f") row.fatherRow = r; else row.motherRow = r;
+          // vertical line at the parents' column, broken around the person's own line
+          row.links.push(which === "f" ? { gen: gen + 1, a: r, b: "self", trimB: true }
+                                       : { gen: gen + 1, a: "self", b: r, trimA: true });
         }
       });
       return self;
     }
 
     visit(rootId, 1, 1, null, new Set());
+    rows.forEach((r, i) => r.links.forEach((l) => {
+      if (l.a === "self") l.a = i;
+      if (l.b === "self") l.b = i;
+    }));
+    for (const r of rows) if (r.dup) r.target = expanded.get(r.personId) || null;
+    return rows;
+  }
+
+  const yearKey = (ev) => {
+    const m = ev && ev.date ? /(\d{3,4})/.exec(ev.date) : null;
+    return m ? +m[1] : null;
+  };
+
+  /** Order ids by birth year; people without a year keep their place next to siblings. */
+  function byBirth(ids, people) {
+    let last = -Infinity;
+    const keyed = ids.map((id, i) => {
+      const y = yearKey(people[id] && people[id].birth);
+      if (y !== null) last = y;
+      return { id, k: y !== null ? y : last, i };
+    });
+    return keyed.sort((a, b) => a.k - b.k || a.i - b.i).map((x) => x.id);
+  }
+
+  function spouseLine(fam, spouse, o) {
+    const t = TEXTS[o.lang];
+    const marr = formatEvent("marr", fam.marriage, o, fam.divorced ? t.divorced : "");
+    const prefix = marr || label("marr", o).trim();
+    return `${prefix} ${personLine(spouse, null, null, o)}`;
+  }
+
+  /** Descendant chart: person, then (spouse and) children indented below. */
+  function buildDescRows(rootId, people, families, o) {
+    const rows = [];
+    const expanded = new Map();
+    const maxGen = o.generations || 10000;
+
+    function visit(pid, gen, dab, ancestors) {
+      const p = people[pid];
+      const dup = expanded.has(pid) && !o.repeat;
+      const number = o.numbering === "generation" ? gen
+        : o.numbering === "daboville" ? dab : null;
+      const row = { gen, text: personLine(p, number, null, o), personId: pid, dup,
+                    tick: gen > 1, links: [], page: 0, target: null };
+      rows.push(row);
+      const self = rows.length - 1;
+      if (!dup && !expanded.has(pid)) expanded.set(pid, row);
+      if (dup || ancestors.has(pid) || gen >= maxGen) return self;
+
+      const anc = new Set(ancestors).add(pid);
+      // marriages in time order (by wedding year, else by the first child's birth)
+      const fams = p.fams.map((f, i) => ({ f: families[f], i })).filter((x) => x.f)
+        .map((x) => {
+          const kidYears = x.f.children.map((c) => yearKey(people[c] && people[c].birth))
+            .filter((y) => y !== null);
+          const k = yearKey(x.f.marriage);
+          return { f: x.f, i: x.i,
+                   k: k !== null ? k : kidYears.length ? Math.min(...kidYears) : Infinity };
+        })
+        .sort((a, b) => a.k - b.k || a.i - b.i).map((x) => x.f);
+      const withKids = fams.filter((f) => f.children.some((c) => c in people));
+      let childNo = 0;
+      for (const fam of fams) {
+        const spouseId = fam.husb === pid ? fam.wife : fam.husb;
+        const spouse = spouseId && people[spouseId];
+        const kids = byBirth(fam.children.filter((c) => c in people), people);
+        let anchor = self;
+        if (o.showSpouses && (spouse || (kids.length && withKids.length > 1))) {
+          rows.push({ gen, text: spouseLine(fam, spouse || null, o), personId: null,
+                      dup: false, tick: false, links: [], page: 0, target: null,
+                      spouse: true });
+          anchor = rows.length - 1;
+        }
+        if (!kids.length) continue;
+        // without spouse lines all children hang on one line from the person
+        if (!o.showSpouses && row.links.length) anchor = row.links[row.links.length - 1].b;
+        let lastKid = null;
+        for (const kid of kids) {
+          childNo += 1;
+          lastKid = visit(kid, gen + 1, `${dab}.${childNo}`, anc);
+        }
+        if (!o.showSpouses && row.links.length) {
+          row.links[row.links.length - 1].b = lastKid;
+        } else {
+          row.links.push({ gen: gen + 1, a: anchor, b: lastKid, trimA: true });
+        }
+      }
+      return self;
+    }
+
+    visit(rootId, 1, "1", new Set());
     for (const r of rows) if (r.dup) r.target = expanded.get(r.personId) || null;
     return rows;
   }
@@ -355,19 +450,19 @@
       for (let i = startRow; i < endRow; i++) {
         const r = rows[i];
         const y = lay.y(i);
-        if (r.gen > 1) line(lay.x(r.gen), y + mid, lay.x(r.gen) + lay.tick, y + mid);
+        if (r.tick) line(lay.x(r.gen), y + mid, lay.x(r.gen) + lay.tick, y + mid);
         let text = r.text;
         if (r.dup && r.target) text += `  (${fmt(t.see, { page: r.target.page })})`;
         page.drawText(text, { x: lay.textX(r.gen), y, size: lay.size, font: lay.font,
                               color: black });
       }
 
-      // vertical connectors from father down to mother, broken around the person
-      rows.forEach((r, i) => {
-        const xv = lay.x(r.gen + 1);
-        if (r.fatherRow !== null) vline(xv, r.fatherRow, i, 0, gap);
-        if (r.motherRow !== null) vline(xv, i, r.motherRow, gap, 0);
-      });
+      // vertical connectors; a trimmed end stops short of that row's text
+      for (const r of rows) {
+        for (const l of r.links) {
+          vline(lay.x(l.gen), l.a, l.b, l.trimA ? gap : 0, l.trimB ? gap : 0);
+        }
+      }
     }
     return total;
   }
@@ -388,6 +483,7 @@
 
   const DEFAULTS = {
     generations: 0, lang: "sk", labels: "symbols", dates: "year", places: "none",
+    chart: "ancestors", showSpouses: true,
     numbering: "generation", marriageOn: "father", repeat: false, motherFirst: false,
     showIds: false, title: "", showDate: true, pageSize: "a4", orientation: "portrait",
     fontSize: 8.5, lineHeight: 1.7, margin: 36,
@@ -406,7 +502,11 @@
     const root = people[rootId];
     if (!root) throw new Error(`Osoba ${rootId} neexistuje.`);
 
-    const rows = buildRows(rootId, people, families, o);
+    const desc = o.chart === "descendants";
+    if (desc && o.numbering === "ahnentafel") o.numbering = "daboville";
+    if (!desc && o.numbering === "daboville") o.numbering = "ahnentafel";
+    const rows = desc ? buildDescRows(rootId, people, families, o)
+                      : buildRows(rootId, people, families, o);
     const doc = await PDFLib.PDFDocument.create();
     doc.registerFontkit(fk);
     const font = await doc.embedFont(fonts.regular, { subset: true });
@@ -417,7 +517,7 @@
     const base = new Layout(w, h, o.margin, font, bold, o.fontSize, o.fontSize * 2.6,
                             o.fontSize * o.lineHeight);
     const { lay } = fitLayout(rows, base, fmt(TEXTS[o.lang].see, { page: 99 }));
-    const title = o.title || fmt(TEXTS[o.lang].title, { name: root.name });
+    const title = o.title || fmt(TEXTS[o.lang][desc ? "titleDesc" : "title"], { name: root.name });
     doc.setTitle(title);
     doc.setCreator("rodostrom");
     doc.setProducer("rodostrom (pdf-lib)");
@@ -429,10 +529,12 @@
     };
   }
 
-  function defaultFileName(person) {
-    return fold(person.name).replace(/[^\w.-]+/g, "_") + "_rodostrom.pdf";
+  function defaultFileName(person, chart) {
+    const suffix = chart === "descendants" ? "_potomkovia.pdf" : "_predkovia.pdf";
+    return fold(person.name).replace(/[^\w.-]+/g, "_") + suffix;
   }
 
   return { TEXTS, load, parseGedcom, formatDate, formatPlace, personLine, buildRows,
+           buildDescRows,
            findPeople, fold, generate, defaultFileName, DEFAULTS };
 });
