@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
+  applyFamily, applyPerson, suggestions, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
   readRecords, writeGedcom, type GedNode, type PersonFields,
 } from "./index";
 
@@ -140,6 +140,12 @@ describe("writing GEDCOM", () => {
     const changed = applyPerson(rec, f, { ...f, surname: "Lotrinský" });
     expect(readRecords(records.map((r) => (r === rec ? changed : r))).people["@I52@"].name).toBe("František I. Lotrinský");
   });
+});
+
+test("surnames and places for suggestions", () => {
+  const ged = "0 @I1@ INDI\n1 NAME Ján /Kováč/\n1 BIRT\n2 PLAC Brezno\n0 @I2@ INDI\n1 NAME Eva\n2 SURN Malá\n" +
+              "1 DEAT\n2 PLAC Brezno\n0 @F1@ FAM\n1 MARR\n2 PLAC Ábelová\n";
+  expect(suggestions(parseGedcom(ged))).toEqual({ surnames: ["Kováč", "Malá"], places: ["Ábelová", "Brezno"] });
 });
 
 describe("dates typed in the form", () => {

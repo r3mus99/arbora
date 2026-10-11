@@ -73,6 +73,22 @@ export function familyFields(rec: GedNode): FamilyFields {
   return { marriage: eventFields(rec, "MARR"), divorced: !!first(rec, "DIV") };
 }
 
+/** Surnames and places used in the file, sorted, for suggestions in the form. */
+export function suggestions(records: GedNode[]): { surnames: string[]; places: string[] } {
+  const surnames = new Set<string>(), places = new Set<string>();
+  const walk = (n: GedNode) => {
+    if (n.tag === "PLAC" && n.value) places.add(n.value);
+    if (n.tag === "NAME") {
+      const s = splitName(n.value).surname || first(n, "SURN")?.value || "";
+      if (s) surnames.add(s);
+    }
+    n.children.forEach(walk);
+  };
+  records.forEach(walk);
+  const sort = (set: Set<string>) => [...set].sort((a, b) => a.localeCompare(b));
+  return { surnames: sort(surnames), places: sort(places) };
+}
+
 // ------------------------------------------------------------ changing nodes
 
 const node = (tag: string, value = "", children: GedNode[] = []): GedNode =>

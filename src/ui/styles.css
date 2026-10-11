@@ -229,3 +229,10 @@ button.link { display: inline; }
 .editor .item-head input { flex: 1; min-width: 0; }
 .editor .add { justify-self: start; padding: 5px 10px; font-size: 14px; }
 .file.compact .status { flex-basis: 100%; margin: 0; padding: 0 4px; }
+.editor .sex { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; font-size: 14px; }
+.editor .sex > span { flex-basis: 100%; font-size: 13px; color: var(--muted); }
+.editor .sex label { display: flex; align-items: center; gap: 6px; color: var(--text); font-size: 14px; cursor: pointer; }
+.editor fieldset { position: relative; }
+.editor .copy { position: absolute; right: 8px; top: -11px; padding: 1px 8px; font-size: 12px; gap: 4px;
+                background: var(--panel); color: var(--accent); }
+.editor .copy .icon { width: 13px; height: 13px; }

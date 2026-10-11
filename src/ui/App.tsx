@@ -4,7 +4,7 @@ import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, ChevronDown,
          Redo2, Search, Settings, TreeDeciduous, Undo2 } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
-import { lineEnding, writeGedcom } from "../core/edit";
+import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { TEXTS, type Lang } from "../core/texts";
@@ -212,6 +212,7 @@ export function App() {
   // ------------------------------------------------------------ editing
   const recordOf = useMemo(() => new Map((doc?.records || []).filter((r) => r.xref).map((r) => [r.xref!, r])), [doc]);
   useEffect(() => setEditId(null), [focusId]);
+  const suggest = useMemo(() => suggestions(doc?.records || []), [doc]);
 
   /** a new version of the file with the changed records; one step of undo */
   const commit = (changed: GedNode[]) => {
@@ -456,7 +457,7 @@ export function App() {
                                         <PersonEditor key={focusId} data={data} record={recordOf.get(focusId)!}
                                                       families={data.people[focusId].fams
                                                         .map((f) => recordOf.get(f)).filter((r) => !!r)}
-                                                      lang={lang} onSave={commit} onCancel={() => setEditId(null)}
+                                                      lang={lang} suggest={suggest} onSave={commit} onCancel={() => setEditId(null)}
                                                       t={t} />} />}
           </div>
         </section>
