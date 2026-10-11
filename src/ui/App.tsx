@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { chartRows } from "../core/chart";
-import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, ChevronDown, FileDown, FileText, FileUp, Loader2,
-         Redo2, Search, Settings, TreeDeciduous, Undo2 } from "lucide-react";
+import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, FileDown, FileText, FileUp, Loader2,
+         Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, X } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
+import { checkGedcom, fixIssue } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { TEXTS, type Lang } from "../core/texts";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
+import { CheckPanel } from "./CheckPanel";
 import { LanguageMenu } from "./LanguageMenu";
 import { PersonDetail } from "./PersonDetail";
 import { PersonEditor } from "./PersonEditor";
@@ -97,6 +99,8 @@ export function App() {
   const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
+  const [showCheck, setShowCheck] = useState(false);
+  const settingsRef = useRef<HTMLDialogElement>(null);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
   const t = useCallback((key: StringKey, vars: Vars = {}) =>
@@ -173,6 +177,7 @@ export function App() {
     setDoc(next);
     setEdits({ past: [], future: [], saved: next });
     setEditId(null);
+    setShowCheck(false);
     setLoadedName(name);
     setQuery("");
     const last = readStore().root;
@@ -213,6 +218,7 @@ export function App() {
   const recordOf = useMemo(() => new Map((doc?.records || []).filter((r) => r.xref).map((r) => [r.xref!, r])), [doc]);
   useEffect(() => setEditId(null), [focusId]);
   const suggest = useMemo(() => suggestions(doc?.records || []), [doc]);
+  const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
 
   /** a new version of the file with the changed records; one step of undo */
   const commit = (changed: GedNode[]) => {
@@ -221,6 +227,13 @@ export function App() {
     const by = new Map(changed.map((r) => [r.xref, r]));
     setEdits({ ...edits, past: [...edits.past, doc].slice(-200), future: [] });
     setDoc({ ...doc, records: doc.records.map((r) => (r.xref && by.get(r.xref)) || r) });
+    resetResult();
+  };
+  /** the whole record list changed at once, as one undo step */
+  const replaceRecords = (records: GedNode[]) => {
+    if (!doc || records === doc.records) return;
+    setEdits({ ...edits, past: [...edits.past, doc].slice(-200), future: [] });
+    setDoc({ ...doc, records });
     resetResult();
   };
   const undoRedo = (step: -1 | 1) => {
@@ -376,7 +389,11 @@ export function App() {
           <h1><TreeDeciduous className="logo" aria-hidden="true" />Arbora</h1>
           {!data && <p className="lead">{t("lead")}</p>}
         </div>
-        <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
+        <div className="head-tools">
+          {data && <button type="button" className="icon-btn settings-btn" onClick={() => settingsRef.current?.showModal()}
+                           title={t("step3")} aria-label={t("step3")}><Settings className="icon" aria-hidden="true" /></button>}
+          <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
+        </div>
       </header>
 
       <section className={data ? "file compact" : "panel file"}>
@@ -393,6 +410,11 @@ export function App() {
             : <div dangerouslySetInnerHTML={{ __html: t("drop") }} />}
         </label>
         {data && <div className="edits">
+          <button type="button" className={issues.length ? "check-btn warn" : "check-btn"} aria-expanded={showCheck}
+                  onClick={() => setShowCheck(!showCheck)} title={t("check")}>
+            {issues.length ? <ShieldAlert className="icon" aria-hidden="true" />
+                           : <ShieldCheck className="icon" aria-hidden="true" />}
+            {issues.length ? issues.length : t("check")}</button>
           <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
                   title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
           <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
@@ -406,6 +428,9 @@ export function App() {
           {dirty && <span className="unsaved">{t("unsaved")}</span>}
         </div>}
         {data && statusText && <p className={status?.err ? "status err" : "status"}>{statusText}</p>}
+        {data && showCheck && <CheckPanel issues={issues} data={data} t={t} onClose={() => setShowCheck(false)}
+                                          onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
+                                          onFocus={(id) => focus(id, true)} />}
         {!data && <p className="note"><span>{t("privacy")}</span>{" "}
           <button className="link" type="button" onClick={loadSample}>{t("sample")}</button></p>}
       </section>
@@ -462,11 +487,11 @@ export function App() {
           </div>
         </section>
 
-        <details className="panel settings">
-          <summary><Settings className="icon" aria-hidden="true" /><span>{t("step3")}</span>
-            <ChevronDown className="icon chev" aria-hidden="true" /></summary>
+        <dialog className="settings-dialog" ref={settingsRef} onClick={(e) => e.target === e.currentTarget && e.currentTarget.close()}>
+          <div className="dialog-head"><Settings className="icon" aria-hidden="true" /><h2>{t("step3")}</h2>
+            <button type="button" className="icon-btn" onClick={() => settingsRef.current?.close()} aria-label={t("cancel")}>
+              <X className="icon" aria-hidden="true" /></button></div>
           <div className="set-group">
-            <h3>{t("setCommon")}</h3>
             <div className="grid">
               <label><span>{t("labels")}</span>
                 <select {...sel("labels")}>
@@ -519,7 +544,9 @@ export function App() {
               <label><input {...check("showDate")} /> <span>{t("showDate")}</span></label>
             </div>
           </div>
-        </details>
+          <div className="dialog-foot"><button type="button" className="primary" onClick={() => settingsRef.current?.close()}>
+            OK</button></div>
+        </dialog>
 
       </>}
 

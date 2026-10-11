@@ -74,7 +74,7 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
    a ostatné voľby sa berú z Nastavení, takže PDF zodpovedá schéme na stránke
    (zbalené vetvy sa do PDF neprenášajú).
 6. **Upraviť** v detaile osoby otvorí formulár s jej údajmi (pozri nižšie).
-7. **Nastavenia** sú skryté, otvoria sa kliknutím. Menia aj schému na stránke.
+7. **Nastavenia** otvorí ikona ozubeného kolieska vedľa jazyka. Menia aj schému na stránke.
 8. **Vytvoriť PDF** (hore vedľa Stiahnuť GEDCOM) vytvorí PDF a hneď ho stiahne.
 
 ### Úpravy a export do GEDCOM
@@ -98,6 +98,20 @@ Arbora nepozná (zdroje, poznámky pri udalostiach, `_UID`, súradnice…). Aj
 v zmenenom zázname sa menia len upravené riadky. Súbor sa ukladá v UTF-8.
 Pred zatvorením stránky s neuloženými zmenami sa prehliadač opýta.
 
+### Kontrola súboru
+
+Tlačidlo so štítom vedľa súboru ukazuje počet nájdených problémov, po kliknutí
+ich vypíše a mená v zozname otvoria detail osoby. Čo sa dá opraviť bezpečne,
+má vpravo čarovnú ceruzku (oprava po jednom, dá sa vrátiť): chýbajúca hlavička
+alebo `TRLR`, odkaz na neexistujúci záznam sa odstráni, chýbajúci spätný odkaz
+sa doplní a dátum `1885-12-12` sa prepíše na `12 DEC 1885`. Kontroluje sa (GEDCOM 5.5.1):
+hlavička `HEAD` a koniec `TRLR`, duplicitné ID, odkazy na neexistujúce osoby
+a rodiny, odkazy bez spätného odkazu (`FAMS`/`FAMC` oproti `HUSB`/`WIFE`/`CHIL`),
+dátumy mimo tvaru GEDCOM (napr. `1885-12-12`), pohlavie oproti úlohe v rodine
+a nemožné dátumy (úmrtie pred narodením, dieťa pred rodičom, rodič mladší ako
+12 rokov, narodenie po smrti matky alebo viac ako rok po smrti otca).
+Približné dátumy (`ABT`) sa porovnávajú len vtedy, ak sú od seba roky.
+
 **Súkromie:** všetko beží iba vo vašom prehliadači. GEDCOM súbor sa nikam
 neodosiela a stránka nemá žiadny server; upravený súbor si stiahnete sami. Prehliadač si pamätá len nastavenia
 a ID poslednej osoby (localStorage), nie obsah súboru.
@@ -112,7 +126,7 @@ podľa jazyka prehliadača.
 
 ### Nastavenia
 
-Nastavenia majú dve časti. **Spoločné** platia pre schému na stránke aj pre PDF:
+Nastavenia sa otvoria v okne cez ikonu ozubeného kolieska vedľa jazyka. Prvá časť platí pre schému na stránke aj pre PDF:
 
 | Voľba | Možnosti |
 |---|---|
@@ -124,7 +138,7 @@ Nastavenia majú dve časti. **Spoločné** platia pre schému na stránke aj pr
 | Generácie | maximálny počet vrátane koreňa (0 = všetky) |
 | Manželia | pri potomkoch: zobraziť manžela/manželku s rokom sobáša, alebo len pokrvných potomkov |
 
-**Len pre PDF:** formát strany (A4, A3, A5, Letter, Legal), orientácia, veľkosť
+**Nastavenie tlače** (len pre PDF): formát strany (A4, A3, A5, Letter, Legal), orientácia, veľkosť
 písma, vlastný nadpis a dátum tlače v hlavičke.
 
 Opakovaná osoba sa rozpíše len raz, ďalej je na ňu odkaz.
@@ -148,6 +162,7 @@ Stránka je napísaná v TypeScripte s Reactom a zostavuje sa cez Vite.
 src/core/           jadro bez UI: GEDCOM → riadky schémy → PDF (pdf-lib + fontkit)
   gedcom.ts         načítanie GEDCOM-u (kódovanie, záznamy, osoby, rodiny), vyhľadávanie
   edit.ts           úpravy záznamov, zápis dátumov, zápis GEDCOM-u
+  check.ts          kontrola súboru: odkazy, ID, tvar dátumov, nemožné dátumy
   format.ts         voľby, dátumy, miesta, text riadku osoby
   chart.ts          riadky schémy predkov a potomkov
   collapse.ts       zbalené vetvy: ktoré riadky ostanú viditeľné
@@ -155,7 +170,8 @@ src/core/           jadro bez UI: GEDCOM → riadky schémy → PDF (pdf-lib + f
   texts.ts          texty v PDF v 12 jazykoch
   *.test.ts         testy na ukážkových dátach
 src/ui/             stránka v Reacte: schéma na obrazovke (TreeView), detail osoby
-                    (PersonDetail) a formulár úprav (PersonEditor), preklady
+                    (PersonDetail), formulár úprav (PersonEditor), kontrola súboru
+                    (CheckPanel), preklady
                     rozhrania (i18n.ts) a vlajky
 public/             súbory stránky: písmo DejaVu Sans, ukážkový GEDCOM a PDF, licencie
 ```
@@ -194,7 +210,9 @@ Ancestors or Descendants, pick the person and download a multi-page PDF chart.
 **Edit** in a person's details changes names, sex, birth, christening, death,
 burial, occupations, note and marriages of existing people (with undo);
 **Download GEDCOM** writes the edited file back, keeping every line the app did
-not change, including tags it does not understand.
+not change, including tags it does not understand. The shield button runs a
+basic file check (links, IDs, GEDCOM date form, impossible dates) and lists the
+problems with links to the people.
 Ancestors: root is no. 1 on the left, father above, mother below. Descendants:
 the ancestor is no. 1, spouses with marriage year, children indented below.
 Birth / marriage / death years are in parentheses; repeated people are printed
