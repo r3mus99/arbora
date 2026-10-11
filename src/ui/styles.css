@@ -219,7 +219,7 @@ button.link { display: inline; }
 .edits { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .edits .icon-btn { padding: 7px; }
 .edits .unsaved { font-size: 13px; color: var(--muted); }
-.file.compact .status { flex-basis: 100%; margin: 0; padding: 0 4px; }
+.file.compact .status { flex-basis: 100%; margin: 0; padding: 0 4px; text-align: right; }
 /* person form: small caps labels, roomy rounded fields, sex as a segmented choice */
 .editor { display: grid; gap: 16px; margin-top: 8px; }
 .editor label { display: block; }
