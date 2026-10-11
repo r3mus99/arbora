@@ -450,7 +450,7 @@ export function App() {
                       numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
                       onFocus={(id) => focus(id, false)} onToggle={toggle}
                       onJump={(r) => jump(r.targetIndex)} t={t} />
-            {focusId && <PersonDetail data={data} id={focusId} rootId={chosen.id} lang={lang}
+            {focusId && <PersonDetail data={data} id={focusId} record={recordOf.get(focusId)} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot}
                                       onEdit={() => setEditId(focusId)} t={t}
                                       editor={editId === focusId && recordOf.has(focusId) &&
