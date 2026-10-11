@@ -165,12 +165,6 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
             <span>{t("divorcedLabel")}</span></label>
         </fieldset>
       ))}
-      {/* death and burial only for someone who died; ticked for good once they hold something */}
-      <label className="check">
-        <input type="checkbox" checked={form.deceased} disabled={form.deceased && hasDeath}
-               onChange={(e) => set("deceased", e.target.checked)} />
-        <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
-      {form.deceased && <>{event("death")}{event("burial")}</>}
       <fieldset className="list">
         <legend>{t("occupation")}</legend>
         {form.occupations.map((o, i) => (
@@ -195,6 +189,12 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
       </fieldset>
       <label><span>{t("note")}</span>
         <textarea rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
+      {/* death and burial only for someone who died; ticked for good once they hold something */}
+      <label className="check">
+        <input type="checkbox" checked={form.deceased} disabled={form.deceased && hasDeath}
+               onChange={(e) => set("deceased", e.target.checked)} />
+        <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
+      {form.deceased && <>{event("death")}{event("burial")}</>}
       <datalist id={SURNAMES}>{suggest.surnames.map((s) => <option key={s} value={s} />)}</datalist>
       <datalist id={PLACES}>{suggest.places.map((s) => <option key={s} value={s} />)}</datalist>
       <datalist id={RELIGIONS}>{suggest.religions.map((s) => <option key={s} value={s} />)}</datalist>
