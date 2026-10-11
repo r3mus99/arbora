@@ -107,15 +107,15 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
     const source = from && form[from[0]];
     return <fieldset key={key}>
       <legend>{t(EVENT_LABEL[key])}</legend>
-      {from && <button type="button" className="copy" disabled={!source?.date && !source?.place}
-                       onClick={() => set(key, { ...source! })}>
-        <Copy className="icon" aria-hidden="true" />{t(from[1])}</button>}
       <DateField value={form[key].date} shown={initial.shown[key].date} lang={lang} t={t}
                  onChange={(v) => set(key, { ...form[key], date: v })} />
       <label><span>{t("place")}</span>
         <input type="text" value={form[key].place} list={PLACES}
                onChange={(e) => set(key, { ...form[key], place: e.target.value })} />
       </label>
+      {from && <button type="button" className="copy" disabled={!source?.date && !source?.place}
+                       onClick={() => set(key, { ...source! })}>
+        <Copy className="icon" aria-hidden="true" />{t(from[1])}</button>}
     </fieldset>;
   };
   const spouseName = (r: GedNode) => {
