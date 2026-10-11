@@ -148,11 +148,28 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
       </div>
       {event("birth")}
       {event("christening")}
+      <label><span>{t("religion")}</span>
+        <input type="text" value={form.religion} list={RELIGIONS}
+               onChange={(e) => set("religion", e.target.value)} /></label>
+      {families.map((r, i) => (
+        <fieldset key={r.xref}>
+          <legend>{t("marriage")} · {spouseName(r)}</legend>
+          <DateField value={fams[i].marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
+                     onChange={(v) => setFam(i, {}, { date: v })} />
+          <label><span>{t("place")}</span>
+            <input type="text" value={fams[i].marriage.place} list={PLACES}
+                   onChange={(e) => setFam(i, {}, { place: e.target.value })} />
+          </label>
+          <label className="check"><input type="checkbox" checked={fams[i].divorced}
+                   onChange={(e) => setFam(i, { divorced: e.target.checked })} />
+            <span>{t("divorcedLabel")}</span></label>
+        </fieldset>
+      ))}
       {/* death and burial only for someone who died; ticked for good once they hold something */}
       <label className="check">
         <input type="checkbox" checked={form.deceased} disabled={form.deceased && hasDeath}
                onChange={(e) => set("deceased", e.target.checked)} />
-        <span>{t("deceased")}</span></label>
+        <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
       {form.deceased && <>{event("death")}{event("burial")}</>}
       <fieldset className="list">
         <legend>{t("occupation")}</legend>
@@ -176,23 +193,6 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
           [...form.occupations, { origin: -1, value: "", date: "", place: "" }])}>
           <Plus className="icon" aria-hidden="true" />{t("addOccupation")}</button>
       </fieldset>
-      {families.map((r, i) => (
-        <fieldset key={r.xref}>
-          <legend>{t("marriage")} · {spouseName(r)}</legend>
-          <DateField value={fams[i].marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
-                     onChange={(v) => setFam(i, {}, { date: v })} />
-          <label><span>{t("place")}</span>
-            <input type="text" value={fams[i].marriage.place} list={PLACES}
-                   onChange={(e) => setFam(i, {}, { place: e.target.value })} />
-          </label>
-          <label className="check"><input type="checkbox" checked={fams[i].divorced}
-                   onChange={(e) => setFam(i, { divorced: e.target.checked })} />
-            <span>{t("divorcedLabel")}</span></label>
-        </fieldset>
-      ))}
-      <label><span>{t("religion")}</span>
-        <input type="text" value={form.religion} list={RELIGIONS}
-               onChange={(e) => set("religion", e.target.value)} /></label>
       <label><span>{t("note")}</span>
         <textarea rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
       <datalist id={SURNAMES}>{suggest.surnames.map((s) => <option key={s} value={s} />)}</datalist>
