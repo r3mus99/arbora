@@ -196,3 +196,27 @@ button.link { display: inline; }
   .seg .icon { width: 22px; height: 22px; }
   .seg b { font-size: 16px; }
 }
+
+/* editing */
+.file.compact { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+.file.compact .drop { flex: 1 1 320px; }
+.edits { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.edits .icon-btn { padding: 7px; }
+.edits .unsaved { font-size: 13px; color: var(--muted); }
+.editor { display: grid; gap: 10px; margin-top: 4px; }
+.editor label { display: block; font-size: 13px; color: var(--muted); }
+.editor label > input, .editor label > select, .editor label > textarea { margin-top: 3px; color: var(--text); }
+.editor .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.editor fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px 10px; margin: 0;
+                   display: grid; grid-template-columns: 1fr 1fr; gap: 8px; min-width: 0; }
+.editor legend { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+                 font-weight: 600; padding: 0 4px; }
+.editor fieldset .check { grid-column: 1 / -1; display: flex; gap: 6px; align-items: center; color: var(--text);
+                          font-size: 14px; cursor: pointer; }
+.editor .hint { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.editor .hint.warn { color: var(--danger); }
+.editor textarea { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border);
+                   border-radius: 8px; padding: 7px 10px; width: 100%; resize: vertical; }
+.editor textarea:focus { outline: 3px solid var(--focus); outline-offset: 1px; }
+.editor .actions { display: flex; gap: 8px; margin-top: 2px; }
+.detail .actions { display: flex; flex-wrap: wrap; gap: 8px; }
