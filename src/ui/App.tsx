@@ -40,8 +40,8 @@ const NUMBERING: Record<ChartKind, [ChartOptions["numbering"], StringKey][]> = {
 interface Status { key: StringKey; vars: Vars; err: boolean }
 /** one step of the browsing history: whose chart and who is in the detail */
 interface Place { root: string; focus: string }
-/** collapsed branches of one chart (`key`); `level` = generations shown, when chosen from the toolbar */
-interface Folding { key: string; paths: ReadonlySet<string>; level: number | null }
+/** collapsed branches of one chart (`key`) */
+interface Folding { key: string; paths: ReadonlySet<string> }
 const NO_PATHS: ReadonlySet<string> = new Set();
 interface Result { url: string; name: string }
 
@@ -71,7 +71,7 @@ export function App() {
   const [treeScroll, setTreeScroll] = useState(0);
   // row to scroll to and highlight after "see no. X"
   const [jumpRow, setJumpRow] = useState<number | null>(null);
-  const [folding, setFolding] = useState<Folding>({ key: "", paths: NO_PATHS, level: null });
+  const [folding, setFolding] = useState<Folding>({ key: "", paths: NO_PATHS });
   const [hist, setHist] = useState<{ list: Place[]; at: number }>({ list: [], at: -1 });
   const [query, setQuery] = useState("");
   const [over, setOver] = useState(false);
@@ -211,11 +211,8 @@ export function App() {
   // collapsed branches belong to one chart; another person or chart kind starts fully expanded
   const treeKey = chosen ? `${form.chart}|${chosen.id}` : "";
   const paths = folding.key === treeKey ? folding.paths : NO_PATHS;
-  const level = folding.key === treeKey ? folding.level : null;
-  const setPaths = (next: ReadonlySet<string>, lvl: number | null = null) =>
-    setFolding({ key: treeKey, paths: next, level: lvl });
+  const setPaths = (next: ReadonlySet<string>) => setFolding({ key: treeKey, paths: next });
   const shown = useMemo(() => visibleRows(rows, paths), [rows, paths]);
-  const maxGen = rows.reduce((m, r) => Math.max(m, r.gen), 0);
 
   /** open the collapsed branches that hide a person's (first) row */
   const showPerson = (id: string) => {
@@ -246,7 +243,6 @@ export function App() {
     for (const p of same) if (row.hidden) next.delete(p); else next.add(p);
     setPaths(next);
   };
-  const showLevel = (gen: number | null) => setPaths(gen ? collapseAt(rows, gen) : NO_PATHS, gen);
 
   const move = (step: number) => {
     const place = hist.list[hist.at + step];
@@ -364,17 +360,7 @@ export function App() {
               </div>}
             </div>
           </div>
-          <div className="tree-tools">
-            <p className="note tree-hint">{t("treeHint")}</p>
-            {maxGen > 1 && <div className="levels" role="group" aria-label={t("showGens")}>
-              <span>{t("showGens")}:</span>
-              {Array.from({ length: maxGen - 1 }, (_, i) => i + 1).map((g) =>
-                <button key={g} type="button" className={level === g ? "on" : undefined}
-                        aria-pressed={level === g} onClick={() => showLevel(g)}>{g}</button>)}
-              <button type="button" className={paths.size ? undefined : "on"} aria-pressed={!paths.size}
-                      onClick={() => showLevel(null)}>{t("allGens")}</button>
-            </div>}
-          </div>
+          <p className="note tree-hint">{t("treeHint")}</p>
           <div className="viewer">
             <TreeView rows={shown} focusId={focusId} scrollKey={treeScroll} scrollTo={jumpRow}
                       numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}

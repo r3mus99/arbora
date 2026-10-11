@@ -1,4 +1,4 @@
-import { CornerDownRight, Minus, Plus } from "lucide-react";
+import { CornerDownRight } from "lucide-react";
 import { useEffect, useRef, type MouseEvent } from "react";
 import type { ShownRow } from "../core/collapse";
 import type { StringKey } from "./i18n";
@@ -7,10 +7,12 @@ import type { StringKey } from "./i18n";
 const LINE = 24;
 const STEP = 26;
 const TICK = 10;
-const PAD = 6;
+const PAD = 12;
 const GAP = LINE * 0.45;
 const x = (gen: number) => PAD + (gen - 1) * STEP;
-const textX = (gen: number) => x(gen) + (gen > 1 ? TICK + 4 : 0);
+// the root's text leaves room for its −/+ box
+const textX = (gen: number) => x(gen) + (gen > 1 ? TICK + 4 : 12);
+const BOX = 11;
 const mid = (row: number) => row * LINE + LINE / 2;
 
 interface Props {
@@ -84,13 +86,16 @@ export function TreeView({ rows, focusId, scrollKey, scrollTo, numbered, onFocus
               {r.dup && r.target && <button type="button" className="jump" onClick={() => onJump(r)}>
                 <CornerDownRight className="icon" aria-hidden="true" />{seeText(r)}</button>}
               {r.dup && !r.target && <span className="dup"> ({t("repeated")})</span>}
-              {r.branch && (r.hidden
-                ? <button type="button" className="fold closed" onClick={toggle} title={t("expand")}
-                          aria-label={`${t("expand")}, ${t("hiddenN", { n: r.hidden })}`}>
-                    <Plus className="icon" aria-hidden="true" />{r.hidden}</button>
-                : <button type="button" className="fold" onClick={toggle} title={t("collapse")}
-                          aria-label={t("collapse")}>
-                    <Minus className="icon" aria-hidden="true" /></button>)}
+              {r.branch && <button type="button" className={r.hidden ? "fold closed" : "fold"} onClick={toggle}
+                                   style={{ left: x(r.gen) + 0.5 - BOX / 2 }}
+                                   aria-label={r.hidden ? `${t("expand")} – ${t("hiddenN", { n: r.hidden })}` : t("collapse")}
+                                   title={r.hidden ? `${t("expand")} – ${t("hiddenN", { n: r.hidden })}` : t("collapse")}>
+                {/* −/+ on the connector's corner */}
+                <svg width={BOX} height={BOX} aria-hidden="true">
+                  <rect x="0.5" y="0.5" width={BOX - 1} height={BOX - 1} rx="2" />
+                  <path d={`M3 ${BOX / 2}h${BOX - 6}` + (r.hidden ? `M${BOX / 2} 3v${BOX - 6}` : "")} />
+                </svg>
+              </button>}
             </div>
           );
         })}

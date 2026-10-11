@@ -61,9 +61,10 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
    číslovaní Ahnentafel / d'Aboville, inak **pozri vyššie / nižšie**), ktorý
    skočí na miesto, kde je vetva rozpísaná, a zvýrazní ho. Šípky vedľa nadpisu
    (alebo Alt+← / Alt+→) vracajú späť a vpred po prezeraných osobách.
-5. Tlačidlo **−** pri osobe zbalí jej vetvu, **+ počet** ju znova rozbalí; so
-   Shiftom sa zbalí alebo rozbalí celá generácia. **Generácie: 1 2 3 … všetky**
-   nad schémou ukáže len prvých N generácií.
+5. Znamienko **−** na spojnici pred menom zbalí vetvu osoby, **+** ju znova
+   rozbalí; so Shiftom sa zbalí alebo rozbalí celá generácia. Počet generácií
+   a ostatné voľby sa berú z Nastavení, takže PDF zodpovedá schéme na stránke
+   (zbalené vetvy sa do PDF neprenášajú).
 6. **Nastavenia** sú skryté, otvoria sa kliknutím. Menia aj schému na stránke.
 7. **Vytvoriť PDF**, potom **Stiahnuť PDF**.
 
