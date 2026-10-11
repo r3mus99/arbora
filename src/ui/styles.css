@@ -259,3 +259,9 @@ button.link { display: inline; }
 .editor .sex label:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 1px; }
 .editor .check:has(input:disabled) { cursor: default; }
 .editor .check:has(input:disabled) > span { color: var(--muted); }
+/* fields with suggestions: a magnifier instead of the browser's list arrow */
+.editor input[list] {
+  padding-right: 38px; background-repeat: no-repeat; background-position: right 12px center; background-size: 17px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2362675f' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E"); }
+.editor input[list]::-webkit-calendar-picker-indicator { display: none !important; }
+.editor input[list]::-webkit-list-button { display: none !important; }
