@@ -219,6 +219,8 @@ export function App() {
   useEffect(() => setEditId(null), [focusId]);
   const suggest = useMemo(() => suggestions(doc?.records || []), [doc]);
   const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
+  // the list closes once everything is fixed
+  useEffect(() => { if (!issues.length) setShowCheck(false); }, [issues]);
 
   /** a new version of the file with the changed records; one step of undo */
   const commit = (changed: GedNode[]) => {
@@ -409,9 +411,12 @@ export function App() {
                 {" – " + t("loaded", { count: Object.keys(data.people).length })}</div>
             : <div dangerouslySetInnerHTML={{ __html: t("drop") }} />}
         </label>
-        {data && <div className="edits">
-          <button type="button" className={issues.length ? "check-btn warn" : "check-btn"} aria-expanded={showCheck}
-                  onClick={() => setShowCheck(!showCheck)} title={t("check")}>
+        {data && <div className={dirty ? "edits dirty" : "edits"}>
+          {/* with nothing to report the shield only says so in its tooltip */}
+          <button type="button" className={issues.length ? "check-btn warn" : "check-btn ok"}
+                  aria-expanded={issues.length ? showCheck : undefined}
+                  onClick={() => issues.length && setShowCheck(!showCheck)}
+                  title={issues.length ? t("check") : t("checkOk")}>
             {issues.length ? <ShieldAlert className="icon" aria-hidden="true" />
                            : <ShieldCheck className="icon" aria-hidden="true" />}
             {issues.length ? issues.length : t("check")}</button>
@@ -419,16 +424,18 @@ export function App() {
                   title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
           <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
                   title={`${t("redo")} (Ctrl+Y)`} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
-          <button type="button" onClick={downloadGedcom}
-                  title={t("exportTip")}>
-            <FileDown className="icon" aria-hidden="true" />{t("exportGed")}</button>
+          <span className="with-note">
+            <button type="button" onClick={downloadGedcom}
+                    title={t("exportTip")}>
+              <FileDown className="icon" aria-hidden="true" />{t("exportGed")}</button>
+            {dirty && <span className="unsaved">{t("unsaved")}</span>}
+          </span>
           <button type="button" className="primary" disabled={busy} onClick={() => create()}>
             {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
             {t("go")}</button>
-          {dirty && <span className="unsaved">{t("unsaved")}</span>}
         </div>}
         {data && statusText && <p className={status?.err ? "status err" : "status"}>{statusText}</p>}
-        {data && showCheck && <CheckPanel issues={issues} data={data} t={t} onClose={() => setShowCheck(false)}
+        {data && showCheck && issues.length > 0 && <CheckPanel issues={issues} data={data} t={t} onClose={() => setShowCheck(false)}
                                           onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
                                           onFocus={(id) => focus(id, true)} />}
         {!data && <p className="note"><span>{t("privacy")}</span>{" "}

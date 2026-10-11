@@ -218,7 +218,12 @@ button.link { display: inline; }
 .file.compact .drop { flex: 1 1 320px; }
 .edits { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .edits .icon-btn { padding: 7px; }
-.edits .unsaved { font-size: 13px; color: var(--muted); }
+.edits .with-note { position: relative; display: inline-flex; }
+.edits .unsaved { position: absolute; top: calc(100% + 3px); left: 0; right: 0; text-align: center;
+                  font-size: 12px; color: var(--muted); white-space: nowrap; }
+.edits.dirty { margin-bottom: 16px; }
+.check-btn.ok { cursor: default; }
+.check-btn.ok:hover { border-color: var(--border); }
 .file.compact .status { flex-basis: 100%; margin: 0; padding: 0 4px; text-align: right; }
 /* person form: small caps labels, roomy rounded fields, sex as a segmented choice */
 .editor { display: grid; gap: 16px; margin-top: 8px; }
