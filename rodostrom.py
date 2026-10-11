@@ -597,6 +597,49 @@ PAGE_SIZES = {"a4": pagesizes.A4, "a3": pagesizes.A3, "a5": pagesizes.A5,
               "letter": pagesizes.LETTER, "legal": pagesizes.LEGAL}
 
 
+@dataclass
+class Result:
+    output: str
+    rows: int
+    generations: int
+    pages: int
+    font_size: float
+    shrunk: bool
+
+
+def default_output(root: Person) -> str:
+    return re.sub(r"[^\w.-]+", "_", fold(root.name)) + "_rodostrom.pdf"
+
+
+def generate(people: dict[str, Person], families: dict[str, Family], root_id: str,
+             output: str | None = None, *, generations: int = 0, lang: str = "sk",
+             labels: str = "symbols", dates: str = "year", places: str = "none",
+             numbering: str = "generation", marriage_on: str = "father",
+             repeat: bool = False, mother_first: bool = False, show_ids: bool = False,
+             title: str | None = None, show_date: bool = True, page_size: str = "a4",
+             orientation: str = "portrait", font_size: float = 8.5,
+             line_height: float = 1.7, indent: float = 0, margin: float = 36,
+             font: str | None = None) -> Result:
+    """Build the chart for `root_id` and write it to `output`. Used by the CLI and the GUI."""
+    root = people[root_id]
+    opt = Options(lang=lang, labels=labels, dates=dates, places=places,
+                  numbering=numbering, marriage_on=marriage_on, show_ids=show_ids)
+    rows = build_rows(root.id, people, families, opt, generations or 10_000,
+                      repeat, mother_first)
+    w, h = PAGE_SIZES[page_size]
+    if orientation == "landscape":
+        w, h = max(w, h), min(w, h)
+    font_name, bold = register_fonts(font)
+    step = indent or font_size * 2.6
+    base = Layout(w, h, margin, font_name, bold, font_size, step, font_size * line_height)
+    lay = fit_layout(rows, base, TEXTS[lang]["see"].format(page=99)) if not indent else base
+    title = title or TEXTS[lang]["title"].format(name=root.name)
+    out = output or default_output(root)
+    pages = render(rows, out, title, lang, lay, show_date, 0.6)
+    return Result(out, len(rows), max(r.gen for r in rows), pages, lay.size,
+                  lay.size < font_size * 0.85)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description="Generate an ancestor chart PDF from a GEDCOM file "
@@ -661,26 +704,17 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     root = matches[0]
 
-    opt = Options(lang=a.lang, labels=a.labels, dates=a.dates, places=a.places,
-                  numbering=a.numbering, marriage_on=a.marriage_on, show_ids=a.show_ids)
-    rows = build_rows(root.id, people, families, opt, a.generations or 10_000,
-                      a.repeat, a.mother_first)
-
-    w, h = PAGE_SIZES[a.page_size]
-    if a.orientation == "landscape":
-        w, h = max(w, h), min(w, h)
-    font, bold = register_fonts(a.font)
-    step = a.indent or a.font_size * 2.6
-    base = Layout(w, h, a.margin, font, bold, a.font_size, step, a.font_size * a.line_height)
-    lay = fit_layout(rows, base, TEXTS[a.lang]["see"].format(page=99)) if not a.indent else base
-
-    title = a.title or TEXTS[a.lang]["title"].format(name=root.name)
-    out = a.output or re.sub(r"[^\w.-]+", "_", fold(root.name)) + "_rodostrom.pdf"
-    pages = render(rows, out, title, a.lang, lay, not a.no_date, 0.6)
-    gens = max(r.gen for r in rows)
-    print(f"{out}: {len(rows)} riadkov, {gens} generácií, {pages} strán"
-          f" (písmo {lay.size:.2f} pt)")
-    if lay.size < a.font_size * 0.85:
+    res = generate(people, families, root.id, a.output, generations=a.generations,
+                   lang=a.lang, labels=a.labels, dates=a.dates, places=a.places,
+                   numbering=a.numbering, marriage_on=a.marriage_on, repeat=a.repeat,
+                   mother_first=a.mother_first, show_ids=a.show_ids, title=a.title,
+                   show_date=not a.no_date, page_size=a.page_size,
+                   orientation=a.orientation, font_size=a.font_size,
+                   line_height=a.line_height, indent=a.indent, margin=a.margin,
+                   font=a.font)
+    print(f"{res.output}: {res.rows} riadkov, {res.generations} generácií, "
+          f"{res.pages} strán (písmo {res.font_size:.2f} pt)")
+    if res.shrunk:
         print("Tip: písmo bolo zmenšené, aby sa riadky zmestili; pre väčšie písmo skúste "
               "--orientation landscape, --page-size a3 alebo --places short.", file=sys.stderr)
     return 0

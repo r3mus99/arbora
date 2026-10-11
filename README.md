@@ -34,7 +34,21 @@ pip install -r requirements.txt
 Skript hľadá TTF písmo s diakritikou automaticky (DejaVu Sans, Liberation Sans,
 Arial, Segoe UI na Linuxe, Windows aj macOS). Iné písmo sa dá zadať cez `--font`.
 
-## Použitie
+## Grafické okno (GUI)
+
+```
+python rodostrom_gui.py
+```
+
+![GUI](docs/gui.png)
+
+Vyberiete GEDCOM súbor, v zozname nájdete a označíte koreňovú osobu,
+nastavíte voľby a stlačíte **Vytvoriť PDF** (alebo dvojklik na osobu).
+Posledný súbor, osoba a nastavenia sa zapamätajú v `~/.rodostrom_gui.json`.
+GUI používa Tkinter, ktorý je súčasťou Pythonu na Windows aj macOS; na Linuxe
+ho treba doinštalovať (`sudo apt install python3-tk`).
+
+## Použitie z príkazového riadku
 
 ```
 # nájdi ID osoby
@@ -108,7 +122,7 @@ python rodostrom.py example/ukazka.ged -p I1 --lang en --places short --dates fu
 ```
 
 `example/ukazka.ged` is fictional test data made by `tools/generate_example.py`.
-Run `python rodostrom.py -h` for all options.
+Run `python rodostrom.py -h` for all options, or `python rodostrom_gui.py` for a simple window (Tkinter).
 
 ## Licencia
 
