@@ -86,6 +86,8 @@ export function TreeView({ rows, focusId, scrollKey, scrollTo, numbered, onFocus
               {r.dup && r.target && <button type="button" className="jump" onClick={() => onJump(r)}>
                 <CornerDownRight className="icon" aria-hidden="true" />{seeText(r)}</button>}
               {r.dup && !r.target && <span className="dup"> ({t("repeated")})</span>}
+              {r.hidden > 0 && <button type="button" className="more" onClick={toggle}
+                                       title={t("hiddenN", { n: r.hidden })}>+{r.hidden}</button>}
               {r.branch && <button type="button" className={r.hidden ? "fold closed" : "fold"} onClick={toggle}
                                    style={{ left: x(r.gen) + 0.5 - BOX / 2 }}
                                    aria-label={r.hidden ? `${t("expand")} – ${t("hiddenN", { n: r.hidden })}` : t("collapse")}

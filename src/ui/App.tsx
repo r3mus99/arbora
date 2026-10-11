@@ -287,7 +287,7 @@ export function App() {
     value: form[key] as string,
     onChange: (e: { target: { value: string } }) => setOpt(key, e.target.value as Form[K]),
   });
-  const check = (key: "showSpouses" | "repeat" | "motherFirst" | "showIds" | "showDate") => ({
+  const check = (key: "showSpouses" | "showDate") => ({
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => setOpt(key, e.target.checked),
   });
@@ -374,52 +374,59 @@ export function App() {
         <details className="panel settings">
           <summary><Settings className="icon" aria-hidden="true" /><span>{t("step3")}</span>
             <ChevronDown className="icon chev" aria-hidden="true" /></summary>
-          <div className="grid">
-            <label><span>{t("labels")}</span>
-              <select {...sel("labels")}>
-                <option value="symbols">{`${t("symbols")}  * ∞ †`}</option>
-                <option value="abbr">{`${t("abbr")}  ${ab.birt}${ab.marr}${ab.deat}`.trim()}</option>
-              </select></label>
-            <label><span>{t("dates")}</span>
-              <select {...sel("dates")}>
-                <option value="year">{t("year")}</option><option value="full">{t("fullDate")}</option>
-              </select></label>
-            <label><span>{t("places")}</span>
-              <select {...sel("places")}>
-                <option value="none">{t("noPlaces")}</option><option value="short">{t("shortPlace")}</option>
-                <option value="full">{t("fullPlace")}</option>
-              </select></label>
-            <label><span>{t("numbering")}</span>
-              <select {...sel("numbering")}>
-                {NUMBERING[form.chart].map(([v, key]) => <option key={v} value={v}>{t(key)}</option>)}
-              </select></label>
-            {!desc && <label><span>{t("marriageOn")}</span>
-              <select {...sel("marriageOn")}>
-                <option value="father">{t("marrFather")}</option><option value="both">{t("marrBoth")}</option>
-                <option value="none">{t("marrNone")}</option>
-              </select></label>}
-            <label><span>{t("pageSize")}</span>
-              <select {...sel("pageSize")}>
-                <option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option>
-                <option value="letter">Letter</option><option value="legal">Legal</option>
-              </select></label>
-            <label><span>{t("orientation")}</span>
-              <select {...sel("orientation")}>
-                <option value="portrait">{t("portrait")}</option><option value="landscape">{t("landscape")}</option>
-              </select></label>
-            <label><span>{t("generations")}</span>
-              <input type="number" min="0" max="99" step="1" {...sel("generations")} /></label>
-            <label><span>{t("fontSize")}</span>
-              <input type="number" min="5" max="20" step="0.5" {...sel("fontSize")} /></label>
-            <label className="wide"><span>{t("title")}</span>
-              <input type="text" placeholder={t("titlePh")} {...sel("title")} /></label>
+          <div className="set-group">
+            <h3>{t("setCommon")}</h3>
+            <div className="grid">
+              <label><span>{t("labels")}</span>
+                <select {...sel("labels")}>
+                  <option value="symbols">{`${t("symbols")}  * ∞ †`}</option>
+                  <option value="abbr">{`${t("abbr")}  ${ab.birt}${ab.marr}${ab.deat}`.trim()}</option>
+                </select></label>
+              <label><span>{t("dates")}</span>
+                <select {...sel("dates")}>
+                  <option value="year">{t("year")}</option><option value="full">{t("fullDate")}</option>
+                </select></label>
+              <label><span>{t("places")}</span>
+                <select {...sel("places")}>
+                  <option value="none">{t("noPlaces")}</option><option value="short">{t("shortPlace")}</option>
+                  <option value="full">{t("fullPlace")}</option>
+                </select></label>
+              <label><span>{t("numbering")}</span>
+                <select {...sel("numbering")}>
+                  {NUMBERING[form.chart].map(([v, key]) => <option key={v} value={v}>{t(key)}</option>)}
+                </select></label>
+              {!desc && <label><span>{t("marriageOn")}</span>
+                <select {...sel("marriageOn")}>
+                  <option value="father">{t("marrFather")}</option><option value="both">{t("marrBoth")}</option>
+                  <option value="none">{t("marrNone")}</option>
+                </select></label>}
+              <label><span>{t("generations")}</span>
+                <input type="number" min="0" max="99" step="1" {...sel("generations")} /></label>
+            </div>
+            {desc && <div className="checks">
+              <label><input {...check("showSpouses")} /> <span>{t("showSpouses")}</span></label>
+            </div>}
           </div>
-          <div className="checks">
-            {desc && <label><input {...check("showSpouses")} /> <span>{t("showSpouses")}</span></label>}
-            <label><input {...check("repeat")} /> <span>{t("repeat")}</span></label>
-            {!desc && <label><input {...check("motherFirst")} /> <span>{t("motherFirst")}</span></label>}
-            <label><input {...check("showIds")} /> <span>{t("showIds")}</span></label>
-            <label><input {...check("showDate")} /> <span>{t("showDate")}</span></label>
+          <div className="set-group">
+            <h3>{t("setPrint")}</h3>
+            <div className="grid">
+              <label><span>{t("pageSize")}</span>
+                <select {...sel("pageSize")}>
+                  <option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option>
+                  <option value="letter">Letter</option><option value="legal">Legal</option>
+                </select></label>
+              <label><span>{t("orientation")}</span>
+                <select {...sel("orientation")}>
+                  <option value="portrait">{t("portrait")}</option><option value="landscape">{t("landscape")}</option>
+                </select></label>
+              <label><span>{t("fontSize")}</span>
+                <input type="number" min="5" max="20" step="0.5" {...sel("fontSize")} /></label>
+              <label className="wide"><span>{t("title")}</span>
+                <input type="text" placeholder={t("titlePh")} {...sel("title")} /></label>
+            </div>
+            <div className="checks">
+              <label><input {...check("showDate")} /> <span>{t("showDate")}</span></label>
+            </div>
           </div>
         </details>
 

@@ -18,10 +18,6 @@ export interface ChartOptions {
   generations: number;
   /** descendants: print spouse lines */
   showSpouses: boolean;
-  /** expand repeated people again instead of a page reference */
-  repeat: boolean;
-  motherFirst: boolean;
-  showIds: boolean;
   /** custom title, empty = automatic */
   title: string;
   showDate: boolean;
@@ -35,8 +31,7 @@ export interface ChartOptions {
 export const DEFAULTS: ChartOptions = {
   generations: 0, lang: "sk", labels: "symbols", dates: "year", places: "none",
   chart: "ancestors", showSpouses: true,
-  numbering: "generation", marriageOn: "father", repeat: false, motherFirst: false,
-  showIds: false, title: "", showDate: true, pageSize: "a4", orientation: "portrait",
+  numbering: "generation", marriageOn: "father", title: "", showDate: true, pageSize: "a4", orientation: "portrait",
   fontSize: 8.5, lineHeight: 1.7, margin: 36,
 };
 
@@ -120,8 +115,7 @@ export function formatEvent(kind: EventKind, ev: GedEvent | null, o: ChartOption
 export function personLine(p: Person | null, number: number | string | null,
                            marriage: Family | null, o: ChartOptions): string {
   const t = TEXTS[o.lang];
-  let name = p && p.name ? p.name : "?";
-  if (p && o.showIds) name += ` [${p.id.replace(/@/g, "")}]`;
+  const name = p && p.name ? p.name : "?";
   const bits: string[] = [];
   if (p) bits.push(formatEvent("birt", p.birth, o));
   if (marriage) bits.push(formatEvent("marr", marriage.marriage, o,

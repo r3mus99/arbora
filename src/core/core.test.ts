@@ -110,7 +110,6 @@ describe("ancestor chart", () => {
     const dups = rows.filter((r) => r.dup);
     expect(dups.map((r) => r.text)).toEqual(["6. Samuel Gálik (*1830, †1873)"]);
     expect(dups[0].target?.personId).toBe(dups[0].personId);
-    expect(chartRows(data, "@I1@", opts({ repeat: true })).filter((r) => r.dup)).toHaveLength(0);
   });
 
   test("divorce, Ahnentafel numbers and generation limit", () => {

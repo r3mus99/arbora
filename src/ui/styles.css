@@ -120,6 +120,12 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .tree-row button.fold { position: absolute; top: calc(50% - 5.5px); padding: 0; margin: 0; border: 0;
                         border-radius: 2px; line-height: 0; background: none; }
 .tree-row .fold svg { display: block; }
+/* − only while pointing at the row (or on the selected one); + always */
+.tree-row .fold:not(.closed) { opacity: 0; }
+.tree-row:hover .fold, .tree-row.sel .fold, .tree-row .fold:focus-visible { opacity: 1; }
+.tree-row .more { font-size: 12px; color: var(--accent); margin-left: 6px; padding: 0 5px; line-height: 18px;
+                  border: 1px solid var(--accent); border-radius: 9px; vertical-align: 1px; display: inline-flex; }
+.tree-row .more:hover { background: var(--accent-soft); }
 .tree-row button.fold::before { content: ""; position: absolute; inset: -6px; }  /* larger tap target */
 .tree-row .fold rect { fill: var(--bg); stroke: var(--muted); }
 .tree-row .fold path { stroke: var(--muted); stroke-width: 1.2; shape-rendering: crispEdges; }
@@ -176,8 +182,10 @@ h1 .logo { width: 28px; height: 28px; color: var(--accent); }
 .settings summary::-webkit-details-marker { display: none; }
 .settings summary .chev { margin-left: auto; color: var(--muted); transition: transform .15s; }
 .settings[open] summary .chev { transform: rotate(180deg); }
-.settings > .grid, .settings > .checks { padding: 0 18px; }
-.settings > .checks { padding-bottom: 18px; }
+.set-group { padding: 0 18px 18px; }
+.set-group + .set-group { border-top: 1px solid var(--border); padding-top: 14px; }
+.set-group h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
+                font-weight: 600; margin: 0 0 10px; }
 button.big, .btn.big { font-size: 17px; padding: 12px 24px; }
 button.link { display: inline; }
 .spin { animation: spin 1s linear infinite; }

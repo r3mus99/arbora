@@ -82,6 +82,8 @@ podľa jazyka prehliadača.
 
 ### Nastavenia
 
+Nastavenia majú dve časti. **Spoločné** platia pre schému na stránke aj pre PDF:
+
 | Voľba | Možnosti |
 |---|---|
 | Popisky | symboly `* ∞ †` alebo skratky `nar. sob. zom.` |
@@ -89,10 +91,13 @@ podľa jazyka prehliadača.
 | Miesta | bez miest, len obec, celé miesto |
 | Číslovanie | generácia (1, 2, 3…); pri predkoch Ahnentafel (otec = 2n, matka = 2n+1), pri potomkoch d'Aboville (1.2.1); bez čísel |
 | Sobáš rodičov | pri predkoch: pri otcovi, pri oboch rodičoch, nezobrazovať |
-| Manželia | pri potomkoch: zobraziť manžela/manželku s rokom sobáša, alebo len pokrvných potomkov |
-| Formát a orientácia | A4, A3, A5, Letter, Legal; na výšku / na šírku |
 | Generácie | maximálny počet vrátane koreňa (0 = všetky) |
-| Ďalšie | veľkosť písma, vlastný nadpis, opakované osoby rozpísať znova, matka hore (predkovia), zobraziť ID, dátum tlače |
+| Manželia | pri potomkoch: zobraziť manžela/manželku s rokom sobáša, alebo len pokrvných potomkov |
+
+**Len pre PDF:** formát strany (A4, A3, A5, Letter, Legal), orientácia, veľkosť
+písma, vlastný nadpis a dátum tlače v hlavičke.
+
+Opakovaná osoba sa rozpíše len raz, ďalej je na ňu odkaz.
 
 Ak sa najdlhší riadok nezmestí na šírku strany, odsadenie generácií a potom
 písmo sa automaticky zmenšia.

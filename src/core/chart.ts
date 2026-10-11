@@ -54,7 +54,7 @@ export function buildRows(rootId: string, people: Record<string, Person>,
     let father = fam && fam.husb && fam.husb in people ? fam.husb : null;
     let mother = fam && fam.wife && fam.wife in people ? fam.wife : null;
     if (gen >= maxGen) father = mother = null;
-    const dup = expanded.has(pid) && !o.repeat;
+    const dup = expanded.has(pid);
     if (dup || ancestors.has(pid)) father = mother = null;
 
     let marr: Family | null = null;
@@ -70,9 +70,8 @@ export function buildRows(rootId: string, people: Record<string, Person>,
     if (!dup && !expanded.has(pid)) expanded.set(pid, row);
 
     const anc = new Set(ancestors).add(pid);
-    const order: [string | null, number, "f" | "m"][] = o.motherFirst
-      ? [[mother, 2 * ahnen + 1, "m"], [father, 2 * ahnen, "f"]]
-      : [[father, 2 * ahnen, "f"], [mother, 2 * ahnen + 1, "m"]];
+    const order: [string | null, number, "f" | "m"][] =
+      [[father, 2 * ahnen, "f"], [mother, 2 * ahnen + 1, "m"]];
     let self = SELF;
     order.forEach(([par, num, which], i) => {
       if (i === 1) { rows.push(row); self = rows.length - 1; }
@@ -127,7 +126,7 @@ export function buildDescRows(rootId: string, people: Record<string, Person>,
 
   function visit(pid: string, gen: number, dab: string, ancestors: Set<string>): number {
     const p = people[pid];
-    const dup = expanded.has(pid) && !o.repeat;
+    const dup = expanded.has(pid);
     const number = o.numbering === "generation" ? gen
       : o.numbering === "daboville" ? dab : null;
     const row: Row = { gen, text: personLine(p, number, null, o), personId: pid, dup,
