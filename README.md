@@ -55,11 +55,18 @@ rozvinie len raz; pri ďalšom výskyte je odkaz „pozri str. N“.
 neodosiela a stránka nemá žiadny server. Prehliadač si pamätá len nastavenia
 a ID poslednej osoby (localStorage), nie obsah súboru.
 
+### Jazyk
+
+Jazyk sa prepína vlajkou vpravo hore: slovenčina, čeština, poľština, maďarčina,
+nemčina, angličtina, francúzština, taliančina, španielčina, portugalčina,
+holandčina a ukrajinčina. Zvolený jazyk platí pre stránku aj pre vytvorené PDF
+(nadpis, skratky, formát dátumov, čísla strán). Pri prvej návšteve sa vyberie
+podľa jazyka prehliadača.
+
 ### Nastavenia
 
 | Voľba | Možnosti |
 |---|---|
-| Jazyk | slovensky, česky, English (nadpis, skratky, čísla strán) |
 | Popisky | symboly `* ∞ †` alebo skratky `nar. sob. zom.` |
 | Dátumy | len rok, alebo celý dátum (`14.5.1991`) |
 | Miesta | bez miest, len obec, celé miesto |
@@ -87,6 +94,7 @@ písmo sa automaticky zmenšia.
 docs/               stránka pre GitHub Pages
   index.html        formulár
   app.js            logika stránky
+  i18n.js           preklady rozhrania a vlajky
   rodostrom.js      generátor (GEDCOM → riadky → PDF), funguje aj v Node.js
   vendor/           pdf-lib + fontkit (MIT), licencie v vendor/LICENSES.md
   fonts/            DejaVu Sans (písmo s diakritikou)
@@ -106,7 +114,8 @@ repozitára omylom nedostal skutočný rodokmeň.
 
 ## English summary
 
-Open https://r3mus99.github.io/gedcom-to-pdf/, load a GEDCOM file, choose
+Open https://r3mus99.github.io/gedcom-to-pdf/ (12 European languages, switch with
+the flag in the top right), load a GEDCOM file, choose
 Ancestors or Descendants, pick the person and download a multi-page PDF chart.
 Ancestors: root is no. 1 on the left, father above, mother below. Descendants:
 the ancestor is no. 1, spouses with marriage year, children indented below.

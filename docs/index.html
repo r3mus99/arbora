@@ -76,7 +76,7 @@
   .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
   .seg label { cursor: pointer; }
   .seg input { position: absolute; opacity: 0; pointer-events: none; }
-  .seg span { display: block; height: 100%; border: 1px solid var(--border); border-radius: 10px;
+  .seg > label > span { display: block; height: 100%; border: 1px solid var(--border); border-radius: 10px;
               padding: 10px 12px; transition: border-color .15s, background .15s; }
   .seg b { display: block; font-size: 15px; }
   .seg small { display: block; color: var(--muted); font-size: 12.5px; line-height: 1.35; margin-top: 2px; }
@@ -90,92 +90,115 @@
   footer { color: var(--muted); font-size: 13px; text-align: center; margin-top: 28px; }
   footer a { color: var(--accent); }
   @media (max-width: 560px) { .people .hide-sm { display: none; } h1 { font-size: 22px; } }
+  header.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .flag { width: 24px; height: 16px; border-radius: 2px; flex: none;
+          box-shadow: 0 0 0 1px rgba(0,0,0,.18); display: block; }
+  .lang { position: relative; flex: none; }
+  .lang > button { display: flex; align-items: center; gap: 8px; padding: 6px 10px; }
+  .lang > button .caret { font-size: 11px; color: var(--muted); }
+  .lang ul { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; list-style: none;
+             margin: 0; padding: 6px; background: var(--panel); border: 1px solid var(--border);
+             border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.15); min-width: 190px;
+             max-height: 70vh; overflow: auto; }
+  .lang li button { display: flex; align-items: center; gap: 10px; width: 100%; border: 0;
+                    background: none; padding: 7px 10px; border-radius: 6px; text-align: left; }
+  .lang li button:hover, .lang li button:focus-visible { background: var(--accent-soft); }
+  .lang li button[aria-selected="true"] { font-weight: 600; color: var(--accent); }
+  @media (max-width: 560px) { .lang > button .lname { display: none; } }
 </style>
 </head>
 <body>
 <main>
-  <h1>Rodostrom</h1>
-  <p class="lead">PDF schéma predkov alebo potomkov z GEDCOM súboru. Vybraná osoba má číslo 1,
-    v zátvorke je rok narodenia, sobáša a úmrtia.</p>
+  <header class="top">
+    <div>
+      <h1>Rodostrom</h1>
+      <p class="lead" data-i18n="lead"></p>
+    </div>
+    <div class="lang">
+      <button type="button" id="langBtn" aria-haspopup="listbox" aria-expanded="false">
+        <span id="langFlag"></span><span class="lname" id="langName"></span><span class="caret">▾</span>
+      </button>
+      <ul id="langMenu" role="listbox" hidden></ul>
+    </div>
+  </header>
 
   <section class="panel">
-    <h2><span class="step">1</span>GEDCOM súbor</h2>
+    <h2><span class="step">1</span><span data-i18n="step1"></span></h2>
     <label class="drop" id="drop">
       <input type="file" id="file" accept=".ged,.GED,.gedcom,text/plain" hidden>
-      <div id="dropText"><strong>Vyberte súbor</strong> alebo ho sem pretiahnite (.ged)</div>
+      <div id="dropText"></div>
     </label>
-    <p class="note">Súbor sa nikam neodosiela, spracuje sa iba vo vašom prehliadači.
-      Nemáte vlastný? <button class="link" id="sample" type="button">Vyskúšajte ukážku s vymyslenými osobami.</button></p>
+    <p class="note"><span data-i18n="privacy"></span>
+      <button class="link" id="sample" type="button" data-i18n="sample"></button></p>
   </section>
 
   <section class="panel" id="personPanel" hidden>
-    <h2><span class="step">2</span>Typ schémy a osoba (číslo 1)</h2>
-    <div class="seg" role="radiogroup" aria-label="Typ schémy">
+    <h2><span class="step">2</span><span data-i18n="step2"></span></h2>
+    <div class="seg" role="radiogroup">
       <label><input type="radio" name="chart" data-opt="chart" value="ancestors">
-        <span><b>Predkovia</b><small>osoba a jej rodičia, starí rodičia…<br>otec hore, matka dole</small></span></label>
+        <span><b data-i18n="anc"></b><small><span data-i18n="ancDesc1"></span><br><span data-i18n="ancDesc2"></span></small></span></label>
       <label><input type="radio" name="chart" data-opt="chart" value="descendants">
-        <span><b>Potomkovia</b><small>osoba, jej deti, vnúčatá…<br>s manželmi a manželkami</small></span></label>
+        <span><b data-i18n="desc"></b><small><span data-i18n="descDesc1"></span><br><span data-i18n="descDesc2"></span></small></span></label>
     </div>
-    <input type="search" id="search" placeholder="Hľadať meno alebo ID…" autocomplete="off">
+    <input type="search" id="search" data-i18n-ph="search" autocomplete="off">
     <div class="people">
       <table>
-        <thead><tr><th class="hide-sm">ID</th><th>Meno</th><th>Narodenie</th><th class="hide-sm">Úmrtie</th></tr></thead>
+        <thead><tr><th class="hide-sm">ID</th><th data-i18n="thName"></th><th data-i18n="thBirth"></th><th class="hide-sm" data-i18n="thDeath"></th></tr></thead>
         <tbody id="list"></tbody>
       </table>
     </div>
-    <div class="chosen" id="chosen">Kliknite na osobu v zozname.</div>
+    <div class="chosen" id="chosen"></div>
   </section>
 
   <section class="panel" id="optPanel" hidden>
-    <h2><span class="step">3</span>Nastavenia</h2>
+    <h2><span class="step">3</span><span data-i18n="step3"></span></h2>
     <div class="grid">
-      <label>Jazyk
-        <select data-opt="lang"><option value="sk">slovensky</option><option value="cs">česky</option><option value="en">English</option></select></label>
-      <label>Popisky
-        <select data-opt="labels"><option value="symbols">symboly  * ∞ †</option><option value="abbr">skratky  nar. sob. zom.</option></select></label>
-      <label>Dátumy
-        <select data-opt="dates"><option value="year">len rok</option><option value="full">celý dátum</option></select></label>
-      <label>Miesta
-        <select data-opt="places"><option value="none">bez miest</option><option value="short">len obec</option><option value="full">celé miesto</option></select></label>
-      <label>Číslovanie
-        <select data-opt="numbering"><option value="generation">generácia (1, 2, 3…)</option><option value="ahnentafel">Ahnentafel (otec 2n, matka 2n+1)</option><option value="daboville">d'Aboville (1.2.1)</option><option value="none">bez čísel</option></select></label>
-      <label class="only-anc">Sobáš rodičov
-        <select data-opt="marriageOn"><option value="father">pri otcovi</option><option value="both">pri oboch rodičoch</option><option value="none">nezobrazovať</option></select></label>
-      <label>Formát strany
+      <label><span data-i18n="labels"></span>
+        <select data-opt="labels"><option value="symbols"></option><option value="abbr"></option></select></label>
+      <label><span data-i18n="dates"></span>
+        <select data-opt="dates"><option value="year" data-i18n="year"></option><option value="full" data-i18n="fullDate"></option></select></label>
+      <label><span data-i18n="places"></span>
+        <select data-opt="places"><option value="none" data-i18n="noPlaces"></option><option value="short" data-i18n="shortPlace"></option><option value="full" data-i18n="fullPlace"></option></select></label>
+      <label><span data-i18n="numbering"></span>
+        <select data-opt="numbering"><option value="generation"></option><option value="ahnentafel"></option><option value="daboville"></option><option value="none"></option></select></label>
+      <label class="only-anc"><span data-i18n="marriageOn"></span>
+        <select data-opt="marriageOn"><option value="father" data-i18n="marrFather"></option><option value="both" data-i18n="marrBoth"></option><option value="none" data-i18n="marrNone"></option></select></label>
+      <label><span data-i18n="pageSize"></span>
         <select data-opt="pageSize"><option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option><option value="letter">Letter</option><option value="legal">Legal</option></select></label>
-      <label>Orientácia
-        <select data-opt="orientation"><option value="portrait">na výšku</option><option value="landscape">na šírku</option></select></label>
-      <label>Generácie (0 = všetky)
+      <label><span data-i18n="orientation"></span>
+        <select data-opt="orientation"><option value="portrait" data-i18n="portrait"></option><option value="landscape" data-i18n="landscape"></option></select></label>
+      <label><span data-i18n="generations"></span>
         <input type="number" data-opt="generations" min="0" max="99" step="1"></label>
-      <label>Veľkosť písma (pt)
+      <label><span data-i18n="fontSize"></span>
         <input type="number" data-opt="fontSize" min="5" max="20" step="0.5"></label>
-      <label class="wide">Nadpis (prázdne = automaticky)
-        <input type="text" data-opt="title" placeholder="automaticky podľa typu a osoby"></label>
+      <label class="wide"><span data-i18n="title"></span>
+        <input type="text" data-opt="title" data-i18n-ph="titlePh"></label>
     </div>
     <div class="checks">
-      <label class="only-desc"><input type="checkbox" data-opt="showSpouses"> zobraziť manželov a manželky</label>
-      <label><input type="checkbox" data-opt="repeat"> opakované osoby rozpísať znova</label>
-      <label class="only-anc"><input type="checkbox" data-opt="motherFirst"> matka hore, otec dole</label>
-      <label><input type="checkbox" data-opt="showIds"> zobraziť ID</label>
-      <label><input type="checkbox" data-opt="showDate"> dátum tlače v hlavičke</label>
+      <label class="only-desc"><input type="checkbox" data-opt="showSpouses"> <span data-i18n="showSpouses"></span></label>
+      <label><input type="checkbox" data-opt="repeat"> <span data-i18n="repeat"></span></label>
+      <label class="only-anc"><input type="checkbox" data-opt="motherFirst"> <span data-i18n="motherFirst"></span></label>
+      <label><input type="checkbox" data-opt="showIds"> <span data-i18n="showIds"></span></label>
+      <label><input type="checkbox" data-opt="showDate"> <span data-i18n="showDate"></span></label>
     </div>
   </section>
 
   <section class="panel" id="goPanel" hidden>
     <div class="row">
-      <button class="primary" id="go" type="button">Vytvoriť PDF</button>
-      <a class="btn" id="download" hidden>Stiahnuť PDF</a>
+      <button class="primary" id="go" type="button" data-i18n="go"></button>
+      <a class="btn" id="download" hidden data-i18n="download"></a>
       <span class="status" id="status"></span>
     </div>
-    <iframe class="preview" id="preview" title="Náhľad PDF"></iframe>
+    <iframe class="preview" id="preview"></iframe>
   </section>
 
-  <footer>Open source · <a href="https://github.com/r3mus99/gedcom-to-pdf">GitHub</a> · MIT licencia</footer>
+  <footer>Open source · <a href="https://github.com/r3mus99/gedcom-to-pdf">GitHub</a> · <span data-i18n="license"></span></footer>
 </main>
 
 <script src="vendor/pdf-lib.min.js"></script>
 <script src="vendor/fontkit.umd.min.js"></script>
 <script src="rodostrom.js"></script>
+<script src="i18n.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -14,27 +14,106 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
+  // Texts printed in the PDF. qual: GEDCOM date qualifiers, {d} is the date.
+  // date.dmy / date.my: {d} day, {m} month, {dd}/{mm} zero-padded, {M} month name, {y} year.
   const TEXTS = {
     sk: {
-      title: "Predkovia: {name}", titleDesc: "Potomkovia: {name}", page: "Strana {n} z {total}", see: "pozri str. {page}",
+      title: "Predkovia: {name}", titleDesc: "Potomkovia: {name}",
+      page: "Strana {n} z {total}", see: "pozri str. {page}",
       abbr: { birt: "nar. ", marr: "sob. ", deat: "zom. " },
-      qual: { ABT: "cca ", EST: "cca ", CAL: "cca ", BEF: "pred ", AFT: "po " },
-      divorced: "rozv.", unknown: "?", months: null,
+      qual: { ABT: "cca {d}", BEF: "pred {d}", AFT: "po {d}" },
+      divorced: "rozv.", date: { dmy: "{d}.{m}.{y}", my: "{m}/{y}" },
     },
     cs: {
-      title: "Předkové: {name}", titleDesc: "Potomci: {name}", page: "Strana {n} z {total}", see: "viz str. {page}",
+      title: "Předkové: {name}", titleDesc: "Potomci: {name}",
+      page: "Strana {n} z {total}", see: "viz str. {page}",
       abbr: { birt: "nar. ", marr: "odd. ", deat: "zem. " },
-      qual: { ABT: "asi ", EST: "asi ", CAL: "asi ", BEF: "před ", AFT: "po " },
-      divorced: "rozv.", unknown: "?", months: null,
+      qual: { ABT: "asi {d}", BEF: "před {d}", AFT: "po {d}" },
+      divorced: "rozv.", date: { dmy: "{d}.{m}.{y}", my: "{m}/{y}" },
+    },
+    pl: {
+      title: "Przodkowie: {name}", titleDesc: "Potomkowie: {name}",
+      page: "Strona {n} z {total}", see: "zob. s. {page}",
+      abbr: { birt: "ur. ", marr: "śl. ", deat: "zm. " },
+      qual: { ABT: "ok. {d}", BEF: "przed {d}", AFT: "po {d}" },
+      divorced: "rozw.", date: { dmy: "{d}.{mm}.{y}", my: "{mm}.{y}" },
+    },
+    hu: {
+      title: "{name} felmenői", titleDesc: "{name} leszármazottai",
+      page: "{n}/{total}. oldal", see: "lásd {page}. old.",
+      abbr: { birt: "szül. ", marr: "házas. ", deat: "megh. " },
+      qual: { ABT: "kb. {d}", BEF: "{d} előtt", AFT: "{d} után" },
+      divorced: "elvált", date: { dmy: "{y}.{mm}.{dd}.", my: "{y}.{mm}." },
+    },
+    de: {
+      title: "Vorfahren von {name}", titleDesc: "Nachkommen von {name}",
+      page: "Seite {n} von {total}", see: "siehe S. {page}",
+      abbr: { birt: "geb. ", marr: "verh. ", deat: "gest. " },
+      qual: { ABT: "um {d}", BEF: "vor {d}", AFT: "nach {d}" },
+      divorced: "gesch.", date: { dmy: "{d}.{m}.{y}", my: "{m}/{y}" },
     },
     en: {
-      title: "Ancestors of {name}", titleDesc: "Descendants of {name}", page: "Page {n} of {total}", see: "see p. {page}",
+      title: "Ancestors of {name}", titleDesc: "Descendants of {name}",
+      page: "Page {n} of {total}", see: "see p. {page}",
       abbr: { birt: "b. ", marr: "m. ", deat: "d. " },
-      qual: { ABT: "abt ", EST: "abt ", CAL: "abt ", BEF: "bef ", AFT: "aft " },
-      divorced: "div.", unknown: "?",
+      qual: { ABT: "abt {d}", BEF: "bef {d}", AFT: "aft {d}" },
+      divorced: "div.", date: { dmy: "{d} {M} {y}", my: "{M} {y}" },
       months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     },
+    fr: {
+      title: "Ascendance de {name}", titleDesc: "Descendance de {name}",
+      page: "Page {n} sur {total}", see: "voir p. {page}",
+      abbr: { birt: "n. ", marr: "mar. ", deat: "déc. " },
+      qual: { ABT: "vers {d}", BEF: "av. {d}", AFT: "ap. {d}" },
+      divorced: "div.", date: { dmy: "{d} {M} {y}", my: "{M} {y}" },
+      months: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.",
+               "nov.", "déc."],
+    },
+    it: {
+      title: "Antenati di {name}", titleDesc: "Discendenti di {name}",
+      page: "Pagina {n} di {total}", see: "vedi p. {page}",
+      abbr: { birt: "n. ", marr: "sp. ", deat: "m. " },
+      qual: { ABT: "ca. {d}", BEF: "ante {d}", AFT: "post {d}" },
+      divorced: "div.", date: { dmy: "{d}/{m}/{y}", my: "{m}/{y}" },
+    },
+    es: {
+      title: "Antepasados de {name}", titleDesc: "Descendientes de {name}",
+      page: "Página {n} de {total}", see: "ver p. {page}",
+      abbr: { birt: "n. ", marr: "c. ", deat: "f. " },
+      qual: { ABT: "h. {d}", BEF: "antes de {d}", AFT: "después de {d}" },
+      divorced: "div.", date: { dmy: "{d}/{m}/{y}", my: "{m}/{y}" },
+    },
+    pt: {
+      title: "Antepassados de {name}", titleDesc: "Descendentes de {name}",
+      page: "Página {n} de {total}", see: "ver p. {page}",
+      abbr: { birt: "n. ", marr: "c. ", deat: "f. " },
+      qual: { ABT: "cerca de {d}", BEF: "antes de {d}", AFT: "depois de {d}" },
+      divorced: "div.", date: { dmy: "{d}/{m}/{y}", my: "{m}/{y}" },
+    },
+    nl: {
+      title: "Voorouders van {name}", titleDesc: "Nakomelingen van {name}",
+      page: "Pagina {n} van {total}", see: "zie p. {page}",
+      abbr: { birt: "geb. ", marr: "tr. ", deat: "ovl. " },
+      qual: { ABT: "ca. {d}", BEF: "voor {d}", AFT: "na {d}" },
+      divorced: "gesch.", date: { dmy: "{d}-{m}-{y}", my: "{m}-{y}" },
+    },
+    uk: {
+      title: "Предки: {name}", titleDesc: "Нащадки: {name}",
+      page: "Сторінка {n} з {total}", see: "див. с. {page}",
+      abbr: { birt: "нар. ", marr: "шл. ", deat: "пом. " },
+      qual: { ABT: "бл. {d}", BEF: "до {d}", AFT: "після {d}" },
+      divorced: "розл.", date: { dmy: "{dd}.{mm}.{y}", my: "{mm}.{y}" },
+    },
   };
+  const LANGS = Object.keys(TEXTS);
+
+  function formatDMY(lang, d, m, y) {
+    const t = TEXTS[lang];
+    const pad = (n) => String(n).padStart(2, "0");
+    const vars = { d, m, y, dd: pad(d), mm: pad(m), M: t.months ? t.months[m - 1] : m };
+    return fmt(d ? t.date.dmy : t.date.my, vars);
+  }
+
   const SYMBOLS = { birt: "*", marr: "∞", deat: "†" };
   const MONTHS = { JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, JUN: 6,
                    JUL: 7, AUG: 8, SEP: 9, OCT: 10, NOV: 11, DEC: 12 };
@@ -159,13 +238,13 @@
         y = +m[3];
       }
       if (!full || !mo) return String(y);
-      if (t.months) return d ? `${d} ${t.months[mo - 1]} ${y}` : `${t.months[mo - 1]} ${y}`;
-      return d ? `${d}.${mo}.${y}` : `${mo}/${y}`;
+      return formatDMY(lang, d, mo, y);
     };
 
-    let qual = "";
-    for (const [key, word] of Object.entries(t.qual)) {
-      if (s.startsWith(key + " ")) { qual = word; s = s.slice(key.length + 1); break; }
+    let qual = "{d}";
+    const QUAL = { ABT: "ABT", EST: "ABT", CAL: "ABT", BEF: "BEF", AFT: "AFT" };
+    for (const key of Object.keys(QUAL)) {
+      if (s.startsWith(key + " ")) { qual = t.qual[QUAL[key]]; s = s.slice(key.length + 1); break; }
     }
     const rng = /(?:BET|FROM)\s+(.+?)\s+(?:AND|TO)\s+(.+)/.exec(s);
     if (rng) {
@@ -173,7 +252,7 @@
       return a === b ? a : `${a}–${b}`;
     }
     s = s.replace(/^(FROM|TO|INT)\s+/, "").replace(/\s*\(.*\)$/, "");
-    return qual + one(s);
+    return fmt(qual, { d: one(s) });
   }
 
   function formatPlace(raw, mode) {
@@ -198,7 +277,7 @@
 
   function personLine(p, number, marriage, o) {
     const t = TEXTS[o.lang];
-    let name = p && p.name ? p.name : t.unknown;
+    let name = p && p.name ? p.name : "?";
     if (p && o.showIds) name += ` [${p.id.replace(/@/g, "")}]`;
     const bits = [];
     if (p) bits.push(formatEvent("birt", p.birth, o));
@@ -405,9 +484,7 @@
     const mid = lay.size * 0.32;
     const gap = lay.lineH * 0.45;
     const today = new Date();
-    const dateStr = lang === "en"
-      ? today.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })
-      : `${today.getDate()}.${today.getMonth() + 1}.${today.getFullYear()}`;
+    const dateStr = formatDMY(lang, today.getDate(), today.getMonth() + 1, today.getFullYear());
 
     const pageRange = (pg) => [lay.y(pg * lay.perPage) + lay.lineH * 0.5,
                                lay.y(pg * lay.perPage + lay.perPage - 1) - lay.lineH * 0.5];
@@ -534,7 +611,7 @@
     return fold(person.name).replace(/[^\w.-]+/g, "_") + suffix;
   }
 
-  return { TEXTS, load, parseGedcom, formatDate, formatPlace, personLine, buildRows,
+  return { TEXTS, LANGS, load, parseGedcom, formatDate, formatPlace, personLine, buildRows,
            buildDescRows,
            findPeople, fold, generate, defaultFileName, DEFAULTS };
 });

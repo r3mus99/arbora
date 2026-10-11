@@ -1,17 +1,18 @@
-/* Page logic for index.html: file loading, person list, options, PDF preview. */
+/* Page logic for index.html: language, file loading, person list, options, PDF preview. */
 (function () {
   "use strict";
   const R = window.Rodostrom;
+  const { STRINGS, ORDER, flag, detect } = window.I18N;
   const $ = (id) => document.getElementById(id);
+  const fmt = (s, vars) => s.replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : `{${k}}`));
   const STORE_KEY = "rodostrom-options";
 
   let data = null;          // {people, families}
+  let loadedName = "";      // file name, or null key for the sample
   let selectedId = null;
   let pdfUrl = null;
   let fontsPromise = null;
-
-  // ---------------------------------------------------------------- options
-  const inputs = Array.from(document.querySelectorAll("[data-opt]"));
+  let status = null;        // {key, vars, err} so it can be re-translated
 
   function readStore() {
     try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; }
@@ -19,6 +20,89 @@
   function writeStore(obj) {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(obj)); } catch (e) { /* ignore */ }
   }
+
+  // ---------------------------------------------------------------- language
+  let lang = readStore().lang;
+  if (!STRINGS[lang]) lang = detect();
+  const t = (key, vars) => fmt(STRINGS[lang][key] || STRINGS.en[key] || key, vars || {});
+
+  function renderLanguageMenu() {
+    const menu = $("langMenu");
+    menu.textContent = "";
+    for (const code of ORDER) {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("role", "option");
+      b.setAttribute("aria-selected", String(code === lang));
+      b.dataset.lang = code;
+      b.innerHTML = flag(code);
+      b.append(STRINGS[code].name);
+      li.append(b);
+      menu.append(li);
+    }
+  }
+
+  function applyLanguage() {
+    document.documentElement.lang = lang;
+    document.title = "Rodostrom – GEDCOM → PDF";
+    $("langFlag").innerHTML = flag(lang);
+    $("langName").textContent = STRINGS[lang].name;
+    $("langBtn").title = t("language");
+    $("langBtn").setAttribute("aria-label", `${t("language")}: ${STRINGS[lang].name}`);
+    document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+    // label choices show the actual abbreviations of this language
+    const ab = R.TEXTS[lang].abbr;
+    const labels = document.querySelector('[data-opt="labels"]');
+    labels.options[0].textContent = `${t("symbols")}  * ∞ †`;
+    labels.options[1].textContent = `${t("abbr")}  ${ab.birt}${ab.marr}${ab.deat}`.trim();
+    $("preview").title = t("preview");
+    renderDrop();
+    syncChart();
+    renderLanguageMenu();
+    if (data) { renderList(); updateChosen(); }
+    renderStatus();
+  }
+
+  function setLanguage(code) {
+    lang = code;
+    writeStore(Object.assign(readStore(), { lang }));
+    applyLanguage();
+  }
+
+  const langBtn = $("langBtn"), langMenu = $("langMenu");
+  function toggleMenu(open) {
+    langMenu.hidden = !open;
+    langBtn.setAttribute("aria-expanded", String(open));
+    if (open) {
+      const cur = langMenu.querySelector('[aria-selected="true"]');
+      if (cur) cur.focus();
+    }
+  }
+  langBtn.addEventListener("click", () => toggleMenu(langMenu.hidden));
+  langMenu.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-lang]");
+    if (!b) return;
+    toggleMenu(false);
+    setLanguage(b.dataset.lang);
+    langBtn.focus();
+  });
+  langMenu.addEventListener("keydown", (e) => {
+    const items = Array.from(langMenu.querySelectorAll("button"));
+    const i = items.indexOf(document.activeElement);
+    if (e.key === "ArrowDown") { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+    if (e.key === "ArrowUp") { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+  });
+  document.addEventListener("click", (e) => {
+    if (!langMenu.hidden && !e.target.closest(".lang")) toggleMenu(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !langMenu.hidden) { toggleMenu(false); langBtn.focus(); }
+  });
+
+  // ---------------------------------------------------------------- options
+  const inputs = Array.from(document.querySelectorAll("[data-opt]"));
 
   function applyOptions(opts) {
     for (const el of inputs) {
@@ -42,16 +126,15 @@
     }
     o.generations = Math.max(0, Math.round(o.generations));
     o.fontSize = Math.min(20, Math.max(5, o.fontSize));
+    o.lang = lang;
     return o;
   }
 
-  // options that only make sense for one chart type
+  // numbering choices and some options depend on the chart type
   const numbering = document.querySelector('[data-opt="numbering"]');
   const NUMBERING = {
-    ancestors: [["generation", "generácia (1, 2, 3…)"],
-                ["ahnentafel", "Ahnentafel (otec 2n, matka 2n+1)"], ["none", "bez čísel"]],
-    descendants: [["generation", "generácia (1, 2, 3…)"],
-                  ["daboville", "d'Aboville (1, 1.1, 1.1.2…)"], ["none", "bez čísel"]],
+    ancestors: [["generation", "numGen"], ["ahnentafel", "numAhn"], ["none", "numNone"]],
+    descendants: [["generation", "numGen"], ["daboville", "numDab"], ["none", "numNone"]],
   };
   function syncChart() {
     const chart = currentOptions().chart || "ancestors";
@@ -62,22 +145,39 @@
     if (desc && cur === "ahnentafel") cur = "daboville";
     if (!desc && cur === "daboville") cur = "ahnentafel";
     numbering.textContent = "";
-    for (const [v, t] of NUMBERING[chart]) numbering.add(new Option(t, v, false, v === cur));
+    for (const [v, key] of NUMBERING[chart]) numbering.add(new Option(t(key), v, false, v === cur));
   }
 
   const saved = readStore();
   applyOptions(Object.assign({}, R.DEFAULTS, saved.options || {}));
-  syncChart();
   inputs.forEach((el) => el.addEventListener("change", () => {
     if (el.dataset.opt === "chart") { syncChart(); resetResult(); }
     writeStore(Object.assign(readStore(), { options: currentOptions() }));
   }));
 
   // ---------------------------------------------------------------- loading
-  function setStatus(text, isError) {
+  function setStatus(key, vars, err) {
+    status = key ? { key, vars: vars || {}, err: !!err } : null;
+    renderStatus();
+  }
+  function renderStatus() {
     const s = $("status");
+    if (!status) { s.textContent = ""; s.classList.remove("err"); return; }
+    let text = t(status.key, status.vars);
+    if (status.key === "done" && status.vars.shrunkSize) {
+      text += " " + t("shrunk", { size: status.vars.shrunkSize });
+    }
     s.textContent = text;
-    s.classList.toggle("err", !!isError);
+    s.classList.toggle("err", status.err);
+  }
+
+  function renderDrop() {
+    const box = $("dropText");
+    box.textContent = "";
+    if (!data) { box.innerHTML = t("drop"); return; }
+    const strong = document.createElement("strong");
+    strong.textContent = loadedName === null ? t("sampleName") : loadedName;
+    box.append(strong, " – " + t("loaded", { count: Object.keys(data.people).length }));
   }
 
   function loadBytes(bytes, name) {
@@ -85,20 +185,17 @@
     try {
       parsed = R.load(bytes);
     } catch (e) {
-      alert("Súbor sa nepodarilo načítať: " + e.message);
+      alert(t("errLoad", { msg: e.message }));
       return;
     }
-    const count = Object.keys(parsed.people).length;
-    if (!count) {
-      alert("V súbore sa nenašli žiadne osoby. Je to naozaj GEDCOM?");
+    if (!Object.keys(parsed.people).length) {
+      alert(t("errEmpty"));
       return;
     }
     data = parsed;
+    loadedName = name;
     selectedId = null;
-    $("dropText").innerHTML = "";
-    const strong = document.createElement("strong");
-    strong.textContent = name;
-    $("dropText").append(strong, ` – ${count} osôb. Kliknite pre iný súbor.`);
+    renderDrop();
     ["personPanel", "optPanel", "goPanel"].forEach((id) => { $(id).hidden = false; });
     $("search").value = "";
     renderList();
@@ -131,16 +228,16 @@
     try {
       const r = await fetch("ukazka.ged");
       if (!r.ok) throw new Error(r.status);
-      loadBytes(await r.arrayBuffer(), "ukazka.ged (vymyslené osoby)");
+      loadBytes(await r.arrayBuffer(), null);
     } catch (e) {
-      alert("Ukážku sa nepodarilo načítať.");
+      alert(t("errSample"));
     }
   });
 
   async function loadFonts() {
     const get = async (p) => {
       const r = await fetch(p);
-      if (!r.ok) throw new Error("Písmo sa nepodarilo načítať: " + p);
+      if (!r.ok) throw new Error(p);
       return r.arrayBuffer();
     };
     const [regular, bold] = await Promise.all([get("fonts/DejaVuSans.ttf"),
@@ -149,7 +246,17 @@
   }
 
   // ------------------------------------------------------------ person list
-  const yearOf = (ev) => (ev && ev.date ? R.formatDate(ev.date, false, "sk") : "");
+  const yearOf = (ev) => (ev && ev.date ? R.formatDate(ev.date, false, lang) : "");
+
+  function messageRow(tbody, text) {
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 4;
+    td.className = "name";
+    td.textContent = text;
+    tr.append(td);
+    tbody.append(tr);
+  }
 
   function renderList() {
     const q = $("search").value.trim();
@@ -172,23 +279,8 @@
       }
       tbody.append(tr);
     }
-    if (found.length > LIMIT) {
-      const tr = document.createElement("tr");
-      const td = document.createElement("td");
-      td.colSpan = 4;
-      td.className = "name";
-      td.textContent = `… a ďalších ${found.length - LIMIT}. Spresnite hľadanie.`;
-      tr.append(td);
-      tbody.append(tr);
-    }
-    if (!found.length) {
-      const tr = document.createElement("tr");
-      const td = document.createElement("td");
-      td.colSpan = 4;
-      td.textContent = "Nikto sa nenašiel.";
-      tr.append(td);
-      tbody.append(tr);
-    }
+    if (found.length > LIMIT) messageRow(tbody, t("more", { n: found.length - LIMIT }));
+    if (!found.length) messageRow(tbody, t("noneFound"));
   }
 
   function select(id, scroll) {
@@ -202,10 +294,10 @@
   }
 
   function updateChosen() {
-    const p = selectedId && data.people[selectedId];
+    const p = selectedId && data && data.people[selectedId];
     $("chosen").textContent = p
-      ? `Vybraná osoba: ${p.name} (${p.id.replace(/@/g, "")})`
-      : "Kliknite na osobu v zozname.";
+      ? t("chosen", { name: p.name, id: p.id.replace(/@/g, "") })
+      : t("choose");
     $("go").disabled = !p;
   }
 
@@ -224,14 +316,19 @@
     pdfUrl = null;
     $("download").hidden = true;
     $("preview").style.display = "none";
-    setStatus("");
+    setStatus(null);
+  }
+
+  function fileName(person, chart) {
+    const word = t(chart === "descendants" ? "fileDesc" : "fileAnc");
+    return `${R.fold(person.name).replace(/[^\w.-]+/g, "_")}_${word}.pdf`;
   }
 
   async function generate() {
     if (!data || !selectedId) return;
     const btn = $("go");
     btn.disabled = true;
-    setStatus("Vytváram PDF…");
+    setStatus("working");
     try {
       const fonts = await (fontsPromise || (fontsPromise = loadFonts()));
       const opts = currentOptions();
@@ -240,25 +337,23 @@
       pdfUrl = URL.createObjectURL(new Blob([res.bytes], { type: "application/pdf" }));
       const a = $("download");
       a.href = pdfUrl;
-      a.download = R.defaultFileName(data.people[selectedId], opts.chart);
+      a.download = fileName(data.people[selectedId], opts.chart);
       a.hidden = false;
       const pv = $("preview");
       pv.src = pdfUrl;
       pv.style.display = "block";
-      let msg = `Hotovo: ${res.pages} ${res.pages === 1 ? "strana" : res.pages < 5 ? "strany" : "strán"}, ` +
-                `${res.generations} generácií.`;
-      if (res.shrunk) {
-        msg += ` Písmo bolo zmenšené na ${res.fontSize.toFixed(1)} pt, aby sa riadky zmestili` +
-               " – skúste orientáciu na šírku alebo „len obec“.";
-      }
-      setStatus(msg);
+      setStatus("done", { pages: res.pages, gens: res.generations,
+                          shrunkSize: res.shrunk ? res.fontSize.toFixed(1) : "" });
     } catch (e) {
       console.error(e);
-      setStatus("PDF sa nepodarilo vytvoriť: " + e.message, true);
+      fontsPromise = null;
+      setStatus("errPdf", { msg: e.message }, true);
     } finally {
       btn.disabled = !selectedId;
     }
   }
 
   $("go").addEventListener("click", generate);
+
+  applyLanguage();
 })();
