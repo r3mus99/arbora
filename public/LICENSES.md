@@ -1,6 +1,6 @@
 # Licencie knižníc a písma tretích strán
 
-## pdf-lib 1.17.1 (vendor/pdf-lib.min.js)
+## pdf-lib 1.17.1 (npm, pribalené v JavaScripte stránky)
 
 ```
 MIT License
@@ -26,7 +26,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## @pdf-lib/fontkit 1.1.1 (vendor/fontkit.umd.min.js)
+## @pdf-lib/fontkit 1.1.1 (npm, pribalené v JavaScripte stránky)
 
 MIT License – https://github.com/Hopding/fontkit (fork of foliojs/fontkit, Copyright (c) 2014 Devon Govett).
 
