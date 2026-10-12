@@ -22,6 +22,8 @@ interface Props {
   hidden: Set<string>;
   onRename: (kind: VariantKind, from: string[], to: string) => void;
   onHide: (key: string, hide: boolean) => void;
+  keepAka: boolean;
+  onKeepAka: (on: boolean) => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
@@ -32,7 +34,8 @@ const EVENT: Record<string, StringKey> = {
 const WHO = "\u0000who\u0000", OTHER = "\u0000other\u0000";
 
 /** The file check: problems found (people in them are links) and the bulk fix of spellings. */
-export function CheckPanel({ issues, data, onFocus, onFix, onClose, variants, values, hidden, onRename, onHide, t }: Props) {
+export function CheckPanel({ issues, data, onFocus, onFix, onClose, variants, values, hidden, onRename, onHide,
+                            keepAka, onKeepAka, t }: Props) {
   const shown = (kind: VariantKind) => variants[kind].filter((g) => !hidden.has(g.key));
   const hiddenGroups = (kind: VariantKind) => variants[kind].filter((g) => hidden.has(g.key));
   const counts: Record<CheckTab, number> = {
@@ -73,7 +76,7 @@ export function CheckPanel({ issues, data, onFocus, onFix, onClose, variants, va
     ["place", "tabPlaces", <MapPin className="icon" aria-hidden="true" />],
     ["hidden", "tabHidden", <EyeOff className="icon" aria-hidden="true" />],
   ];
-  const common = { data, onRename, onHide, onFocus, t };
+  const common = { data, onRename, onHide, onFocus, keepAka, onKeepAka, t };
 
   return (
     <section className="check" aria-label={t("check")}>

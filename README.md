@@ -145,7 +145,9 @@ one surname or town that differ only in accents, doubled letters or the old
 Hungarian spelling (Pavlovský / Pavlovszký, Kubíček / Kubiček, Lieskovice /
 Lieszkovicz) are shown as groups. The most used spelling is offered; click
 another one or type your own, use × to leave a spelling out, and **Unify**
-renames it in every record as one step that can be undone. The number of
+renames it in every record as one step that can be undone. For surnames the
+old spelling is kept as another name of the person (`1 NAME …` with
+`2 TYPE aka`, "also known as") unless you untick that option. The number of
 records that change opens a list of them. A man's and a woman's form
 (Kováčik / Kováčiková) are never put together. For places only the town, the
 first part of the place, is renamed; the district and country stay. A group

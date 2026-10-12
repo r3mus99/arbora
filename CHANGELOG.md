@@ -15,7 +15,9 @@
   spelling in all records at once, as one undo step. Men's and women's forms
   are kept apart; for places only the town is renamed. Groups can be hidden,
   and a batch rename changes any spelling to another. The overview splits
-  problems into issues, surnames and places.
+  problems into issues, surnames and places. A unified surname keeps its old
+  spelling as another name of the person (`NAME` with `TYPE aka`); an option
+  above the list turns it off.
 
 ## 1.0.0 – 2026-10-11
 

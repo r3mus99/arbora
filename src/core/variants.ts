@@ -87,7 +87,7 @@ export function spellings(records: GedNode[], kind: VariantKind): Map<string, st
   for (const rec of records) {
     if (!rec.xref || (rec.tag !== "INDI" && rec.tag !== "FAM")) continue;
     if (kind === "surname") {
-      if (rec.tag === "INDI") children(rec, "NAME").forEach((n) => use(surnameOf(n), rec.xref!));
+      if (rec.tag === "INDI") children(rec, "NAME").filter((n) => !isAka(n)).forEach((n) => use(surnameOf(n), rec.xref!));
       continue;
     }
     const walk = (node: GedNode) => {
@@ -136,6 +136,9 @@ function mapNode(node: GedNode, change: (n: GedNode) => GedNode): GedNode {
   return { ...rest, children: kids };
 }
 
+/** a NAME kept as another known spelling: `2 TYPE aka` */
+const isAka = (name: GedNode) => children(name, "TYPE").some((t) => t.value.trim().toLowerCase() === "aka");
+
 /** One NAME with its surname renamed, in the slashes, in SURN, or as the last word. */
 function renameSurname(name: GedNode, from: Set<string>, to: string): GedNode {
   const old = surnameOf(name);
@@ -152,12 +155,13 @@ function renameSurname(name: GedNode, from: Set<string>, to: string): GedNode {
  * towns at the start of places (the rest of the place stays as it is).
  * The same array when nothing changes.
  */
-export function renameVariants(records: GedNode[], kind: VariantKind, from: string[], to: string): GedNode[] {
+export function renameVariants(records: GedNode[], kind: VariantKind, from: string[], to: string,
+                               keepOld = false): GedNode[] {
   to = to.trim();
   const set = new Set(from.filter((f) => f && f !== to));
   if (!to || !set.size) return records;
+  if (kind === "surname") return renameSurnames(records, set, to, keepOld);
   const change = (n: GedNode): GedNode => {
-    if (kind === "surname" && n.tag === "NAME") return renameSurname(n, set, to);
     if (kind === "place" && n.tag === "PLAC") {
       const [lead, town, rest] = splitPlace(n.value);
       if (set.has(town)) return { ...n, value: lead + to + rest };
@@ -170,6 +174,41 @@ export function renameVariants(records: GedNode[], kind: VariantKind, from: stri
     const next = mapNode(rec, change);
     if (next !== rec) changed = true;
     return next;
+  });
+  return changed ? out : records;
+}
+
+/**
+ * Surnames renamed in each person's names (not in names marked aka). With `keepOld` the
+ * old spelling stays as one more name, `1 NAME … 2 TYPE aka`, right after the renamed one,
+ * unless the person already has it; an aka equal to the new name is dropped.
+ */
+function renameSurnames(records: GedNode[], from: Set<string>, to: string, keepOld: boolean): GedNode[] {
+  let changed = false;
+  const out = records.map((rec) => {
+    if (rec.tag !== "INDI" || !rec.xref) return rec;
+    const known = new Set(children(rec, "NAME").filter(isAka).map((n) => n.value.replace(/\s+/g, " ").trim()));
+    let touched = false;
+    const kids = rec.children.flatMap((c) => {
+      if (c.tag !== "NAME" || isAka(c)) return [c];
+      const next = renameSurname(c, from, to);
+      if (next === c) return [c];
+      touched = true;
+      const old = c.value.replace(/\s+/g, " ").trim();
+      if (!keepOld || known.has(old)) return [next];
+      known.add(old);
+      const aka: GedNode = { tag: "NAME", value: c.value, xref: null, children: [
+        ...c.children.filter((k) => k.tag === "GIVN" || k.tag === "SURN" || k.tag === "NPFX" || k.tag === "NSFX"),
+        { tag: "TYPE", value: "aka", xref: null, children: [] }] };
+      return [next, aka];
+    });
+    if (!touched) return rec;
+    changed = true;
+    // an aka that is now the name itself (renamed back) is not needed
+    const norm = (n: GedNode) => n.value.replace(/\s+/g, " ").trim();
+    const main = new Set(kids.filter((k) => k.tag === "NAME" && !isAka(k)).map(norm));
+    const { raw: _, ...rest } = rec;
+    return { ...rest, children: kids.filter((k) => k.tag !== "NAME" || !isAka(k) || !main.has(norm(k))) };
   });
   return changed ? out : records;
 }
