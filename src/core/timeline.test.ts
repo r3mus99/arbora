@@ -211,3 +211,54 @@ describe("more events and attributes", () => {
     ]);
   });
 });
+
+describe("family events", () => {
+  const ged = `0 HEAD
+0 @I1@ INDI
+1 NAME Ota /Brandt/
+1 FAMS @F1@
+0 @I2@ INDI
+1 NAME Mia /Lind/
+1 FAMS @F1@
+0 @I3@ INDI
+1 NAME Wit /One/
+0 @F1@ FAM
+1 HUSB @I1@
+1 WIFE @I2@
+1 ENGA
+2 DATE 1920
+1 MARR
+2 DATE 1921
+2 AGNC Town hall
+1 _WITN @I3@
+1 _WITN @I9@
+1 DIV Y
+1 EVEN
+2 TYPE Separation
+2 DATE 1930
+2 NOTE A made-up note.
+1 EVEN
+0 TRLR
+`;
+  const records = parseGedcom(ged);
+  const data = readRecords(records);
+  const rec = records.find((r) => r.xref === "@I1@")!;
+  const family = (x: string) => records.find((r) => r.xref === x);
+  const items = timeline(data, "@I1@", personFields(rec), rec, family);
+
+  test("engagement, marriage and other family events, with the spouse", () => {
+    expect(items.map((i) => [i.kind, i.tag || i.title || "", i.date, i.other])).toEqual([
+      ["famEvent", "ENGA", "1920", "@I2@"], ["marriage", "", "1921", "@I2@"],
+      ["famEvent", "Separation", "1930", "@I2@"],
+    ]);
+  });
+
+  test("witnesses that are people in the file, and marriage details", () => {
+    expect(items[1].witnesses).toEqual(["@I3@"]);
+    expect(items[1].details).toEqual([{ key: "agency", value: "Town hall" }]);
+  });
+
+  test("without family records, only the marriage", () => {
+    expect(timeline(data, "@I1@", personFields(rec), rec).map((i) => i.kind)).toEqual(["marriage"]);
+  });
+});

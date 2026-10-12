@@ -50,7 +50,7 @@ const ATTRIBUTE_ICONS: Record<string, LucideIcon> = {
 };
 
 const ICONS: Record<TimelineKind, LucideIcon> = {
-  birth: Baby, christening: Droplets, residence: Home, event: Star, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
+  birth: Baby, christening: Droplets, residence: Home, event: Star, famEvent: Heart, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
@@ -78,7 +78,7 @@ export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, 
 
   const birthFam = p.famc.length ? data.families[p.famc[0]] : null;
   const parents = birthFam ? [birthFam.husb, birthFam.wife].filter((x): x is string => !!x) : [];
-  const life = timeline(data, id, f, record);
+  const life = timeline(data, id, f, record, lookup);
   // the tag of the person's own line, or the marriage family, that a timeline item shows
   const EVENT_TAG: Partial<Record<TimelineKind, string>> = { birth: "BIRT", christening: "CHR", death: "DEAT", burial: "BURI" };
   const extras = (kind: TimelineKind, key: string, node?: GedNode) => {
@@ -97,6 +97,7 @@ export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, 
       case "child": return t(sex === "M" ? "childBornM" : sex === "F" ? "childBornF" : "childBorn");
       case "burial": return t("burial");
       case "residence": return t("residence");
+      case "famEvent": return title || (tag ? t(`ev${tag}` as StringKey) : t("event"));
       case "event": return title || (tag ? t(`ev${tag}` as StringKey) : t("event"));
       case "death": return dated ? t("thDeath") : t(p.sex === "M" ? "deceasedM" : p.sex === "F" ? "deceasedF" : "deceased");
     }
@@ -135,7 +136,7 @@ export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, 
         {life.length > 0 && <section className="timeline">
           <h4><CalendarClock className="icon" aria-hidden="true" />{t("timeline")}</h4>
           <ol>{life.map((e) => {
-            const Icon = e.kind === "marriage" && e.divorced ? HeartCrack : ICONS[e.kind];
+            const Icon = (e.kind === "marriage" && e.divorced) || e.tag === "DIV" ? HeartCrack : ICONS[e.kind];
             return <li key={e.key} className={`tl-${e.kind}`}>
               <span className="tl-dot" aria-hidden="true" />
               <Icon className="icon tl-icon" aria-hidden="true" />
@@ -149,6 +150,8 @@ export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, 
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
                   {e.place && <span className="muted"> · {e.place}</span>}
                 </div>
+                {e.witnesses && <div className="tl-details"><span>{t("witnesses")}:</span>{" "}
+                  {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w, false)}</span>)}</div>}
                 {e.details && <div className="tl-details">{e.details.map((d) => <div key={d.key}>
                   <span>{t(DETAIL_KEYS[d.key])}:</span> {d.value}</div>)}</div>}
                 {(() => { const a = extras(e.kind, e.key, e.node); return a && <EventSources a={a} t={t} />; })()}
