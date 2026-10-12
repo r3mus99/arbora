@@ -41,6 +41,9 @@ function DateField({ value, shown, lang, onChange, t }: {
   </label>;
 }
 
+/** the form's id, so the icon buttons in the detail header can submit it */
+export const EDITOR_FORM = "person-editor";
+
 // the lists of suggestions, once per page
 const SURNAMES = "arbora-surnames", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
 
@@ -128,13 +131,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
   };
 
   return (
-    <form className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
-      {/* the same buttons at the top, for a quick change without scrolling */}
-      <div className="actions top">
-        <button className="primary" type="submit" title="Ctrl+Enter">
-          <Check className="icon" aria-hidden="true" />{t("save")}</button>
-        <button type="button" onClick={onCancel} title="Esc"><X className="icon" aria-hidden="true" />{t("cancel")}</button>
-      </div>
+    <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
       <div className="pair">
         <label><span>{t("givenName")}</span>
           <input ref={firstInput} type="text" value={form.given} onChange={(e) => set("given", e.target.value)} /></label>

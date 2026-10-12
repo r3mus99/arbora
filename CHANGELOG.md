@@ -21,7 +21,7 @@
 - Other forms of a name (`NAME` with `TYPE aka`) are shown in small text
   before the ID in the person's details and can be added, changed and removed
   in the edit form. The main name is the first one that is not an aka.
-- Save and Cancel are also at the top of the edit form.
+- While editing, save and cancel are also icons at the top right of the details.
 
 ### Development
 - Regression tests that must keep passing through the 1.1 refactoring: GEDCOM

@@ -538,7 +538,7 @@ export function App() {
                       onJump={(r) => jump(r.targetIndex)} t={t} />
             {focusId && <PersonDetail data={data} id={focusId} record={recordOf.get(focusId)} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot}
-                                      onEdit={() => setEditId(focusId)} t={t}
+                                      onEdit={() => setEditId(focusId)} onCancelEdit={() => setEditId(null)} t={t}
                                       editor={editId === focusId && recordOf.has(focusId) &&
                                         <PersonEditor key={focusId} data={data} record={recordOf.get(focusId)!}
                                                       families={data.people[focusId].fams

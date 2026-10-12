@@ -101,7 +101,7 @@ divorced, occupations (each with its own date and place), a note, and last
 **Died**: ticking it shows death and burial (burial can copy date and place from
 death). Ticked without any details it is stored as `1 DEAT Y`; unticking it and
 saving clears death and burial. Place fields suggest the places already in the
-file. **Save** (Ctrl+Enter, at the top and the bottom of the form) shows the change at once in the chart and the PDF,
+file. **Save** (Ctrl+Enter; also the tick icon at the top right) shows the change at once in the chart and the PDF,
 **Cancel** (Esc) drops it. Adding and deleting people is not possible yet.
 
 A date can be typed as `14.5.1891`, `5/1891`, `1891`, `~1890`, `<1890`, `>1890`,

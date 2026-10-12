@@ -424,4 +424,4 @@ section.check { margin: 0 0 14px; }
 .editor .item.alias { grid-template-columns: 1fr 1fr auto; padding: 8px; }
 .editor .item.alias .icon-btn { border-radius: 12px; padding: 0 11px; }
 .detail .id .aka { font-style: italic; }
-.editor .actions.top { grid-column: 1 / -1; margin: 0 0 4px; }
+.detail .tools .save .icon { color: var(--accent); }
