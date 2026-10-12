@@ -16,6 +16,9 @@ interface Props {
   onRename: (kind: VariantKind, from: string[], to: string) => void;
   onHide: (key: string, hide: boolean) => void;
   onFocus: (id: string) => void;
+  /** surnames: keep the old spelling as another name of the person (TYPE aka) */
+  keepAka: boolean;
+  onKeepAka: (on: boolean) => void;
   t: T;
 }
 
@@ -31,7 +34,7 @@ function RecordLink({ id, data, onFocus, t }: { id: string; data: GedcomData; on
 
 /** One group of spellings: which to keep, which to replace, and the records it changes. */
 function Group({ group, data, hidden, onRename, onHide, onFocus, t, listId }:
-               Omit<Props, "groups" | "values" | "kind"> & { group: VariantGroup; listId: string }) {
+               Omit<Props, "groups" | "values" | "kind" | "keepAka" | "onKeepAka"> & { group: VariantGroup; listId: string }) {
   const [target, setTarget] = useState(group.variants[0].value);
   const [kept, setKept] = useState<Set<string>>(new Set());
   const [open, setOpen] = useState(false);
@@ -85,7 +88,7 @@ function Group({ group, data, hidden, onRename, onHide, onFocus, t, listId }:
 }
 
 /** Spelling variants of surnames or places, with a free "from → to" rename above them. */
-export function Variants({ kind, groups, values, data, hidden, onRename, onHide, onFocus, t }: Props) {
+export function Variants({ kind, groups, values, data, hidden, onRename, onHide, onFocus, keepAka, onKeepAka, t }: Props) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const listId = `variants-${kind}${hidden ? "-hidden" : ""}`;
@@ -109,6 +112,9 @@ export function Variants({ kind, groups, values, data, hidden, onRename, onHide,
           <SpellCheck className="icon" aria-hidden="true" />{t("unify")}</button>
       </form>}
       {!hidden && <p className="hint">{t(kind === "surname" ? "variantsSurname" : "variantsPlace")}</p>}
+      {!hidden && kind === "surname" && <label className="keep-aka">
+        <input type="checkbox" checked={keepAka} onChange={(e) => onKeepAka(e.target.checked)} />
+        <span>{t("keepAka")}</span></label>}
       {groups.length === 0 ? <p className="hint">{t("noVariants")}</p>
         : <ul className="variant-list">{groups.map((g) =>
           <Group key={g.key} group={g} data={data} hidden={hidden} listId={listId}

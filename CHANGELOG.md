@@ -15,7 +15,13 @@
   spelling in all records at once, as one undo step. Men's and women's forms
   are kept apart; for places only the town is renamed. Groups can be hidden,
   and a batch rename changes any spelling to another. The overview splits
-  problems into issues, surnames and places.
+  problems into issues, surnames and places. A unified surname keeps its old
+  spelling as another name of the person (`NAME` with `TYPE aka`); an option
+  above the list turns it off.
+- Other forms of a name (`NAME` with `TYPE aka`) are shown in small text
+  before the ID in the person's details and can be added, changed and removed
+  in the edit form. The main name is the first one that is not an aka.
+- While editing, save and cancel are also icons at the top right of the details.
 - The edit form no longer stores a date that the file check then reports as
   wrong: a day the month does not have (31.2.1890, 30 FEB 1890) or INT without
   its phrase is kept as a date phrase and the form says so.

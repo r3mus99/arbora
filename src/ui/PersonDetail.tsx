@@ -1,5 +1,5 @@
 import {
-  Baby, Briefcase, Church, Cross, Crosshair, Droplets, Flower2, Heart, HeartCrack, Mars, Pencil, StickyNote, Users,
+  Baby, Briefcase, Check, X, Church, Cross, Crosshair, Droplets, Flower2, Heart, HeartCrack, Mars, Pencil, StickyNote, Users,
   Venus, type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -8,6 +8,7 @@ import { formatDate } from "../core/format";
 import type { GedNode, GedcomData, Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
+import { EDITOR_FORM } from "./PersonEditor";
 
 interface Props {
   data: GedcomData;
@@ -19,6 +20,7 @@ interface Props {
   onFocus: (id: string) => void;
   onMakeRoot: (id: string) => void;
   onEdit: () => void;
+  onCancelEdit: () => void;
   /** the edit form, shown instead of the facts */
   editor: ReactNode;
   t: (key: StringKey) => string;
@@ -36,7 +38,7 @@ function Fact({ icon: Icon, label, children }: { icon: LucideIcon; label: string
 }
 
 /** Facts and close family of one person, in the order of the edit form; relatives are links. */
-export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRoot, onEdit, editor, t }: Props) {
+export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRoot, onEdit, onCancelEdit, editor, t }: Props) {
   const p = data.people[id];
   if (!p) return null;
   const f = record ? personFields(record) : null;
@@ -71,6 +73,13 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
         <h3>{p.name || "?"}
           {SexIcon && <SexIcon className={`icon sex-${p.sex}`} aria-label={t(p.sex === "M" ? "male" : "female")} />}
         </h3>
+        {/* while editing: save and cancel as icons, the same as the buttons below the form */}
+        {editor && <div className="tools">
+          <button type="submit" form={EDITOR_FORM} className="icon-btn save" title={`${t("save")} (Ctrl+Enter)`}
+                  aria-label={t("save")}><Check className="icon" aria-hidden="true" /></button>
+          <button type="button" className="icon-btn" onClick={onCancelEdit} title={`${t("cancel")} (Esc)`}
+                  aria-label={t("cancel")}><X className="icon" aria-hidden="true" /></button>
+        </div>}
         {!editor && <div className="tools">
           <button type="button" className="icon-btn" onClick={onEdit} title={t("edit")} aria-label={t("edit")}>
             <Pencil className="icon" aria-hidden="true" /></button>
@@ -79,7 +88,11 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
             <Crosshair className="icon" aria-hidden="true" /></button>}
         </div>}
       </div>
-      <p className="id">{p.id.replace(/@/g, "")}</p>
+      <p className="id">
+        {/* other forms of the name (aka), quietly before the ID */}
+        {f && f.aliases.length > 0 && <span className="aka" title={t("aka")}>
+          aka {f.aliases.map((a) => [a.given, a.surname].filter(Boolean).join(" ")).join(", ")} · </span>}
+        {p.id.replace(/@/g, "")}</p>
       {editor || <div className="facts">
         {when(birth) && <Fact icon={Baby} label={t("thBirth")}>{when(birth)}</Fact>}
         {f && when(f.christening) && <Fact icon={Droplets} label={t("christening")}>{when(f.christening)}</Fact>}

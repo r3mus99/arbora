@@ -229,6 +229,7 @@ export function App() {
   const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
   // bulk fix: spellings of one surname or place
   const [hidden, setHidden] = useState<Set<string>>(() => new Set(readStore().hiddenVariants || []));
+  const [keepAka, setKeepAka] = useState(() => readStore().keepAka !== false);
   const variants = useMemo(() => ({
     surname: doc ? variantGroups(doc.records, "surname") : [], place: doc ? variantGroups(doc.records, "place") : [],
   }), [doc]);
@@ -472,7 +473,8 @@ export function App() {
       {data && showCheck && checkable && <CheckPanel issues={issues} data={data} t={t} onClose={() => setShowCheck(false)}
                                         onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
                                         variants={variants} values={spelled} hidden={hidden} onHide={hide}
-                                        onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to))}
+                                        onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
+                                        keepAka={keepAka} onKeepAka={(on) => { setKeepAka(on); updateStore({ keepAka: on }); }}
                                         onFocus={(id) => focus(id, true)} />}
       {data && showOverview && stats && <Overview stats={stats} data={data} problems={found} t={t}
                                          onClose={() => setShowOverview(false)}
@@ -536,7 +538,7 @@ export function App() {
                       onJump={(r) => jump(r.targetIndex)} t={t} />
             {focusId && <PersonDetail data={data} id={focusId} record={recordOf.get(focusId)} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot}
-                                      onEdit={() => setEditId(focusId)} t={t}
+                                      onEdit={() => setEditId(focusId)} onCancelEdit={() => setEditId(null)} t={t}
                                       editor={editId === focusId && recordOf.has(focusId) &&
                                         <PersonEditor key={focusId} data={data} record={recordOf.get(focusId)!}
                                                       families={data.people[focusId].fams

@@ -2,7 +2,7 @@ import { Check, Copy, Plus, X } from "lucide-react";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import {
   PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields,
-  type FamilyFields, type Occupation, type PersonFields,
+  type Alias, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
@@ -40,6 +40,9 @@ function DateField({ value, shown, lang, onChange, t }: {
       {parsed.ok ? `→ ${parsed.value}` : t("datePhrase")}</small>}
   </label>;
 }
+
+/** the form's id, so the icon buttons in the detail header can submit it */
+export const EDITOR_FORM = "person-editor";
 
 // the lists of suggestions, once per page
 const SURNAMES = "arbora-surnames", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
@@ -101,6 +104,8 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
   const set = <K extends keyof PersonFields>(key: K, value: PersonFields[K]) => setForm({ ...form, [key]: value });
   const setOcc = (i: number, patch: Partial<Occupation>) =>
     set("occupations", form.occupations.map((o, j) => (j === i ? { ...o, ...patch } : o)));
+  const setAlias = (i: number, patch: Partial<Alias>) =>
+    set("aliases", form.aliases.map((a, j) => (j === i ? { ...a, ...patch } : a)));
   const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}) =>
     setFams(fams.map((f, j) => (j === i ? { ...f, ...patch, marriage: { ...f.marriage, ...marriage } } : f)));
   const event = (key: (typeof PERSON_EVENTS)[number]) => {
@@ -126,7 +131,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
   };
 
   return (
-    <form className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
+    <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
       <div className="pair">
         <label><span>{t("givenName")}</span>
           <input ref={firstInput} type="text" value={form.given} onChange={(e) => set("given", e.target.value)} /></label>
@@ -134,6 +139,23 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
           <input type="text" value={form.surname} list={SURNAMES}
                  onChange={(e) => set("surname", e.target.value)} /></label>
       </div>
+      <fieldset className="list">
+        <legend>{t("aka")}</legend>
+        {form.aliases.map((a, i) => (
+          <div className="item alias" key={a.origin < 0 ? `new${i}` : a.origin}>
+            <input type="text" value={a.given} aria-label={t("givenName")} placeholder={t("givenName")}
+                   onChange={(e) => setAlias(i, { given: e.target.value })} />
+            <input type="text" value={a.surname} list={SURNAMES} aria-label={t("surname")} placeholder={t("surname")}
+                   onChange={(e) => setAlias(i, { surname: e.target.value })} />
+            <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                    onClick={() => set("aliases", form.aliases.filter((_, j) => j !== i))}>
+              <X className="icon" aria-hidden="true" /></button>
+          </div>
+        ))}
+        <button type="button" className="add" onClick={() => set("aliases",
+          [...form.aliases, { origin: -1, given: form.given, surname: "" }])}>
+          <Plus className="icon" aria-hidden="true" />{t("addAka")}</button>
+      </fieldset>
       <div className="sex" role="radiogroup" aria-label={t("sex")}>
         <span>{t("sex")}</span>
         {([["M", "male"], ["F", "female"], [form.sex === "" ? "" : "U", "sexUnknown"]] as [string, StringKey][])

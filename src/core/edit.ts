@@ -6,7 +6,7 @@
 
 import { MONTHS, gedcomDay, validDateValue } from "./date";
 import { formatDate } from "./format";
-import type { GedNode } from "./gedcom";
+import { isAka, mainName, type GedNode } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
 
 export interface EventFields { date: string; place: string }
@@ -28,7 +28,11 @@ export interface PersonFields {
   religion: string;
   /** died, even without a known date: a DEAT, BURI or CREM line */
   deceased: boolean;
+  /** other forms of the name, NAME lines with TYPE aka; `origin` as for occupations */
+  aliases: Alias[];
 }
+
+export interface Alias { origin: number; given: string; surname: string }
 
 export interface Occupation extends EventFields { origin: number; value: string }
 
@@ -56,13 +60,19 @@ function splitName(value: string): { given: string; surname: string; suffix: str
   return { given: m[1].trim(), surname: m[2].trim(), suffix: m[3].trim() };
 }
 
-export function personFields(rec: GedNode): PersonFields {
-  const name = first(rec, "NAME");
+/** given name and surname of a NAME line, from GIVN and SURN when the value has none */
+function nameParts(name: GedNode | null): { given: string; surname: string } {
   let { given, surname } = splitName(name ? name.value : "");
   if (name && !given && !surname) {
     given = first(name, "GIVN")?.value || "";
     surname = first(name, "SURN")?.value || "";
   }
+  return { given, surname };
+}
+const akaNames = (rec: GedNode) => rec.children.filter((c) => c.tag === "NAME" && isAka(c) && c !== mainName(rec));
+
+export function personFields(rec: GedNode): PersonFields {
+  const { given, surname } = nameParts(mainName(rec));
   const sex = first(rec, "SEX");
   const fields: PersonFields = {
     given, surname, sex: sex ? sex.value.toUpperCase() : "",
@@ -73,6 +83,7 @@ export function personFields(rec: GedNode): PersonFields {
     note: inlineNote(rec)?.value || "",
     religion: first(rec, "RELI")?.value || "",
     deceased: DEATH_TAGS.some((tag) => first(rec, tag)),
+    aliases: akaNames(rec).map((n, origin) => ({ origin, ...nameParts(n) })),
   };
   return fields;
 }
@@ -159,7 +170,8 @@ function setEvent(rec: GedNode, tag: string, before: EventFields, after: EventFi
 function setName(rec: GedNode, before: PersonFields, after: PersonFields): GedNode {
   if (before.given === after.given && before.surname === after.surname) return rec;
   const given = after.given.trim(), surname = after.surname.trim();
-  const i = rec.children.findIndex((c) => c.tag === "NAME");
+  const main = mainName(rec);
+  const i = main ? rec.children.indexOf(main) : -1;
   const old = i >= 0 ? rec.children[i] : null;
   const suffix = old ? splitName(old.value).suffix : "";
   const value = [given, `/${surname}/`, suffix].filter(Boolean).join(" ");
@@ -168,6 +180,39 @@ function setName(rec: GedNode, before: PersonFields, after: PersonFields): GedNo
   if (old && first(old, "SURN") || surname && !old) name = setChild(name, "SURN", surname);
   if (!given && !surname && !old) return rec;
   return { ...rec, children: old ? rec.children.map((c, j) => (j === i ? name : c)) : insert(rec.children, name) };
+}
+
+/** A NAME value and its GIVN/SURN lines set to the given name and surname; the suffix stays. */
+function nameNode(old: GedNode | null, given: string, surname: string): GedNode {
+  const value = [given, `/${surname}/`, old ? splitName(old.value).suffix : ""].filter(Boolean).join(" ");
+  let name = old ? { ...old, value } : node("NAME", value);
+  if (old && first(old, "GIVN")) name = setChild(name, "GIVN", given);
+  if (old && first(old, "SURN")) name = setChild(name, "SURN", surname);
+  return name;
+}
+
+/** NAME lines with TYPE aka from the rows: kept ones updated, missing ones removed, new ones added. */
+function setAliases(rec: GedNode, before: Alias[], after: Alias[]): GedNode {
+  const rows = after.map((a) => ({ ...a, given: a.given.trim(), surname: a.surname.trim() }))
+    .filter((a) => a.given || a.surname);
+  if (rows.length === before.length && rows.every((a, i) => a.origin === i && a.given === before[i].given
+                                                       && a.surname === before[i].surname)) return rec;
+  const olds = akaNames(rec);
+  const children: GedNode[] = [];
+  for (const c of rec.children) {
+    const k = olds.indexOf(c);
+    if (k < 0) { children.push(c); continue; }
+    const row = rows.find((a) => a.origin === k);
+    if (!row) continue;
+    const same = row.given === before[k].given && row.surname === before[k].surname;
+    children.push(same ? c : nameNode(c, row.given, row.surname));
+  }
+  let out = { ...rec, children };
+  for (const row of rows.filter((a) => a.origin < 0)) {
+    const added = nameNode(null, row.given, row.surname);
+    out = { ...out, children: insert(out.children, { ...added, children: [node("TYPE", "aka")] }) };
+  }
+  return out;
 }
 
 const sameOccupation = (a: Occupation, b: Occupation) =>
@@ -225,6 +270,7 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   for (const key of PERSON_EVENTS) out = setEvent(out, EVENT_TAGS[key], before[key], tidy(after[key]));
   out = setDeceased(out, before.deceased, after.deceased);
   out = setOccupations(out, before.occupations, after.occupations);
+  out = setAliases(out, before.aliases, after.aliases);
   if (after.religion.trim() !== before.religion) out = setChild(out, "RELI", after.religion.trim());
   if (after.note.trim() !== before.note.trim()) out = setNote(out, after.note);
   if (out === rec) return rec;
