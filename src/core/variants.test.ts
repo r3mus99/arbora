@@ -121,12 +121,6 @@ describe("places as a whole", () => {
 2 PLAC Weststadt
 0 TRLR
 `;
-  const countries = `0 HEAD
-0 @I1@ INDI
-1 BIRT
-2 PLAC Ostbach, Westmark
-0 TRLR
-`;
 
   test("one town with a district, a country and a house number is one group", () => {
     const [group, ...more] = variantGroups(parseGedcom(PLACES), "place");
