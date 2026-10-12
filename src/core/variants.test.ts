@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { parseGedcom, renameVariants, similar, spellingKey, variantGroups, writeGedcom } from "./index";
+import { countryOf, keptByDefault, parseGedcom, renameVariants, similar, spellingKey, variantGroups, writeGedcom } from "./index";
 
 const GED = `0 HEAD
 0 @I1@ INDI
@@ -51,20 +51,23 @@ describe("bulk fix of spellings", () => {
     expect(variantGroups(records, "surname").map((g) => g.variants)).toEqual([
       [{ value: "Pavlovský", records: ["@I1@"] }, { value: "Pavlovszký", records: ["@I2@"] }],
     ]);
-    expect(variantGroups(records, "place").map((g) => g.variants)).toEqual([
-      [{ value: "Lieskovice", records: ["@I1@", "@I3@"] }, { value: "Lieszkovicz", records: ["@I2@", "@F1@"] }],
-    ]);
+    // places are compared by town and listed as a whole, in the order of use
+    expect(variantGroups(records, "place").map((g) => g.variants.map((v) => [v.value, v.records]))).toEqual([[
+      ["Lieskovice 12", ["@I3@"]], ["Lieskovice, Senica, Slovensko", ["@I1@"]],
+      ["Lieszkovicz", ["@F1@"]], ["Lieszkovicz, Nyitra, Hungary", ["@I2@"]],
+    ]]);
   });
 
   test("renaming changes only the surname or the town", () => {
     let records = parseGedcom(GED);
     records = renameVariants(records, "surname", ["Pavlovszký"], "Pavlovský");
-    records = renameVariants(records, "place", ["Lieszkovicz", "Lieskovice"], "Lieskovice");
+    records = renameVariants(records, "place", ["Lieszkovicz", "Lieszkovicz, Nyitra, Hungary", "Lieskovice 12"],
+                             "Lieskovice, Senica, Slovensko");
     const text = writeGedcom(records);
     expect(text).toContain("1 NAME Michal /Pavlovský/\n2 SURN Pavlovský\n");
-    expect(text).toContain("2 PLAC Lieskovice, Nyitra, Hungary\n");
-    expect(text).toContain("1 MARR\n2 PLAC Lieskovice\n");
-    expect(text).toContain("2 PLAC Lieskovice 12\n");
+    expect(text.match(/PLAC Lieskovice, Senica, Slovensko\n/g)).toHaveLength(4);
+    expect(text).not.toMatch(/Lieszkovicz|Nyitra|Lieskovice 12/);
+    expect(variantGroups(records, "place")).toEqual([]);
     expect(text).not.toMatch(/szký|Kollár/);
     expect(variantGroups(records, "surname")).toEqual([]);
   });
@@ -90,5 +93,82 @@ describe("bulk fix of spellings", () => {
     expect(names.filter((n) => n.includes("Pavlov"))).toEqual([
       "1 NAME Ján /Pavlovský/", "1 NAME Ján /Pavlovszký/",
       "1 NAME Michal /Pavlovský/", "1 NAME Michal /Pavlovszký/", "1 NAME Anna /Pavlovská/"]);
+  });
+});
+
+describe("places as a whole", () => {
+  const PLACES = `0 HEAD
+0 @I1@ INDI
+1 BIRT
+2 PLAC Ostbach, Nordkreis, Region of Nordland, Westmark
+0 @I2@ INDI
+1 BIRT
+2 PLAC Ostbach, Nordkreis, Region of Nordland, Westmark
+0 @I3@ INDI
+1 BIRT
+2 PLAC Ostbach
+0 @I4@ INDI
+1 BIRT
+2 PLAC Ostbach 19
+0 @I5@ INDI
+1 BIRT
+2 PLAC Ostbach, Nordkreis, Nordland-Region, Westmarken
+0 @I6@ INDI
+1 BIRT
+2 PLAC Ostbach, Nordkreis, Altmark
+0 @I7@ INDI
+1 BIRT
+2 PLAC Weststadt
+0 TRLR
+`;
+  const countries = `0 HEAD
+0 @I1@ INDI
+1 BIRT
+2 PLAC Ostbach, Westmark
+0 TRLR
+`;
+
+  test("one town with a district, a country and a house number is one group", () => {
+    const [group, ...more] = variantGroups(parseGedcom(PLACES), "place");
+    expect(more).toEqual([]);
+    expect(group.variants.map((v) => v.value)).toEqual([
+      "Ostbach, Nordkreis, Region of Nordland, Westmark", "Ostbach", "Ostbach 19",
+      "Ostbach, Nordkreis, Altmark", "Ostbach, Nordkreis, Nordland-Region, Westmarken"]);
+    expect(group.variants[2].number).toBe("19");
+  });
+
+  test("house numbers and known other countries are kept unless chosen", () => {
+    const group = variantGroups(parseGedcom(PLACES), "place")[0];
+    expect([...keptByDefault(group, group.variants[0].value)]).toEqual(["Ostbach 19"]);
+    expect(countryOf("Lieskovice, Senica, Slovakia")).toBe("slovakia");
+    expect(countryOf("Lieskovice, Senica, Slovensko")).toBe("slovakia");
+    expect(countryOf("Lieskovice, Senica, Československo")).toBe("czechoslovakia");
+    expect(countryOf("Lieskovice, Senica, Region of Žilina")).toBeUndefined();
+    expect(countryOf("Slovensko")).toBeUndefined();
+    const mixed = parseGedcom(`0 HEAD
+0 @I1@ INDI
+1 BIRT
+2 PLAC Lieskovice, Senica, Slovensko
+0 @I2@ INDI
+1 BIRT
+2 PLAC Lieskovice, Senica, Slovakia
+0 @I3@ INDI
+1 BIRT
+2 PLAC Lieskovice, Senica, Czechoslovakia
+0 @I4@ INDI
+1 BIRT
+2 PLAC Lieskovice
+0 TRLR
+`);
+    const g = variantGroups(mixed, "place")[0];
+    expect([...keptByDefault(g, "Lieskovice, Senica, Slovensko")]).toEqual(["Lieskovice, Senica, Czechoslovakia"]);
+  });
+
+  test("unifying replaces whole places and leaves the others alone", () => {
+    const records = parseGedcom(PLACES);
+    const out = renameVariants(records, "place", ["Ostbach", "Ostbach, Nordkreis, Altmark"],
+                               "Ostbach, Nordkreis, Region of Nordland, Westmark");
+    expect(out.filter((r, i) => r !== records[i]).map((r) => r.xref)).toEqual(["@I3@", "@I6@"]);
+    expect(writeGedcom(out)).toContain("0 @I4@ INDI\n1 BIRT\n2 PLAC Ostbach 19\n");
   });
 });

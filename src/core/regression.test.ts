@@ -288,7 +288,7 @@ describe("unifying spellings", () => {
     for (const kind of ["surname", "place"] as const) {
       const records = parseGedcom(GED);
       const [group] = variantGroups(records, kind);
-      expect(group.variants).toHaveLength(2);
+      expect(group.variants).toHaveLength(kind === "place" ? 3 : 2);
       const [keep, ...rest] = group.variants.map((v) => v.value);
       const once = renameVariants(records, kind, rest, keep);
       expect(variantGroups(once, kind)).toEqual([]);
@@ -298,9 +298,9 @@ describe("unifying spellings", () => {
 
   test("only the changed records are written anew", () => {
     const records = parseGedcom(GED);
-    const out = renameVariants(records, "place", ["Osttbach"], "Ostbach");
+    const out = renameVariants(records, "place", ["Osttbach 12"], "Ostbach");
     expect(out.filter((r, i) => r !== records[i]).map((r) => r.xref)).toEqual(["@I2@"]);
-    expect(writeGedcom(out)).toBe(GED.replace("Osttbach 12", "Ostbach 12"));
+    expect(writeGedcom(out)).toBe(GED.replace("Osttbach 12", "Ostbach"));
   });
 });
 

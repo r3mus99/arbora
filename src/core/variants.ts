@@ -2,6 +2,8 @@
  * Bulk fix: spellings of one surname or place that differ only in accents, doubled
  * letters or old Hungarian/German spelling (Pavlovský / Pavlovszký, Lieskovice /
  * Lieszkovicz), found as groups and renamed to one chosen spelling.
+ * A place is compared by its town but renamed as a whole ("Lieskovice", "Lieskovice 22",
+ * "Lieskovice, Senica, Slovakia" are variants of one place).
  */
 
 import { childrenOf, fold, gedNode, isAka, rewritten, type GedNode } from "./gedcom";
@@ -13,6 +15,10 @@ export interface Variant {
   value: string;
   /** records (people, families) that use this spelling */
   records: string[];
+  /** places: the country at the end of the place, when it is a known one (see COUNTRIES) */
+  country?: string;
+  /** places: the house number after the town ("Lieskovice 22" → "22") */
+  number?: string;
 }
 
 export interface VariantGroup {
@@ -56,7 +62,7 @@ const stem = (s: string) => s.trim().replace(/ov[áa]$/i, "");
 /** What two spellings are compared by: the spelling key (of the stem for surnames) and, for surnames, the gender. */
 interface Keyed { key: string; fem: boolean }
 const keyed = (value: string, kind: VariantKind): Keyed =>
-  kind === "surname" ? { key: spellingKey(stem(value)), fem: feminine(value) } : { key: spellingKey(value), fem: false };
+  kind === "surname" ? { key: spellingKey(stem(value)), fem: feminine(value) } : { key: spellingKey(townOf(value)), fem: false };
 
 /** Two spellings whose keys say they are most likely the same name. */
 function similarKeys(a: Keyed, b: Keyed, kind: VariantKind): boolean {
@@ -92,8 +98,32 @@ function splitPlace(value: string): [string, string, string] {
   return m ? [m[1], m[2], m[3]] : ["", value, ""];
 }
 export const townOf = (place: string) => splitPlace(place)[1];
+/** The house number after the town: "Lieskovice 22, Senica" → "22". */
+export const houseNumberOf = (place: string) => /\d+/.exec(splitPlace(place)[2].split(",")[0])?.[0] || "";
 
-/** Every surname or town in the records, with the records that use it. */
+/** Country names in the languages of the interface; historic countries are their own entries. */
+const COUNTRIES: Record<string, string[]> = {
+  slovakia: ["slovensko", "slovakia", "slowakei", "slovaquie", "eslovaquia", "slovacchia", "szlovakia", "slowacja", "slovacia", "slovaka"],
+  czechoslovakia: ["ceskoslovensko", "czechoslovakia", "tschechoslowakei", "tchecoslovaquie", "checoslovaquia",
+    "cecoslovacchia", "csehszlovakia", "czechoslowacja", "csr"],
+  czechia: ["cesko", "ceska republika", "czechia", "czech republic", "tschechien", "tchequie", "chequia", "cechia",
+    "csehorszag", "czechy"],
+  hungary: ["madarsko", "madarorszag", "hungary", "ungarn", "hongrie", "hungria", "ungheria", "wegry"],
+  "austria-hungary": ["rakusko-uhorsko", "rakousko-uhersko", "austria-hungary", "osterreich-ungarn", "austro-hungarian empire",
+    "austro-ungarn", "autriche-hongrie", "austria-hungria", "austria-ungheria", "ausztria-magyarorszag", "austro-wegry"],
+  austria: ["rakusko", "rakousko", "austria", "osterreich", "oesterreich", "autriche", "ausztria"],
+  poland: ["polsko", "poland", "polen", "pologne", "polonia", "lengyelorszag", "polska"],
+  ukraine: ["ukrajina", "ukraine", "ukraina", "ukrainia", "ukrajna"],
+  germany: ["nemecko", "germany", "deutschland", "allemagne", "alemania", "germania", "nemetorszag", "niemcy"],
+};
+const countryByName = new Map(Object.entries(COUNTRIES).flatMap(([id, names]) => names.map((n) => [n, id] as const)));
+/** The country named at the end of a place, if it is a known one. */
+export function countryOf(place: string): string | undefined {
+  const parts = place.split(",");
+  return parts.length > 1 ? countryByName.get(fold(parts[parts.length - 1]).trim().replace(/\s+/g, " ")) : undefined;
+}
+
+/** Every surname or whole place in the records, with the records that use it. */
 export function spellings(records: GedNode[], kind: VariantKind): Map<string, string[]> {
   const out = new Map<string, string[]>();
   const count = (value: string, id: string) => {
@@ -109,7 +139,7 @@ export function spellings(records: GedNode[], kind: VariantKind): Map<string, st
       continue;
     }
     const walk = (node: GedNode) => {
-      if (node.tag === "PLAC") count(townOf(node.value), rec.xref!);
+      if (node.tag === "PLAC") count(node.value.trim(), rec.xref!);
       node.children.forEach(walk);
     };
     rec.children.forEach(walk);
@@ -117,7 +147,7 @@ export function spellings(records: GedNode[], kind: VariantKind): Map<string, st
   return out;
 }
 
-/** Groups of two or more spellings of one surname or town. */
+/** Groups of two or more spellings of one surname, or of places in one town. */
 export function variantGroups(records: GedNode[], kind: VariantKind): VariantGroup[] {
   const used = spellings(records, kind);
   const values = [...used.keys()];
@@ -162,12 +192,33 @@ export function variantGroups(records: GedNode[], kind: VariantKind): VariantGro
   values.forEach((value, i) => {
     const g = groups.get(root(i)) || [];
     g.push({ value, records: used.get(value)! });
+    if (kind === "place") {
+      const v = g[g.length - 1];
+      v.country = countryOf(value);
+      v.number = houseNumberOf(value) || undefined;
+    }
     groups.set(root(i), g);
   });
   return [...groups.values()].filter((g) => g.length > 1)
     .map((g) => g.sort((a, b) => b.records.length - a.records.length || a.value.localeCompare(b.value)))
     .map((variants) => ({ kind, variants, key: `${kind}:${variants.map((v) => v.value).sort().join("|")}` }))
     .sort((a, b) => a.variants[0].value.localeCompare(b.variants[0].value));
+}
+
+/**
+ * Spellings of a group that are not replaced unless the user chooses so: places in another
+ * (known) country than `target`, e.g. Czechoslovakia next to Slovakia, and places with
+ * another house number, which would be lost.
+ */
+export function keptByDefault(group: VariantGroup, target: string): Set<string> {
+  const to = group.variants.find((v) => v.value === target);
+  const kept = new Set<string>();
+  if (group.kind !== "place" || !to) return kept;
+  for (const v of group.variants) {
+    if (v === to) continue;
+    if ((v.country && to.country && v.country !== to.country) || (v.number && v.number !== to.number)) kept.add(v.value);
+  }
+  return kept;
 }
 
 /** A node with new children and new lines; unchanged when nothing changed. */
@@ -194,7 +245,7 @@ function renameSurname(name: GedNode, from: Set<string>, to: string): GedNode {
 
 /**
  * The records with every spelling in `from` replaced by `to`: surnames in names,
- * towns at the start of places (the rest of the place stays as it is).
+ * whole places (PLAC values).
  * The same array when nothing changes.
  */
 export function renameVariants(records: GedNode[], kind: VariantKind, from: string[], to: string,
@@ -205,8 +256,7 @@ export function renameVariants(records: GedNode[], kind: VariantKind, from: stri
   if (kind === "surname") return renameSurnames(records, set, to, keepOld);
   const change = (n: GedNode): GedNode => {
     if (kind === "place" && n.tag === "PLAC") {
-      const [lead, town, rest] = splitPlace(n.value);
-      if (set.has(town)) return { ...n, value: lead + to + rest };
+      if (set.has(n.value.trim())) return { ...n, value: to };
     }
     return n;
   };
