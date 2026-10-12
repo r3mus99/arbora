@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0 – 2026-10-12
+
+- Person form: the given name field now offers the given names already in the file, like the surname field.
+  Suggestions for both come only from main names; aka names are no longer offered.
+
 ## 1.3.4 – 2026-10-12
 
 - Bulk fix: the manual rename bar reads "Original… → New…" and every group is now a small card with three lines that read without

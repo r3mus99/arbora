@@ -162,10 +162,15 @@ describe("writing GEDCOM", () => {
   });
 });
 
-test("surnames and places for suggestions", () => {
+test("suggestions skip aka names", () => {
+  const ged = "0 @I1@ INDI\n1 NAME Anna /Nova/\n1 NAME Anka /Novotna/\n2 TYPE aka\n0 @I2@ INDI\n1 NAME Ota /Stary/\n";
+  expect(suggestions(parseGedcom(ged))).toMatchObject({ givens: ["Anna", "Ota"], surnames: ["Nova", "Stary"] });
+});
+
+test("given names, surnames and places for suggestions", () => {
   const ged = "0 @I1@ INDI\n1 NAME Ján /Kováč/\n1 BIRT\n2 PLAC Brezno\n0 @I2@ INDI\n1 NAME Eva\n2 SURN Malá\n" +
               "1 DEAT\n2 PLAC Brezno\n0 @F1@ FAM\n1 MARR\n2 PLAC Ábelová\n";
-  expect(suggestions(parseGedcom(ged))).toEqual({ surnames: ["Kováč", "Malá"], places: ["Ábelová", "Brezno"], religions: [] });
+  expect(suggestions(parseGedcom(ged))).toEqual({ givens: ["Eva", "Ján"], surnames: ["Kováč", "Malá"], places: ["Ábelová", "Brezno"], religions: [] });
 });
 
 describe("dates typed in the form", () => {

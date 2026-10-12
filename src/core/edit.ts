@@ -91,21 +91,28 @@ export function familyFields(rec: GedNode): FamilyFields {
   return { marriage: eventFields(rec, "MARR"), divorced: !!childOf(rec, "DIV") };
 }
 
-/** Surnames, places and religions used in the file, sorted, for suggestions in the form. */
-export function suggestions(records: GedNode[]): { surnames: string[]; places: string[]; religions: string[] } {
-  const surnames = new Set<string>(), places = new Set<string>(), religions = new Set<string>();
+/** Given names, surnames, places and religions used in the file, sorted, for suggestions in the form.
+ *  Names come only from each person's main name, never from aka names. */
+export function suggestions(records: GedNode[]):
+    { givens: string[]; surnames: string[]; places: string[]; religions: string[] } {
+  const givens = new Set<string>(), surnames = new Set<string>(), places = new Set<string>(), religions = new Set<string>();
   const walk = (n: GedNode) => {
     if (n.tag === "PLAC" && n.value) places.add(n.value);
     if (n.tag === "RELI" && n.value) religions.add(n.value);
-    if (n.tag === "NAME") {
-      const s = splitName(n.value).surname || childOf(n, "SURN")?.value || "";
-      if (s) surnames.add(s);
-    }
     n.children.forEach(walk);
   };
-  records.forEach(walk);
+  records.forEach((rec) => {
+    walk(rec);
+    const name = mainName(rec);
+    if (!name) return;
+    const parts = splitName(name.value);
+    const given = parts.given || childOf(name, "GIVN")?.value || "";
+    const surname = parts.surname || childOf(name, "SURN")?.value || "";
+    if (given) givens.add(given);
+    if (surname) surnames.add(surname);
+  });
   const sort = (set: Set<string>) => [...set].sort((a, b) => a.localeCompare(b));
-  return { surnames: sort(surnames), places: sort(places), religions: sort(religions) };
+  return { givens: sort(givens), surnames: sort(surnames), places: sort(places), religions: sort(religions) };
 }
 
 // ------------------------------------------------------------ changing nodes

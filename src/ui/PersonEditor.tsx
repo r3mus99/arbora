@@ -15,7 +15,7 @@ interface Props {
   families: GedNode[];
   lang: Lang;
   /** surnames and places in the file, offered while typing */
-  suggest: { surnames: string[]; places: string[]; religions: string[] };
+  suggest: { givens: string[]; surnames: string[]; places: string[]; religions: string[] };
   /** changed records only; nothing when nothing changed */
   onSave: (changed: GedNode[]) => void;
   onCancel: () => void;
@@ -45,7 +45,7 @@ function DateField({ value, shown, lang, onChange, t }: {
 export const EDITOR_FORM = "person-editor";
 
 // the lists of suggestions, once per page
-const SURNAMES = "arbora-surnames", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
+const GIVENS = "arbora-givens", SURNAMES = "arbora-surnames", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
 
 /** christening and burial can take the date and place of birth and death */
 const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "death", StringKey]>> = {
@@ -134,7 +134,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
     <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
       <div className="pair">
         <label><span>{t("givenName")}</span>
-          <input ref={firstInput} type="text" value={form.given} onChange={(e) => set("given", e.target.value)} /></label>
+          <input ref={firstInput} type="text" value={form.given} list={GIVENS} onChange={(e) => set("given", e.target.value)} /></label>
         <label><span>{t("surname")}</span>
           <input type="text" value={form.surname} list={SURNAMES}
                  onChange={(e) => set("surname", e.target.value)} /></label>
@@ -143,7 +143,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
         <legend>{t("aka")}</legend>
         {form.aliases.map((a, i) => (
           <div className="item alias" key={a.origin < 0 ? `new${i}` : a.origin}>
-            <input type="text" value={a.given} aria-label={t("givenName")} placeholder={t("givenName")}
+            <input type="text" value={a.given} list={GIVENS} aria-label={t("givenName")} placeholder={t("givenName")}
                    onChange={(e) => setAlias(i, { given: e.target.value })} />
             <input type="text" value={a.surname} list={SURNAMES} aria-label={t("surname")} placeholder={t("surname")}
                    onChange={(e) => setAlias(i, { surname: e.target.value })} />
@@ -215,6 +215,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
                onChange={(e) => set("deceased", e.target.checked)} />
         <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
       {form.deceased && <>{event("death")}{event("burial")}</>}
+      <datalist id={GIVENS}>{suggest.givens.map((s) => <option key={s} value={s} />)}</datalist>
       <datalist id={SURNAMES}>{suggest.surnames.map((s) => <option key={s} value={s} />)}</datalist>
       <datalist id={PLACES}>{suggest.places.map((s) => <option key={s} value={s} />)}</datalist>
       <datalist id={RELIGIONS}>{suggest.religions.map((s) => <option key={s} value={s} />)}</datalist>
