@@ -1,5 +1,5 @@
 import { CornerDownRight } from "lucide-react";
-import { useEffect, useRef, type MouseEvent } from "react";
+import { useEffect, useEffectEvent, useRef, type MouseEvent } from "react";
 import type { ShownRow } from "../core/collapse";
 import type { StringKey } from "./i18n";
 
@@ -35,8 +35,8 @@ interface Props {
 export function TreeView({ rows, focusId, scrollKey, scrollTo, numbered, onFocus, onToggle, onJump, t }: Props) {
   const box = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // scroll only the chart box, so the page itself stays where it is
+  // scroll only the chart box, so the page itself stays where it is; only a new `scrollKey` scrolls
+  const scrollToRow = useEffectEvent(() => {
     const el = box.current;
     const row = el?.querySelector<HTMLElement>(scrollTo !== null ? `.tree-row[data-i="${scrollTo}"]` : ".tree-row.sel");
     if (!el || !row) return;
@@ -44,7 +44,9 @@ export function TreeView({ rows, focusId, scrollKey, scrollTo, numbered, onFocus
     if (top < el.scrollTop || bottom > el.scrollTop + el.clientHeight) {
       el.scrollTop = top - (el.clientHeight - row.offsetHeight) / 2;
     }
-  }, [scrollKey]);
+  });
+  // oxlint-disable-next-line react/exhaustive-effect-dependencies -- runs again only for a new scrollKey
+  useEffect(() => scrollToRow(), [scrollKey]);
 
   const maxGen = rows.reduce((m, r) => Math.max(m, r.gen), 1);
   const width = x(maxGen + 1);

@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { chartRows } from "../core/chart";
 import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, FileDown, FileText, FileUp, LayoutDashboard,
-         Loader2, Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users, X } from "lucide-react";
+         Loader2, Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
-import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
+import { fmt, type ChartKind } from "../core/format";
 import { version } from "../../package.json";
 import { checkGedcom, fixIssue } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
@@ -12,50 +12,27 @@ import type { Fonts } from "../core/pdf";
 import { overview } from "../core/stats";
 import { TEXTS, type Lang } from "../core/texts";
 import { renameVariants, spellings, variantGroups, type VariantKind } from "../core/variants";
+import { NO_BROWSING, NO_EDITS, edited, isDirty, move as moveIn, startEdits, stepEdits, visit, withRecords, type Browsing, type Doc, type Place } from "./history";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
+import { storedOptions, toForm, toOptions, withOption, type Form } from "./options";
 import { CheckPanel } from "./CheckPanel";
+import { FileDrop } from "./FileDrop";
 import { LanguageMenu } from "./LanguageMenu";
 import { Overview } from "./Overview";
 import { PersonDetail } from "./PersonDetail";
 import { PersonEditor } from "./PersonEditor";
 import { PersonList } from "./PersonList";
+import { SettingsDialog } from "./SettingsDialog";
 import { readStore, updateStore } from "./store";
 import { TreeView } from "./TreeView";
 
 type Vars = Record<string, string | number>;
 const fill = (s: string, vars: Vars) => s.replace(/\{(\w+)\}/g, (_, k: string) => (k in vars ? String(vars[k]) : `{${k}}`));
 
-/** Options as edited in the form; number fields keep the typed text. */
-type Form = Omit<ChartOptions, "generations" | "fontSize"> & { generations: string; fontSize: string };
-
-const toForm = (o: ChartOptions): Form =>
-  ({ ...o, generations: String(o.generations), fontSize: String(o.fontSize) });
-
-function toOptions(f: Form, lang: Lang): ChartOptions {
-  const num = (v: string, d: number) => { const n = parseFloat(v); return Number.isFinite(n) ? n : d; };
-  return {
-    ...f, lang,
-    generations: Math.max(0, Math.round(num(f.generations, DEFAULTS.generations))),
-    fontSize: Math.min(20, Math.max(5, num(f.fontSize, DEFAULTS.fontSize))),
-  };
-}
-
-const NUMBERING: Record<ChartKind, [ChartOptions["numbering"], StringKey][]> = {
-  ancestors: [["generation", "numGen"], ["ahnentafel", "numAhn"], ["none", "numNone"]],
-  descendants: [["generation", "numGen"], ["daboville", "numDab"], ["none", "numNone"]],
-};
-
 interface Status { key: StringKey; vars: Vars; err: boolean }
-/** one step of the browsing history: whose chart and who is in the detail */
-interface Place { root: string; focus: string }
 /** collapsed branches of one chart (`key`) */
 interface Folding { key: string; paths: ReadonlySet<string> }
 const NO_PATHS: ReadonlySet<string> = new Set();
-/** the loaded file: its records (replaced, never changed in place, by edits) and line ending */
-interface Doc { records: GedNode[]; eol: string }
-/** edit history; `saved` is the version last loaded or downloaded */
-interface Edits { past: Doc[]; future: Doc[]; saved: Doc | null }
-const NO_EDITS: Edits = { past: [], future: [], saved: null };
 
 /** Hand a file to the browser as a download. */
 function saveFile(blob: Blob, name: string) {
@@ -82,9 +59,9 @@ export function App() {
     const l = readStore().lang;
     return isLang(l) ? l : detect();
   });
-  const [form, setForm] = useState<Form>(() => toForm({ ...DEFAULTS, ...readStore().options }));
+  const [form, setForm] = useState<Form>(() => toForm(storedOptions(readStore().options)));
   const [doc, setDoc] = useState<Doc | null>(null);
-  const [edits, setEdits] = useState<Edits>(NO_EDITS);
+  const [edits, setEdits] = useState(NO_EDITS);
   const data = useMemo(() => (doc ? readRecords(doc.records) : null), [doc]);
   // person whose facts are being edited in the detail panel
   const [editId, setEditId] = useState<string | null>(null);
@@ -98,9 +75,8 @@ export function App() {
   // row to scroll to and highlight after "see no. X"
   const [jumpRow, setJumpRow] = useState<number | null>(null);
   const [folding, setFolding] = useState<Folding>({ key: "", paths: NO_PATHS });
-  const [hist, setHist] = useState<{ list: Place[]; at: number }>({ list: [], at: -1 });
+  const [hist, setHist] = useState<Browsing>(NO_BROWSING);
   const [query, setQuery] = useState("");
-  const [over, setOver] = useState(false);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
   const [showCheck, setShowCheck] = useState(false);
@@ -125,13 +101,8 @@ export function App() {
 
   // ------------------------------------------------------------ options
   const setOpt = <K extends keyof Form>(key: K, value: Form[K]) => {
-    const next = { ...form, [key]: value };
-    if (key === "chart") {
-      // numbering choices differ between the chart kinds
-      if (value === "descendants" && next.numbering === "ahnentafel") next.numbering = "daboville";
-      if (value === "ancestors" && next.numbering === "daboville") next.numbering = "ahnentafel";
-      resetResult();
-    }
+    const next = withOption(form, key, value);
+    if (key === "chart") resetResult();
     setForm(next);
     updateStore({ options: toOptions(next, lang) });
   };
@@ -182,7 +153,7 @@ export function App() {
       return;
     }
     setDoc(next);
-    setEdits({ past: [], future: [], saved: next });
+    setEdits(startEdits(next));
     setEditId(null);
     setShowCheck(false);
     setShowOverview(true);
@@ -202,7 +173,7 @@ export function App() {
     import("../core/pdf").catch(() => { /* retried when the PDF is made */ });
   }
 
-  const dirty = !!doc && doc !== edits.saved;
+  const dirty = isDirty(doc, edits);
   const keepEdits = () => !dirty || confirm(t("discard"));
 
   const openFile = (f: File | undefined) => {
@@ -220,11 +191,11 @@ export function App() {
     }
   };
 
-  const onDrag = (e: DragEvent, on: boolean) => { e.preventDefault(); setOver(on); };
-
   // ------------------------------------------------------------ editing
   const recordOf = useMemo(() => new Map((doc?.records || []).filter((r) => r.xref).map((r) => [r.xref!, r])), [doc]);
-  useEffect(() => setEditId(null), [focusId]);
+  // the form closes when another person is shown (set while rendering, so there is no extra render with the old form)
+  const [editedFor, setEditedFor] = useState(focusId);
+  if (editedFor !== focusId) { setEditedFor(focusId); setEditId(null); }
   const suggest = useMemo(() => suggestions(doc?.records || []), [doc]);
   const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
   // bulk fix: spellings of one surname or place
@@ -253,35 +224,31 @@ export function App() {
   };
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   // the list closes once everything is fixed
-  useEffect(() => { if (!checkable) setShowCheck(false); }, [checkable]);
+  if (!checkable && showCheck) setShowCheck(false);
 
   /** a new version of the file with the changed records; one step of undo */
   const commit = (changed: GedNode[]) => {
     setEditId(null);
     if (!doc || !changed.length) return;
-    const by = new Map(changed.map((r) => [r.xref, r]));
-    setEdits({ ...edits, past: [...edits.past, doc].slice(-200), future: [] });
-    setDoc({ ...doc, records: doc.records.map((r) => (r.xref && by.get(r.xref)) || r) });
+    setEdits(edited(edits, doc));
+    setDoc(withRecords(doc, changed));
     resetResult();
   };
   /** the whole record list changed at once, as one undo step */
   const replaceRecords = (records: GedNode[]) => {
     if (!doc || records === doc.records) return;
-    setEdits({ ...edits, past: [...edits.past, doc].slice(-200), future: [] });
+    setEdits(edited(edits, doc));
     setDoc({ ...doc, records });
     resetResult();
   };
   const undoRedo = (step: -1 | 1) => {
-    const next = step < 0 ? edits.past[edits.past.length - 1] : edits.future[0];
-    if (!doc || !next) return;
-    setEdits(step < 0 ? { ...edits, past: edits.past.slice(0, -1), future: [doc, ...edits.future] }
-                      : { ...edits, past: [...edits.past, doc], future: edits.future.slice(1) });
-    setDoc(next);
+    const stepped = doc && stepEdits(edits, doc, step);
+    if (!stepped) return;
+    setEdits(stepped.edits);
+    setDoc(stepped.doc);
     setEditId(null);
     resetResult();
   };
-  const undoRef = useRef(undoRedo);
-  undoRef.current = undoRedo;
 
   const gedName = (loadedName || "sample").replace(/\.(ged|gedcom)$/i, "") + ".ged";
   const downloadGedcom = () => {
@@ -298,12 +265,7 @@ export function App() {
     return () => window.removeEventListener("beforeunload", onLeave);
   }, [dirty]);
 
-  const remember = (place: Place) => setHist((h) => {
-    const cur = h.list[h.at];
-    if (cur && cur.root === place.root && cur.focus === place.focus) return h;
-    const list = [...h.list.slice(0, h.at + 1), place].slice(-200);
-    return { list, at: list.length - 1 };
-  });
+  const remember = (place: Place) => setHist((h) => visit(h, place));
 
   const select = (id: string) => {
     setSelectedId(id);
@@ -355,9 +317,10 @@ export function App() {
   };
 
   const move = (step: number) => {
-    const place = hist.list[hist.at + step];
-    if (!place || !data?.people[place.root]) return;
-    setHist({ ...hist, at: hist.at + step });
+    const arrived = moveIn(hist, step);
+    if (!arrived || !data?.people[arrived.place.root]) return;
+    const { place } = arrived;
+    setHist(arrived.browsing);
     setSelectedId(place.root);
     setFocusId(place.focus);
     setJumpRow(null);
@@ -366,25 +329,24 @@ export function App() {
     setTreeScroll((k) => k + 1);
   };
   const canBack = hist.at > 0, canForward = hist.at < hist.list.length - 1;
-  const moveRef = useRef(move);
-  moveRef.current = move;
-  useEffect(() => {
-    // Alt + arrow, as in the browser; Ctrl+Z / Ctrl+Y
-    const onKey = (e: KeyboardEvent) => {
-      // Ctrl+Z / Ctrl+Y undo the edits, except in a text field, where they undo typing
-      const field = e.target instanceof HTMLElement && e.target.closest("input, textarea, select");
-      const key = e.key.toLowerCase();
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && !field && (key === "z" || key === "y")) {
-        e.preventDefault();
-        undoRef.current(key === "y" || e.shiftKey ? 1 : -1);
-        return;
-      }
-      if (!e.altKey || e.ctrlKey || e.metaKey || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+  // Alt + arrow, as in the browser; Ctrl+Z / Ctrl+Y. An effect event always sees the current state.
+  const onKey = useEffectEvent((e: KeyboardEvent) => {
+    // Ctrl+Z / Ctrl+Y undo the edits, except in a text field, where they undo typing
+    const field = e.target instanceof HTMLElement && e.target.closest("input, textarea, select");
+    const key = e.key.toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && !field && (key === "z" || key === "y")) {
       e.preventDefault();
-      moveRef.current(e.key === "ArrowLeft" ? -1 : 1);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+      undoRedo(key === "y" || e.shiftKey ? 1 : -1);
+      return;
+    }
+    if (!e.altKey || e.ctrlKey || e.metaKey || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
+    e.preventDefault();
+    move(e.key === "ArrowLeft" ? -1 : 1);
+  });
+  useEffect(() => {
+    const handle = (e: KeyboardEvent) => onKey(e);
+    window.addEventListener("keydown", handle);
+    return () => window.removeEventListener("keydown", handle);
   }, []);
   const makeRoot = (id: string) => {
     select(id);
@@ -400,16 +362,6 @@ export function App() {
     }
   }
 
-  const ab = TEXTS[lang].abbr;
-  const sel = <K extends keyof Form>(key: K) => ({
-    value: form[key] as string,
-    onChange: (e: { target: { value: string } }) => setOpt(key, e.target.value as Form[K]),
-  });
-  const check = (key: "showSpouses" | "showDate") => ({
-    type: "checkbox", checked: form[key],
-    onChange: (e: { target: { checked: boolean } }) => setOpt(key, e.target.checked),
-  });
-
   const pick = (id: string) => {
     select(id);
     setQuery("");
@@ -424,16 +376,12 @@ export function App() {
           <h1><TreeDeciduous className="logo" aria-hidden="true" />Arbora</h1>
           {!data && <p className="lead">{t("lead")}</p>}
         </div>
-        {data && <label className={over ? "drop file-chip over" : "drop file-chip"} title={t("loaded", { count: Object.keys(data.people).length })}
-                        onDragEnter={(e) => onDrag(e, true)} onDragOver={(e) => onDrag(e, true)}
-                        onDragLeave={(e) => onDrag(e, false)}
-                        onDrop={(e) => { onDrag(e, false); openFile(e.dataTransfer.files[0]); }}>
-          <input type="file" accept=".ged,.GED,.gedcom,text/plain" hidden
-                 onChange={(e) => { openFile(e.target.files?.[0]); e.target.value = ""; }} />
+        {data && <FileDrop className="drop file-chip" title={t("loaded", { count: Object.keys(data.people).length })}
+                           onFile={openFile}>
           <FileUp className="icon" aria-hidden="true" />
           <strong>{loadedName === null ? t("sampleName") : loadedName}</strong>
           <span className="count"><Users className="icon" aria-hidden="true" />{Object.keys(data.people).length}</span>
-        </label>}
+        </FileDrop>}
         <div className="head-tools">
           {data && <div className="tools" role="toolbar">
             <button type="button" className={showOverview ? "icon-btn on" : "icon-btn"} aria-pressed={showOverview}
@@ -483,15 +431,10 @@ export function App() {
                                          onSurname={(name) => { setQuery(name); finderRef.current?.focus(); }} />}
 
       {!data && <section className="panel file">
-        <label className={over ? "drop over" : "drop"}
-               onDragEnter={(e) => onDrag(e, true)} onDragOver={(e) => onDrag(e, true)}
-               onDragLeave={(e) => onDrag(e, false)}
-               onDrop={(e) => { onDrag(e, false); openFile(e.dataTransfer.files[0]); }}>
-          <input type="file" accept=".ged,.GED,.gedcom,text/plain" hidden
-                 onChange={(e) => { openFile(e.target.files?.[0]); e.target.value = ""; }} />
+        <FileDrop className="drop" onFile={openFile}>
           <FileUp className="icon" aria-hidden="true" />
           <div dangerouslySetInnerHTML={{ __html: t("drop") }} />
-        </label>
+        </FileDrop>
         <p className="note"><span>{t("privacy")}</span>{" "}
           <button className="link" type="button" onClick={loadSample}>{t("sample")}</button></p>
       </section>}
@@ -548,66 +491,7 @@ export function App() {
           </div>
         </section>
 
-        <dialog className="settings-dialog" ref={settingsRef} onClick={(e) => e.target === e.currentTarget && e.currentTarget.close()}>
-          <div className="dialog-head"><Settings className="icon" aria-hidden="true" /><h2>{t("step3")}</h2>
-            <button type="button" className="icon-btn" onClick={() => settingsRef.current?.close()} aria-label={t("cancel")}>
-              <X className="icon" aria-hidden="true" /></button></div>
-          <div className="set-group">
-            <div className="grid">
-              <label><span>{t("labels")}</span>
-                <select {...sel("labels")}>
-                  <option value="symbols">{`${t("symbols")}  * ∞ †`}</option>
-                  <option value="abbr">{`${t("abbr")}  ${ab.birt}${ab.marr}${ab.deat}`.trim()}</option>
-                </select></label>
-              <label><span>{t("dates")}</span>
-                <select {...sel("dates")}>
-                  <option value="year">{t("year")}</option><option value="full">{t("fullDate")}</option>
-                </select></label>
-              <label><span>{t("places")}</span>
-                <select {...sel("places")}>
-                  <option value="none">{t("noPlaces")}</option><option value="short">{t("shortPlace")}</option>
-                  <option value="full">{t("fullPlace")}</option>
-                </select></label>
-              <label><span>{t("numbering")}</span>
-                <select {...sel("numbering")}>
-                  {NUMBERING[form.chart].map(([v, key]) => <option key={v} value={v}>{t(key)}</option>)}
-                </select></label>
-              {!desc && <label><span>{t("marriageOn")}</span>
-                <select {...sel("marriageOn")}>
-                  <option value="father">{t("marrFather")}</option><option value="both">{t("marrBoth")}</option>
-                  <option value="none">{t("marrNone")}</option>
-                </select></label>}
-              <label><span>{t("generations")}</span>
-                <input type="number" min="0" max="99" step="1" {...sel("generations")} /></label>
-            </div>
-            {desc && <div className="checks">
-              <label><input {...check("showSpouses")} /> <span>{t("showSpouses")}</span></label>
-            </div>}
-          </div>
-          <div className="set-group">
-            <h3>{t("setPrint")}</h3>
-            <div className="grid">
-              <label><span>{t("pageSize")}</span>
-                <select {...sel("pageSize")}>
-                  <option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option>
-                  <option value="letter">Letter</option><option value="legal">Legal</option>
-                </select></label>
-              <label><span>{t("orientation")}</span>
-                <select {...sel("orientation")}>
-                  <option value="portrait">{t("portrait")}</option><option value="landscape">{t("landscape")}</option>
-                </select></label>
-              <label><span>{t("fontSize")}</span>
-                <input type="number" min="5" max="20" step="0.5" {...sel("fontSize")} /></label>
-              <label className="wide"><span>{t("title")}</span>
-                <input type="text" placeholder={t("titlePh")} {...sel("title")} /></label>
-            </div>
-            <div className="checks">
-              <label><input {...check("showDate")} /> <span>{t("showDate")}</span></label>
-            </div>
-          </div>
-          <div className="dialog-foot"><button type="button" className="primary" onClick={() => settingsRef.current?.close()}>
-            OK</button></div>
-        </dialog>
+        <SettingsDialog ref={settingsRef} form={form} lang={lang} onChange={setOpt} t={t} />
 
       </>}
 

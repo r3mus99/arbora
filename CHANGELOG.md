@@ -33,6 +33,14 @@
   number of issues.
 
 ### Development
+- `App.tsx` is smaller: the undo/redo and back/forward histories are plain
+  functions (`src/ui/history.ts`), the chart options and how they are read
+  from the browser are in `src/ui/options.ts` (a stored option with a value
+  that is no longer valid now falls back to its default instead of reaching
+  the PDF), and the settings dialog and the file box are components of their
+  own. Behaviour is unchanged.
+- No lint warnings are left: the page no longer sets state in effects or writes
+  refs while rendering.
 - One set of helpers for GEDCOM records (`childOf`, `childrenOf`, `gedNode`,
   `rewritten` in `src/core/gedcom.ts`) instead of copies in five files.
 - GEDCOM dates are read in one place (`src/core/date.ts`) by the edit form, the
