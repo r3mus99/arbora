@@ -6,7 +6,7 @@
 
 import { MONTHS, gedcomDay, validDateValue } from "./date";
 import { formatDate } from "./format";
-import { childOf, gedNode, isAka, mainName, rewritten, type GedNode } from "./gedcom";
+import { childOf, gedNode, isAka, joinedSrc, mainName, rewritten, type GedNode } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
 
 export interface EventFields { date: string; place: string }
@@ -402,7 +402,10 @@ function writeNode(n: GedNode, level: number, out: string[]) {
     return;
   }
   const head = `${level}${n.xref ? " " + n.xref : ""} ${n.tag}`;
-  n.value.split("\n").forEach((line, i) => {
+  if (n.src && joinedSrc(n.src) === n.value) {
+    // unchanged value: written with the same line breaks and spaces as in the file
+    n.src.forEach(([t, text], i) => out.push(`${i ? `${level + 1} ${t}` : head}${text ? " " + text : ""}`));
+  } else n.value.split("\n").forEach((line, i) => {
     pieces(line).forEach((piece, j) => {
       const start = i === 0 && j === 0 ? head : `${level + 1} ${j === 0 ? "CONT" : "CONC"}`;
       out.push(piece ? `${start} ${piece}` : start);

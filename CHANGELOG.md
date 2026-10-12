@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.0 – 2026-10-12
+
+- Fixed: when a record is written anew after an edit, values that were not changed keep their line breaks
+  (CONC/CONT) and the spaces at their edges exactly as in the file. Before, long lines were re-split and
+  leading spaces were dropped.
+- New tests: saving with the program stamp changes only the header, and Windows line endings survive.
+- This completes the integrity checks of editing (phase 2).
+
 ## 1.11.2 – 2026-10-12
 
 - New tests: unifying surnames and places changes only NAME and PLAC lines (aka names, notes, sources and

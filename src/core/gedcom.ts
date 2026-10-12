@@ -9,7 +9,16 @@ export interface GedNode {
   raw?: string[];
   /** a line that is not GEDCOM (comment, blank, damaged): kept as it is and written back at the same place */
   verbatim?: string;
+  /**
+   * How the value was written in the file: the text after the tag and each CONC/CONT piece with its tag
+   * (spaces at the edges kept). Used to write an unchanged value the way it was read.
+   */
+  src?: Array<[string, string]>;
 }
+
+/** The value that the pieces of `src` make together, as the parser joins them. */
+export const joinedSrc = (src: Array<[string, string]>) =>
+  src.reduce((v, [tag, text], i) => (i === 0 ? text.trim() : v + (tag === "CONT" ? "\n" : "") + text), "");
 
 export interface GedEvent {
   date: string;
@@ -89,10 +98,12 @@ export function parseGedcom(text: string): GedNode[] {
     // spaces at the edges of a CONC/CONT piece belong to the joined text
     const node: GedNode = { tag, value: tag === "CONC" || tag === "CONT" ? m[4] || "" : (m[4] || "").trim(),
                             xref: m[2] || null, children: [] };
+    if (tag !== "CONC" && tag !== "CONT") node.src = [["", m[4] || ""]];
     if (level > 0) records[records.length - 1]?.raw?.push(line);
     if ((tag === "CONC" || tag === "CONT") && stack.length) {
       const parent = stack[Math.min(level, stack.length) - 1];
       parent.value += (tag === "CONT" ? "\n" : "") + node.value;
+      parent.src?.push([tag, node.value]);
       continue;
     }
     stack.length = Math.min(stack.length, level);
