@@ -18,6 +18,8 @@ export interface Person {
   /** xref including the at-signs, e.g. "@I1@" */
   id: string;
   name: string;
+  /** other forms of the name (NAME with TYPE aka), cleaned like `name` */
+  aka: string[];
   sex: string;
   birth: GedEvent | null;
   death: GedEvent | null;
@@ -150,6 +152,7 @@ export function readRecords(records: GedNode[], fallbackEvents = true): GedcomDa
       }).sort((a, b) => a.rank - b.rank || a.i - b.i).map((x) => x.id).filter(Boolean);
       people[rec.xref] = {
         id: rec.xref, name, sex: sex ? sex.value.toUpperCase() : "",
+        aka: all(rec, "NAME").filter((n) => n !== nameNode && isAka(n)).map((n) => cleanName(n.value)).filter(Boolean),
         birth: eventOf(rec, birthTags), death: eventOf(rec, deathTags),
         occupation: all(rec, "OCCU").map((n) => n.value).filter(Boolean).join(", "), famc,
         religion: first(rec, "RELI")?.value || "",
@@ -172,11 +175,21 @@ export function fold(s: string): string {
   return s.toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "");
 }
 
-/** People whose name contains every word of the query, or the one with that ID. */
+const queryWords = (query: string) => fold(query).split(/\s+/).filter(Boolean);
+const hasAll = (text: string, words: string[]) => words.every((w) => fold(text).includes(w));
+
+/** People whose name, or another form of it (aka), contains every word of the query, or the one with that ID. */
 export function findPeople(query: string, people: Record<string, Person>): Person[] {
   const q = query.trim();
   const key = q.startsWith("@") ? q : `@${q}@`;
   if (people[key]) return [people[key]];
-  const words = fold(q).split(/\s+/).filter(Boolean);
-  return Object.values(people).filter((p) => words.every((w) => fold(p.name).includes(w)));
+  const words = queryWords(q);
+  return Object.values(people).filter((p) => hasAll(p.name, words) || p.aka.some((a) => hasAll(a, words)));
+}
+
+/** The aka a person was found by, when the name itself does not match the query. */
+export function matchedAka(query: string, p: Person): string | null {
+  const words = queryWords(query);
+  if (!words.length || hasAll(p.name, words)) return null;
+  return p.aka.find((a) => hasAll(a, words)) || null;
 }

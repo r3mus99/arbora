@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, suggestions, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
+  applyFamily, applyPerson, findPeople, matchedAka, suggestions, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
   readRecords, writeGedcom, type GedNode, type PersonFields,
 } from "./index";
 
@@ -230,5 +230,15 @@ describe("dates typed in the form", () => {
     expect(edit(ged, "@I1@", () => ({ aliases: [] }))).toBe("0 @I1@ INDI\n1 NAME Ján /Pavlovský/\n1 SEX M\n0 TRLR\n");
     expect(edit(ged, "@I1@", () => ({ surname: "Pavlovszký" })))
       .toContain("1 NAME Ján /Pavlovszký/\n1 NAME Ján /Pavlovszký/\n2 TYPE aka\n");
+  });
+
+  test("search finds people by other forms of the name too", () => {
+    const people = readRecords(parseGedcom("0 @I1@ INDI\n1 NAME Ján /Pavlovský/\n1 NAME Johannes /Pavlovszky/\n2 TYPE aka\n" +
+                                           "0 @I2@ INDI\n1 NAME Peter /Novák/\n0 TRLR\n")).people;
+    expect(people["@I1@"].aka).toEqual(["Johannes Pavlovszky"]);
+    expect(findPeople("pavlovszky", people).map((p) => p.id)).toEqual(["@I1@"]);
+    expect(findPeople("johannes", people).map((p) => p.id)).toEqual(["@I1@"]);
+    expect(matchedAka("johannes", people["@I1@"])).toBe("Johannes Pavlovszky");
+    expect(matchedAka("ján", people["@I1@"])).toBeNull();
   });
 });

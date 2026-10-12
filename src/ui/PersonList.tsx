@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { formatDate } from "../core/format";
-import { findPeople, fold, type GedEvent, type Person } from "../core/gedcom";
+import { findPeople, fold, matchedAka, type GedEvent, type Person } from "../core/gedcom";
 import type { Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 
@@ -47,7 +47,9 @@ export function PersonList({ people, query, lang, selectedId, scrollKey, onSelec
             <tr key={p.id} className={p.id === selectedId ? "sel" : undefined}
                 onClick={() => onSelect(p.id)}>
               <td className="num hide-sm">{p.id.replace(/@/g, "")}</td>
-              <td className="name">{p.name || "?"}</td>
+              <td className="name">{p.name || "?"}
+                {/* found by another form of the name: show which */}
+                {query.trim() && matchedAka(query, p) && <span className="aka"> · aka {matchedAka(query, p)}</span>}</td>
               <td className="num">{year(p.birth)}</td>
               <td className="num hide-sm">{year(p.death)}</td>
             </tr>

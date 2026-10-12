@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Search also finds people by other forms of their name (aka); the list then
+  shows which one matched.
 - Compact top bar once a file is open: title, file name with the number of
   people, tool buttons as icons with tooltips (file check with the number of
   problems, undo, redo, download GEDCOM with a dot for unsaved changes, PDF,
