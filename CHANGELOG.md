@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.3.1 – 2026-10-12
+## 1.3.2 – 2026-10-12
 
 - Fixed the order of the person timeline: a death without a date ("Died") no longer
   lands between the children's births but comes after all dated events, an undated
