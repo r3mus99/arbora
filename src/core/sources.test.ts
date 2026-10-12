@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
-  applyPerson, decode, eventAnnotations, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
+  applyPerson, checkGedcom, datesIn, decode, fixIssue, eventAnnotations, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
   personFields, writeGedcom, type GedNode,
 } from "./index";
 import { SOURCES_GED } from "./fixtures/sources";
@@ -71,5 +71,38 @@ describe("sources and notes", () => {
     // a rewritten record writes a continued line (CONC) as one line
     expect(out).toContain("4 TEXT Born at home, baptised the same week.");
     expect(out).toContain("1 NAME Anne /Example/");
+  });
+});
+
+describe("attaching a source to the event it dates", () => {
+  const ged = (body: string) => `0 HEAD\n1 GEDC\n2 VERS 5.5.1\n0 @S1@ SOUR\n1 TITL Parish register\n` +
+    `1 PUBL Register of Sampletown, entry for Anna Example, 5 Mar 1850.\n${body}0 TRLR\n`;
+  const person = (events: string, cite = "1 SOUR @S1@\n2 NOTE https://example.org/entry\n") =>
+    ged(`0 @I1@ INDI\n1 NAME Anna /Example/\n${events}${cite}`);
+  const issuesOf = (src: string) => checkGedcom(parseGedcom(src)).filter((i) => i.kind === "sourceDate");
+
+  test("dates written in a text", () => {
+    expect(datesIn("see 5 Mar 1850, 05.03.1850 and 1850-03-05, not 31 Feb 1850 or Sun Jul 07 2024"))
+      .toEqual(["5 MAR 1850"]);
+    expect(datesIn("24 November 1796.")).toEqual(["24 NOV 1796"]);
+  });
+
+  test("a source dated like the christening is offered for it, and moved with its note", () => {
+    const src = person("1 BIRT\n2 DATE 3 MAR 1850\n1 CHR\n2 DATE 05 MAR 1850\n");
+    const [issue] = issuesOf(src);
+    expect(issue).toMatchObject({ kind: "sourceDate", person: "@I1@", fixable: true,
+                                  args: { tag: "CHR", date: "5 MAR 1850", value: "Parish register" } });
+    const recs = parseGedcom(src);
+    const out = writeGedcom(fixIssue(recs, issue), lineEnding(src));
+    expect(out).toContain("1 CHR\n2 DATE 05 MAR 1850\n2 SOUR @S1@\n3 NOTE https://example.org/entry\n");
+    expect(out).not.toContain("1 SOUR @S1@");
+    expect(issuesOf(out)).toEqual([]);
+  });
+
+  test("no offer when the date fits two events, none, or the event cites the source already", () => {
+    expect(issuesOf(person("1 BIRT\n2 DATE 5 MAR 1850\n1 CHR\n2 DATE 5 MAR 1850\n"))).toEqual([]);
+    expect(issuesOf(person("1 BIRT\n2 DATE 3 MAR 1850\n"))).toEqual([]);
+    expect(issuesOf(person("1 BIRT\n2 DATE ABT 1850\n"))).toEqual([]);
+    expect(issuesOf(person("1 BIRT\n2 DATE 5 MAR 1850\n2 SOUR @S1@\n"))).toEqual([]);
   });
 });

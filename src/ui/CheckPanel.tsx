@@ -29,7 +29,7 @@ interface Props {
 
 /** names of the events a date belongs to, the GEDCOM tag otherwise */
 const EVENT: Record<string, StringKey> = {
-  BIRT: "thBirth", CHR: "christening", DEAT: "thDeath", BURI: "burial", MARR: "marriage", OCCU: "occupation",
+  BIRT: "thBirth", CHR: "christening", BAPM: "christening", DEAT: "thDeath", BURI: "burial", CREM: "burial", MARR: "marriage", OCCU: "occupation",
 };
 const WHO = "\u0000who\u0000", OTHER = "\u0000other\u0000";
 

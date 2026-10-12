@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.6.0 – 2026-10-12
+
+- File check: a source cited on the person as a whole that mentions the date of exactly one of the person's
+  events (birth, christening, death, burial) is listed as an issue with a one-click fix that moves the citation,
+  with its notes, under that event, so it shows on the timeline row. Nothing is offered when two events share
+  the date or the event already cites the source.
+
 ## 1.5.0 – 2026-10-12
 
 - Sources and notes are now shown. A birth, christening, death, burial or marriage that carries a source

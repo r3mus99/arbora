@@ -6,10 +6,11 @@
 import { isoToGedcom, monthOf, validDateValue } from "./date";
 import { addLine } from "./edit";
 import { childOf, gedNode, rewritten, type GedNode } from "./gedcom";
+import { moveSource, sourceMoves } from "./sources";
 
 export type IssueKind =
   | "noHead" | "noTrlr" | "dupId" | "missingRef" | "oneWay" | "badDate"
-  | "deathBeforeBirth" | "beforeParent" | "parentYoung" | "afterMother" | "afterFather" | "spouseSex";
+  | "sourceDate" | "deathBeforeBirth" | "beforeParent" | "parentYoung" | "afterMother" | "afterFather" | "spouseSex";
 
 export interface Issue {
   kind: IssueKind;
@@ -115,6 +116,14 @@ export function checkGedcom(records: GedNode[]): Issue[] {
     }
   }
 
+  // sources of the whole person that belong to one of the events
+  const lookup = (id: string) => byId.get(id);
+  for (const p of people) {
+    for (const m of sourceMoves(p, lookup)) {
+      add("sourceDate", "warn", p.xref, { id: p.xref!, tag: m.tag, value: m.title, date: m.date, index: String(m.index) });
+    }
+  }
+
   // dates that cannot be true
   const birth = (id: string | undefined) => (id && isA(id, "INDI") ? eventDate(byId.get(id)!, "BIRT") : null);
   const death = (id: string | undefined) => (id && isA(id, "INDI") ? eventDate(byId.get(id)!, "DEAT") : null);
@@ -195,6 +204,10 @@ function repair(records: GedNode[], issue: Issue, at: (id: string) => number): R
       // a family's HUSB/WIFE/CHIL: the person gets FAMS or FAMC
       const i = at(a.value);
       return i < 0 ? null : { at: i, rec: addLine(records[i], a.tag === "CHIL" ? "FAMC" : "FAMS", a.id) };
+    }
+    case "sourceDate": {
+      const i = at(a.id);
+      return i < 0 ? null : { at: i, rec: moveSource(records[i], +a.index, a.tag, a.date) };
     }
     case "badDate": {
       const fixed = isoToGedcom(a.value);
