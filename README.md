@@ -218,7 +218,8 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   *.test.ts         tests on the sample and made-up data
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),
                     edit form (PersonEditor), file check and bulk fix (CheckPanel, Variants), language
-                    menu, UI translations (i18n.ts) and flags
+                    menu, settings dialog, UI translations (i18n.ts) and flags; the logic that
+                    needs no DOM is in history.ts (undo, back/forward) and options.ts, with tests
 public/             static files: DejaVu Sans font, sample GEDCOM and PDFs, licenses
 ```
 
