@@ -371,6 +371,10 @@ function pieces(value: string): string[] {
 }
 
 function writeNode(n: GedNode, level: number, out: string[]) {
+  if (n.verbatim !== undefined) {
+    out.push(n.verbatim);
+    return;
+  }
   const head = `${level}${n.xref ? " " + n.xref : ""} ${n.tag}`;
   n.value.split("\n").forEach((line, i) => {
     pieces(line).forEach((piece, j) => {
