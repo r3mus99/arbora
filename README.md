@@ -59,27 +59,36 @@ between relatives) is written out only once; later occurrences refer to it.
 ## Usage
 
 1. Open the page and choose (or drop) your `.ged` file, or try the built-in
-   sample. The file picker then shrinks to a narrow bar at the top; click it
-   to open another file.
-2. The main part of the page is the chart, laid out the same way as the PDF.
+   sample. The page then switches to a compact top bar: the Arbora title, the
+   file name with the number of people (click it or drop a file on it to open
+   another one), the tool buttons and the language. The tools are icons with a
+   tooltip: file overview, file check, undo, redo, download GEDCOM, **PDF** and
+   settings.
+2. After loading, the **file overview** shows the number of people (men and
+   women), families and generations (the longest parent–child line), the years
+   the file covers, the oldest ancestor (click to make them no. 1 of the chart),
+   the number of problems found by the file check, and the most common surnames
+   and places. A surname is a link to the search. The overview closes with the
+   cross and opens again with its icon in the top bar.
+3. The main part of the page is the chart, laid out the same way as the PDF.
    Switch between **Ancestors** and **Descendants** above it and find person
    no. 1 by name or ID in the search field of the chart header. At first it is
    the person chosen last time, otherwise the first person in the file.
-3. Clicking a person shows their details next to the chart (below it on narrow
+4. Clicking a person shows their details next to the chart (below it on narrow
    screens), with icons and in the same order as the edit form: birth,
    christening, religion, parents, marriages with children, occupations, note,
    death and burial. Relatives are links; the crosshair button makes the person
    no. 1 of the chart and the pencil opens the edit form.
-4. A repeated ancestor shows a link **see no. X** instead of their branch (with
+5. A repeated ancestor shows a link **see no. X** instead of their branch (with
    Ahnentafel or d'Aboville numbering, otherwise **see above / below**) that
    jumps to the written-out branch and highlights it. The arrows next to the
    title (or Alt+← / Alt+→) go back and forward through the people you viewed.
-5. The **−** on the connector before a name collapses that person's branch and
+6. The **−** on the connector before a name collapses that person's branch and
    **+** expands it again; with Shift, the whole generation. The chart and the
    PDF share all settings, so the PDF matches the chart (collapsed branches are
    not carried into the PDF).
-6. The gear icon next to the language opens the **Settings** window.
-7. **Create PDF** creates the PDF and downloads it at once.
+7. The gear icon in the top bar opens the **Settings** window.
+8. **PDF** creates the PDF and downloads it at once.
 
 ### Editing and GEDCOM export
 
@@ -100,9 +109,9 @@ directly in GEDCOM form (`ABT 1890`, `14 MAY 1891`). Below the field you see how
 the date will be stored. Any other text is stored as a date phrase in
 parentheses.
 
-The arrows next to the file (or Ctrl+Z / Ctrl+Y) undo and redo saved changes.
+The arrows in the top bar (or Ctrl+Z / Ctrl+Y) undo and redo saved changes.
 **Download GEDCOM** downloads the edited file; while there are changes not yet
-downloaded, "unsaved changes" is shown below the button. Changed records are
+downloaded, a dot on the download button marks "unsaved changes". Changed records are
 written anew; every other line stays exactly as it was, including tags Arbora
 does not know (sources, notes on events, `_UID`, coordinates…). Even in a
 changed record only the edited lines change. The header records Arbora as the
@@ -112,7 +121,7 @@ you leave the page with unsaved changes, the browser asks.
 
 ### File check
 
-The shield button next to the file shows the number of problems found
+The shield button in the top bar shows the number of problems found
 (GEDCOM 5.5.1). When there are none it only says so in its tooltip; otherwise a
 click lists them, and the names in the list open the person's details. It checks:
 

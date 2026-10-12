@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { chartRows } from "../core/chart";
-import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, FileDown, FileText, FileUp, Loader2,
-         Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, X } from "lucide-react";
+import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, FileDown, FileText, FileUp, LayoutDashboard,
+         Loader2, Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users, X } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { DEFAULTS, fmt, type ChartKind, type ChartOptions } from "../core/format";
 import { version } from "../../package.json";
@@ -9,10 +9,12 @@ import { checkGedcom, fixIssue } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
+import { overview } from "../core/stats";
 import { TEXTS, type Lang } from "../core/texts";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { CheckPanel } from "./CheckPanel";
 import { LanguageMenu } from "./LanguageMenu";
+import { Overview } from "./Overview";
 import { PersonDetail } from "./PersonDetail";
 import { PersonEditor } from "./PersonEditor";
 import { PersonList } from "./PersonList";
@@ -101,7 +103,10 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
   const [showCheck, setShowCheck] = useState(false);
+  // the file overview opens after each load
+  const [showOverview, setShowOverview] = useState(false);
   const settingsRef = useRef<HTMLDialogElement>(null);
+  const finderRef = useRef<HTMLInputElement>(null);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
   const t = useCallback((key: StringKey, vars: Vars = {}) =>
@@ -179,6 +184,7 @@ export function App() {
     setEdits({ past: [], future: [], saved: next });
     setEditId(null);
     setShowCheck(false);
+    setShowOverview(true);
     setLoadedName(name);
     setQuery("");
     const last = readStore().root;
@@ -220,6 +226,7 @@ export function App() {
   useEffect(() => setEditId(null), [focusId]);
   const suggest = useMemo(() => suggestions(doc?.records || []), [doc]);
   const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
+  const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   // the list closes once everything is fixed
   useEffect(() => { if (!issues.length) setShowCheck(false); }, [issues]);
 
@@ -387,19 +394,67 @@ export function App() {
 
   return (
     <main className={data ? "loaded" : undefined}>
-      <header className="top">
-        <div>
+      <header className={data ? "top bar" : "top"}>
+        <div className="brand">
           <h1><TreeDeciduous className="logo" aria-hidden="true" />Arbora</h1>
           {!data && <p className="lead">{t("lead")}</p>}
         </div>
+        {data && <label className={over ? "drop file-chip over" : "drop file-chip"} title={t("loaded", { count: Object.keys(data.people).length })}
+                        onDragEnter={(e) => onDrag(e, true)} onDragOver={(e) => onDrag(e, true)}
+                        onDragLeave={(e) => onDrag(e, false)}
+                        onDrop={(e) => { onDrag(e, false); openFile(e.dataTransfer.files[0]); }}>
+          <input type="file" accept=".ged,.GED,.gedcom,text/plain" hidden
+                 onChange={(e) => { openFile(e.target.files?.[0]); e.target.value = ""; }} />
+          <FileUp className="icon" aria-hidden="true" />
+          <strong>{loadedName === null ? t("sampleName") : loadedName}</strong>
+          <span className="count"><Users className="icon" aria-hidden="true" />{Object.keys(data.people).length}</span>
+        </label>}
         <div className="head-tools">
-          {data && <button type="button" className="icon-btn settings-btn" onClick={() => settingsRef.current?.showModal()}
-                           title={t("step3")} aria-label={t("step3")}><Settings className="icon" aria-hidden="true" /></button>}
+          {data && <div className="tools" role="toolbar">
+            <button type="button" className={showOverview ? "icon-btn on" : "icon-btn"} aria-pressed={showOverview}
+                    onClick={() => setShowOverview(!showOverview)} title={t("overview")} aria-label={t("overview")}>
+              <LayoutDashboard className="icon" aria-hidden="true" /></button>
+            {/* with nothing to report the shield only says so in its tooltip */}
+            <button type="button" className={issues.length ? "icon-btn check-btn warn" : "icon-btn check-btn ok"}
+                    aria-expanded={issues.length ? showCheck : undefined}
+                    onClick={() => issues.length && setShowCheck(!showCheck)}
+                    title={issues.length ? t("checkCount", { n: issues.length }) : t("checkOk")}
+                    aria-label={t("check")}>
+              {issues.length ? <ShieldAlert className="icon" aria-hidden="true" />
+                             : <ShieldCheck className="icon" aria-hidden="true" />}
+              {issues.length > 0 && <span className="badge">{issues.length}</span>}</button>
+            <span className="sep" aria-hidden="true" />
+            <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
+                    title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
+            <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
+                    title={`${t("redo")} (Ctrl+Y)`} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
+            <button type="button" className={dirty ? "icon-btn dirty" : "icon-btn"} onClick={downloadGedcom}
+                    title={`${t("exportGed")}${dirty ? ` (${t("unsaved")})` : ""}. ${t("exportTip")}`}
+                    aria-label={dirty ? `${t("exportGed")} (${t("unsaved")})` : t("exportGed")}>
+              <FileDown className="icon" aria-hidden="true" />{dirty && <span className="dot" />}</button>
+            <button type="button" className="primary pdf-btn" disabled={busy} onClick={() => create()} title={t("go")}
+                    aria-label={t("go")}>
+              {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
+              PDF</button>
+            <span className="sep" aria-hidden="true" />
+            <button type="button" className="icon-btn" onClick={() => settingsRef.current?.showModal()}
+                    title={t("step3")} aria-label={t("step3")}><Settings className="icon" aria-hidden="true" /></button>
+          </div>}
           <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
         </div>
       </header>
 
-      <section className={data ? "file compact" : "panel file"}>
+      {data && statusText && <p className={status?.err ? "status err" : "status"}>{statusText}</p>}
+      {data && showCheck && issues.length > 0 && <CheckPanel issues={issues} data={data} t={t} onClose={() => setShowCheck(false)}
+                                        onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
+                                        onFocus={(id) => focus(id, true)} />}
+      {data && showOverview && stats && <Overview stats={stats} data={data} problems={issues.length} t={t}
+                                         onClose={() => setShowOverview(false)}
+                                         onProblems={() => setShowCheck(true)}
+                                         onPerson={(id) => { makeRoot(id); setShowOverview(false); }}
+                                         onSurname={(name) => { setQuery(name); finderRef.current?.focus(); }} />}
+
+      {!data && <section className="panel file">
         <label className={over ? "drop over" : "drop"}
                onDragEnter={(e) => onDrag(e, true)} onDragOver={(e) => onDrag(e, true)}
                onDragLeave={(e) => onDrag(e, false)}
@@ -407,41 +462,11 @@ export function App() {
           <input type="file" accept=".ged,.GED,.gedcom,text/plain" hidden
                  onChange={(e) => { openFile(e.target.files?.[0]); e.target.value = ""; }} />
           <FileUp className="icon" aria-hidden="true" />
-          {data
-            ? <div><strong>{loadedName === null ? t("sampleName") : loadedName}</strong>
-                {" – " + t("loaded", { count: Object.keys(data.people).length })}</div>
-            : <div dangerouslySetInnerHTML={{ __html: t("drop") }} />}
+          <div dangerouslySetInnerHTML={{ __html: t("drop") }} />
         </label>
-        {data && <div className={dirty ? "edits dirty" : "edits"}>
-          {/* with nothing to report the shield only says so in its tooltip */}
-          <button type="button" className={issues.length ? "check-btn warn" : "check-btn ok"}
-                  aria-expanded={issues.length ? showCheck : undefined}
-                  onClick={() => issues.length && setShowCheck(!showCheck)}
-                  title={issues.length ? t("check") : t("checkOk")}>
-            {issues.length ? <ShieldAlert className="icon" aria-hidden="true" />
-                           : <ShieldCheck className="icon" aria-hidden="true" />}
-            {issues.length ? issues.length : t("check")}</button>
-          <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
-                  title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
-          <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
-                  title={`${t("redo")} (Ctrl+Y)`} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
-          <span className="with-note">
-            <button type="button" onClick={downloadGedcom}
-                    title={t("exportTip")}>
-              <FileDown className="icon" aria-hidden="true" />{t("exportGed")}</button>
-            {dirty && <span className="unsaved">{t("unsaved")}</span>}
-          </span>
-          <button type="button" className="primary" disabled={busy} onClick={() => create()}>
-            {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
-            {t("go")}</button>
-        </div>}
-        {data && statusText && <p className={status?.err ? "status err" : "status"}>{statusText}</p>}
-        {data && showCheck && issues.length > 0 && <CheckPanel issues={issues} data={data} t={t} onClose={() => setShowCheck(false)}
-                                          onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
-                                          onFocus={(id) => focus(id, true)} />}
-        {!data && <p className="note"><span>{t("privacy")}</span>{" "}
-          <button className="link" type="button" onClick={loadSample}>{t("sample")}</button></p>}
-      </section>
+        <p className="note"><span>{t("privacy")}</span>{" "}
+          <button className="link" type="button" onClick={loadSample}>{t("sample")}</button></p>
+      </section>}
 
       {data && chosen && <>
         <div className="seg" role="radiogroup">
@@ -468,7 +493,7 @@ export function App() {
             </div>
             <div className="finder">
               <Search className="icon" aria-hidden="true" />
-              <input type="search" placeholder={t("search")} autoComplete="off" value={query}
+              <input ref={finderRef} type="search" placeholder={t("search")} autoComplete="off" value={query}
                      onChange={(e) => setQuery(e.target.value)}
                      onKeyDown={(e) => { if (e.key === "Escape") setQuery(""); }} />
               {query.trim() && <div className="found">
