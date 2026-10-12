@@ -19,3 +19,4 @@ export * from "./associations";
 export * from "./sources";
 export * from "./places";
 export * from "./names";
+export * from "./info";
