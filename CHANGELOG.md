@@ -29,6 +29,8 @@
   its phrase is kept as a date phrase and the form says so.
 
 ### Development
+- One set of helpers for GEDCOM records (`childOf`, `childrenOf`, `gedNode`,
+  `rewritten` in `src/core/gedcom.ts`) instead of copies in five files.
 - GEDCOM dates are read in one place (`src/core/date.ts`) by the edit form, the
   file check, the chart order and the overview.
 - Regression tests that must keep passing through the 1.1 refactoring: GEDCOM
