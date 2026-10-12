@@ -91,6 +91,9 @@ export function familyFields(rec: GedNode): FamilyFields {
   return { marriage: eventFields(rec, "MARR"), divorced: !!childOf(rec, "DIV") };
 }
 
+/** given name and surname of a person's main name */
+export const mainNameParts = (rec: GedNode) => nameParts(mainName(rec));
+
 /** Given names, surnames, places and religions used in the file, sorted, for suggestions in the form.
  *  Names come only from each person's main name, never from aka names. */
 export function suggestions(records: GedNode[]):
