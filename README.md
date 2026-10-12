@@ -94,14 +94,14 @@ between relatives) is written out only once; later occurrences refer to it.
 
 The edit form changes the data of existing people, in this order: given name and
 surname (surnames from the file are suggested), other forms of the name ("also
-known as", stored as `NAME` with `TYPE aka`; also shown in the details), sex, birth and christening (date
+known as", stored as `NAME` with `TYPE aka`; also shown in small text before the ID in the details), sex, birth and christening (date
 and place; christening can copy them from birth), religion (values from the file
 are suggested), the date and place of each marriage and whether the couple
 divorced, occupations (each with its own date and place), a note, and last
 **Died**: ticking it shows death and burial (burial can copy date and place from
 death). Ticked without any details it is stored as `1 DEAT Y`; unticking it and
 saving clears death and burial. Place fields suggest the places already in the
-file. **Save** (Ctrl+Enter) shows the change at once in the chart and the PDF,
+file. **Save** (Ctrl+Enter, at the top and the bottom of the form) shows the change at once in the chart and the PDF,
 **Cancel** (Esc) drops it. Adding and deleting people is not possible yet.
 
 A date can be typed as `14.5.1891`, `5/1891`, `1891`, `~1890`, `<1890`, `>1890`,

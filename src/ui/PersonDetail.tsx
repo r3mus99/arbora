@@ -1,5 +1,5 @@
 import {
-  Baby, Briefcase, Tags, Church, Cross, Crosshair, Droplets, Flower2, Heart, HeartCrack, Mars, Pencil, StickyNote, Users,
+  Baby, Briefcase, Church, Cross, Crosshair, Droplets, Flower2, Heart, HeartCrack, Mars, Pencil, StickyNote, Users,
   Venus, type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -79,11 +79,12 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
             <Crosshair className="icon" aria-hidden="true" /></button>}
         </div>}
       </div>
-      <p className="id">{p.id.replace(/@/g, "")}</p>
+      <p className="id">
+        {/* other forms of the name (aka), quietly before the ID */}
+        {f && f.aliases.length > 0 && <span className="aka" title={t("aka")}>
+          aka {f.aliases.map((a) => [a.given, a.surname].filter(Boolean).join(" ")).join(", ")} · </span>}
+        {p.id.replace(/@/g, "")}</p>
       {editor || <div className="facts">
-        {f && f.aliases.length > 0 && <Fact icon={Tags} label={t("aka")}>
-          {f.aliases.map((a) => <div key={a.origin} className="fact-value">{[a.given, a.surname].filter(Boolean).join(" ")}</div>)}
-        </Fact>}
         {when(birth) && <Fact icon={Baby} label={t("thBirth")}>{when(birth)}</Fact>}
         {f && when(f.christening) && <Fact icon={Droplets} label={t("christening")}>{when(f.christening)}</Fact>}
         {p.religion && <Fact icon={Church} label={t("religion")}><div className="fact-value">{p.religion}</div></Fact>}
