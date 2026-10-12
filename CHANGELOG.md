@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.4 – 2026-10-12
+
+- Bulk fix: every group is now a small card with three lines that read without
+  knowing the software: the spelling variants as chips (check = will be unified,
+  X = excluded), below them the text everything changes into ("Change to", editable)
+  with the Unify and hide buttons at the end of that line, and the affected records
+  (collapsed, expandable) on the last line.
+
 ## 1.3.3 – 2026-10-12
 
 - Bulk fix: spelling variants that will be merged are now drawn normally with a

@@ -48,7 +48,7 @@ function Group({ group, data, hidden, onRename, onHide, onFocus, t, listId }:
 
   return (
     <li className="variant">
-      <div className="variant-row">
+      <div className="variant-chips">
         <span className="chips">{group.variants.map((v) => {
           const chosen = v.value === target.trim(), out = kept.has(v.value);
           return <span key={v.value} className={chosen ? "chip picked" : out ? "chip kept" : "chip replaced"}>
@@ -60,23 +60,24 @@ function Group({ group, data, hidden, onRename, onHide, onFocus, t, listId }:
               {out ? <X className="icon" aria-hidden="true" /> : <Check className="icon" aria-hidden="true" />}</button>}
           </span>;
         })}</span>
-        {!hidden && <>
-          <ArrowRight className="icon arrow" aria-hidden="true" />
-          <input className="target" value={target} list={listId} onChange={(e) => setTarget(e.target.value)}
-                 aria-label={t("batchTo")} />
-        </>}
-        <button type="button" className="affected" aria-expanded={open} onClick={() => setOpen(!open)}>
-          {open ? <ChevronDown className="icon" aria-hidden="true" /> : <ChevronRight className="icon" aria-hidden="true" />}
-          {t("affected", { n: hidden ? new Set(group.variants.flatMap((v) => v.records)).size : affected.length })}</button>
+      </div>
+      <div className="variant-target">
+        {!hidden && <label className="target-label">
+          <span>{t("changeTo")}</span>
+          <input className="target" value={target} list={listId} onChange={(e) => setTarget(e.target.value)} />
+        </label>}
         <span className="variant-tools">
-          <button type="button" className="icon-btn" onClick={() => onHide(group.key, !hidden)}
-                  title={hidden ? t("unhideGroup") : t("hideGroup")} aria-label={hidden ? t("unhideGroup") : t("hideGroup")}>
-            {hidden ? <Eye className="icon" aria-hidden="true" /> : <EyeOff className="icon" aria-hidden="true" />}</button>
           {!hidden && <button type="button" className="primary unify" disabled={!target.trim() || !replaced.length}
                               onClick={() => onRename(group.kind, replaced.map((v) => v.value), target)}>
             <SpellCheck className="icon" aria-hidden="true" />{t("unify")}</button>}
+          <button type="button" className="icon-btn" onClick={() => onHide(group.key, !hidden)}
+                  title={hidden ? t("unhideGroup") : t("hideGroup")} aria-label={hidden ? t("unhideGroup") : t("hideGroup")}>
+            {hidden ? <Eye className="icon" aria-hidden="true" /> : <EyeOff className="icon" aria-hidden="true" />}</button>
         </span>
       </div>
+      <button type="button" className="affected" aria-expanded={open} onClick={() => setOpen(!open)}>
+        {open ? <ChevronDown className="icon" aria-hidden="true" /> : <ChevronRight className="icon" aria-hidden="true" />}
+        {t("affected", { n: hidden ? new Set(group.variants.flatMap((v) => v.records)).size : affected.length })}</button>
       {open && <ul className="affected-list">
         {(hidden ? group.variants : replaced).map((v) => <li key={v.value}>
           <strong>{v.value}</strong>: {v.records.map((id, k) => <span key={id}>{k > 0 && ", "}
