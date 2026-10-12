@@ -109,3 +109,47 @@ describe("names without slashes", () => {
     expect(writeGedcom([applyPerson(withSlashes, f, { ...f, given: "Karel" })])).toContain("1 NAME Karel //\n");
   });
 });
+
+describe("a rewritten record keeps how unchanged values were written", () => {
+  const GED = `0 HEAD
+0 @I1@ INDI
+1 NAME Jan /Tester/
+1 NOTE A long note split   
+2 CONC  at odd places, with
+2 CONT a second line and
+2 CONC  more
+1 _CUSTOM   padded value  
+1 OCCU Smith
+0 TRLR
+`;
+  test("CONC/CONT breaks and edge spaces survive when another line is edited", () => {
+    const rec = parseGedcom(GED)[1];
+    const before = personFields(rec);
+    const out = writeGedcom([applyPerson(rec, before, { ...before, religion: "Lutheran" })]);
+    expect(out).toContain(GED.split("\n").slice(3, 8).join("\n"));
+    expect(out).toContain("1 RELI Lutheran");
+  });
+
+  test("a changed value is written anew", () => {
+    const rec = parseGedcom(GED)[1];
+    rec.children.find((c) => c.tag === "NOTE")!.value = "short";
+    expect(writeGedcom([{ ...rec, raw: undefined }])).toContain("1 NOTE short\n");
+  });
+});
+
+describe("saving the file", () => {
+  const writer = { version: "9.9.9", date: new Date(2026, 9, 12, 8, 30, 0) };
+
+  test("saving with the program stamp changes only the header, other records stay byte for byte", () => {
+    const records = parseGedcom(RICH_GED);
+    const out = writeGedcom(records, "\n", writer);
+    const rest = (t: string) => t.slice(t.indexOf("\n0 ", 1));
+    expect(rest(out)).toBe(rest(writeGedcom(records)));
+    expect(out).toContain("1 SOUR ARBORA\n2 VERS 9.9.9");
+  });
+
+  test("a file with Windows line endings is written back with them", () => {
+    const crlf = RICH_GED.replace(/\n/g, "\r\n");
+    expect(writeGedcom(parseGedcom(crlf), "\r\n")).toBe(crlf);
+  });
+});

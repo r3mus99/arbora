@@ -68,8 +68,8 @@ describe("sources and notes", () => {
     const kept = (s: string) => s.split("\n").filter((l) => /SOUR|NOTE|PAGE|CONT|DATA/.test(l));
     // only the note under the removed occupation goes with it
     expect(kept(out)).toEqual(kept(text).filter((l) => l !== "2 NOTE Worked at the mill."));
-    // a rewritten record writes a continued line (CONC) as one line
-    expect(out).toContain("4 TEXT Born at home, baptised the same week.");
+    // a rewritten record keeps the continued line (CONC) as it was
+    expect(out).toContain("4 TEXT Born at home, baptised\n5 CONC  the same week.");
     expect(out).toContain("1 NAME Anne /Example/");
   });
 });
