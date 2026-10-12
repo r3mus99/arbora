@@ -170,6 +170,12 @@ function setEvent(rec: GedNode, tag: string, before: EventFields, after: EventFi
                                    : rec.children.map((c, j) => (j === i ? ev : c)) };
 }
 
+/** a NAME value; the slashes around an empty surname are written only when the old value had them */
+function nameValue(given: string, surname: string, suffix: string, old: GedNode | null): string {
+  const slashes = surname || !old || old.value.includes("/") ? `/${surname}/` : "";
+  return [given, slashes, suffix].filter(Boolean).join(" ");
+}
+
 function setName(rec: GedNode, before: PersonFields, after: PersonFields): GedNode {
   if (before.given === after.given && before.surname === after.surname) return rec;
   const given = after.given.trim(), surname = after.surname.trim();
@@ -177,7 +183,7 @@ function setName(rec: GedNode, before: PersonFields, after: PersonFields): GedNo
   const i = main ? rec.children.indexOf(main) : -1;
   const old = i >= 0 ? rec.children[i] : null;
   const suffix = old ? splitName(old.value).suffix : "";
-  const value = [given, `/${surname}/`, suffix].filter(Boolean).join(" ");
+  const value = nameValue(given, surname, suffix, old);
   let name = old ? { ...old, value } : gedNode("NAME", value);
   if (old && childOf(old, "GIVN") || given && !old) name = setChild(name, "GIVN", given);
   if (old && childOf(old, "SURN") || surname && !old) name = setChild(name, "SURN", surname);
@@ -187,7 +193,7 @@ function setName(rec: GedNode, before: PersonFields, after: PersonFields): GedNo
 
 /** A NAME value and its GIVN/SURN lines set to the given name and surname; the suffix stays. */
 function nameNode(old: GedNode | null, given: string, surname: string): GedNode {
-  const value = [given, `/${surname}/`, old ? splitName(old.value).suffix : ""].filter(Boolean).join(" ");
+  const value = nameValue(given, surname, old ? splitName(old.value).suffix : "", old);
   let name = old ? { ...old, value } : gedNode("NAME", value);
   if (old && childOf(old, "GIVN")) name = setChild(name, "GIVN", given);
   if (old && childOf(old, "SURN")) name = setChild(name, "SURN", surname);
