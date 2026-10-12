@@ -1,6 +1,6 @@
 /** File overview: counts and the most common surnames and places. */
 import { yearOf } from "./date";
-import { mainName, type GedcomData, type GedNode, type Person } from "./gedcom";
+import { childOf, mainName, type GedcomData, type GedNode, type Person } from "./gedcom";
 
 export interface Count { value: string; count: number }
 
@@ -21,7 +21,6 @@ export interface Overview {
   places: Count[];
 }
 
-const first = (node: GedNode, tag: string) => node.children.find((c) => c.tag === tag) || null;
 const ROMAN = /^[IVXLCDM]+\.?$/;
 
 /**
@@ -31,7 +30,7 @@ const ROMAN = /^[IVXLCDM]+\.?$/;
 export function surnameOf(name: GedNode): string {
   const m = /\/([^/]*)\//.exec(name.value);
   if (m) return m[1].trim();
-  const surn = first(name, "SURN")?.value.trim();
+  const surn = childOf(name, "SURN")?.value.trim();
   if (surn) return surn;
   const words = name.value.trim().split(/\s+/);
   const last = words[words.length - 1] || "";

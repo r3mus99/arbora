@@ -6,7 +6,7 @@
 
 import { MONTHS, gedcomDay, validDateValue } from "./date";
 import { formatDate } from "./format";
-import { isAka, mainName, type GedNode } from "./gedcom";
+import { childOf, gedNode, isAka, mainName, rewritten, type GedNode } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
 
 export interface EventFields { date: string; place: string }
@@ -43,15 +43,14 @@ type EventKey = keyof typeof EVENT_TAGS;
 export const PERSON_EVENTS = Object.keys(EVENT_TAGS) as EventKey[];
 
 const DEATH_TAGS = ["DEAT", "BURI", "CREM"];
-const first = (node: GedNode, tag: string) => node.children.find((c) => c.tag === tag) || null;
 const isLink = (value: string) => /^@[^@]+@$/.test(value);
 const inlineNote = (rec: GedNode) => rec.children.find((c) => c.tag === "NOTE" && !isLink(c.value)) || null;
 
 function datePlace(ev: GedNode | null): EventFields {
-  const d = ev && first(ev, "DATE"), p = ev && first(ev, "PLAC");
+  const d = ev && childOf(ev, "DATE"), p = ev && childOf(ev, "PLAC");
   return { date: d ? d.value : "", place: p ? p.value : "" };
 }
-const eventFields = (rec: GedNode, tag: string) => datePlace(first(rec, tag));
+const eventFields = (rec: GedNode, tag: string) => datePlace(childOf(rec, tag));
 
 /** "Ján Pavol /Kováč/ ml." → given, surname and what follows the surname */
 function splitName(value: string): { given: string; surname: string; suffix: string } {
@@ -64,8 +63,8 @@ function splitName(value: string): { given: string; surname: string; suffix: str
 function nameParts(name: GedNode | null): { given: string; surname: string } {
   let { given, surname } = splitName(name ? name.value : "");
   if (name && !given && !surname) {
-    given = first(name, "GIVN")?.value || "";
-    surname = first(name, "SURN")?.value || "";
+    given = childOf(name, "GIVN")?.value || "";
+    surname = childOf(name, "SURN")?.value || "";
   }
   return { given, surname };
 }
@@ -73,7 +72,7 @@ const akaNames = (rec: GedNode) => rec.children.filter((c) => c.tag === "NAME" &
 
 export function personFields(rec: GedNode): PersonFields {
   const { given, surname } = nameParts(mainName(rec));
-  const sex = first(rec, "SEX");
+  const sex = childOf(rec, "SEX");
   const fields: PersonFields = {
     given, surname, sex: sex ? sex.value.toUpperCase() : "",
     birth: eventFields(rec, "BIRT"), christening: eventFields(rec, "CHR"),
@@ -81,15 +80,15 @@ export function personFields(rec: GedNode): PersonFields {
     occupations: rec.children.filter((c) => c.tag === "OCCU")
       .map((c, origin) => ({ origin, value: c.value, ...datePlace(c) })),
     note: inlineNote(rec)?.value || "",
-    religion: first(rec, "RELI")?.value || "",
-    deceased: DEATH_TAGS.some((tag) => first(rec, tag)),
+    religion: childOf(rec, "RELI")?.value || "",
+    deceased: DEATH_TAGS.some((tag) => childOf(rec, tag)),
     aliases: akaNames(rec).map((n, origin) => ({ origin, ...nameParts(n) })),
   };
   return fields;
 }
 
 export function familyFields(rec: GedNode): FamilyFields {
-  return { marriage: eventFields(rec, "MARR"), divorced: !!first(rec, "DIV") };
+  return { marriage: eventFields(rec, "MARR"), divorced: !!childOf(rec, "DIV") };
 }
 
 /** Surnames, places and religions used in the file, sorted, for suggestions in the form. */
@@ -99,7 +98,7 @@ export function suggestions(records: GedNode[]): { surnames: string[]; places: s
     if (n.tag === "PLAC" && n.value) places.add(n.value);
     if (n.tag === "RELI" && n.value) religions.add(n.value);
     if (n.tag === "NAME") {
-      const s = splitName(n.value).surname || first(n, "SURN")?.value || "";
+      const s = splitName(n.value).surname || childOf(n, "SURN")?.value || "";
       if (s) surnames.add(s);
     }
     n.children.forEach(walk);
@@ -111,8 +110,6 @@ export function suggestions(records: GedNode[]): { surnames: string[]; places: s
 
 // ------------------------------------------------------------ changing nodes
 
-const node = (tag: string, value = "", children: GedNode[] = []): GedNode =>
-  ({ tag, value, xref: null, children });
 
 /** usual GEDCOM order of a person's or family's lines; new lines go to their place */
 const ORDER = ["NAME", "SEX", "HUSB", "WIFE", "BIRT", "CHR", "BAPM", "DEAT", "BURI", "CREM", "MARR", "DIV",
@@ -121,8 +118,7 @@ const LATE = new Set(["FAMC", "FAMS", "CHIL", "SOUR", "OBJE", "CHAN", "RIN", "RE
 
 /** A record with one more line `tag value`, put where GEDCOM usually has it; written anew. */
 export function addLine(rec: GedNode, tag: string, value: string): GedNode {
-  const { raw: _, ...rest } = rec;
-  return { ...rest, children: insert(rec.children, node(tag, value)) };
+  return rewritten(rec, insert(rec.children, gedNode(tag, value)));
 }
 
 function insert(children: GedNode[], added: GedNode): GedNode[] {
@@ -140,9 +136,9 @@ function setChild(parent: GedNode, tag: string, value: string, insertAt?: number
   let children: GedNode[];
   if (!value) children = i < 0 ? parent.children : parent.children.filter((_, j) => j !== i);
   else if (i >= 0) children = parent.children.map((c, j) => (j === i ? { ...c, value } : c));
-  else if (insertAt !== undefined) children = [...parent.children.slice(0, insertAt), node(tag, value),
+  else if (insertAt !== undefined) children = [...parent.children.slice(0, insertAt), gedNode(tag, value),
                                                 ...parent.children.slice(insertAt)];
-  else children = insert(parent.children, node(tag, value));
+  else children = insert(parent.children, gedNode(tag, value));
   return { ...parent, children };
 }
 
@@ -159,7 +155,7 @@ function setDatePlace(ev: GedNode, before: EventFields, after: EventFields): Ged
 function setEvent(rec: GedNode, tag: string, before: EventFields, after: EventFields): GedNode {
   if (before.date === after.date && before.place === after.place) return rec;
   const i = rec.children.findIndex((c) => c.tag === tag);
-  const ev = setDatePlace(i >= 0 ? rec.children[i] : node(tag), before, after);
+  const ev = setDatePlace(i >= 0 ? rec.children[i] : gedNode(tag), before, after);
   // an event left without anything in it ("1 DEAT Y" says the person died, so it stays)
   const empty = !ev.children.length && !ev.value;
   if (i < 0) return empty ? rec : { ...rec, children: insert(rec.children, ev) };
@@ -175,9 +171,9 @@ function setName(rec: GedNode, before: PersonFields, after: PersonFields): GedNo
   const old = i >= 0 ? rec.children[i] : null;
   const suffix = old ? splitName(old.value).suffix : "";
   const value = [given, `/${surname}/`, suffix].filter(Boolean).join(" ");
-  let name = old ? { ...old, value } : node("NAME", value);
-  if (old && first(old, "GIVN") || given && !old) name = setChild(name, "GIVN", given);
-  if (old && first(old, "SURN") || surname && !old) name = setChild(name, "SURN", surname);
+  let name = old ? { ...old, value } : gedNode("NAME", value);
+  if (old && childOf(old, "GIVN") || given && !old) name = setChild(name, "GIVN", given);
+  if (old && childOf(old, "SURN") || surname && !old) name = setChild(name, "SURN", surname);
   if (!given && !surname && !old) return rec;
   return { ...rec, children: old ? rec.children.map((c, j) => (j === i ? name : c)) : insert(rec.children, name) };
 }
@@ -185,9 +181,9 @@ function setName(rec: GedNode, before: PersonFields, after: PersonFields): GedNo
 /** A NAME value and its GIVN/SURN lines set to the given name and surname; the suffix stays. */
 function nameNode(old: GedNode | null, given: string, surname: string): GedNode {
   const value = [given, `/${surname}/`, old ? splitName(old.value).suffix : ""].filter(Boolean).join(" ");
-  let name = old ? { ...old, value } : node("NAME", value);
-  if (old && first(old, "GIVN")) name = setChild(name, "GIVN", given);
-  if (old && first(old, "SURN")) name = setChild(name, "SURN", surname);
+  let name = old ? { ...old, value } : gedNode("NAME", value);
+  if (old && childOf(old, "GIVN")) name = setChild(name, "GIVN", given);
+  if (old && childOf(old, "SURN")) name = setChild(name, "SURN", surname);
   return name;
 }
 
@@ -210,7 +206,7 @@ function setAliases(rec: GedNode, before: Alias[], after: Alias[]): GedNode {
   let out = { ...rec, children };
   for (const row of rows.filter((a) => a.origin < 0)) {
     const added = nameNode(null, row.given, row.surname);
-    out = { ...out, children: insert(out.children, { ...added, children: [node("TYPE", "aka")] }) };
+    out = { ...out, children: insert(out.children, { ...added, children: [gedNode("TYPE", "aka")] }) };
   }
   return out;
 }
@@ -234,7 +230,7 @@ function setOccupations(rec: GedNode, before: Occupation[], after: Occupation[])
   }
   let out = { ...rec, children };
   for (const row of rows.filter((o) => o.origin < 0)) {
-    out = { ...out, children: insert(out.children, setDatePlace(node("OCCU", row.value), { date: "", place: "" }, row)) };
+    out = { ...out, children: insert(out.children, setDatePlace(gedNode("OCCU", row.value), { date: "", place: "" }, row)) };
   }
   return out;
 }
@@ -242,15 +238,15 @@ function setOccupations(rec: GedNode, before: Occupation[], after: Occupation[])
 function setNote(rec: GedNode, text: string): GedNode {
   const note = inlineNote(rec);
   const value = text.replace(/\r\n?/g, "\n").trim();
-  if (!note) return value ? { ...rec, children: insert(rec.children, node("NOTE", value)) } : rec;
+  if (!note) return value ? { ...rec, children: insert(rec.children, gedNode("NOTE", value)) } : rec;
   return { ...rec, children: value ? rec.children.map((c) => (c === note ? { ...c, value } : c))
                                    : rec.children.filter((c) => c !== note) };
 }
 
 /** "1 DEAT Y" for a death without any details, removed again when unticked */
 function setDeceased(rec: GedNode, before: boolean, after: boolean): GedNode {
-  const dead = DEATH_TAGS.some((tag) => first(rec, tag));
-  if (after && !dead) return { ...rec, children: insert(rec.children, node("DEAT", "Y")) };
+  const dead = DEATH_TAGS.some((tag) => childOf(rec, tag));
+  if (after && !dead) return { ...rec, children: insert(rec.children, gedNode("DEAT", "Y")) };
   if (!after && before) {
     const bare = (c: GedNode) => c.tag === "DEAT" && c.value === "Y" && !c.children.length;
     if (rec.children.some(bare)) return { ...rec, children: rec.children.filter((c) => !bare(c)) };
@@ -273,20 +269,16 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   out = setAliases(out, before.aliases, after.aliases);
   if (after.religion.trim() !== before.religion) out = setChild(out, "RELI", after.religion.trim());
   if (after.note.trim() !== before.note.trim()) out = setNote(out, after.note);
-  if (out === rec) return rec;
-  const { raw: _, ...rest } = out;
-  return rest;
+  return out === rec ? rec : rewritten(out);
 }
 
 export function applyFamily(rec: GedNode, before: FamilyFields, after: FamilyFields): GedNode {
   let out = setEvent(rec, "MARR", before.marriage, tidy(after.marriage));
   if (after.divorced !== before.divorced) {
-    out = after.divorced ? { ...out, children: insert(out.children, node("DIV", "Y")) }
+    out = after.divorced ? { ...out, children: insert(out.children, gedNode("DIV", "Y")) }
                          : { ...out, children: out.children.filter((c) => c.tag !== "DIV") };
   }
-  if (out === rec) return rec;
-  const { raw: _, ...rest } = out;
-  return rest;
+  return out === rec ? rec : rewritten(out);
 }
 
 // ------------------------------------------------------------ dates
@@ -403,9 +395,9 @@ export interface Writer { version: string; date: Date }
 /** HEAD saying the file was saved by Arbora at that time; the old SOUR and DATE are replaced */
 function stampHead(head: GedNode, w: Writer): GedNode {
   const d = w.date, pad = (n: number) => String(n).padStart(2, "0");
-  const sour = node("SOUR", "ARBORA", [node("VERS", w.version), node("NAME", "Arbora")]);
-  const date = node("DATE", gedcomDay(d),
-                    [node("TIME", `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`)]);
+  const sour = gedNode("SOUR", "ARBORA", [gedNode("VERS", w.version), gedNode("NAME", "Arbora")]);
+  const date = gedNode("DATE", gedcomDay(d),
+                    [gedNode("TIME", `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`)]);
   let children = head.children;
   for (const added of [sour, date]) {
     const i = children.findIndex((c) => c.tag === added.tag);
@@ -417,7 +409,7 @@ function stampHead(head: GedNode, w: Writer): GedNode {
       children = [...children.slice(0, at), added, ...children.slice(at)];
     }
   }
-  return { tag: head.tag, value: head.value, xref: head.xref, children };
+  return rewritten(head, children);
 }
 
 /**
@@ -428,8 +420,8 @@ export function writeGedcom(records: GedNode[], eol = "\n", writer?: Writer): st
   const lines: string[] = [];
   for (let rec of records) {
     if (rec.tag === "HEAD") {
-      const char = first(rec, "CHAR");
-      if (char && char.value.toUpperCase() !== "UTF-8") rec = { ...setChild(rec, "CHAR", "UTF-8"), raw: undefined };
+      const char = childOf(rec, "CHAR");
+      if (char && char.value.toUpperCase() !== "UTF-8") rec = rewritten(setChild(rec, "CHAR", "UTF-8"));
       if (writer) rec = stampHead(rec, writer);
     }
     lines.push(...recordLines(rec));

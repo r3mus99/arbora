@@ -4,7 +4,7 @@
  * Lieszkovicz), found as groups and renamed to one chosen spelling.
  */
 
-import { fold, isAka, type GedNode } from "./gedcom";
+import { childrenOf, fold, gedNode, isAka, rewritten, type GedNode } from "./gedcom";
 import { surnameOf } from "./stats";
 
 export type VariantKind = "surname" | "place";
@@ -66,7 +66,6 @@ export function similar(a: string, b: string, kind: VariantKind): boolean {
   return max > 0 && ka[0] === kb[0] && distance(ka, kb, max) <= max;
 }
 
-const children = (node: GedNode, tag: string) => node.children.filter((c) => c.tag === tag);
 
 /** The town of a PLAC value and what stays around it: "Lieskovice 22, Senica" → ["", "Lieskovice", " 22, Senica"]. */
 function splitPlace(value: string): [string, string, string] {
@@ -87,7 +86,7 @@ export function spellings(records: GedNode[], kind: VariantKind): Map<string, st
   for (const rec of records) {
     if (!rec.xref || (rec.tag !== "INDI" && rec.tag !== "FAM")) continue;
     if (kind === "surname") {
-      if (rec.tag === "INDI") children(rec, "NAME").filter((n) => !isAka(n)).forEach((n) => count(surnameOf(n), rec.xref!));
+      if (rec.tag === "INDI") childrenOf(rec, "NAME").filter((n) => !isAka(n)).forEach((n) => count(surnameOf(n), rec.xref!));
       continue;
     }
     const walk = (node: GedNode) => {
@@ -131,9 +130,7 @@ function mapNode(node: GedNode, change: (n: GedNode) => GedNode): GedNode {
     if (next !== c) changed = true;
     return next;
   });
-  if (!changed) return node;
-  const { raw: _, ...rest } = node;
-  return { ...rest, children: kids };
+  return changed ? rewritten(node, kids) : node;
 }
 
 /** One NAME with its surname renamed, in the slashes, in SURN, or as the last word. */
@@ -142,7 +139,7 @@ function renameSurname(name: GedNode, from: Set<string>, to: string): GedNode {
   if (!from.has(old)) return name;
   let value = name.value;
   if (/\/[^/]*\//.test(value)) value = value.replace(/\/([^/]*)\//, (all, s: string) => (s.trim() === old ? `/${to}/` : all));
-  else if (!children(name, "SURN").some((c) => c.value.trim() === old)) value = value.replace(/\S+(\s*)$/, `${to}$1`);
+  else if (!childrenOf(name, "SURN").some((c) => c.value.trim() === old)) value = value.replace(/\S+(\s*)$/, `${to}$1`);
   const kids = name.children.map((c) => (c.tag === "SURN" && from.has(c.value.trim()) ? { ...c, value: to } : c));
   return { ...name, value, children: kids };
 }
@@ -184,7 +181,7 @@ function renameSurnames(records: GedNode[], from: Set<string>, to: string, keepO
   let changed = false;
   const out = records.map((rec) => {
     if (rec.tag !== "INDI" || !rec.xref) return rec;
-    const known = new Set(children(rec, "NAME").filter(isAka).map((n) => n.value.replace(/\s+/g, " ").trim()));
+    const known = new Set(childrenOf(rec, "NAME").filter(isAka).map((n) => n.value.replace(/\s+/g, " ").trim()));
     let touched = false;
     const kids = rec.children.flatMap((c) => {
       if (c.tag !== "NAME" || isAka(c)) return [c];
@@ -194,9 +191,9 @@ function renameSurnames(records: GedNode[], from: Set<string>, to: string, keepO
       const old = c.value.replace(/\s+/g, " ").trim();
       if (!keepOld || known.has(old)) return [next];
       known.add(old);
-      const aka: GedNode = { tag: "NAME", value: c.value, xref: null, children: [
+      const aka = gedNode("NAME", c.value, [
         ...c.children.filter((k) => k.tag === "GIVN" || k.tag === "SURN" || k.tag === "NPFX" || k.tag === "NSFX"),
-        { tag: "TYPE", value: "aka", xref: null, children: [] }] };
+        gedNode("TYPE", "aka")]);
       return [next, aka];
     });
     if (!touched) return rec;
@@ -204,8 +201,7 @@ function renameSurnames(records: GedNode[], from: Set<string>, to: string, keepO
     // an aka that is now the name itself (renamed back) is not needed
     const norm = (n: GedNode) => n.value.replace(/\s+/g, " ").trim();
     const main = new Set(kids.filter((k) => k.tag === "NAME" && !isAka(k)).map(norm));
-    const { raw: _, ...rest } = rec;
-    return { ...rest, children: kids.filter((k) => k.tag !== "NAME" || !isAka(k) || !main.has(norm(k))) };
+    return rewritten(rec, kids.filter((k) => k.tag !== "NAME" || !isAka(k) || !main.has(norm(k))));
   });
   return changed ? out : records;
 }
