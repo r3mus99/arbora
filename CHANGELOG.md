@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Bulk fix of places now covers the whole place, not just the town: "Ostbach",
+  "Ostbach 19" and "Ostbach, District, Region, Country" (also with the region or
+  country in another language) are grouped as one place and unified as a whole.
+  Spellings with another house number or another known country (e.g. Czechoslovakia
+  next to Slovakia) are kept unless you choose to replace them.
 - Search also finds people by year: typing 1894 (or just 189) matches the year of
   birth or death, alone or together with a name.
 

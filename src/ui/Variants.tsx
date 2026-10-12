@@ -1,7 +1,7 @@
 import { ArrowRight, ChevronDown, ChevronRight, Eye, EyeOff, SpellCheck, WandSparkles, X } from "lucide-react";
 import { useState } from "react";
 import type { GedcomData } from "../core/gedcom";
-import type { VariantGroup, VariantKind } from "../core/variants";
+import { keptByDefault, type VariantGroup, type VariantKind } from "../core/variants";
 import type { StringKey } from "./i18n";
 
 type T = (key: StringKey, vars?: Record<string, string | number>) => string;
@@ -36,7 +36,7 @@ function RecordLink({ id, data, onFocus, t }: { id: string; data: GedcomData; on
 function Group({ group, data, hidden, onRename, onHide, onFocus, t, listId }:
                Omit<Props, "groups" | "values" | "kind" | "keepAka" | "onKeepAka"> & { group: VariantGroup; listId: string }) {
   const [target, setTarget] = useState(group.variants[0].value);
-  const [kept, setKept] = useState<Set<string>>(new Set());
+  const [kept, setKept] = useState<Set<string>>(() => keptByDefault(group, group.variants[0].value));
   const [open, setOpen] = useState(false);
   const replaced = group.variants.filter((v) => v.value !== target.trim() && !kept.has(v.value));
   const affected = [...new Set(replaced.flatMap((v) => v.records))];
