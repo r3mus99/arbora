@@ -91,7 +91,6 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.lang = lang;
-    document.title = "Arbora – GEDCOM";
   }, [lang]);
 
   const changeLang = (code: Lang) => {
@@ -411,7 +410,7 @@ export function App() {
               PDF</button>
             <span className="sep" aria-hidden="true" />
             <button type="button" className="icon-btn" onClick={() => settingsRef.current?.showModal()}
-                    title={t("step3")} aria-label={t("step3")}><Settings className="icon" aria-hidden="true" /></button>
+                    title={t("settings")} aria-label={t("settings")}><Settings className="icon" aria-hidden="true" /></button>
           </div>}
           <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
         </div>

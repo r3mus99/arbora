@@ -152,7 +152,7 @@ export async function generate(data: GedcomData, rootId: string, options: Partia
                                fonts: Fonts): Promise<ChartResult> {
   const o = normalize(options);
   const root = data.people[rootId];
-  if (!root) throw new Error(`Osoba ${rootId} neexistuje.`);
+  if (!root) throw new Error(`Person ${rootId} does not exist.`);
 
   const desc = o.chart === "descendants";
   const rows = chartRows(data, rootId, o);

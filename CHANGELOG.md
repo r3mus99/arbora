@@ -33,6 +33,10 @@
   number of issues.
 
 ### Development
+- Seven page texts that no code used any more are gone from all twelve
+  languages, `step3` is now `settings`, and the error for an unknown person
+  in the PDF is in English like the rest of the code.
+- The browser tab keeps the title from `index.html` instead of replacing it.
 - `App.tsx` is smaller: the undo/redo and back/forward histories are plain
   functions (`src/ui/history.ts`), the chart options and how they are read
   from the browser are in `src/ui/options.ts` (a stored option with a value
