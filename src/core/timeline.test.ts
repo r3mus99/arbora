@@ -80,3 +80,33 @@ test("a life in date order, undated events after the one before them", () => {
   expect(items[1].divorced).toBe(true);
   expect(timeline(data, "@I3@", null).map((i) => i.kind)).toEqual(["birth"]);
 });
+
+test("undated death goes after dated events, even when children are listed out of order", () => {
+  const ged = `0 HEAD
+0 @I1@ INDI
+1 NAME Hugo /Brandt/
+1 BIRT
+2 DATE 1820
+1 DEAT Y
+1 FAMS @F1@
+0 @I2@ INDI
+1 NAME Ida /Fox/
+1 FAMS @F1@
+${[1862, 1849, 1888, 1855].map((y, n) => `0 @C${n}@ INDI\n1 NAME Kid${n} /Brandt/\n1 BIRT\n2 DATE ${y}\n1 FAMC @F1@`).join("\n")}
+0 @F1@ FAM
+1 HUSB @I1@
+1 WIFE @I2@
+1 MARR
+2 DATE 1845
+${[0, 1, 2, 3].map((n) => `1 CHIL @C${n}@`).join("\n")}
+0 TRLR
+`;
+  const records = parseGedcom(ged);
+  const data = readRecords(records);
+  const fields = personFields(records.find((r) => r.xref === "@I1@")!);
+  const kinds = timeline(data, "@I1@", fields).map((i) => i.kind);
+  expect(kinds).toEqual(["birth", "marriage", "child", "child", "child", "child", "death"]);
+  // undated burial after an undated death, dated burial after both
+  fields.burial = { ...fields.burial, place: "Greenfield" };
+  expect(timeline(data, "@I1@", fields).map((i) => i.kind).slice(-2)).toEqual(["death", "burial"]);
+});

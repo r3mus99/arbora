@@ -59,12 +59,20 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
   add("death", fields ? fields.death : p.death, "death", null, false, deceased);
   if (fields) add("burial", fields.burial, "burial");
 
-  // undated events take the place of the event before them
+  // Undated marriages and children take the place of the event before them; an undated birth
+  // or christening goes first, an undated death after every dated event except the burial,
+  // and an undated burial last.
+  const dated = items.map((item) => sortKey(item.date));
+  const latest = Math.max(-Infinity, ...dated.filter((k, i): k is number => k !== null && items[i].kind !== "burial"));
   let last = -Infinity;
-  const keyed = items.map((item, i) => {
-    const k = sortKey(item.date);
+  const ranked = items.map((item, i) => {
+    let k = dated[i];
     if (k !== null) last = k;
-    return { item, k: k ?? last, i };
+    else if (item.kind === "birth" || item.kind === "christening") k = -Infinity;
+    else if (item.kind === "death") k = latest;
+    else if (item.kind === "burial") k = Infinity;
+    else k = last;
+    return { item, k, i };
   });
-  return keyed.sort((a, b) => a.k - b.k || a.i - b.i).map((x) => x.item);
+  return ranked.sort((a, b) => a.k - b.k || a.i - b.i).map((x) => x.item);
 }
