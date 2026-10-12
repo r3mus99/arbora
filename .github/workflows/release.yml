@@ -1,0 +1,38 @@
+name: GitHub release
+
+# Publishes a release with the notes from CHANGELOG.md when the version in
+# package.json has no release yet. Runs on every push to main, so merging a
+# version bump is enough.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create the release if it does not exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(node -p "require('./package.json').version")
+          tag="v$version"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag exists."
+            exit 0
+          fi
+          # the CHANGELOG section of this version, without its heading
+          awk -v v="$version" '
+            /^## / { if (found) exit; found = index($0, "## " v " ") == 1; next }
+            found { print }
+          ' CHANGELOG.md > notes.md
+          if ! grep -q '[^[:space:]]' notes.md; then
+            echo "CHANGELOG.md has no section for $version." >&2
+            exit 1
+          fi
+          gh release create "$tag" --target "$GITHUB_SHA" --title "Arbora $version" --notes-file notes.md
