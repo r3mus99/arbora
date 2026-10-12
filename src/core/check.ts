@@ -138,7 +138,9 @@ export function checkGedcom(records: GedNode[]): Issue[] {
       if (fd && before(plusYears(fd, 1), cb)) add("afterFather", "warn", c, { id: c, other: father });
     }
   }
-  for (const i of issues) i.fixable = fixIssue(records, i) !== records;
+  // whether each one can be fixed, without building the fixed file for each
+  const at = indexOf(records);
+  for (const i of issues) i.fixable = changes(records, repair(records, i, at));
   return issues;
 }
 
@@ -157,46 +159,65 @@ function setDates(node: GedNode, tag: string, from: string, to: string): GedNode
   return changed ? rewritten(node, children) : node;
 }
 
+/** One repair: a record replaced at an index, or a new one at the start or the end. */
+type Repair = { at: number; rec: GedNode } | { add: "start" | "end"; rec: GedNode };
+
+/** Index of the (first) record with each ID. */
+function indexOf(records: GedNode[]): (id: string) => number {
+  const index = new Map<string, number>();
+  records.forEach((r, i) => { if (r.xref && !index.has(r.xref)) index.set(r.xref, i); });
+  return (id) => index.get(id) ?? -1;
+}
+
+/** How to repair one issue, or null when it cannot be done safely. */
+function repair(records: GedNode[], issue: Issue, at: (id: string) => number): Repair | null {
+  const a = issue.args;
+  switch (issue.kind) {
+    case "noHead":
+      return { add: "start", rec: gedNode("HEAD", "", [
+        gedNode("GEDC", "", [gedNode("VERS", "5.5.1"), gedNode("FORM", "LINEAGE-LINKED")]), gedNode("CHAR", "UTF-8")]) };
+    case "noTrlr":
+      return { add: "end", rec: gedNode("TRLR") };
+    case "missingRef": {
+      const i = at(a.id);
+      return i < 0 ? null : { at: i, rec: without(records[i], (c) => c.tag === a.tag && c.value === a.value) };
+    }
+    case "oneWay": {
+      // a person's FAMC/FAMS: the family gets CHIL, HUSB or WIFE
+      if (a.tag === "FAMC" || a.tag === "FAMS") {
+        const i = at(a.value), p = records[at(a.id)];
+        if (i < 0 || !p) return null;
+        const sex = p.children.find((c) => c.tag === "SEX")?.value.toUpperCase();
+        const role = a.tag === "FAMC" ? "CHIL" : sex === "M" ? "HUSB" : sex === "F" ? "WIFE" : "";
+        if (!role || role !== "CHIL" && records[i].children.some((c) => c.tag === role)) return null;
+        return { at: i, rec: addLine(records[i], role, a.id) };
+      }
+      // a family's HUSB/WIFE/CHIL: the person gets FAMS or FAMC
+      const i = at(a.value);
+      return i < 0 ? null : { at: i, rec: addLine(records[i], a.tag === "CHIL" ? "FAMC" : "FAMS", a.id) };
+    }
+    case "badDate": {
+      const fixed = isoToGedcom(a.value);
+      const i = at(a.id);
+      if (fixed === a.value || !validDateValue(fixed) || i < 0) return null;
+      return { at: i, rec: setDates(records[i], a.tag, a.value, fixed.toUpperCase()) };
+    }
+    default:
+      return null;
+  }
+}
+
+/** A repair that changes nothing is no repair. */
+const changes = (records: GedNode[], r: Repair | null): r is Repair => !!r && !("at" in r && r.rec === records[r.at]);
+
 /**
  * The records with one issue repaired, or the same array when it cannot be done
  * safely: a missing header or trailer is added, a link to nothing removed, a missing
  * link back added, and a date like 1885-12-12 rewritten as 12 DEC 1885.
  */
 export function fixIssue(records: GedNode[], issue: Issue): GedNode[] {
-  const a = issue.args;
-  const at = (id: string) => records.findIndex((r) => r.xref === id);
-  const swap = (i: number, rec: GedNode) => (rec === records[i] ? records : records.map((r, j) => (j === i ? rec : r)));
-  switch (issue.kind) {
-    case "noHead":
-      return [gedNode("HEAD", "", [gedNode("GEDC", "", [gedNode("VERS", "5.5.1"), gedNode("FORM", "LINEAGE-LINKED")]),
-                                   gedNode("CHAR", "UTF-8")]), ...records];
-    case "noTrlr":
-      return [...records, gedNode("TRLR")];
-    case "missingRef": {
-      const i = at(a.id);
-      return i < 0 ? records : swap(i, without(records[i], (c) => c.tag === a.tag && c.value === a.value));
-    }
-    case "oneWay": {
-      // a person's FAMC/FAMS: the family gets CHIL, HUSB or WIFE
-      if (a.tag === "FAMC" || a.tag === "FAMS") {
-        const i = at(a.value), p = records[at(a.id)];
-        if (i < 0 || !p) return records;
-        const sex = p.children.find((c) => c.tag === "SEX")?.value.toUpperCase();
-        const role = a.tag === "FAMC" ? "CHIL" : sex === "M" ? "HUSB" : sex === "F" ? "WIFE" : "";
-        if (!role || role !== "CHIL" && records[i].children.some((c) => c.tag === role)) return records;
-        return swap(i, addLine(records[i], role, a.id));
-      }
-      // a family's HUSB/WIFE/CHIL: the person gets FAMS or FAMC
-      const i = at(a.value);
-      return i < 0 ? records : swap(i, addLine(records[i], a.tag === "CHIL" ? "FAMC" : "FAMS", a.id));
-    }
-    case "badDate": {
-      const fixed = isoToGedcom(a.value);
-      const i = at(a.id);
-      if (fixed === a.value || !validDateValue(fixed) || i < 0) return records;
-      return swap(i, setDates(records[i], a.tag, a.value, fixed.toUpperCase()));
-    }
-    default:
-      return records;
-  }
+  const r = repair(records, issue, indexOf(records));
+  if (!changes(records, r)) return records;
+  if ("add" in r) return r.add === "start" ? [r.rec, ...records] : [...records, r.rec];
+  return records.map((rec, j) => (j === r.at ? r.rec : rec));
 }

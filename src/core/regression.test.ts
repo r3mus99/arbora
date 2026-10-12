@@ -278,3 +278,38 @@ describe("PDF layout", () => {
     expect(wide).toMatchObject({ shrunk: false, fontSize: 12 });
   });
 });
+
+describe("speed on a large file", () => {
+  // 10 000 made-up people with many spellings and broken links; the work after every edit
+  // must stay well under a second (it took tens of seconds while every pair was compared)
+  const SYL = ["ka", "no", "va", "ri", "lo", "mi", "še", "ta", "ber", "ko", "la", "ny", "sz", "cz", "ová", "ská"];
+  let seed = 7;
+  const random = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+  const word = (n: number) => Array.from({ length: n }, () => SYL[Math.floor(random() * SYL.length)]).join("");
+  const cap = (s: string) => s[0].toUpperCase() + s.slice(1);
+  const lines = ["0 HEAD"];
+  for (let k = 1; k <= 10000; k++) {
+    lines.push(`0 @I${k}@ INDI`, `1 NAME Jan /${cap(word(2 + (k % 3)))}/`, "1 SEX M", "1 BIRT",
+               `2 DATE ${k % 2 ? "1890-05-01" : "1 MAY 1890"}`, `2 PLAC ${cap(word(2 + (k % 4)))}, Kraj`,
+               `1 FAMS @F${k}@`, `0 @F${k}@ FAM`, `1 WIFE @X${k}@`);
+  }
+  lines.push("0 TRLR");
+  const records = parseGedcom(lines.join("\n"));
+  const timed = <T>(run: () => T): [T, number] => {
+    const start = performance.now();
+    const out = run();
+    return [out, performance.now() - start];
+  };
+
+  test("spelling variants", () => {
+    const [groups, ms] = timed(() => [...variantGroups(records, "surname"), ...variantGroups(records, "place")]);
+    expect(groups.length).toBeGreaterThan(10);
+    expect(ms).toBeLessThan(1500);
+  });
+
+  test("file check", () => {
+    const [issues, ms] = timed(() => checkGedcom(records));
+    expect(issues.filter((i) => i.fixable).length).toBeGreaterThan(10000);
+    expect(ms).toBeLessThan(1500);
+  });
+});

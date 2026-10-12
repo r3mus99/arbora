@@ -53,19 +53,38 @@ const feminine = (s: string) => /(ov[áa]|á|[csz]ka)$/i.test(s.trim());
 /** the part of a surname to compare: without -ová, so Gaňová and Galová are as far apart as Gaň and Gal */
 const stem = (s: string) => s.trim().replace(/ov[áa]$/i, "");
 
-/** Two spellings that are most likely the same name. */
-export function similar(a: string, b: string, kind: VariantKind): boolean {
-  if (a === b) return false;
-  if (kind === "surname" && feminine(a) !== feminine(b)) return false;
-  const ka = spellingKey(kind === "surname" ? stem(a) : a), kb = spellingKey(kind === "surname" ? stem(b) : b);
-  if (!ka || !kb) return false;
-  if (ka === kb) return true;
+/** What two spellings are compared by: the spelling key (of the stem for surnames) and, for surnames, the gender. */
+interface Keyed { key: string; fem: boolean }
+const keyed = (value: string, kind: VariantKind): Keyed =>
+  kind === "surname" ? { key: spellingKey(stem(value)), fem: feminine(value) } : { key: spellingKey(value), fem: false };
+
+/** Two spellings whose keys say they are most likely the same name. */
+function similarKeys(a: Keyed, b: Keyed, kind: VariantKind): boolean {
+  if (a.fem !== b.fem || !a.key || !b.key) return false;
+  if (a.key === b.key) return true;
   // short names differ in a letter too often to be the same (Novák, Nosák; Lindau, Landau)
-  const len = Math.min(ka.length, kb.length);
+  const len = Math.min(a.key.length, b.key.length);
   const max = len >= 11 ? 2 : len >= (kind === "place" ? 7 : 6) ? 1 : 0;
-  return max > 0 && ka[0] === kb[0] && distance(ka, kb, max) <= max;
+  return max > 0 && a.key[0] === b.key[0] && distance(a.key, b.key, max) <= max;
 }
 
+/** The word and every string left after deleting up to `most` of its letters. */
+function deletions(word: string, most: number): Set<string> {
+  let level = new Set([word]);
+  const all = new Set(level);
+  for (let d = 0; d < most; d++) {
+    const next = new Set<string>();
+    for (const w of level) for (let i = 0; i < w.length; i++) next.add(w.slice(0, i) + w.slice(i + 1));
+    next.forEach((w) => all.add(w));
+    level = next;
+  }
+  return all;
+}
+
+/** Two spellings that are most likely the same name. */
+export function similar(a: string, b: string, kind: VariantKind): boolean {
+  return a !== b && similarKeys(keyed(a, kind), keyed(b, kind), kind);
+}
 
 /** The town of a PLAC value and what stays around it: "Lieskovice 22, Senica" → ["", "Lieskovice", " 22, Senica"]. */
 function splitPlace(value: string): [string, string, string] {
@@ -102,12 +121,41 @@ export function spellings(records: GedNode[], kind: VariantKind): Map<string, st
 export function variantGroups(records: GedNode[], kind: VariantKind): VariantGroup[] {
   const used = spellings(records, kind);
   const values = [...used.keys()];
-  // union–find over similar pairs; values sorted by key so the pairs to compare are near
   const parent = values.map((_, i) => i);
   const root = (i: number): number => (parent[i] === i ? i : (parent[i] = root(parent[i])));
-  for (let i = 0; i < values.length; i++) {
-    for (let j = i + 1; j < values.length; j++) {
-      if (similar(values[i], values[j], kind)) parent[root(j)] = root(i);
+  const join = (i: number, j: number) => { parent[root(j)] = root(i); };
+  // spellings with the same key are one name at once; only different keys are compared
+  const byKey = new Map<string, { k: Keyed; first: number }>();
+  values.forEach((value, i) => {
+    const k = keyed(value, kind);
+    if (!k.key) return;
+    const id = `${k.fem}|${k.key}`;
+    const known = byKey.get(id);
+    if (known) join(known.first, i); else byKey.set(id, { k, first: i });
+  });
+  // keys within edit distance d share a string left after at most d deletions from each,
+  // so only keys that share such a string are compared (a key may differ in 2 letters
+  // when it has 11 or more, in 1 when it has 6 or more, else not at all)
+  const near = new Map<string, number[]>();
+  const entries = [...byKey.values()];
+  entries.forEach((entry, n) => {
+    const key = entry.k.key;
+    const most = key.length >= 11 ? 2 : key.length >= 6 ? 1 : 0;
+    for (const variant of deletions(key, most)) {
+      const list = near.get(`${entry.k.fem}|${variant}`);
+      if (list) list.push(n); else near.set(`${entry.k.fem}|${variant}`, [n]);
+    }
+  });
+  const compared = new Set<string>();
+  for (const list of near.values()) {
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        const pair = `${list[i]},${list[j]}`;
+        if (compared.has(pair)) continue;
+        compared.add(pair);
+        const a = entries[list[i]], b = entries[list[j]];
+        if (similarKeys(a.k, b.k, kind)) join(a.first, b.first);
+      }
     }
   }
   const groups = new Map<number, Variant[]>();
