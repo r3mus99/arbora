@@ -17,6 +17,14 @@
   and a batch rename changes any spelling to another. The overview splits
   problems into issues, surnames and places.
 
+### Development
+- Regression tests that must keep passing through the 1.1 refactoring: GEDCOM
+  written anew is the same as the original, an edit undone gives the same file,
+  every one-click fix removes its issue without adding another, unified
+  spellings stay unified, long lines shrink the PDF font, and every UI language
+  has every text.
+- Linting with oxlint and a coverage threshold for the core, both run in CI.
+
 ## 1.0.0 – 2026-10-11
 
 First release under the name Arbora (the earlier gedcom-to-pdf versions are

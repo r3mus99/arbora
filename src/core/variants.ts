@@ -78,7 +78,7 @@ export const townOf = (place: string) => splitPlace(place)[1];
 /** Every surname or town in the records, with the records that use it. */
 export function spellings(records: GedNode[], kind: VariantKind): Map<string, string[]> {
   const out = new Map<string, string[]>();
-  const use = (value: string, id: string) => {
+  const count = (value: string, id: string) => {
     if (!value) return;
     const list = out.get(value) || [];
     if (list[list.length - 1] !== id) list.push(id);
@@ -87,11 +87,11 @@ export function spellings(records: GedNode[], kind: VariantKind): Map<string, st
   for (const rec of records) {
     if (!rec.xref || (rec.tag !== "INDI" && rec.tag !== "FAM")) continue;
     if (kind === "surname") {
-      if (rec.tag === "INDI") children(rec, "NAME").forEach((n) => use(surnameOf(n), rec.xref!));
+      if (rec.tag === "INDI") children(rec, "NAME").forEach((n) => count(surnameOf(n), rec.xref!));
       continue;
     }
     const walk = (node: GedNode) => {
-      if (node.tag === "PLAC") use(townOf(node.value), rec.xref!);
+      if (node.tag === "PLAC") count(townOf(node.value), rec.xref!);
       node.children.forEach(walk);
     };
     rec.children.forEach(walk);
