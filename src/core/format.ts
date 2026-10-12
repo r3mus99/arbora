@@ -46,7 +46,7 @@ type EventKind = keyof typeof SYMBOLS;
 export function formatDMY(lang: Lang, d: number | null, m: number, y: number): string {
   const t = TEXTS[lang];
   const pad = (n: number | null) => String(n).padStart(2, "0");
-  const vars = { d: String(d), m, y, dd: pad(d), mm: pad(m), M: t.months ? t.months[m - 1] : m };
+  const vars = { d: String(d), m, y, dd: pad(d), mm: pad(m), M: t.months[m - 1] };
   return fmt(d ? t.date.dmy : t.date.my, vars);
 }
 

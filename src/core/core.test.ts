@@ -71,12 +71,21 @@ describe("formatting", () => {
     ["AFT 1800", "po 1800", "aft 1800"],
     ["BET 1903 AND 1905", "1903–1905", "1903–1905"],
     ["14 MAY 1991", "14.5.1991", "14 May 1991"],
-    ["MAY 1991", "5/1991", "May 1991"],
+    ["MAY 1991", "Máj 1991", "May 1991"],
+    ["OCT 1961", "Okt. 1961", "Oct 1961"],
+    ["ABT OCT 1961", "cca Okt. 1961", "abt Oct 1961"],
     ["1991-05-14", "14.5.1991", "14 May 1991"],
     ["(neznámy)", "neznámy", "neznámy"],
   ])("%s", (raw, sk, en) => {
     expect(formatDate(raw, true, "sk")).toBe(sk);
     expect(formatDate(raw, true, "en")).toBe(en);
+  });
+
+  test("a month without a day is shown with the month name in every language", () => {
+    expect(formatDate("OCT 1961", true, "de")).toBe("Okt. 1961");
+    expect(formatDate("OCT 1961", true, "hu")).toBe("1961. okt.");
+    expect(formatDate("OCT 1961", true, "uk")).toBe("жовт. 1961");
+    for (const lang of LANGS) expect(formatDate("OCT 1961", true, lang), lang).not.toMatch(/\b10\b/);
   });
 
   test("year only", () => {

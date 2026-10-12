@@ -361,6 +361,17 @@ export function App() {
     }
   }
 
+  // the height of the sticky top bar, for what has to stay below it
+  const headerRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const root = document.documentElement.style;
+    const ro = new ResizeObserver(() => root.setProperty("--bar-h", `${el.offsetHeight}px`));
+    ro.observe(el);
+    return () => { ro.disconnect(); root.removeProperty("--bar-h"); };
+  }, []);
+
   const pick = (id: string) => {
     select(id);
     setQuery("");
@@ -370,7 +381,7 @@ export function App() {
 
   return (
     <main className={data ? "loaded" : undefined}>
-      <header className={data ? "top bar" : "top"}>
+      <header ref={headerRef} className={data ? "top bar" : "top"}>
         <div className="brand">
           <h1><TreeDeciduous className="logo" aria-hidden="true" />Arbora</h1>
           {!data && <p className="lead">{t("lead")}</p>}
