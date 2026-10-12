@@ -54,6 +54,7 @@ export function CheckPanel({ issues, data, onFocus, onFix, onClose, variants, va
       ...a, id: (a.id || "").replace(/@/g, ""), value: a.value || "",
       event: EVENT[a.tag] ? t(EVENT[a.tag]) : a.tag, who: WHO, other: OTHER,
     });
+    // eslint-disable-next-line no-control-regex -- the markers are NUL characters on purpose, never in a text
     return text.split(/(\u0000who\u0000|\u0000other\u0000)/).map((part, k) => {
       if (part === WHO) {
         return family ? <button key={k} type="button" className="link" disabled={!i.person}
@@ -68,10 +69,10 @@ export function CheckPanel({ issues, data, onFocus, onFix, onClose, variants, va
   const sorted = [...issues].sort((x, y) => (x.level === y.level ? 0 : x.level === "error" ? -1 : 1));
 
   const tabs: [CheckTab, StringKey, ReactNode][] = [
-    ["issues", "tabIssues", <TriangleAlert className="icon" aria-hidden="true" />],
-    ["surname", "tabSurnames", <Tag className="icon" aria-hidden="true" />],
-    ["place", "tabPlaces", <MapPin className="icon" aria-hidden="true" />],
-    ["hidden", "tabHidden", <EyeOff className="icon" aria-hidden="true" />],
+    ["issues", "tabIssues", <TriangleAlert key="issues" className="icon" aria-hidden="true" />],
+    ["surname", "tabSurnames", <Tag key="surname" className="icon" aria-hidden="true" />],
+    ["place", "tabPlaces", <MapPin key="place" className="icon" aria-hidden="true" />],
+    ["hidden", "tabHidden", <EyeOff key="hidden" className="icon" aria-hidden="true" />],
   ];
   const common = { data, onRename, onHide, onFocus, t };
 

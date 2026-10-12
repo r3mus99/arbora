@@ -210,7 +210,7 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   collapse.ts       collapsed branches: which rows stay visible
   pdf.ts            page layout and PDF
   texts.ts          PDF texts in 12 languages
-  *.test.ts         tests on the sample data
+  *.test.ts         tests on the sample and made-up data
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),
                     edit form (PersonEditor), file check and bulk fix (CheckPanel, Variants), language
                     menu, UI translations (i18n.ts) and flags
@@ -222,11 +222,13 @@ Development (Node.js 22):
 ```
 npm install
 npm run dev       # http://localhost:5173
-npm test          # core tests
+npm test          # tests
+npm run coverage  # tests with the coverage of the core
+npm run lint      # oxlint
 npm run build     # the page into dist/
 ```
 
-GitHub Actions (`.github/workflows/pages.yml`) runs the tests, builds the page
+GitHub Actions (`.github/workflows/pages.yml`) runs the linter and the tests, builds the page
 and deploys it to GitHub Pages on every push to `main`; the repository setting
 is *Pages → Source: GitHub Actions*.
 
