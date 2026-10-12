@@ -2,18 +2,21 @@
   --bg: #f6f5f1; --panel: #ffffff; --text: #1d1f1c; --muted: #62675f;
   --border: #dcdad2; --accent: #2f6b4f; --accent-text: #ffffff; --accent-soft: #e3efe8;
   --danger: #a3341f; --focus: #2f6b4f55;
+  --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --zebra: #00000008;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #151714; --panel: #1f221e; --text: #e8eae4; --muted: #a0a69b;
     --border: #363a33; --accent: #6fbf95; --accent-text: #0f1a14; --accent-soft: #24352b;
     --danger: #f08a73; --focus: #6fbf9566;
+    --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --zebra: #ffffff0a;
   }
 }
 :root[data-theme="dark"] {
   --bg: #151714; --panel: #1f221e; --text: #e8eae4; --muted: #a0a69b;
   --border: #363a33; --accent: #6fbf95; --accent-text: #0f1a14; --accent-soft: #24352b;
   --danger: #f08a73; --focus: #6fbf9566;
+  --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --zebra: #ffffff0a;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -100,7 +103,9 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
         max-height: max(360px, calc(100vh - 230px));
         background: var(--bg); }
 .tree-inner { position: relative; width: max-content; min-width: 100%; padding: 6px 12px 6px 0;
-              font-size: 14px; }
+              font-size: 14px;
+              /* every second line slightly tinted (24px rows after 6px padding) */
+              background: repeating-linear-gradient(to bottom, transparent 0 24px, var(--zebra) 24px 48px) 0 6px; }
 .tree-lines { position: absolute; left: 0; top: 6px; pointer-events: none; }
 .tree-lines path { fill: none; stroke: var(--muted); stroke-width: 1; shape-rendering: crispEdges; }
 .tree-row { height: 24px; line-height: 24px; white-space: nowrap; }
@@ -109,6 +114,13 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .tree-row button:hover { background: var(--accent-soft); }
 .tree-row.root .name { font-weight: 700; }
 .tree-row.spouse { color: var(--muted); }
+.tree-row .s-num { color: var(--muted); }
+.tree-row .s-name { font-weight: 650; }
+.tree-row .s-birt { color: var(--c-birth); }
+.tree-row .s-marr { color: var(--c-marr); }
+.tree-row .s-deat { color: var(--c-death); }
+.tree-row .s-place { font-style: italic; color: var(--muted); }
+.tree-row.sel .name span { color: inherit; }
 .tree-row.sel .name { background: var(--accent); color: var(--accent-text); }
 .tree-row.flash .name { animation: flash 1.6s ease-out; }
 @keyframes flash { 0%, 40% { box-shadow: 0 0 0 4px var(--focus); } 100% { box-shadow: 0 0 0 4px transparent; } }

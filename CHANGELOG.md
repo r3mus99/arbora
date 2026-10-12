@@ -1,7 +1,13 @@
 # Changelog
 
-## Unreleased
+## 1.3.0 – 2026-10-12
 
+- The tree view is easier to scan: names are bold, birth dates green, marriages
+  gold, deaths dark brown and places muted italics, and every second line is
+  slightly tinted. Row height and layout stay the same.
+- The PDF takes over the bold names and italic places.
+- New print setting "coloured PDF" puts the dates and places in the same colours
+  on paper. It is off by default, so printouts stay black and white.
 - Bulk fix of places now covers the whole place, not just the town: "Ostbach",
   "Ostbach 19" and "Ostbach, District, Region, Country" (also with the region or
   country in another language) are grouped as one place and unified as a whole.

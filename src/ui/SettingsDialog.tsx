@@ -21,7 +21,7 @@ export function SettingsDialog({ ref, form, lang, onChange, t }: Props) {
     value: form[key] as string,
     onChange: (e: { target: { value: string } }) => onChange(key, e.target.value as Form[K]),
   });
-  const check = (key: "showSpouses" | "showDate") => ({
+  const check = (key: "showSpouses" | "showDate" | "colorPdf") => ({
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => onChange(key, e.target.checked),
   });
@@ -82,6 +82,7 @@ export function SettingsDialog({ ref, form, lang, onChange, t }: Props) {
       </div>
       <div className="checks">
         <label><input {...check("showDate")} /> <span>{t("showDate")}</span></label>
+        <label><input {...check("colorPdf")} /> <span>{t("colorPdf")}</span></label>
       </div>
     </div>
     <div className="dialog-foot"><button type="button" className="primary" onClick={() => ref.current?.close()}>

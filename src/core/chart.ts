@@ -2,7 +2,7 @@
 
 import { yearOf } from "./date";
 import type { Family, GedcomData, Person } from "./gedcom";
-import { DEFAULTS, formatEvent, label, personLine, type ChartOptions } from "./format";
+import { DEFAULTS, eventSegments, label, personSegments, type ChartOptions, type Seg } from "./format";
 import { TEXTS } from "./texts";
 
 /** Vertical connector at column `gen` from row a to row b. */
@@ -19,6 +19,8 @@ export interface Row {
   /** generation, 1 = root; also the indentation level */
   gen: number;
   text: string;
+  /** the same text in styled pieces (name, dates, places) */
+  parts: Seg[];
   /** null for a spouse line */
   personId: string | null;
   /** repeated person, not expanded again; `target` is the expanded row */
@@ -40,6 +42,8 @@ export interface Row {
 }
 
 const SELF = -1;
+
+const joined = (parts: Seg[]) => parts.map((s) => s.text).join("");
 
 /** Ancestor chart: father's line above the person, mother's below. */
 export function buildRows(rootId: string, people: Record<string, Person>,
@@ -66,7 +70,8 @@ export function buildRows(rootId: string, people: Record<string, Person>,
     }
     const number = o.numbering === "generation" ? gen
       : o.numbering === "ahnentafel" ? ahnen : null;
-    const row: Row = { gen, text: personLine(p, number, marr, o), personId: pid, dup,
+    const parts = personSegments(p, number, marr, o);
+    const row: Row = { gen, text: joined(parts), parts, personId: pid, dup,
                        tick: gen > 1, links: [], page: 0, target: null, path, ref: String(ahnen) };
     if (!dup && !expanded.has(pid)) expanded.set(pid, row);
 
@@ -108,11 +113,11 @@ function byBirth(ids: string[], people: Record<string, Person>): string[] {
   return keyed.sort((a, b) => a.k - b.k || a.i - b.i).map((x) => x.id);
 }
 
-function spouseLine(fam: Family, spouse: Person | null, o: ChartOptions): string {
+function spouseParts(fam: Family, spouse: Person | null, o: ChartOptions): Seg[] {
   const t = TEXTS[o.lang];
-  const marr = formatEvent("marr", fam.marriage, o, fam.divorced ? t.divorced : "");
-  const prefix = marr || label("marr", o).trim();
-  return `${prefix} ${personLine(spouse, null, null, o)}`;
+  const marr = eventSegments("marr", fam.marriage, o, fam.divorced ? t.divorced : "");
+  const prefix: Seg[] = marr.length ? marr : [{ text: label("marr", o).trim(), kind: "marr" }];
+  return [...prefix, { text: " ", kind: "plain" }, ...personSegments(spouse, null, null, o)];
 }
 
 /** Descendant chart: person, then (spouse and) children indented below. */
@@ -127,7 +132,8 @@ export function buildDescRows(rootId: string, people: Record<string, Person>,
     const dup = expanded.has(pid);
     const number = o.numbering === "generation" ? gen
       : o.numbering === "daboville" ? dab : null;
-    const row: Row = { gen, text: personLine(p, number, null, o), personId: pid, dup,
+    const parts = personSegments(p, number, null, o);
+    const row: Row = { gen, text: joined(parts), parts, personId: pid, dup,
                        tick: gen > 1, links: [], page: 0, target: null, path: dab, ref: dab };
     rows.push(row);
     const self = rows.length - 1;
@@ -153,7 +159,8 @@ export function buildDescRows(rootId: string, people: Record<string, Person>,
       const kids = byBirth(fam.children.filter((c) => c in people), people);
       let anchor = self;
       if (o.showSpouses && (spouse || (kids.length && withKids.length > 1))) {
-        rows.push({ gen, text: spouseLine(fam, spouse, o), personId: null,
+        const sp = spouseParts(fam, spouse, o);
+        rows.push({ gen, text: joined(sp), parts: sp, personId: null,
                     dup: false, tick: false, links: [], page: 0, target: null,
                     spouse: true, spouseId: spouse ? spouseId : null,
                     path: `${dab}~${fams.indexOf(fam) + 1}`, ref: "" });

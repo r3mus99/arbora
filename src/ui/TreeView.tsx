@@ -60,6 +60,10 @@ export function TreeView({ rows, focusId, scrollKey, scrollTo, numbered, onFocus
     }
   });
 
+  // the line as styled pieces: bold name, coloured dates, italic places
+  const styled = (r: ShownRow) => r.parts.map((p, i) =>
+    p.kind === "plain" ? p.text : <span key={i} className={`s-${p.kind}`}>{p.text}</span>);
+
   const seeText = (r: ShownRow) => {
     const target = r.target!;
     if (numbered && target.ref) return t("seeNo", { n: target.ref });
@@ -83,8 +87,8 @@ export function TreeView({ rows, focusId, scrollKey, scrollTo, numbered, onFocus
             <div key={flash ? `${r.index}-${scrollKey}` : r.index} data-i={r.index} className={cls}
                  style={{ paddingLeft: textX(r.gen) }}>
               {id
-                ? <button type="button" className="name" onClick={() => onFocus(id)}>{r.text}</button>
-                : <span>{r.text}</span>}
+                ? <button type="button" className="name" onClick={() => onFocus(id)}>{styled(r)}</button>
+                : <span>{styled(r)}</span>}
               {r.dup && r.target && <button type="button" className="jump" onClick={() => onJump(r)}>
                 <CornerDownRight className="icon" aria-hidden="true" />{seeText(r)}</button>}
               {r.dup && !r.target && <span className="dup"> ({t("repeated")})</span>}
