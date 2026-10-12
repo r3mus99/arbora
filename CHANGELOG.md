@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.11.0 – 2026-10-12
+
+- A collapsed "Record" line at the end of the person detail shows the technical lines of the record: when it
+  was last changed (CHAN), reference numbers (REFN, RIN), a unique ID (_UID) and linked media files (OBJE).
+- New tests keep the promise that showing a file never changes it: a made-up file with every tag the
+  detail shows, and tags Arbora does not know, is written back as it was, and changing a person or a family
+  keeps all their other lines. This completes the viewer: the detail now shows the important GEDCOM tags.
+
 ## 1.10.0 – 2026-10-12
 
 - A name prefix such as "Dr." is shown before the name in the heading. Under the name come the nickname, called name, surname prefix and suffix, and any

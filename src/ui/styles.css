@@ -504,3 +504,7 @@ section.check { margin: 0 0 14px; }
 .map-link { display: inline-flex; vertical-align: middle; margin-left: 4px; color: var(--muted); }
 .map-link .icon { width: 14px; height: 14px; }
 .map-link:hover { color: var(--accent, currentColor); }
+
+.record-info { font-size: 13px; color: var(--muted); margin-top: 8px; }
+.record-info summary { cursor: pointer; }
+.record-info span { opacity: .8; }

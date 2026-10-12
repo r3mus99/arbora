@@ -5,6 +5,7 @@ import {
 import type { ReactNode } from "react";
 import { personFields, type EventFields } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
+import { recordInfo } from "../core/info";
 import { mapUrl } from "../core/places";
 import { nameDetails } from "../core/names";
 import { personAttributes } from "../core/facts";
@@ -204,6 +205,15 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
         {f?.note && <Fact icon={StickyNote} label={t("note")}><div className="note-text"><Linked text={f.note} /></div></Fact>}
         {record && <PersonSources t={t} a={(({ sources, notes }) => ({
           sources, notes: notes.filter((n) => n !== f?.note.trim()) }))(personAnnotations(record, lookup))} />}
+        {(() => {
+          const info = record ? recordInfo(record) : [];
+          const KEYS = { changed: "infoChanged", reference: "infoReference", recordId: "infoRecordId", uid: "infoUid",
+                         media: "infoMedia" } as const;
+          return info.length > 0 && <details className="record-info">
+            <summary>{t("recordInfo")}</summary>
+            {info.map((l, i) => <div key={i}><span>{t(KEYS[l.key])}:</span> {l.value}</div>)}
+          </details>;
+        })()}
       </div>}
     </aside>
   );
