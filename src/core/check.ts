@@ -5,7 +5,7 @@
 
 import { isoToGedcom, monthOf, validDateValue } from "./date";
 import { addLine } from "./edit";
-import type { GedNode } from "./gedcom";
+import { childOf, gedNode, rewritten, type GedNode } from "./gedcom";
 
 export type IssueKind =
   | "noHead" | "noTrlr" | "dupId" | "missingRef" | "oneWay" | "badDate"
@@ -43,9 +43,8 @@ function before(a: When, b: When): boolean {
   return a.d > 0 && b.d > 0 && a.d < b.d;
 }
 
-const first = (node: GedNode, tag: string) => node.children.find((c) => c.tag === tag) || null;
 const eventDate = (rec: GedNode, tag: string) => {
-  const d = first(rec, tag) && first(first(rec, tag)!, "DATE");
+  const d = childOf(rec, tag) && childOf(childOf(rec, tag)!, "DATE");
   return d ? when(d.value) : null;
 };
 
@@ -102,7 +101,7 @@ export function checkGedcom(records: GedNode[]): Issue[] {
     }
     for (const [tag, sex] of [["HUSB", "F"], ["WIFE", "M"]]) {
       const pid = links(f, tag)[0];
-      const s = pid && isA(pid, "INDI") ? first(byId.get(pid)!, "SEX")?.value.toUpperCase() : "";
+      const s = pid && isA(pid, "INDI") ? childOf(byId.get(pid)!, "SEX")?.value.toUpperCase() : "";
       if (s === sex) add("spouseSex", "warn", pid, { id: pid, tag, value: f.xref! });
     }
   }
@@ -143,10 +142,8 @@ export function checkGedcom(records: GedNode[]): Issue[] {
   return issues;
 }
 
-const without = (rec: GedNode, drop: (c: GedNode) => boolean): GedNode => {
-  const { raw: _, ...rest } = rec;
-  return { ...rest, children: rec.children.filter((c) => !drop(c)) };
-};
+const without = (rec: GedNode, drop: (c: GedNode) => boolean): GedNode =>
+  rewritten(rec, rec.children.filter((c) => !drop(c)));
 
 /** dates in the record (any depth) under events with the tag, set from `from` to `to` */
 function setDates(node: GedNode, tag: string, from: string, to: string): GedNode {
@@ -157,9 +154,7 @@ function setDates(node: GedNode, tag: string, from: string, to: string): GedNode
     if (next !== c) changed = true;
     return next;
   });
-  if (!changed) return node;
-  const { raw: _, ...rest } = node;
-  return { ...rest, children };
+  return changed ? rewritten(node, children) : node;
 }
 
 /**
@@ -173,13 +168,10 @@ export function fixIssue(records: GedNode[], issue: Issue): GedNode[] {
   const swap = (i: number, rec: GedNode) => (rec === records[i] ? records : records.map((r, j) => (j === i ? rec : r)));
   switch (issue.kind) {
     case "noHead":
-      return [{ tag: "HEAD", value: "", xref: null, children: [
-        { tag: "GEDC", value: "", xref: null, children: [
-          { tag: "VERS", value: "5.5.1", xref: null, children: [] },
-          { tag: "FORM", value: "LINEAGE-LINKED", xref: null, children: [] }] },
-        { tag: "CHAR", value: "UTF-8", xref: null, children: [] }] }, ...records];
+      return [gedNode("HEAD", "", [gedNode("GEDC", "", [gedNode("VERS", "5.5.1"), gedNode("FORM", "LINEAGE-LINKED")]),
+                                   gedNode("CHAR", "UTF-8")]), ...records];
     case "noTrlr":
-      return [...records, { tag: "TRLR", value: "", xref: null, children: [] }];
+      return [...records, gedNode("TRLR")];
     case "missingRef": {
       const i = at(a.id);
       return i < 0 ? records : swap(i, without(records[i], (c) => c.tag === a.tag && c.value === a.value));

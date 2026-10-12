@@ -94,8 +94,20 @@ export function parseGedcom(text: string): GedNode[] {
   return records;
 }
 
-const first = (node: GedNode, tag: string) => node.children.find((c) => c.tag === tag) || null;
-const all = (node: GedNode, tag: string) => node.children.filter((c) => c.tag === tag);
+/** The first sub-record with the tag, or null. */
+export const childOf = (node: GedNode, tag: string) => node.children.find((c) => c.tag === tag) || null;
+/** Every sub-record with the tag. */
+export const childrenOf = (node: GedNode, tag: string) => node.children.filter((c) => c.tag === tag);
+
+/** A new line `tag value` with its sub-lines, not read from a file. */
+export const gedNode = (tag: string, value = "", children: GedNode[] = []): GedNode =>
+  ({ tag, value, xref: null, children });
+
+/** The node with (new) children; its original lines are dropped, so it is written anew. */
+export function rewritten(node: GedNode, children = node.children): GedNode {
+  const { raw: _, ...rest } = node;
+  return { ...rest, children };
+}
 
 /** a NAME kept as another known form of the name: `2 TYPE aka` */
 export const isAka = (name: GedNode) =>
@@ -103,7 +115,7 @@ export const isAka = (name: GedNode) =>
 
 /** The person's own name: the first NAME that is not an aka, else the first NAME. */
 export function mainName(rec: GedNode): GedNode | null {
-  const names = all(rec, "NAME");
+  const names = childrenOf(rec, "NAME");
   return names.find((n) => !isAka(n)) || names[0] || null;
 }
 
@@ -113,9 +125,9 @@ export function cleanName(value: string): string {
 
 function eventOf(rec: GedNode, tags: string[]): GedEvent | null {
   for (const tag of tags) {
-    const ev = first(rec, tag);
+    const ev = childOf(rec, tag);
     if (!ev) continue;
-    const d = first(ev, "DATE"), p = first(ev, "PLAC");
+    const d = childOf(ev, "DATE"), p = childOf(ev, "PLAC");
     const e = { date: d ? d.value : "", place: p ? p.value : "" };
     if (e.date || e.place) return e;
   }
@@ -140,27 +152,27 @@ export function readRecords(records: GedNode[], fallbackEvents = true): GedcomDa
       const nameNode = mainName(rec);
       let name = nameNode ? cleanName(nameNode.value) : "";
       if (nameNode && !name) {
-        name = [first(nameNode, "GIVN"), first(nameNode, "SURN")]
+        name = [childOf(nameNode, "GIVN"), childOf(nameNode, "SURN")]
           .filter((n): n is GedNode => n !== null).map((n) => n.value).join(" ");
       }
-      const sex = first(rec, "SEX");
-      const famc = all(rec, "FAMC").map((n, i) => {
-        const pedi = first(n, "PEDI");
+      const sex = childOf(rec, "SEX");
+      const famc = childrenOf(rec, "FAMC").map((n, i) => {
+        const pedi = childOf(n, "PEDI");
         return { id: n.value, rank: !pedi || pedi.value.toLowerCase() === "birth" ? 0 : 1, i };
       }).sort((a, b) => a.rank - b.rank || a.i - b.i).map((x) => x.id).filter(Boolean);
       people[rec.xref] = {
         id: rec.xref, name, sex: sex ? sex.value.toUpperCase() : "",
         birth: eventOf(rec, birthTags), death: eventOf(rec, deathTags),
-        occupation: all(rec, "OCCU").map((n) => n.value).filter(Boolean).join(", "), famc,
-        religion: first(rec, "RELI")?.value || "",
-        fams: all(rec, "FAMS").map((n) => n.value).filter(Boolean),
+        occupation: childrenOf(rec, "OCCU").map((n) => n.value).filter(Boolean).join(", "), famc,
+        religion: childOf(rec, "RELI")?.value || "",
+        fams: childrenOf(rec, "FAMS").map((n) => n.value).filter(Boolean),
       };
     } else if (rec.tag === "FAM" && rec.xref) {
-      const h = first(rec, "HUSB"), w = first(rec, "WIFE");
+      const h = childOf(rec, "HUSB"), w = childOf(rec, "WIFE");
       families[rec.xref] = {
         id: rec.xref, husb: h ? h.value : null, wife: w ? w.value : null,
-        marriage: eventOf(rec, ["MARR"]), divorced: !!first(rec, "DIV"),
-        children: all(rec, "CHIL").map((n) => n.value).filter(Boolean),
+        marriage: eventOf(rec, ["MARR"]), divorced: !!childOf(rec, "DIV"),
+        children: childrenOf(rec, "CHIL").map((n) => n.value).filter(Boolean),
       };
     }
   }
