@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Compact top bar once a file is open: title, file name with the number of
+  people, tool buttons as icons with tooltips (file check with the number of
+  problems, undo, redo, download GEDCOM with a dot for unsaved changes, PDF,
+  settings) and the language on one line, leaving more room for the chart.
+- File overview after loading: people (men and women), families, generations,
+  years covered, oldest ancestor, number of problems, and the most common
+  surnames and places. Clicking a surname searches for it.
+
 ## 1.0.0 – 2026-10-11
 
 First release under the name Arbora (the earlier gedcom-to-pdf versions are

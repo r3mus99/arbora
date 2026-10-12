@@ -87,6 +87,9 @@ const STRINGS_RAW = {
     beforeParent: "{who}: narodenie je skôr ako narodenie rodiča {other}.", parentYoung: "{who}: rodič {other} mal pri narodení menej ako 12 rokov.",
     afterMother: "{who}: narodenie je po smrti matky {other}.", afterFather: "{who}: narodenie je viac ako rok po smrti otca {other}.",
     spouseSex: "{who}: pohlavie nezodpovedá úlohe {tag} v rodine {value}.",
+    overview: "Prehľad súboru", ovPeople: "Osoby", ovSex: "muži {m} · ženy {f}", ovFamilies: "Rodiny", ovGens: "Generácie",
+    ovGensSub: "najdlhšia línia rodič – dieťa", ovSpan: "Obdobie", ovSpanSub: "roky narodenia a úmrtia", ovOldest: "Najstarší predok", ovProblems: "Problémy",
+    ovNone: "žiadne", ovSurnames: "Najčastejšie priezviská", ovPlaces: "Najčastejšie miesta", ovSurnameTip: "Hľadať osoby s týmto priezviskom",
   },
   cs: {
     name: "Čeština", language: "Jazyk",
@@ -141,6 +144,9 @@ const STRINGS_RAW = {
     beforeParent: "{who}: narození je dříve než narození rodiče {other}.", parentYoung: "{who}: rodič {other} měl při narození méně než 12 let.",
     afterMother: "{who}: narození je po smrti matky {other}.", afterFather: "{who}: narození je víc než rok po smrti otce {other}.",
     spouseSex: "{who}: pohlaví neodpovídá roli {tag} v rodině {value}.",
+    overview: "Přehled souboru", ovPeople: "Osoby", ovSex: "muži {m} · ženy {f}", ovFamilies: "Rodiny", ovGens: "Generace",
+    ovGensSub: "nejdelší linie rodič – dítě", ovSpan: "Období", ovSpanSub: "roky narození a úmrtí", ovOldest: "Nejstarší předek", ovProblems: "Problémy",
+    ovNone: "žádné", ovSurnames: "Nejčastější příjmení", ovPlaces: "Nejčastější místa", ovSurnameTip: "Hledat osoby s tímto příjmením",
   },
   pl: {
     name: "Polski", language: "Język",
@@ -196,6 +202,9 @@ const STRINGS_RAW = {
     beforeParent: "{who}: urodzenie jest wcześniej niż urodzenie rodzica {other}.", parentYoung: "{who}: rodzic {other} miał przy urodzeniu mniej niż 12 lat.",
     afterMother: "{who}: urodzenie jest po śmierci matki {other}.", afterFather: "{who}: urodzenie jest ponad rok po śmierci ojca {other}.",
     spouseSex: "{who}: płeć nie odpowiada roli {tag} w rodzinie {value}.",
+    overview: "Przegląd pliku", ovPeople: "Osoby", ovSex: "mężczyźni {m} · kobiety {f}", ovFamilies: "Rodziny", ovGens: "Pokolenia",
+    ovGensSub: "najdłuższa linia rodzic – dziecko", ovSpan: "Okres", ovSpanSub: "lata urodzenia i śmierci", ovOldest: "Najstarszy przodek", ovProblems: "Problemy",
+    ovNone: "brak", ovSurnames: "Najczęstsze nazwiska", ovPlaces: "Najczęstsze miejsca", ovSurnameTip: "Szukaj osób o tym nazwisku",
   },
   hu: {
     name: "Magyar", language: "Nyelv",
@@ -251,6 +260,9 @@ const STRINGS_RAW = {
     beforeParent: "{who}: korábban született, mint a szülő ({other}).", parentYoung: "{who}: a szülő ({other}) 12 évesnél fiatalabb volt a születéskor.",
     afterMother: "{who}: az anya ({other}) halála után született.", afterFather: "{who}: több mint egy évvel az apa ({other}) halála után született.",
     spouseSex: "{who}: a nem nem felel meg a(z) {tag} szerepnek a(z) {value} családban.",
+    overview: "Fájl áttekintése", ovPeople: "Személyek", ovSex: "férfiak {m} · nők {f}", ovFamilies: "Családok", ovGens: "Nemzedékek",
+    ovGensSub: "leghosszabb szülő – gyermek ág", ovSpan: "Időszak", ovSpanSub: "születési és halálozási évek", ovOldest: "Legrégebbi ős", ovProblems: "Problémák",
+    ovNone: "nincs", ovSurnames: "Leggyakoribb vezetéknevek", ovPlaces: "Leggyakoribb helyek", ovSurnameTip: "Személyek keresése ezzel a vezetéknévvel",
   },
   de: {
     name: "Deutsch", language: "Sprache",
@@ -307,6 +319,9 @@ const STRINGS_RAW = {
     beforeParent: "{who}: Geburt liegt vor der Geburt des Elternteils {other}.", parentYoung: "{who}: Elternteil {other} war bei der Geburt jünger als 12 Jahre.",
     afterMother: "{who}: Geburt liegt nach dem Tod der Mutter {other}.", afterFather: "{who}: Geburt liegt über ein Jahr nach dem Tod des Vaters {other}.",
     spouseSex: "{who}: Geschlecht passt nicht zur Rolle {tag} in Familie {value}.",
+    overview: "Dateiübersicht", ovPeople: "Personen", ovSex: "Männer {m} · Frauen {f}", ovFamilies: "Familien", ovGens: "Generationen",
+    ovGensSub: "längste Linie Eltern – Kind", ovSpan: "Zeitraum", ovSpanSub: "Geburts- und Sterbejahre", ovOldest: "Ältester Vorfahr", ovProblems: "Probleme",
+    ovNone: "keine", ovSurnames: "Häufigste Nachnamen", ovPlaces: "Häufigste Orte", ovSurnameTip: "Personen mit diesem Nachnamen suchen",
   },
   en: {
     name: "English", language: "Language",
@@ -362,6 +377,9 @@ const STRINGS_RAW = {
     beforeParent: "{who}: born before parent {other}.", parentYoung: "{who}: parent {other} was under 12 at the birth.",
     afterMother: "{who}: born after the death of mother {other}.", afterFather: "{who}: born more than a year after the death of father {other}.",
     spouseSex: "{who}: sex does not match the role {tag} in family {value}.",
+    overview: "File overview", ovPeople: "People", ovSex: "men {m} · women {f}", ovFamilies: "Families", ovGens: "Generations",
+    ovGensSub: "longest parent–child line", ovSpan: "Time span", ovSpanSub: "years of birth and death", ovOldest: "Oldest ancestor", ovProblems: "Problems",
+    ovNone: "none", ovSurnames: "Most common surnames", ovPlaces: "Most common places", ovSurnameTip: "Search people with this surname",
   },
   fr: {
     name: "Français", language: "Langue",
@@ -417,6 +435,9 @@ const STRINGS_RAW = {
     beforeParent: "{who} : né(e) avant le parent {other}.", parentYoung: "{who} : le parent {other} avait moins de 12 ans à la naissance.",
     afterMother: "{who} : né(e) après le décès de la mère {other}.", afterFather: "{who} : né(e) plus d’un an après le décès du père {other}.",
     spouseSex: "{who} : le sexe ne correspond pas au rôle {tag} dans la famille {value}.",
+    overview: "Aperçu du fichier", ovPeople: "Personnes", ovSex: "hommes {m} · femmes {f}", ovFamilies: "Familles", ovGens: "Générations",
+    ovGensSub: "plus longue lignée parent – enfant", ovSpan: "Période", ovSpanSub: "années de naissance et de décès", ovOldest: "Ancêtre le plus ancien", ovProblems: "Problèmes",
+    ovNone: "aucun", ovSurnames: "Noms les plus fréquents", ovPlaces: "Lieux les plus fréquents", ovSurnameTip: "Chercher les personnes portant ce nom",
   },
   it: {
     name: "Italiano", language: "Lingua",
@@ -472,6 +493,9 @@ const STRINGS_RAW = {
     beforeParent: "{who}: nato/a prima del genitore {other}.", parentYoung: "{who}: il genitore {other} aveva meno di 12 anni alla nascita.",
     afterMother: "{who}: nato/a dopo la morte della madre {other}.", afterFather: "{who}: nato/a più di un anno dopo la morte del padre {other}.",
     spouseSex: "{who}: il sesso non corrisponde al ruolo {tag} nella famiglia {value}.",
+    overview: "Panoramica del file", ovPeople: "Persone", ovSex: "uomini {m} · donne {f}", ovFamilies: "Famiglie", ovGens: "Generazioni",
+    ovGensSub: "linea genitore – figlio più lunga", ovSpan: "Periodo", ovSpanSub: "anni di nascita e di morte", ovOldest: "Antenato più antico", ovProblems: "Problemi",
+    ovNone: "nessuno", ovSurnames: "Cognomi più frequenti", ovPlaces: "Luoghi più frequenti", ovSurnameTip: "Cerca persone con questo cognome",
   },
   es: {
     name: "Español", language: "Idioma",
@@ -527,6 +551,9 @@ const STRINGS_RAW = {
     beforeParent: "{who}: nació antes que su progenitor {other}.", parentYoung: "{who}: el progenitor {other} tenía menos de 12 años al nacer.",
     afterMother: "{who}: nació después de la muerte de la madre {other}.", afterFather: "{who}: nació más de un año después de la muerte del padre {other}.",
     spouseSex: "{who}: el sexo no corresponde al papel {tag} en la familia {value}.",
+    overview: "Resumen del archivo", ovPeople: "Personas", ovSex: "hombres {m} · mujeres {f}", ovFamilies: "Familias", ovGens: "Generaciones",
+    ovGensSub: "línea padre – hijo más larga", ovSpan: "Período", ovSpanSub: "años de nacimiento y muerte", ovOldest: "Antepasado más antiguo", ovProblems: "Problemas",
+    ovNone: "ninguno", ovSurnames: "Apellidos más frecuentes", ovPlaces: "Lugares más frecuentes", ovSurnameTip: "Buscar personas con este apellido",
   },
   pt: {
     name: "Português", language: "Idioma",
@@ -583,6 +610,9 @@ const STRINGS_RAW = {
     beforeParent: "{who}: nasceu antes do progenitor {other}.", parentYoung: "{who}: o progenitor {other} tinha menos de 12 anos no nascimento.",
     afterMother: "{who}: nasceu depois da morte da mãe {other}.", afterFather: "{who}: nasceu mais de um ano depois da morte do pai {other}.",
     spouseSex: "{who}: o sexo não corresponde ao papel {tag} na família {value}.",
+    overview: "Resumo do ficheiro", ovPeople: "Pessoas", ovSex: "homens {m} · mulheres {f}", ovFamilies: "Famílias", ovGens: "Gerações",
+    ovGensSub: "linha pai – filho mais longa", ovSpan: "Período", ovSpanSub: "anos de nascimento e morte", ovOldest: "Antepassado mais antigo", ovProblems: "Problemas",
+    ovNone: "nenhum", ovSurnames: "Apelidos mais frequentes", ovPlaces: "Locais mais frequentes", ovSurnameTip: "Procurar pessoas com este apelido",
   },
   nl: {
     name: "Nederlands", language: "Taal",
@@ -638,6 +668,9 @@ const STRINGS_RAW = {
     beforeParent: "{who}: geboren vóór ouder {other}.", parentYoung: "{who}: ouder {other} was bij de geboorte jonger dan 12.",
     afterMother: "{who}: geboren na het overlijden van moeder {other}.", afterFather: "{who}: geboren meer dan een jaar na het overlijden van vader {other}.",
     spouseSex: "{who}: geslacht past niet bij de rol {tag} in gezin {value}.",
+    overview: "Overzicht van het bestand", ovPeople: "Personen", ovSex: "mannen {m} · vrouwen {f}", ovFamilies: "Gezinnen", ovGens: "Generaties",
+    ovGensSub: "langste lijn ouder – kind", ovSpan: "Periode", ovSpanSub: "geboorte- en sterfjaren", ovOldest: "Oudste voorouder", ovProblems: "Problemen",
+    ovNone: "geen", ovSurnames: "Meest voorkomende achternamen", ovPlaces: "Meest voorkomende plaatsen", ovSurnameTip: "Personen met deze achternaam zoeken",
   },
   uk: {
     name: "Українська", language: "Мова",
@@ -692,6 +725,9 @@ const STRINGS_RAW = {
     beforeParent: "{who}: народження раніше за народження батька/матері {other}.", parentYoung: "{who}: батькові/матері {other} було менше 12 років під час народження.",
     afterMother: "{who}: народження після смерті матері {other}.", afterFather: "{who}: народження більш ніж через рік після смерті батька {other}.",
     spouseSex: "{who}: стать не відповідає ролі {tag} у родині {value}.",
+    overview: "Огляд файлу", ovPeople: "Особи", ovSex: "чоловіки {m} · жінки {f}", ovFamilies: "Родини", ovGens: "Покоління",
+    ovGensSub: "найдовша лінія батьки – дитина", ovSpan: "Період", ovSpanSub: "роки народження та смерті", ovOldest: "Найдавніший предок", ovProblems: "Проблеми",
+    ovNone: "немає", ovSurnames: "Найчастіші прізвища", ovPlaces: "Найчастіші місця", ovSurnameTip: "Шукати осіб із цим прізвищем",
   },
 };
 
