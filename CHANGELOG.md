@@ -18,6 +18,9 @@
   problems into issues, surnames and places. A unified surname keeps its old
   spelling as another name of the person (`NAME` with `TYPE aka`); an option
   above the list turns it off.
+- Other forms of a name (`NAME` with `TYPE aka`) are shown in the person's
+  details as "Also known as" and can be added, changed and removed in the
+  edit form. The main name is the first one that is not an aka.
 
 ## 1.0.0 – 2026-10-11
 

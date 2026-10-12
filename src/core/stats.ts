@@ -1,5 +1,5 @@
 /** File overview: counts and the most common surnames and places. */
-import type { GedcomData, GedNode, Person } from "./gedcom";
+import { mainName, type GedcomData, type GedNode, type Person } from "./gedcom";
 
 export interface Count { value: string; count: number }
 
@@ -57,7 +57,7 @@ export function overview(records: GedNode[], data: GedcomData, n = 6): Overview 
   const surnames = new Map<string, number>(), places = new Map<string, number>();
   for (const rec of records) {
     if (rec.tag !== "INDI") continue;
-    const name = first(rec, "NAME");
+    const name = mainName(rec);
     if (name) add(surnames, surnameOf(name));
     // each town once per person, so a long-lived local family does not count for every event
     const towns = new Set<string>();

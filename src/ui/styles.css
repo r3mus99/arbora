@@ -421,3 +421,5 @@ section.check { margin: 0 0 14px; }
 .variant-tools .icon-btn { width: var(--row-h); padding: 0; }
 .keep-aka { display: flex; gap: 8px; align-items: center; margin: 0 0 6px; cursor: pointer; }
 .keep-aka input { width: 16px; height: 16px; accent-color: var(--accent); }
+.editor .item.alias { grid-template-columns: 1fr 1fr auto; padding: 8px; }
+.editor .item.alias .icon-btn { border-radius: 12px; padding: 0 11px; }

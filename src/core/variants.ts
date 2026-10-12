@@ -4,7 +4,7 @@
  * Lieszkovicz), found as groups and renamed to one chosen spelling.
  */
 
-import { fold, type GedNode } from "./gedcom";
+import { fold, isAka, type GedNode } from "./gedcom";
 import { surnameOf } from "./stats";
 
 export type VariantKind = "surname" | "place";
@@ -135,9 +135,6 @@ function mapNode(node: GedNode, change: (n: GedNode) => GedNode): GedNode {
   const { raw: _, ...rest } = node;
   return { ...rest, children: kids };
 }
-
-/** a NAME kept as another known spelling: `2 TYPE aka` */
-const isAka = (name: GedNode) => children(name, "TYPE").some((t) => t.value.trim().toLowerCase() === "aka");
 
 /** One NAME with its surname renamed, in the slashes, in SURN, or as the last word. */
 function renameSurname(name: GedNode, from: Set<string>, to: string): GedNode {

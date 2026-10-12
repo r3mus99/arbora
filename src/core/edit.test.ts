@@ -207,4 +207,20 @@ describe("dates typed in the form", () => {
     expect(writeGedcom(parseGedcom("0 HEAD\n1 CHAR UTF-8\n0 TRLR\n"), "\n", writer)).toBe("0 HEAD\n1 SOUR ARBORA\n" +
       "2 VERS 1.0.0\n2 NAME Arbora\n1 DATE 11 OCT 2026\n2 TIME 13:05:09\n1 CHAR UTF-8\n0 TRLR\n");
   });
+
+  test("other forms of the name (NAME with TYPE aka)", () => {
+    const ged = "0 @I1@ INDI\n1 NAME Ján /Pavlovský/\n1 NAME Ján /Pavlovszký/\n2 TYPE aka\n1 SEX M\n0 TRLR\n";
+    const f = personFields(parseGedcom(ged)[0]);
+    expect([f.given, f.surname]).toEqual(["Ján", "Pavlovský"]);
+    expect(f.aliases).toEqual([{ origin: 0, given: "Ján", surname: "Pavlovszký" }]);
+    // the main name stays the first NAME that is not an aka
+    expect(readRecords(parseGedcom("0 @I1@ INDI\n1 NAME Jan /Pavlovszky/\n2 TYPE aka\n1 NAME Ján /Pavlovský/\n0 TRLR\n"))
+      .people["@I1@"].name).toBe("Ján Pavlovský");
+    expect(edit(ged, "@I1@", (b) => ({ aliases: [{ ...b.aliases[0], surname: "Paulovszky" },
+                                                { origin: -1, given: "Johannes", surname: "Pavlovsky" }] })))
+      .toContain("1 NAME Ján /Paulovszky/\n2 TYPE aka\n1 NAME Johannes /Pavlovsky/\n2 TYPE aka\n1 SEX M\n");
+    expect(edit(ged, "@I1@", () => ({ aliases: [] }))).toBe("0 @I1@ INDI\n1 NAME Ján /Pavlovský/\n1 SEX M\n0 TRLR\n");
+    expect(edit(ged, "@I1@", () => ({ surname: "Pavlovszký" })))
+      .toContain("1 NAME Ján /Pavlovszký/\n1 NAME Ján /Pavlovszký/\n2 TYPE aka\n");
+  });
 });
