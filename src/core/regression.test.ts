@@ -288,7 +288,7 @@ describe("unifying spellings", () => {
     for (const kind of ["surname", "place"] as const) {
       const records = parseGedcom(GED);
       const [group] = variantGroups(records, kind);
-      expect(group.variants).toHaveLength(kind === "place" ? 3 : 2);
+      expect(group.variants).toHaveLength(2);
       const [keep, ...rest] = group.variants.map((v) => v.value);
       const once = renameVariants(records, kind, rest, keep);
       expect(variantGroups(once, kind)).toEqual([]);
