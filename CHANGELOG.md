@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.9.0 – 2026-10-12
+
+- Associations (ASSO) are shown in an "Associations" block: the people a person names, such as godparents
+  and witnesses, and in the other direction the people who name them (the godchildren of a godparent).
+  Each is a link to the person. Display only: editing is unchanged and all lines are kept when a record
+  is edited.
+
 ## 1.8.0 – 2026-10-12
 
 - Family events are shown. Engagement, banns, marriage contract, licence and settlement, annulment, a

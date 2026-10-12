@@ -15,4 +15,5 @@ export * from "./stats";
 export * from "./variants";
 export * from "./timeline";
 export * from "./facts";
+export * from "./associations";
 export * from "./sources";
