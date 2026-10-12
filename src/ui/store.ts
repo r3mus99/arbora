@@ -9,6 +9,8 @@ export interface Stored {
   lang?: Lang;
   options?: Partial<ChartOptions>;
   root?: string;
+  /** bulk fix: groups of spellings marked "not the same" (VariantGroup keys) */
+  hiddenVariants?: string[];
 }
 
 export function readStore(): Stored {
