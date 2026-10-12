@@ -3,6 +3,7 @@
  * between people and families, the form of dates, and dates that cannot be true.
  */
 
+import { isoToGedcom, monthOf, validDateValue } from "./date";
 import { addLine } from "./edit";
 import type { GedNode } from "./gedcom";
 
@@ -22,32 +23,6 @@ export interface Issue {
   fixable: boolean;
 }
 
-const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-const DAYS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
-/** one date without qualifiers: [day] [month] year, Gregorian; other calendars are taken as they are */
-function validDate(s: string): boolean {
-  if (/^@#D(?!GREGORIAN@)/.test(s)) return true;
-  s = s.replace(/^@#DGREGORIAN@\s*/, "").replace(/\s+B\.C\.$/, "");
-  const m = /^(?:(?:(\d{1,2})\s+)?([A-Z]{3})\s+)?(\d{1,4})(?:\/\d{2})?$/.exec(s);
-  if (!m) return false;
-  const month = m[2] ? MONTHS.indexOf(m[2]) : -1;
-  if (m[2] && month < 0) return false;
-  return !m[1] || (+m[1] >= 1 && +m[1] <= DAYS[month]);
-}
-
-/** Whether a DATE value has a form GEDCOM 5.5.1 allows. */
-export function validDateValue(value: string): boolean {
-  const s = value.trim().toUpperCase().replace(/\s+/g, " ");
-  if (!s || /^\(.*\)$/.test(s) || /^INT .+ \(.*\)$/.test(s)) return true;
-  let m = /^(?:ABT|CAL|EST|BEF|AFT) (.+)$/.exec(s);
-  if (m) return validDate(m[1]);
-  if ((m = /^BET (.+) AND (.+)$/.exec(s))) return validDate(m[1]) && validDate(m[2]);
-  if ((m = /^FROM (.+?)(?: TO (.+))?$/.exec(s))) return validDate(m[1]) && (!m[2] || validDate(m[2]));
-  if ((m = /^TO (.+)$/.exec(s))) return validDate(m[1]);
-  return validDate(s);
-}
-
 /** A date to compare: year, month and day (0 when unknown); `rough` for about-dates. Null for vague ones. */
 interface When { y: number; m: number; d: number; rough: boolean }
 
@@ -57,7 +32,7 @@ function when(value: string): When | null {
   const rough = /^(ABT|CAL|EST) /.test(s);
   const m = /(?:(\d{1,2}) )?(?:([A-Z]{3}) )?(\d{3,4})$/.exec(s.replace(/^(ABT|CAL|EST) /, ""));
   if (!m) return null;
-  return { y: +m[3], m: m[2] ? MONTHS.indexOf(m[2]) + 1 : 0, d: m[1] ? +m[1] : 0, rough };
+  return { y: +m[3], m: m[2] ? monthOf(m[2]) : 0, d: m[1] ? +m[1] : 0, rough };
 }
 
 /** a surely before b; rough dates count only when they are years apart */
@@ -166,15 +141,6 @@ export function checkGedcom(records: GedNode[]): Issue[] {
   }
   for (const i of issues) i.fixable = fixIssue(records, i) !== records;
   return issues;
-}
-
-/** "1885-12-12" → "12 DEC 1885", "1922-03" → "MAR 1922" inside a date value */
-export function isoToGedcom(value: string): string {
-  return value.replace(/\b(\d{4})-(\d{2})(?:-(\d{2}))?\b/g, (all, y: string, m: string, d?: string) => {
-    const month = MONTHS[+m - 1];
-    if (!month || (d && (+d < 1 || +d > DAYS[+m - 1]))) return all;
-    return `${d ? `${+d} ` : ""}${month} ${y}`;
-  });
 }
 
 const without = (rec: GedNode, drop: (c: GedNode) => boolean): GedNode => {

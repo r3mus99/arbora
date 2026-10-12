@@ -4,6 +4,7 @@
  * Only what changed is touched, so tags the app does not know stay as they were.
  */
 
+import { MONTHS, gedcomDay, validDateValue } from "./date";
 import { formatDate } from "./format";
 import { isAka, mainName, type GedNode } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
@@ -290,10 +291,6 @@ export function applyFamily(rec: GedNode, before: FamilyFields, after: FamilyFie
 
 // ------------------------------------------------------------ dates
 
-const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-const G_DATE = String.raw`(?:@#D[A-Z ]+@\s+)?(?:(?:\d{1,2}\s+)?(?:${MONTHS.join("|")})\s+)?\d{1,4}(?:\/\d{2})?(?:\s+B\.?C\.?)?`;
-const G_VALUE = new RegExp(String.raw`^(?:(?:ABT|CAL|EST|BEF|AFT|INT)\s+)?${G_DATE}(?:\s+\(.*\))?$|` +
-  String.raw`^BET\s+${G_DATE}\s+AND\s+${G_DATE}$|^FROM\s+${G_DATE}(?:\s+TO\s+${G_DATE})?$|^TO\s+${G_DATE}$|^\(.*\)$`);
 
 /** "14.5.1891", "5/1891", "1891-05-14", "1891" → "14 MAY 1891", "MAY 1891", …; else null */
 function numericDate(s: string): string | null {
@@ -324,12 +321,16 @@ export function parseDate(input: string, lang: Lang): { value: string; ok: boole
   if (!s) return { value: "", ok: true };
   const gedcom = (t: string) => {
     const up = t.toUpperCase();
-    if (!G_VALUE.test(up)) return null;
+    if (!validDateValue(up)) return null;
     // a date phrase in parentheses keeps its letters as typed
     const i = t.indexOf("(");
     return i < 0 ? up : up.slice(0, i) + t.slice(i);
   };
-  const plain = (t: string) => numericDate(t) ?? gedcom(t);
+  // a date GEDCOM allows: no 31 FEB, no INT without its phrase
+  const plain = (t: string) => {
+    const d = numericDate(t);
+    return d === null ? gedcom(t) : validDateValue(d) ? d : null;
+  };
   const whole = plain(s);
   if (whole) return { value: whole, ok: true };
 
@@ -403,7 +404,7 @@ export interface Writer { version: string; date: Date }
 function stampHead(head: GedNode, w: Writer): GedNode {
   const d = w.date, pad = (n: number) => String(n).padStart(2, "0");
   const sour = node("SOUR", "ARBORA", [node("VERS", w.version), node("NAME", "Arbora")]);
-  const date = node("DATE", `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`,
+  const date = node("DATE", gedcomDay(d),
                     [node("TIME", `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`)]);
   let children = head.children;
   for (const added of [sour, date]) {

@@ -1,4 +1,5 @@
 /** File overview: counts and the most common surnames and places. */
+import { yearOf } from "./date";
 import { mainName, type GedcomData, type GedNode, type Person } from "./gedcom";
 
 export interface Count { value: string; count: number }
@@ -18,12 +19,6 @@ export interface Overview {
   surnames: Count[];
   /** towns: the first part of a place */
   places: Count[];
-}
-
-/** Year of a GEDCOM date: the first number of three or four digits ("ABT 1890", "BET 1700 AND 1710"). */
-export function yearOf(date: string | undefined): number | null {
-  const m = /(?:^|\D)(\d{3,4})(?!\d)/.exec(date || "");
-  return m ? +m[1] : null;
 }
 
 const first = (node: GedNode, tag: string) => node.children.find((c) => c.tag === tag) || null;

@@ -22,8 +22,13 @@
   before the ID in the person's details and can be added, changed and removed
   in the edit form. The main name is the first one that is not an aka.
 - While editing, save and cancel are also icons at the top right of the details.
+- The edit form no longer stores a date that the file check then reports as
+  wrong: a day the month does not have (31.2.1890, 30 FEB 1890) or INT without
+  its phrase is kept as a date phrase and the form says so.
 
 ### Development
+- GEDCOM dates are read in one place (`src/core/date.ts`) by the edit form, the
+  file check, the chart order and the overview.
 - Regression tests that must keep passing through the 1.1 refactoring: GEDCOM
   written anew is the same as the original, an edit undone gives the same file,
   every one-click fix removes its issue without adding another, unified
