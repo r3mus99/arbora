@@ -425,3 +425,4 @@ section.check { margin: 0 0 14px; }
 .editor .item.alias .icon-btn { border-radius: 12px; padding: 0 11px; }
 .detail .id .aka { font-style: italic; }
 .detail .tools .save .icon { color: var(--accent); }
+.people .aka { color: var(--muted); font-size: 13px; font-style: italic; }
