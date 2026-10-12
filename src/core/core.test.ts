@@ -62,6 +62,22 @@ describe("GEDCOM", () => {
     expect(findPeople("frantisek i.", data.people).map((p) => p.id)).toContain("@I52@");
     expect(findPeople("I52", data.people)).toEqual([data.people["@I52@"]]);
   });
+
+  test("finds people by year of birth or death, alone or with a name", () => {
+    const ged = [
+      "0 @I1@ INDI", "1 NAME Anna /Test/", "1 BIRT", "2 DATE 12 MAY 1894", "1 DEAT", "2 DATE BET 1950 AND 1952",
+      "0 @I2@ INDI", "1 NAME Karl /Test/", "1 BIRT", "2 DATE ABT 1901",
+      "0 @I3@ INDI", "1 NAME Eva /Other/", "1 NAME Eva /Test/", "2 TYPE aka", "1 DEAT", "2 DATE 1894",
+    ].join("\n");
+    const { people } = load(ged);
+    const ids = (q: string) => findPeople(q, people).map((p) => p.id);
+    expect(ids("1894")).toEqual(["@I1@", "@I3@"]);
+    expect(ids("1952")).toEqual(["@I1@"]);
+    expect(ids("190")).toEqual(["@I2@"]);
+    expect(ids("test 1894")).toEqual(["@I1@", "@I3@"]);
+    expect(ids("karl 1894")).toEqual([]);
+    expect(ids("19")).toEqual([]);
+  });
 });
 
 describe("formatting", () => {
