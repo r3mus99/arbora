@@ -2,7 +2,7 @@
 
 ## 1.10.0 – 2026-10-12
 
-- Name pieces are shown under the name: prefix, nickname, called name, surname prefix and suffix, and any
+- A name prefix such as "Dr." is shown before the name in the heading. Under the name come the nickname, called name, surname prefix and suffix, and any
   other names that are not aka names (for example a married name, with its type).
 - A place with coordinates (MAP, or a linked _LOC record) gets a small pin on its timeline row that opens
   the point on a map in a new tab.
