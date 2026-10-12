@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.11.1 – 2026-10-12
+
+- Fixed: changing the given name of a person whose name has no slashes (for example `Karol I.`) wrote `//`
+  after it. A name without a surname now stays without slashes; one already written with `//` keeps them.
+- New tests: every change in the person and family forms touches only its own lines, and every person and
+  family of the sample, changed and changed back, gives the file exactly as it was.
+
 ## 1.11.0 – 2026-10-12
 
 - A collapsed "Record" line at the end of the person detail shows the technical lines of the record: when it
