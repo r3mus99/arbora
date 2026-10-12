@@ -50,8 +50,9 @@ async function loadFonts(): Promise<Fonts> {
     if (!r.ok) throw new Error(p);
     return r.arrayBuffer();
   };
-  const [regular, bold] = await Promise.all([get("fonts/DejaVuSans.ttf"), get("fonts/DejaVuSans-Bold.ttf")]);
-  return { regular, bold };
+  const [regular, bold, italic] = await Promise.all([get("fonts/DejaVuSans.ttf"), get("fonts/DejaVuSans-Bold.ttf"),
+                                                      get("fonts/DejaVuSans-Oblique.ttf")]);
+  return { regular, bold, italic };
 }
 
 export function App() {

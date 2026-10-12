@@ -27,13 +27,15 @@ export interface ChartOptions {
   fontSize: number;
   lineHeight: number;
   margin: number;
+  /** PDF: colour the dates and places like the screen (bold names and italic places are always used) */
+  colorPdf: boolean;
 }
 
 export const DEFAULTS: ChartOptions = {
   generations: 0, lang: "sk", labels: "symbols", dates: "year", places: "none",
   chart: "ancestors", showSpouses: true,
   numbering: "generation", marriageOn: "father", title: "", showDate: true, pageSize: "a4", orientation: "portrait",
-  fontSize: 8.5, lineHeight: 1.7, margin: 36,
+  fontSize: 8.5, lineHeight: 1.7, margin: 36, colorPdf: false,
 };
 
 export const fmt = (s: string, vars: Record<string, string | number>) =>
@@ -101,27 +103,49 @@ export function label(kind: EventKind, o: ChartOptions): string {
   return o.labels === "symbols" ? SYMBOLS[kind] : TEXTS[o.lang].abbr[kind];
 }
 
-export function formatEvent(kind: EventKind, ev: GedEvent | null, o: ChartOptions, extra = ""): string {
-  if (!ev && !extra) return "";
+/** A piece of a person's line; the screen and the PDF style each kind (bold, italic, colour). */
+export type SegKind = "num" | "name" | "plain" | "birt" | "marr" | "deat" | "place";
+export interface Seg { text: string; kind: SegKind }
+
+/** The pieces of an event: label and date in the colour of the event, the place apart. */
+export function eventSegments(kind: EventKind, ev: GedEvent | null, o: ChartOptions, extra = ""): Seg[] {
+  if (!ev && !extra) return [];
   const date = ev ? formatDate(ev.date, o.dates === "full", o.lang) : "";
   const place = ev ? formatPlace(ev.place, o.places) : "";
-  let body = [date, place].filter(Boolean).join(" ");
-  if (extra) body = body ? `${body} (${extra})` : extra;
-  return body ? label(kind, o) + body : "";
+  if (!date && !place && !extra) return [];
+  const segs: Seg[] = [{ text: label(kind, o) + date, kind }];
+  if (place) segs.push({ text: (date ? " " : "") + place, kind: "place" });
+  if (extra) segs.push({ text: (date || place ? " (" : "") + extra + (date || place ? ")" : ""), kind });
+  return segs;
+}
+
+export function formatEvent(kind: EventKind, ev: GedEvent | null, o: ChartOptions, extra = ""): string {
+  return eventSegments(kind, ev, o, extra).map((s) => s.text).join("");
+}
+
+/** Pieces of "<number>. <name> (<birth>, <marriage>, <death>)". */
+export function personSegments(p: Person | null, number: number | string | null,
+                               marriage: Family | null, o: ChartOptions): Seg[] {
+  const t = TEXTS[o.lang];
+  const name = p && p.name ? p.name : "?";
+  const events: Seg[][] = [];
+  if (p) events.push(eventSegments("birt", p.birth, o));
+  if (marriage) events.push(eventSegments("marr", marriage.marriage, o,
+                                          marriage.divorced ? t.divorced : ""));
+  if (p) events.push(eventSegments("deat", p.death, o));
+  const shown = events.filter((e) => e.length);
+  const segs: Seg[] = [];
+  if (number !== null) segs.push({ text: `${number}. `, kind: "num" });
+  segs.push({ text: name, kind: "name" });
+  shown.forEach((e, i) => {
+    segs.push({ text: i === 0 ? " (" : ", ", kind: "plain" }, ...e);
+  });
+  if (shown.length) segs.push({ text: ")", kind: "plain" });
+  return segs;
 }
 
 /** "<number>. <name> (<birth>, <marriage>, <death>)" */
 export function personLine(p: Person | null, number: number | string | null,
                            marriage: Family | null, o: ChartOptions): string {
-  const t = TEXTS[o.lang];
-  const name = p && p.name ? p.name : "?";
-  const bits: string[] = [];
-  if (p) bits.push(formatEvent("birt", p.birth, o));
-  if (marriage) bits.push(formatEvent("marr", marriage.marriage, o,
-                                      marriage.divorced ? t.divorced : ""));
-  if (p) bits.push(formatEvent("deat", p.death, o));
-  const b = bits.filter(Boolean);
-  let text = number !== null ? `${number}. ${name}` : name;
-  if (b.length) text += " (" + b.join(", ") + ")";
-  return text;
+  return personSegments(p, number, marriage, o).map((s) => s.text).join("");
 }

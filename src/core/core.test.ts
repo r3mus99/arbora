@@ -11,6 +11,7 @@ const sample = readFileSync(new URL("../../public/sample.ged", import.meta.url))
 const fonts = {
   regular: readFileSync(new URL("../../public/fonts/DejaVuSans.ttf", import.meta.url)),
   bold: readFileSync(new URL("../../public/fonts/DejaVuSans-Bold.ttf", import.meta.url)),
+  italic: readFileSync(new URL("../../public/fonts/DejaVuSans-Oblique.ttf", import.meta.url)),
 };
 const data = load(sample);
 const opts = (o: Partial<ChartOptions> = {}): ChartOptions => ({ ...DEFAULTS, ...o });
@@ -243,6 +244,20 @@ describe("PDF", () => {
     expect(res.title).toBe("Descendants of František I.");
     const page = (await PDFDocument.load(res.bytes)).getPage(0);
     expect(page.getWidth()).toBeGreaterThan(page.getHeight());
+  });
+
+  test("styled pieces match the text; coloured and italic PDF is built", async () => {
+    const o = { lang: "en" as const, places: "short" as const, dates: "full" as const, generations: 4 };
+    const rows = chartRows(data, "@I1@", o);
+    for (const r of rows) expect(r.parts.map((p) => p.text).join("")).toBe(r.text);
+    const kinds = new Set(rows.flatMap((r) => r.parts.map((p) => p.kind)));
+    for (const k of ["num", "name", "birt", "deat", "place", "marr"]) expect(kinds).toContain(k);
+    const plain = await generate(data, "@I1@", o, fonts);
+    const colour = await generate(data, "@I1@", { ...o, colorPdf: true }, fonts);
+    expect(colour.pages).toBe(plain.pages);
+    expect(colour.bytes.length).toBeGreaterThan(0);
+    // without an italic font the regular one stands in
+    expect((await generate(data, "@I1@", o, { regular: fonts.regular })).pages).toBeGreaterThan(0);
   });
 
   test("unknown person", async () => {
