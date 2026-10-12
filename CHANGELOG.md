@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.8.0 – 2026-10-12
+
+- Family events are shown. Engagement, banns, marriage contract, licence and settlement, annulment, a
+  divorce with a date or place and any custom family event (EVEN) join the timeline of both spouses.
+  A marriage shows its witnesses (as links to the people) and the agency or address written on it.
+  Display only: editing is unchanged and all lines are kept when a record is edited.
+
 ## 1.7.0 – 2026-10-12
 
 - More of a person's life is shown. Standard events (baptism, blessing, cremation, adoption, confirmation,

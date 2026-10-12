@@ -5,7 +5,7 @@ import type { EventFields, PersonFields } from "./edit";
 import { childOf, type GedNode, type GedcomData } from "./gedcom";
 
 export type TimelineKind = "birth" | "christening" | "marriage" | "child" | "death" | "burial"
-  | "residence" | "event";
+  | "residence" | "event" | "famEvent";
 
 export interface TimelineItem {
   kind: TimelineKind;
@@ -21,6 +21,8 @@ export interface TimelineItem {
   key: string;
   /** a custom event: its TYPE, or its value when it has no TYPE */
   title?: string;
+  /** people named as witnesses of a marriage (_WITN) */
+  witnesses?: string[];
   /** the GEDCOM tag of a standard event shown as "event" (BAPM, CENS, …) */
   tag?: string;
   /** age, cause, agency and address written under the event, as small labelled lines */
@@ -41,6 +43,9 @@ export const EXTRA_EVENT_TAGS = ["BAPM", "BLES", "CREM", "ADOP", "CONF", "FCOM",
 const OWN_EVENTS: Record<string, "residence" | "event"> = { RESI: "residence", EVEN: "event" };
 for (const tag of EXTRA_EVENT_TAGS) OWN_EVENTS[tag] = "event";
 export const OWN_EVENT_TAGS: string[] = Object.keys(OWN_EVENTS);
+
+/** Family events shown on the timeline of both spouses besides the marriage itself. */
+export const FAMILY_EVENT_TAGS = ["DIV", "ENGA", "MARB", "MARC", "MARL", "MARS", "ANUL"];
 
 const ADDRESS_PARTS = ["ADR1", "ADR2", "ADR3", "CITY", "STAE", "POST", "CTRY"];
 
@@ -71,7 +76,7 @@ const sortKey = (date: string) => {
  * natural order (birth, christening, each marriage with its children, death, burial).
  */
 export function timeline(data: GedcomData, id: string, fields: PersonFields | null,
-                         record?: GedNode): TimelineItem[] {
+                         record?: GedNode, family?: (xref: string) => GedNode | undefined): TimelineItem[] {
   const p = data.people[id];
   if (!p) return [];
   const birthDate = fields ? fields.birth.date : p.birth?.date || "";
@@ -110,7 +115,32 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     const fam = data.families[fid];
     if (!fam) continue;
     const spouse = fam.husb === id ? fam.wife : fam.husb;
-    add("marriage", fam.marriage, fid, spouse && spouse in data.people ? spouse : null, fam.divorced, true);
+    const other = spouse && spouse in data.people ? spouse : null;
+    add("marriage", fam.marriage, fid, other, fam.divorced, true);
+    const famRec = family?.(fid);
+    if (famRec) {
+      const marr = items[items.length - 1];
+      const marrNode = childOf(famRec, "MARR");
+      const details = marrNode ? eventDetails(marrNode) : [];
+      if (details.length) marr.details = details;
+      const witnesses = famRec.children.filter((c) => c.tag === "_WITN" && c.value in data.people).map((c) => c.value);
+      if (witnesses.length) marr.witnesses = witnesses;
+      famRec.children.forEach((node, i) => {
+        const isEven = node.tag === "EVEN";
+        if (!isEven && !FAMILY_EVENT_TAGS.includes(node.tag)) return;
+        const e = { date: childOf(node, "DATE")?.value || "", place: childOf(node, "PLAC")?.value || "" };
+        const title = isEven ? childOf(node, "TYPE")?.value || (node.value === "Y" ? "" : node.value) : "";
+        const det = eventDetails(node);
+        const noted = !!(childOf(node, "SOUR") || childOf(node, "NOTE"));
+        // a plain "DIV Y" is already told by the marriage row; an empty EVEN says nothing
+        if (!e.date && !e.place && !title && !det.length && !noted) return;
+        add("famEvent", e, `${fid}${node.tag}${i}`, other, false, true);
+        const item = items[items.length - 1];
+        if (isEven) item.title = title; else item.tag = node.tag;
+        if (det.length) item.details = det;
+        item.node = node;
+      });
+    }
     for (const c of fam.children) {
       if (c in data.people) add("child", data.people[c].birth, `${fid}${c}`, c, false, true);
     }
