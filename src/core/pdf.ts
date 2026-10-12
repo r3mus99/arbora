@@ -3,6 +3,7 @@
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont } from "pdf-lib";
 import { chartRows, normalize, type Row } from "./chart";
+import { KIND_COLORS } from "./colors";
 import { fmt, formatDMY, type ChartOptions, type SegKind } from "./format";
 import type { GedcomData } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
@@ -11,11 +12,6 @@ import { TEXTS, type Lang } from "./texts";
 const PAGE_SIZES: Record<ChartOptions["pageSize"], [number, number]> = {
   a4: [595.2756, 841.8898], a3: [841.8898, 1190.5512],
   a5: [419.5276, 595.2756], letter: [612, 792], legal: [612, 1008],
-};
-
-/** Colours of the dates and places when the PDF is coloured: darker than on screen, to read on paper. */
-const KIND_COLORS: Partial<Record<SegKind, [number, number, number]>> = {
-  birt: [0.09, 0.45, 0.29], marr: [0.5, 0.39, 0.06], deat: [0.42, 0.24, 0.15], place: [0.4, 0.42, 0.45],
 };
 
 class Layout {
