@@ -69,12 +69,13 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
   const parents = birthFam ? [birthFam.husb, birthFam.wife].filter((x): x is string => !!x) : [];
   const life = timeline(data, id, f);
   const SexIcon = p.sex === "M" ? Mars : p.sex === "F" ? Venus : null;
-  const label = (kind: TimelineKind, dated: boolean) => {
+  const label = (kind: TimelineKind, dated: boolean, other: string | null) => {
+    const sex = other ? data.people[other]?.sex : "";
     switch (kind) {
       case "birth": return t("thBirth");
       case "christening": return t("christening");
       case "marriage": return t("marriage");
-      case "child": return t("childBorn");
+      case "child": return t(sex === "M" ? "childBornM" : sex === "F" ? "childBornF" : "childBorn");
       case "burial": return t("burial");
       case "death": return dated ? t("thDeath") : t(p.sex === "M" ? "deceasedM" : p.sex === "F" ? "deceasedF" : "deceased");
     }
@@ -121,7 +122,7 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
                 {e.date && <div className="tl-date">{formatDate(e.date, true, lang)}
                   {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}</div>}
                 <div className="tl-what">
-                  {label(e.kind, !!e.date)}
+                  {label(e.kind, !!e.date, e.other)}
                   {e.other && <>: {link(e.other, e.kind === "marriage")}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
                   {e.place && <span className="muted"> · {e.place}</span>}

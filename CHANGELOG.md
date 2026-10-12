@@ -7,7 +7,7 @@
   of "10/1961", in all 12 languages, on screen and in the PDF. The edit form
   also accepts month names ("Oct 1961", "1961. okt.").
 - The person detail shows the person's life as a timeline: birth, christening,
-  marriages, children born, death and burial in date order, each with a
+  marriages, births of sons and daughters, death and burial in date order, each with a
   coloured dot, an icon, the place and the person's age at the time.
   Parents, religion, occupation and notes stay above and below it.
 
