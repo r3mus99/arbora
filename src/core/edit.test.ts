@@ -191,6 +191,14 @@ describe("dates typed in the form", () => {
     expect(parseDate("14 mai 1891", "fr").ok).toBe(false);
   });
 
+  test("days a month does not have and INT without its phrase are not dates", () => {
+    for (const input of ["31.2.1890", "30 FEB 1890", "31.4.1890", "INT 1890", "ABT 31 FEB 1890", "1890–31.2.1891"]) {
+      expect(parseDate(input, "sk"), input).toMatchObject({ ok: false });
+    }
+    expect(parseDate("29.2.1888", "sk").value).toBe("29 FEB 1888");
+    expect(parseDate("INT 1890 (podľa kroniky)", "sk")).toEqual({ value: "INT 1890 (podľa kroniky)", ok: true });
+  });
+
   test("stored dates show as the page writes them when they read back the same", () => {
     expect(dateInput("14 MAY 1891", "sk")).toBe("14.5.1891");
     expect(dateInput("ABT 1890", "sk")).toBe("cca 1890");

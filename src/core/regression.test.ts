@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, checkGedcom, decode, familyFields, fixIssue, generate, lineEnding, load, parseGedcom,
+  LANGS, applyFamily, applyPerson, checkGedcom, parseDate, validDateValue, decode, familyFields, fixIssue, generate, lineEnding, load, parseGedcom,
   personFields, readRecords, renameVariants, variantGroups, writeGedcom, type GedNode, type PersonFields,
 } from "./index";
 
@@ -159,6 +159,22 @@ describe("editing and going back", () => {
     const sample = parseGedcom(sampleText);
     const saved = sample.map((r) => (r.tag === "INDI" ? applyPerson(r, personFields(r), personFields(r)) : r));
     expect(saved.every((r, i) => r === sample[i])).toBe(true);
+  });
+});
+
+describe("dates", () => {
+  // every way a person may type a date, in every language: what the form accepts, the file check accepts
+  const days = ["", "1", "14", "29", "30", "31", "32"], months = ["", "1", "2", "4", "12", "13", "FEB", "feb", "XYZ"];
+  const typed = [...new Set(days.flatMap((d) => months.flatMap((m) => [
+    [d, m, "1890"].filter(Boolean).join("."), [d, m, "1890"].filter(Boolean).join(" "),
+  ])))];
+  const shapes = (t: string) => [t, `ABT ${t}`, `BEF ${t}`, `~${t}`, `>${t}`, `${t}–1895`, `BET ${t} AND 1895`,
+                                 `FROM ${t}`, `TO ${t}`, `INT ${t}`, `INT ${t} (x)`, `${t}/91`, `(${t})`];
+
+  test.each(LANGS)("a date the form accepts in %s passes the file check", (lang) => {
+    const accepted = typed.flatMap(shapes).map((input) => ({ input, ...parseDate(input, lang) })).filter((d) => d.ok);
+    expect(accepted.length).toBeGreaterThan(100);
+    expect(accepted.filter((d) => !validDateValue(d.value)).map((d) => `${d.input} → ${d.value}`)).toEqual([]);
   });
 });
 

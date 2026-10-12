@@ -16,8 +16,13 @@
   are kept apart; for places only the town is renamed. Groups can be hidden,
   and a batch rename changes any spelling to another. The overview splits
   problems into issues, surnames and places.
+- The edit form no longer stores a date that the file check then reports as
+  wrong: a day the month does not have (31.2.1890, 30 FEB 1890) or INT without
+  its phrase is kept as a date phrase and the form says so.
 
 ### Development
+- GEDCOM dates are read in one place (`src/core/date.ts`) by the edit form, the
+  file check, the chart order and the overview.
 - Regression tests that must keep passing through the 1.1 refactoring: GEDCOM
   written anew is the same as the original, an edit undone gives the same file,
   every one-click fix removes its issue without adding another, unified

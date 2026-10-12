@@ -202,6 +202,7 @@ The page is written in TypeScript with React and built with Vite.
 ```
 src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fontkit)
   gedcom.ts         reading GEDCOM (encoding, records, people, families), search
+  date.ts           GEDCOM dates: their valid form, years, ISO dates
   edit.ts           editing records, typed dates, writing GEDCOM
   check.ts          file check and safe fixes
   variants.ts       bulk fix: spelling variants of surnames and places

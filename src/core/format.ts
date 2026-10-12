@@ -1,5 +1,6 @@
 /** Dates, places and the text of one person's line. */
 
+import { monthOf } from "./date";
 import type { Family, GedEvent, Person } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
 
@@ -40,8 +41,6 @@ export const fmt = (s: string, vars: Record<string, string | number>) =>
 
 const SYMBOLS = { birt: "*", marr: "∞", deat: "†" };
 type EventKind = keyof typeof SYMBOLS;
-const MONTHS: Record<string, number> = { JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, JUN: 6,
-                                         JUL: 7, AUG: 8, SEP: 9, OCT: 10, NOV: 11, DEC: 12 };
 
 /** Day (may be null), month and year in the date format of the language. */
 export function formatDMY(lang: Lang, d: number | null, m: number, y: number): string {
@@ -70,7 +69,7 @@ export function formatDate(raw: string, full: boolean, lang: Lang): string {
       const m = DATE_RE.exec(part);
       if (!m) return part.trim().toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
       d = m[1] ? +m[1] : null;
-      mo = MONTHS[m[2] || ""] || null;
+      mo = monthOf(m[2] || "") || null;
       y = +m[3];
     }
     if (!full || !mo) return String(y);

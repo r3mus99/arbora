@@ -1,5 +1,6 @@
 /** Chart rows: the ancestor or descendant tree flattened into printed lines. */
 
+import { yearOf } from "./date";
 import type { Family, GedcomData, Person } from "./gedcom";
 import { DEFAULTS, formatEvent, label, personLine, type ChartOptions } from "./format";
 import { TEXTS } from "./texts";
@@ -94,10 +95,7 @@ export function buildRows(rootId: string, people: Record<string, Person>,
   return rows;
 }
 
-const yearKey = (ev: { date: string } | null) => {
-  const m = ev && ev.date ? /(\d{3,4})/.exec(ev.date) : null;
-  return m ? +m[1] : null;
-};
+const yearKey = (ev: { date: string } | null) => yearOf(ev?.date);
 
 /** Order ids by birth year; people without a year keep their place next to siblings. */
 function byBirth(ids: string[], people: Record<string, Person>): string[] {
