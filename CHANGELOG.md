@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.7.0 – 2026-10-12
+
+- More of a person's life is shown. Standard events (baptism, blessing, cremation, adoption, confirmation,
+  first communion, ordination, census, emigration, immigration, naturalisation, graduation, retirement,
+  probate, will) join the timeline. Under any event the age, cause, agency and address written on it are shown.
+  Education, nationality, title, property, social rank, description, number of children, ID number and
+  other facts get their own blocks under the timeline. Display only: editing is unchanged and all lines
+  are kept when a record is edited.
+
 ## 1.6.0 – 2026-10-12
 
 - Residences (RESI) and custom events (EVEN, titled by their TYPE) are now on the person's timeline, with
