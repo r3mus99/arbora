@@ -1,10 +1,12 @@
 import {
-  Award, Baby, Briefcase, CalendarClock, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, Handshake, Hash, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
+  Award, Baby, Briefcase, CalendarClock, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
   StickyNote, Star, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { personFields, type EventFields } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
+import { mapUrl } from "../core/places";
+import { nameDetails } from "../core/names";
 import { personAttributes } from "../core/facts";
 import { fmt, formatDate } from "../core/format";
 import type { GedNode, GedcomData, Person } from "../core/gedcom";
@@ -90,6 +92,8 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
     const tag = EVENT_TAG[kind];
     return record && tag ? eventAnnotations(record, tag, lookup) : null;
   };
+  // a title such as "Dr." is written before the name
+  const prefix = record ? nameDetails(record).parts.find((n) => n.kind === "prefix")?.value : "";
   const SexIcon = p.sex === "M" ? Mars : p.sex === "F" ? Venus : null;
   const label = (kind: TimelineKind, dated: boolean, other: string | null, title = "", tag = "") => {
     const sex = other ? data.people[other]?.sex : "";
@@ -109,7 +113,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
   return (
     <aside className="detail" aria-live="polite">
       <div className="detail-head">
-        <h3>{p.name || "?"}
+        <h3>{prefix && `${prefix} `}{p.name || "?"}
           {SexIcon && <SexIcon className={`icon sex-${p.sex}`} aria-label={t(p.sex === "M" ? "male" : "female")} />}
         </h3>
         {/* while editing: save and cancel as icons, the same as the buttons below the form */}
@@ -133,6 +137,15 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
           aka {f.aliases.map((a) => [a.given, a.surname].filter(Boolean).join(" ")).join(", ")} · </span>}
         {p.id.replace(/@/g, "")}</p>
       {editor || <div className="facts">
+        {(() => {
+          const names = record ? nameDetails(record) : null;
+          const NAME_LABELS: Record<string, StringKey> = { nickname: "nickname", called: "calledName",
+                                surnamePrefix: "surnamePrefix", suffix: "nameSuffix" } as const;
+          return names && (names.parts.some((n) => n.kind !== "prefix") || names.others.length > 0) && <div className="name-parts">
+            {names.parts.filter((n) => n.kind !== "prefix").map((n, i) => <div key={i}><span>{t(NAME_LABELS[n.kind])}:</span> {n.value}</div>)}
+            {names.others.map((n, i) => <div key={`o${i}`}><span>{t("otherName")}{n.type ? ` (${n.type})` : ""}:</span> {n.name}</div>)}
+          </div>;
+        })()}
         {parents.length > 0 && <Fact icon={Users} label={t("parents")}>
           <ul>{parents.map((pid) => <li key={pid}>{link(pid)}</li>)}</ul>
         </Fact>}
@@ -152,6 +165,9 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
                   {e.detail && <>: {e.detail}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
                   {e.place && <span className="muted"> · {e.place}</span>}
+                  {e.coords && <a className="map-link" href={mapUrl(e.coords)} target="_blank" rel="noopener noreferrer"
+                                  title={t("showOnMap")} aria-label={t("showOnMap")}>
+                    <MapPin className="icon" aria-hidden="true" /></a>}
                 </div>
                 {e.witnesses && <div className="tl-details"><span>{t("witnesses")}:</span>{" "}
                   {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w, false)}</span>)}</div>}

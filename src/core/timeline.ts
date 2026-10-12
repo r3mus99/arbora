@@ -2,6 +2,7 @@
 
 import { dateParts, yearsBetween } from "./date";
 import type { EventFields, PersonFields } from "./edit";
+import { placeCoords, type Coords } from "./places";
 import { childOf, type GedNode, type GedcomData } from "./gedcom";
 
 export type TimelineKind = "birth" | "christening" | "marriage" | "child" | "death" | "burial"
@@ -21,6 +22,8 @@ export interface TimelineItem {
   key: string;
   /** a custom event: its TYPE, or its value when it has no TYPE */
   title?: string;
+  /** where the place is on the map, when the file says */
+  coords?: Coords;
   /** people named as witnesses of a marriage (_WITN) */
   witnesses?: string[];
   /** the GEDCOM tag of a standard event shown as "event" (BAPM, CENS, …) */
@@ -108,6 +111,8 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     if (title) item.title = title;
     if (detail) item.detail = detail;
     if (details.length) item.details = details;
+    const at = placeCoords(node, family);
+    if (at) item.coords = at;
     if (EXTRA_EVENT_TAGS.includes(tag)) item.tag = tag;
     item.node = node;
   });
@@ -123,6 +128,8 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
       const marrNode = childOf(famRec, "MARR");
       const details = marrNode ? eventDetails(marrNode) : [];
       if (details.length) marr.details = details;
+      const marrAt = marrNode && placeCoords(marrNode, family);
+      if (marrAt) marr.coords = marrAt;
       const witnesses = famRec.children.filter((c) => c.tag === "_WITN" && c.value in data.people).map((c) => c.value);
       if (witnesses.length) marr.witnesses = witnesses;
       famRec.children.forEach((node, i) => {
@@ -138,6 +145,8 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
         const item = items[items.length - 1];
         if (isEven) item.title = title; else item.tag = node.tag;
         if (det.length) item.details = det;
+        const at = placeCoords(node, family);
+        if (at) item.coords = at;
         item.node = node;
       });
     }
@@ -155,6 +164,8 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
       const node = tags[item.kind] && childOf(record, tags[item.kind]!);
       const details = node ? eventDetails(node) : [];
       if (details.length) item.details = details;
+      const at = node && placeCoords(node, family);
+      if (at) item.coords = at;
     }
   }
 
