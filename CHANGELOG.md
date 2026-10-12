@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.1 – 2026-10-12
+
+- Fixed the order of the person timeline: a death without a date ("Died") no longer
+  lands between the children's births but comes after all dated events, an undated
+  burial comes last and an undated birth or christening comes first.
+
 ## 1.3.0 – 2026-10-12
 
 - The tree view is easier to scan: names are bold, birth dates green, marriages
