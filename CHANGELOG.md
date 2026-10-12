@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.11.2 – 2026-10-12
+
+- New tests: unifying surnames and places changes only NAME and PLAC lines (aka names, notes, sources and
+  unknown tags stay), every one-click fix of the file check changes at most a line or two, and checking the
+  file or looking for variants changes nothing.
+
 ## 1.11.1 – 2026-10-12
 
 - Fixed: changing the given name of a person whose name has no slashes (for example `Karol I.`) wrote `//`
