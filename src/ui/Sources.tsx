@@ -1,19 +1,23 @@
 import { BookMarked, StickyNote } from "lucide-react";
 import { useState } from "react";
-import { hasAnnotations, type Annotations, type Citation } from "../core/sources";
+import { hasAnnotations, linkParts, type Annotations, type Citation } from "../core/sources";
 import type { StringKey } from "./i18n";
 
 type T = (key: StringKey) => string;
+
+/** text in which web addresses are links */
+export const Linked = ({ text }: { text: string }) => <>{linkParts(text).map((p, i) => p.href
+  ? <a key={i} href={p.href} target="_blank" rel="noopener noreferrer">{p.text}</a> : p.text)}</>;
 
 /** one cited source: its title, then what is known about it as small labelled lines */
 function CitationView({ c, t }: { c: Citation; t: T }) {
   const lines: [StringKey, string][] = [["srcPage", c.page], ["srcAuthor", c.author],
                                         ["srcPublication", c.publication], ["srcRepository", c.repository]];
   return <li className="src-item">
-    <div className="src-title">{c.title}</div>
-    {lines.filter(([, v]) => v).map(([k, v]) => <div key={k} className="src-line"><span>{t(k)}:</span> {v}</div>)}
-    {c.text && <blockquote className="src-text">{c.text}</blockquote>}
-    {c.notes.map((n, i) => <div key={i} className="src-note">{n}</div>)}
+    <div className="src-title"><Linked text={c.title} /></div>
+    {lines.filter(([, v]) => v).map(([k, v]) => <div key={k} className="src-line"><span>{t(k)}:</span> <Linked text={v} /></div>)}
+    {c.text && <blockquote className="src-text"><Linked text={c.text} /></blockquote>}
+    {c.notes.map((n, i) => <div key={i} className="src-note"><Linked text={n} /></div>)}
   </li>;
 }
 
@@ -22,7 +26,7 @@ function Entries({ a, t }: { a: Annotations; t: T }) {
   return <div className="src-entries">
     {a.sources.length > 0 && <ul className="src-list" aria-label={t("sources")}>
       {a.sources.map((c, i) => <CitationView key={i} c={c} t={t} />)}</ul>}
-    {a.notes.map((n, i) => <div key={i} className="note-text src-note">{n}</div>)}
+    {a.notes.map((n, i) => <div key={i} className="note-text src-note"><Linked text={n} /></div>)}
   </div>;
 }
 

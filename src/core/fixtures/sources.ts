@@ -18,7 +18,7 @@ export const SOURCES_GED = `0 HEAD
 3 DATA
 4 TEXT Born at home, baptised
 5 CONC  the same week.
-3 NOTE Handwriting hard to read.
+3 NOTE Handwriting hard to read, see https://example.org/scan/12.
 2 NOTE @N1@
 1 OCCU weaver
 2 NOTE Worked at the mill.
@@ -41,6 +41,7 @@ export const SOURCES_GED = `0 HEAD
 0 @S1@ SOUR
 1 TITL Parish register of Sampletown
 1 AUTH Example Parish Office
+1 WWW https://example.org/register
 1 PUBL Handwritten, 1840-1900
 1 REPO @R1@
 0 @S2@ SOUR

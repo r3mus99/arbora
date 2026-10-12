@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
-  applyPerson, decode, eventAnnotations, lineEnding, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
+  applyPerson, decode, eventAnnotations, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
   personFields, writeGedcom, type GedNode,
 } from "./index";
 import { SOURCES_GED } from "./fixtures/sources";
@@ -17,7 +17,7 @@ describe("sources and notes", () => {
     expect(c).toMatchObject({
       title: "Parish register of Sampletown", author: "Example Parish Office",
       publication: "Handwritten, 1840-1900", repository: "Sampletown Regional Archive",
-      page: "p. 12, no. 7", text: "Born at home, baptised the same week.", notes: ["Handwriting hard to read."],
+      page: "p. 12, no. 7", text: "Born at home, baptised the same week.", notes: ["Handwriting hard to read, see https://example.org/scan/12."],
     });
   });
 
@@ -43,6 +43,14 @@ describe("sources and notes", () => {
     const lone = parseGedcom("0 @I9@ INDI\n1 SOUR @S9@\n");
     expect(personAnnotations(lone[0], lookupOf(lone)).sources[0].title).toBe("@S9@");
     expect(personAnnotations(rec("@I2@"), lookup)).toEqual({ sources: [], notes: [] });
+  });
+
+  test("web addresses in a text are split out, without the punctuation after them", () => {
+    expect(linkParts("see https://example.org/a?b=1, and (http://x.org/y).")).toEqual([
+      { text: "see " }, { text: "https://example.org/a?b=1", href: "https://example.org/a?b=1" }, { text: ", and (" },
+      { text: "http://x.org/y", href: "http://x.org/y" }, { text: ")." }]);
+    expect(linkParts("no address")).toEqual([{ text: "no address" }]);
+    expect(linkParts("javascript:alert(1)")).toEqual([{ text: "javascript:alert(1)" }]);
   });
 
   test("the file is written back unchanged", () => {

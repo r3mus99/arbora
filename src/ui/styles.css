@@ -199,6 +199,7 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .src-list { display: grid; gap: 8px; }
 .src-title { font-weight: 600; overflow-wrap: anywhere; }
 .src-line, .src-note { color: var(--muted); overflow-wrap: anywhere; }
+.src-entries a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .src-line span { opacity: .8; }
 .src-text { margin: 2px 0 0; padding: 0; font-style: italic; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 .src-entries > .src-note { white-space: pre-wrap; margin-top: 8px; }

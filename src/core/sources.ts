@@ -94,3 +94,19 @@ export function eventAnnotations(rec: GedNode, tag: string, lookup: Lookup): Ann
 export function marriageAnnotations(fam: GedNode, lookup: Lookup): Annotations {
   return mergeAnnotations(annotations(fam, lookup), eventAnnotations(fam, "MARR", lookup));
 }
+
+export type TextPart = { text: string; href?: string };
+
+/** The text cut into plain pieces and web addresses (http, https); punctuation after an address stays outside it. */
+export function linkParts(text: string): TextPart[] {
+  const parts: TextPart[] = [];
+  let last = 0;
+  for (const m of text.matchAll(/https?:\/\/[^\s<>"]+/gi)) {
+    const url = m[0].replace(/[.,;:!?)\]'”]+$/, "");
+    if (m.index > last) parts.push({ text: text.slice(last, m.index) });
+    parts.push({ text: url, href: url });
+    last = m.index + url.length;
+  }
+  if (last < text.length) parts.push({ text: text.slice(last) });
+  return parts;
+}

@@ -11,7 +11,7 @@ import { eventAnnotations, marriageAnnotations, personAnnotations, type Lookup }
 import { timeline, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { EDITOR_FORM } from "./PersonEditor";
-import { EventSources, PersonSources } from "./Sources";
+import { EventSources, Linked, PersonSources } from "./Sources";
 
 interface Props {
   data: GedcomData;
@@ -151,7 +151,7 @@ export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, 
         </Fact>}
         {!f && p.occupation && <Fact icon={Briefcase} label={t("occupation")}>
           <div className="fact-value">{p.occupation}</div></Fact>}
-        {f?.note && <Fact icon={StickyNote} label={t("note")}><div className="note-text">{f.note}</div></Fact>}
+        {f?.note && <Fact icon={StickyNote} label={t("note")}><div className="note-text"><Linked text={f.note} /></div></Fact>}
         {record && <PersonSources t={t} a={(({ sources, notes }) => ({
           sources, notes: notes.filter((n) => n !== f?.note.trim()) }))(personAnnotations(record, lookup))} />}
       </div>}
