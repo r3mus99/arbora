@@ -4,7 +4,6 @@
 
 - Person form: the given name field now offers the given names already in the file, like the surname field.
   Suggestions for both come only from main names; aka names are no longer offered.
-- File check: new warning for given names that look wrong (digits, unusual characters or a lowercase first letter).
 
 ## 1.3.4 – 2026-10-12
 

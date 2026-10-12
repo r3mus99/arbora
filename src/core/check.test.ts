@@ -55,15 +55,6 @@ describe("checkGedcom", () => {
     expect(kinds(wrap("0 @I1@ INDI\n1 SEX M\n1 FAMS @F1@\n0 @F1@ FAM\n1 WIFE @I1@\n"))).toEqual(["spouseSex"]);
   });
 
-  test("odd given names", () => {
-    const ged = (name: string) => wrap(`0 @I1@ INDI\n1 NAME ${name}\n`);
-    expect(kinds(ged("Anna Marie /Nova/"))).toEqual([]);
-    expect(kinds(ged("Jean-Luc /Nova/"))).toEqual([]);
-    expect(kinds(ged("Anna2 /Nova/"))).toEqual(["oddGiven"]);
-    expect(kinds(ged("anna /Nova/"))).toEqual(["oddGiven"]);
-    expect(kinds(ged("Anna ! /Nova/"))).toEqual(["oddGiven"]);
-  });
-
   test("the sample file has no broken links", () => {
     const issues = checkGedcom(parseGedcom(decode(readFileSync("public/sample.ged"))));
     expect(issues.filter((i) => i.level === "error")).toEqual([]);

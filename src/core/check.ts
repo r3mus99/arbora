@@ -4,12 +4,12 @@
  */
 
 import { isoToGedcom, monthOf, validDateValue } from "./date";
-import { addLine, mainNameParts } from "./edit";
+import { addLine } from "./edit";
 import { childOf, gedNode, rewritten, type GedNode } from "./gedcom";
 
 export type IssueKind =
   | "noHead" | "noTrlr" | "dupId" | "missingRef" | "oneWay" | "badDate"
-  | "deathBeforeBirth" | "beforeParent" | "parentYoung" | "afterMother" | "afterFather" | "spouseSex" | "oddGiven";
+  | "deathBeforeBirth" | "beforeParent" | "parentYoung" | "afterMother" | "afterFather" | "spouseSex";
 
 export interface Issue {
   kind: IssueKind;
@@ -103,14 +103,6 @@ export function checkGedcom(records: GedNode[]): Issue[] {
       const pid = links(f, tag)[0];
       const s = pid && isA(pid, "INDI") ? childOf(byId.get(pid)!, "SEX")?.value.toUpperCase() : "";
       if (s === sex) add("spouseSex", "warn", pid, { id: pid, tag, value: f.xref! });
-    }
-  }
-
-  // given names with digits, unusual characters or a lowercase start
-  for (const p of people) {
-    const { given } = mainNameParts(p);
-    if (given && (/[^\p{L}\p{M} '’.,()?-]/u.test(given) || /^\p{Ll}/u.test(given))) {
-      add("oddGiven", "warn", p.xref, { id: p.xref!, value: given });
     }
   }
 
