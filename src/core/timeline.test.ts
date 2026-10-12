@@ -110,3 +110,52 @@ ${[0, 1, 2, 3].map((n) => `1 CHIL @C${n}@`).join("\n")}
   fields.burial = { ...fields.burial, place: "Greenfield" };
   expect(timeline(data, "@I1@", fields).map((i) => i.kind).slice(-2)).toEqual(["death", "burial"]);
 });
+
+describe("residences and custom events", () => {
+  const ged = `0 HEAD
+0 @I1@ INDI
+1 NAME Ota /Brandt/
+1 BIRT
+2 DATE 1900
+1 RESI
+2 DATE 1930
+2 PLAC Springfield, Ohio
+1 RESI Mill Road 4
+2 PLAC Greenfield
+1 EVEN
+2 TYPE Immigration
+2 DATE 1925
+2 PLAC Harbor
+2 NOTE Arrived by ship.
+1 EVEN military
+1 RESI
+2 NOTE Nothing but a note.
+1 EVEN
+0 TRLR
+`;
+  const records = parseGedcom(ged);
+  const data = readRecords(records);
+  const rec = records.find((r) => r.xref === "@I1@")!;
+  const items = timeline(data, "@I1@", personFields(rec), rec);
+
+  test("are listed in date order with their title, detail and place", () => {
+    expect(items.map((i) => [i.kind, i.date, i.place, i.title || "", i.detail || ""])).toEqual([
+      ["birth", "1900", "", "", ""],
+      ["event", "1925", "Harbor", "Immigration", ""],
+      ["residence", "1930", "Springfield, Ohio", "", ""],
+      ["residence", "", "Greenfield", "", "Mill Road 4"],
+      ["event", "", "", "military", ""],
+      ["residence", "", "", "", ""],
+    ]);
+    expect(items[1].age).toBe(25);
+  });
+
+  test("keep their line, so its notes can be read; empty lines are skipped", () => {
+    expect(items[1].node?.tag).toBe("EVEN");
+    expect(items.filter((i) => i.node).length).toBe(5);
+  });
+
+  test("without the record, nothing but the usual events", () => {
+    expect(timeline(data, "@I1@", personFields(rec)).map((i) => i.kind)).toEqual(["birth"]);
+  });
+});

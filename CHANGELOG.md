@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0 – 2026-10-12
+
+- Residences (RESI) and custom events (EVEN, titled by their TYPE) are now on the person's timeline, with
+  date, place, age, an address written on the line, and their sources and notes. Display only: editing is
+  unchanged and these lines are kept as they are when a record is edited.
+
 ## 1.5.0 – 2026-10-12
 
 - Sources and notes are now shown. A birth, christening, death, burial or marriage that carries a source

@@ -1,6 +1,7 @@
 /** Sources (SOUR) and notes (NOTE) attached to a record or an event, resolved to readable text. */
 
 import { childOf, childrenOf, type GedNode } from "./gedcom";
+import { OWN_EVENT_TAGS } from "./timeline";
 
 /** a source citation with what the cited source record says about itself */
 export interface Citation {
@@ -84,7 +85,7 @@ export const TIMELINE_TAGS = ["BIRT", "CHR", "DEAT", "BURI"];
 export function personAnnotations(rec: GedNode, lookup: Lookup): Annotations {
   const own = annotations(rec, lookup);
   const rest = rec.children.filter((c) => c.tag !== "NOTE" && c.tag !== "SOUR" && !TIMELINE_TAGS.includes(c.tag)
-                                          && !c.verbatim);
+                                          && !OWN_EVENT_TAGS.includes(c.tag) && !c.verbatim);
   return mergeAnnotations(own, ...rest.map((c) => annotations(c, lookup)));
 }
 
