@@ -76,4 +76,19 @@ describe("bulk fix of spellings", () => {
     // unchanged records keep their original lines
     expect(renameVariants(records, "surname", ["Nosák"], "Novák")[1]).toBe(records[1]);
   });
+
+  test("the old surname can stay as a name with TYPE aka", () => {
+    let records = parseGedcom(GED);
+    records = renameVariants(records, "surname", ["Pavlovszký"], "Pavlovský", true);
+    const text = writeGedcom(records);
+    expect(text).toContain("1 NAME Michal /Pavlovský/\n2 SURN Pavlovský\n1 NAME Michal /Pavlovszký/\n2 SURN Pavlovszký\n2 TYPE aka\n");
+    // the aka name does not make a new group; renaming back and forth keeps each spelling once per person
+    expect(variantGroups(records, "surname")).toEqual([]);
+    const back = renameVariants(records, "surname", ["Pavlovský"], "Pavlovszký", true);
+    const again = renameVariants(back, "surname", ["Pavlovszký"], "Pavlovský", true);
+    const names = writeGedcom(again).match(/^1 NAME .*$/gm)!;
+    expect(names.filter((n) => n.includes("Pavlov"))).toEqual([
+      "1 NAME Ján /Pavlovský/", "1 NAME Ján /Pavlovszký/",
+      "1 NAME Michal /Pavlovský/", "1 NAME Michal /Pavlovszký/", "1 NAME Anna /Pavlovská/"]);
+  });
 });

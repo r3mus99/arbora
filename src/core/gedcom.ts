@@ -97,6 +97,16 @@ export function parseGedcom(text: string): GedNode[] {
 const first = (node: GedNode, tag: string) => node.children.find((c) => c.tag === tag) || null;
 const all = (node: GedNode, tag: string) => node.children.filter((c) => c.tag === tag);
 
+/** a NAME kept as another known form of the name: `2 TYPE aka` */
+export const isAka = (name: GedNode) =>
+  name.children.some((c) => c.tag === "TYPE" && c.value.trim().toLowerCase() === "aka");
+
+/** The person's own name: the first NAME that is not an aka, else the first NAME. */
+export function mainName(rec: GedNode): GedNode | null {
+  const names = all(rec, "NAME");
+  return names.find((n) => !isAka(n)) || names[0] || null;
+}
+
 export function cleanName(value: string): string {
   return value.replace(/\//g, " ").replace(/\s+/g, " ").trim();
 }
@@ -127,7 +137,7 @@ export function readRecords(records: GedNode[], fallbackEvents = true): GedcomDa
   const deathTags = fallbackEvents ? ["DEAT", "BURI", "CREM"] : ["DEAT"];
   for (const rec of records) {
     if (rec.tag === "INDI" && rec.xref) {
-      const nameNode = first(rec, "NAME");
+      const nameNode = mainName(rec);
       let name = nameNode ? cleanName(nameNode.value) : "";
       if (nameNode && !name) {
         name = [first(nameNode, "GIVN"), first(nameNode, "SURN")]

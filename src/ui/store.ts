@@ -11,6 +11,8 @@ export interface Stored {
   root?: string;
   /** bulk fix: groups of spellings marked "not the same" (VariantGroup keys) */
   hiddenVariants?: string[];
+  /** bulk fix: keep an unified surname's old spelling as a name with TYPE aka (default yes) */
+  keepAka?: boolean;
 }
 
 export function readStore(): Stored {
