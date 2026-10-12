@@ -190,6 +190,8 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .tl-residence { --dot: #9a7b4f; } .tl-event { --dot: #7b6bb5; }
 .tl-child { --dot: #17a89c; } .tl-death { --dot: var(--c-death); } .tl-burial { --dot: #8a8f86; }
 /* sources and notes: the one colour --c-src marks the icons, the text stays muted */
+.tl-details { font-size: 13px; color: var(--muted); }
+.tl-details span { opacity: .8; }
 .tl-extra { margin-top: 2px; }
 .src-toggle { display: inline-flex; gap: 8px; align-items: center; border: 0; background: none; padding: 2px 4px; margin-left: -4px;
               border-radius: 6px; color: var(--c-src); font: inherit; font-size: 12.5px; cursor: pointer; }

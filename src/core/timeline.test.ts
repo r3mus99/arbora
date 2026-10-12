@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { dateParts, parseGedcom, personFields, readRecords, timeline, yearsBetween } from "./index";
+import { dateParts, parseGedcom, personAttributes, personFields, readRecords, timeline, yearsBetween } from "./index";
 
 describe("ages", () => {
   test.each([
@@ -157,5 +157,57 @@ describe("residences and custom events", () => {
 
   test("without the record, nothing but the usual events", () => {
     expect(timeline(data, "@I1@", personFields(rec)).map((i) => i.kind)).toEqual(["birth"]);
+  });
+});
+
+describe("more events and attributes", () => {
+  const ged = `0 HEAD
+0 @I1@ INDI
+1 NAME Ota /Brandt/
+1 BIRT
+2 DATE 1900
+2 AGE 0
+1 DEAT
+2 DATE 1980
+2 CAUS Old age
+2 ADDR Hill Street 2
+3 CONT Second floor
+3 CITY Greenfield
+1 IMMI
+2 DATE 1925
+2 PLAC Harbor
+2 AGENCY ignored
+2 AGNC Port office
+1 CONF
+1 EDUC Teacher training
+2 DATE 1920
+1 NATI
+1 TITL Dr.
+1 NCHI 3
+1 TITL
+0 TRLR
+`;
+  const records = parseGedcom(ged);
+  const data = readRecords(records);
+  const rec = records.find((r) => r.xref === "@I1@")!;
+  const items = timeline(data, "@I1@", personFields(rec), rec);
+
+  test("standard events are listed with their tag and details", () => {
+    expect(items.map((i) => [i.kind, i.tag || "", i.date])).toEqual([
+      ["birth", "", "1900"], ["event", "IMMI", "1925"], ["event", "CONF", ""], ["death", "", "1980"],
+    ]);
+    expect(items[1].details).toEqual([{ key: "agency", value: "Port office" }]);
+  });
+
+  test("age, cause and address are read from birth and death too", () => {
+    expect(items[0].details).toEqual([{ key: "age", value: "0" }]);
+    expect(items[3].details).toEqual([{ key: "cause", value: "Old age" },
+                                      { key: "address", value: "Hill Street 2, Second floor, Greenfield" }]);
+  });
+
+  test("attributes with a value, date or place", () => {
+    expect(personAttributes(rec).map((a) => [a.tag, a.value, a.date])).toEqual([
+      ["EDUC", "Teacher training", "1920"], ["TITL", "Dr.", ""], ["NCHI", "3", ""],
+    ]);
   });
 });

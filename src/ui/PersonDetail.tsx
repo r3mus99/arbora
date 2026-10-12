@@ -1,9 +1,10 @@
 import {
-  Baby, Briefcase, CalendarClock, Check, X, Church, Cross, Crosshair, Droplets, Flower2, Heart, HeartCrack, Home, Mars, Pencil,
-  StickyNote, Star, Users, Venus, type LucideIcon,
+  Award, Baby, Briefcase, CalendarClock, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, Hash, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
+  StickyNote, Star, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { personFields, type EventFields } from "../core/edit";
+import { personAttributes } from "../core/facts";
 import { fmt, formatDate } from "../core/format";
 import type { GedNode, GedcomData, Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
@@ -41,6 +42,12 @@ function Fact({ icon: Icon, label, children }: { icon: LucideIcon; label: string
     </div>
   </div>;
 }
+
+const DETAIL_KEYS = { age: "detAge", cause: "detCause", agency: "detAgency", address: "detAddress" } as const;
+
+const ATTRIBUTE_ICONS: Record<string, LucideIcon> = {
+  EDUC: GraduationCap, NATI: Flag, TITL: Award, PROP: Landmark, NCHI: Users, IDNO: Hash,
+};
 
 const ICONS: Record<TimelineKind, LucideIcon> = {
   birth: Baby, christening: Droplets, residence: Home, event: Star, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
@@ -81,7 +88,7 @@ export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, 
     return record && tag ? eventAnnotations(record, tag, lookup) : null;
   };
   const SexIcon = p.sex === "M" ? Mars : p.sex === "F" ? Venus : null;
-  const label = (kind: TimelineKind, dated: boolean, other: string | null, title = "") => {
+  const label = (kind: TimelineKind, dated: boolean, other: string | null, title = "", tag = "") => {
     const sex = other ? data.people[other]?.sex : "";
     switch (kind) {
       case "birth": return t("thBirth");
@@ -90,7 +97,7 @@ export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, 
       case "child": return t(sex === "M" ? "childBornM" : sex === "F" ? "childBornF" : "childBorn");
       case "burial": return t("burial");
       case "residence": return t("residence");
-      case "event": return title || t("event");
+      case "event": return title || (tag ? t(`ev${tag}` as StringKey) : t("event"));
       case "death": return dated ? t("thDeath") : t(p.sex === "M" ? "deceasedM" : p.sex === "F" ? "deceasedF" : "deceased");
     }
   };
@@ -136,12 +143,14 @@ export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, 
                 {e.date && <div className="tl-date">{formatDate(e.date, true, lang)}
                   {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}</div>}
                 <div className="tl-what">
-                  {label(e.kind, !!e.date, e.other, e.title)}
+                  {label(e.kind, !!e.date, e.other, e.title, e.tag)}
                   {e.other && <>: {link(e.other, e.kind === "marriage")}</>}
                   {e.detail && <>: {e.detail}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
                   {e.place && <span className="muted"> · {e.place}</span>}
                 </div>
+                {e.details && <div className="tl-details">{e.details.map((d) => <div key={d.key}>
+                  <span>{t(DETAIL_KEYS[d.key])}:</span> {d.value}</div>)}</div>}
                 {(() => { const a = extras(e.kind, e.key, e.node); return a && <EventSources a={a} t={t} />; })()}
               </div>
             </li>;
@@ -155,6 +164,10 @@ export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, 
         </Fact>}
         {!f && p.occupation && <Fact icon={Briefcase} label={t("occupation")}>
           <div className="fact-value">{p.occupation}</div></Fact>}
+        {record && personAttributes(record).map((a, i) => <Fact key={i} icon={ATTRIBUTE_ICONS[a.tag] || Tag}
+                                                              label={t(`attr${a.tag}` as StringKey)}>
+          {a.value && <div className="fact-value">{a.value}</div>}{when(a)}
+        </Fact>)}
         {f?.note && <Fact icon={StickyNote} label={t("note")}><div className="note-text"><Linked text={f.note} /></div></Fact>}
         {record && <PersonSources t={t} a={(({ sources, notes }) => ({
           sources, notes: notes.filter((n) => n !== f?.note.trim()) }))(personAnnotations(record, lookup))} />}
