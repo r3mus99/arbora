@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Search also finds people by year: typing 1894 (or just 189) matches the year of
+  birth or death, alone or together with a name.
+
 ## 1.2.0 – 2026-10-12
 
 - The top bar stays at the top of the window while the page scrolls.
