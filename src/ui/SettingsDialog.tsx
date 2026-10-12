@@ -28,7 +28,7 @@ export function SettingsDialog({ ref, form, lang, onChange, t }: Props) {
 
   return (
   <dialog className="settings-dialog" ref={ref} onClick={(e) => e.target === e.currentTarget && e.currentTarget.close()}>
-    <div className="dialog-head"><Settings className="icon" aria-hidden="true" /><h2>{t("step3")}</h2>
+    <div className="dialog-head"><Settings className="icon" aria-hidden="true" /><h2>{t("settings")}</h2>
       <button type="button" className="icon-btn" onClick={() => ref.current?.close()} aria-label={t("cancel")}>
         <X className="icon" aria-hidden="true" /></button></div>
     <div className="set-group">
