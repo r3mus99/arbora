@@ -51,9 +51,9 @@ describe("bulk fix of spellings", () => {
     expect(variantGroups(records, "surname").map((g) => g.variants)).toEqual([
       [{ value: "Pavlovský", records: ["@I1@"] }, { value: "Pavlovszký", records: ["@I2@"] }],
     ]);
-    // places are compared by town and listed as a whole, in the order of use
+    // places are compared by town and house number and listed as a whole, in the order of use
     expect(variantGroups(records, "place").map((g) => g.variants.map((v) => [v.value, v.records]))).toEqual([[
-      ["Lieskovice 12", ["@I3@"]], ["Lieskovice, Senica, Slovensko", ["@I1@"]],
+      ["Lieskovice, Senica, Slovensko", ["@I1@"]],
       ["Lieszkovicz", ["@F1@"]], ["Lieszkovicz, Nyitra, Hungary", ["@I2@"]],
     ]]);
   });
@@ -122,18 +122,33 @@ describe("places as a whole", () => {
 0 TRLR
 `;
 
-  test("one town with a district, a country and a house number is one group", () => {
-    const [group, ...more] = variantGroups(parseGedcom(PLACES), "place");
-    expect(more).toEqual([]);
-    expect(group.variants.map((v) => v.value)).toEqual([
-      "Ostbach, Nordkreis, Region of Nordland, Westmark", "Ostbach", "Ostbach 19",
-      "Ostbach, Nordkreis, Altmark", "Ostbach, Nordkreis, Nordland-Region, Westmarken"]);
-    expect(group.variants[2].number).toBe("19");
+  test("the town address and each house number are separate groups", () => {
+    const more = `0 @I8@ INDI
+1 BIRT
+2 PLAC Ostbach 19, Nordkreis, Westmark
+0 @I9@ INDI
+1 BIRT
+2 PLAC Ostbach 22
+0 @I10@ INDI
+1 BIRT
+2 PLAC Ostbach 22, Nordkreis
+0 TRLR
+`;
+    const groups = variantGroups(parseGedcom(PLACES.replace("0 TRLR\n", "") + more), "place");
+    const sets = groups.map((g) => g.variants.map((v) => v.value).sort()).sort((a, b) => a[0].localeCompare(b[0]));
+    expect(sets).toEqual([
+      ["Ostbach", "Ostbach, Nordkreis, Altmark", "Ostbach, Nordkreis, Nordland-Region, Westmarken",
+        "Ostbach, Nordkreis, Region of Nordland, Westmark"],
+      ["Ostbach 19", "Ostbach 19, Nordkreis, Westmark"],
+      ["Ostbach 22", "Ostbach 22, Nordkreis"],
+    ]);
+    expect(groups.flatMap((g) => g.variants).find((v) => v.value === "Ostbach 19")?.number).toBe("19");
   });
 
-  test("house numbers and known other countries are kept unless chosen", () => {
+  test("a lone house number is no group and only other countries are kept", () => {
     const group = variantGroups(parseGedcom(PLACES), "place")[0];
-    expect([...keptByDefault(group, group.variants[0].value)]).toEqual(["Ostbach 19"]);
+    expect(group.variants.map((v) => v.value)).not.toContain("Ostbach 19");
+    expect([...keptByDefault(group, group.variants[0].value)]).toEqual([]);
     expect(countryOf("Lieskovice, Senica, Slovakia")).toBe("slovakia");
     expect(countryOf("Lieskovice, Senica, Slovensko")).toBe("slovakia");
     expect(countryOf("Lieskovice, Senica, Československo")).toBe("czechoslovakia");

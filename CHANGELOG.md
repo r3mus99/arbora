@@ -6,6 +6,14 @@
   lands between the children's births but comes after all dated events, an undated
   burial comes last and an undated birth or christening comes first.
 
+## 1.3.1 – 2026-10-12
+
+- Bulk fix of places no longer merges different house numbers: "Ostbach 19",
+  "Ostbach 22" and "Ostbach 49" are three separate places, never merged into
+  each other or into the bare town. Only spellings of the same house number
+  (e.g. "Ostbach 22" and "Ostbach 22, District, Country") are grouped, and the
+  town itself ("Ostbach", "Ostbach, District, Country") is grouped on its own.
+
 ## 1.3.0 – 2026-10-12
 
 - The tree view is easier to scan: names are bold, birth dates green, marriages

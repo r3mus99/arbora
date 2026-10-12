@@ -2,8 +2,9 @@
  * Bulk fix: spellings of one surname or place that differ only in accents, doubled
  * letters or old Hungarian/German spelling (Pavlovský / Pavlovszký, Lieskovice /
  * Lieszkovicz), found as groups and renamed to one chosen spelling.
- * A place is compared by its town but renamed as a whole ("Lieskovice", "Lieskovice 22",
- * "Lieskovice, Senica, Slovakia" are variants of one place).
+ * A place is compared by its town and house number but renamed as a whole ("Lieskovice",
+ * "Lieskovice, Senica, Slovakia" are variants of one place; "Lieskovice 22" is another one,
+ * and so is every other house number).
  */
 
 import { childrenOf, fold, gedNode, isAka, rewritten, type GedNode } from "./gedcom";
@@ -60,13 +61,16 @@ const feminine = (s: string) => /(ov[áa]|á|[csz]ka)$/i.test(s.trim());
 const stem = (s: string) => s.trim().replace(/ov[áa]$/i, "");
 
 /** What two spellings are compared by: the spelling key (of the stem for surnames) and, for surnames, the gender. */
-interface Keyed { key: string; fem: boolean }
+interface Keyed { key: string; fem: boolean; /** places: the house number, "" for the town itself */ num: string }
 const keyed = (value: string, kind: VariantKind): Keyed =>
-  kind === "surname" ? { key: spellingKey(stem(value)), fem: feminine(value) } : { key: spellingKey(townOf(value)), fem: false };
+  kind === "surname" ? { key: spellingKey(stem(value)), fem: feminine(value), num: "" }
+    : { key: spellingKey(townOf(value)), fem: false, num: houseNumberOf(value) };
+/** Surnames differ by gender, places by house number: "Town 19" is never "Town 22" nor the town itself. */
+const side = (k: Keyed) => `${k.fem}|${k.num}`;
 
 /** Two spellings whose keys say they are most likely the same name. */
 function similarKeys(a: Keyed, b: Keyed, kind: VariantKind): boolean {
-  if (a.fem !== b.fem || !a.key || !b.key) return false;
+  if (a.fem !== b.fem || a.num !== b.num || !a.key || !b.key) return false;
   if (a.key === b.key) return true;
   // short names differ in a letter too often to be the same (Novák, Nosák; Lindau, Landau)
   const len = Math.min(a.key.length, b.key.length);
@@ -159,7 +163,7 @@ export function variantGroups(records: GedNode[], kind: VariantKind): VariantGro
   values.forEach((value, i) => {
     const k = keyed(value, kind);
     if (!k.key) return;
-    const id = `${k.fem}|${k.key}`;
+    const id = `${side(k)}|${k.key}`;
     const known = byKey.get(id);
     if (known) join(known.first, i); else byKey.set(id, { k, first: i });
   });
@@ -172,8 +176,8 @@ export function variantGroups(records: GedNode[], kind: VariantKind): VariantGro
     const key = entry.k.key;
     const most = key.length >= 11 ? 2 : key.length >= 6 ? 1 : 0;
     for (const variant of deletions(key, most)) {
-      const list = near.get(`${entry.k.fem}|${variant}`);
-      if (list) list.push(n); else near.set(`${entry.k.fem}|${variant}`, [n]);
+      const list = near.get(`${side(entry.k)}|${variant}`);
+      if (list) list.push(n); else near.set(`${side(entry.k)}|${variant}`, [n]);
     }
   });
   const compared = new Set<string>();
@@ -207,8 +211,7 @@ export function variantGroups(records: GedNode[], kind: VariantKind): VariantGro
 
 /**
  * Spellings of a group that are not replaced unless the user chooses so: places in another
- * (known) country than `target`, e.g. Czechoslovakia next to Slovakia, and places with
- * another house number, which would be lost.
+ * (known) country than `target`, e.g. Czechoslovakia next to Slovakia.
  */
 export function keptByDefault(group: VariantGroup, target: string): Set<string> {
   const to = group.variants.find((v) => v.value === target);
@@ -216,7 +219,7 @@ export function keptByDefault(group: VariantGroup, target: string): Set<string> 
   if (group.kind !== "place" || !to) return kept;
   for (const v of group.variants) {
     if (v === to) continue;
-    if ((v.country && to.country && v.country !== to.country) || (v.number && v.number !== to.number)) kept.add(v.value);
+    if (v.country && to.country && v.country !== to.country) kept.add(v.value);
   }
   return kept;
 }
