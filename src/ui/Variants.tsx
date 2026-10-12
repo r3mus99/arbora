@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronDown, ChevronRight, Eye, EyeOff, SpellCheck, WandSparkles, X } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, ChevronRight, Eye, EyeOff, SpellCheck, WandSparkles, X } from "lucide-react";
 import { useState } from "react";
 import type { GedcomData } from "../core/gedcom";
 import { keptByDefault, type VariantGroup, type VariantKind } from "../core/variants";
@@ -57,7 +57,7 @@ function Group({ group, data, hidden, onRename, onHide, onFocus, t, listId }:
             {!chosen && !hidden && <button type="button" className="chip-x" onClick={() => keep(v.value, !out)}
                                            title={out ? t("pickVariant") : t("keepVariant")}
                                            aria-label={`${out ? t("pickVariant") : t("keepVariant")}: ${v.value}`}>
-              {out ? <ArrowRight className="icon" aria-hidden="true" /> : <X className="icon" aria-hidden="true" />}</button>}
+              {out ? <X className="icon" aria-hidden="true" /> : <Check className="icon" aria-hidden="true" />}</button>}
           </span>;
         })}</span>
         {!hidden && <>
