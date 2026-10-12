@@ -4,21 +4,21 @@
   --danger: #a3341f; --focus: #2f6b4f55;
   /* event colours: the tree, the timeline and (darker) the PDF, see src/core/colors.ts */
   --line: color-mix(in srgb, var(--muted) 50%, var(--bg));
-  --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --zebra: #00000005;
+  --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --c-src: #5f7f9a; --zebra: #00000005;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #151714; --panel: #1f221e; --text: #e8eae4; --muted: #a0a69b;
     --border: #363a33; --accent: #6fbf95; --accent-text: #0f1a14; --accent-soft: #24352b;
     --danger: #f08a73; --focus: #6fbf9566;
-    --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --zebra: #ffffff05;
+    --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --c-src: #8fb0cc; --zebra: #ffffff05;
   }
 }
 :root[data-theme="dark"] {
   --bg: #151714; --panel: #1f221e; --text: #e8eae4; --muted: #a0a69b;
   --border: #363a33; --accent: #6fbf95; --accent-text: #0f1a14; --accent-soft: #24352b;
   --danger: #f08a73; --focus: #6fbf9566;
-  --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --zebra: #ffffff05;
+  --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --c-src: #8fb0cc; --zebra: #ffffff05;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -176,8 +176,8 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .timeline ol { list-style: none; margin: 0; padding: 0 0 0 4px; position: relative; }
 .timeline ol::before { content: ""; position: absolute; left: 9px; top: 10px; bottom: 10px; width: 2px;
                        background: var(--border); }
-.timeline li { display: grid; grid-template-columns: 12px 18px 1fr; gap: 10px; align-items: start; padding: 0 0 12px; }
-.timeline li:last-child { padding-bottom: 0; }
+.timeline ol > li { display: grid; grid-template-columns: 12px 18px 1fr; gap: 10px; align-items: start; padding: 0 0 12px; }
+.timeline ol > li:last-child { padding-bottom: 0; }
 .tl-dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 5px; position: relative;
           background: var(--dot); box-shadow: 0 0 0 3px var(--panel); }
 .timeline .tl-icon { width: 18px; height: 18px; margin-top: 2px; color: var(--muted); }
@@ -188,6 +188,24 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .tl-birth { --dot: var(--c-birth); } .tl-christening { --dot: #3b82c4; } .tl-marriage { --dot: var(--c-marr); }
 .tl-birth .tl-icon, .tl-marriage .tl-icon, .tl-death .tl-icon { color: var(--dot); }
 .tl-child { --dot: #17a89c; } .tl-death { --dot: var(--c-death); } .tl-burial { --dot: #8a8f86; }
+/* sources and notes: the one colour --c-src marks the icons, the text stays muted */
+.tl-extra { margin-top: 2px; }
+.src-toggle { display: inline-flex; gap: 8px; align-items: center; border: 0; background: none; padding: 2px 4px; margin-left: -4px;
+              border-radius: 6px; color: var(--c-src); font: inherit; font-size: 12.5px; cursor: pointer; }
+.src-toggle:hover, .src-toggle[aria-expanded="true"] { background: var(--accent-soft); }
+.src-toggle span { display: inline-flex; gap: 3px; align-items: center; }
+.src-toggle .icon, .sources summary .icon { width: 14px; height: 14px; color: var(--c-src); }
+.src-entries { margin: 4px 0 2px; padding-left: 8px; border-left: 2px solid var(--c-src); font-size: 13px; }
+.src-list { display: grid; gap: 8px; }
+.src-title { font-weight: 600; overflow-wrap: anywhere; }
+.src-line, .src-note { color: var(--muted); overflow-wrap: anywhere; }
+.src-line span { opacity: .8; }
+.src-text { margin: 2px 0 0; padding: 0; font-style: italic; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.src-entries > .src-note { white-space: pre-wrap; margin-top: 8px; }
+.sources summary { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; font-weight: 600;
+                   text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.sources summary .icon { width: 17px; height: 17px; }
+.sources .src-entries { margin-top: 8px; }
 .fact-value { overflow-wrap: anywhere; }
 .fact-value .place { color: var(--muted); }
 .fact-value span + .place::before { content: " · "; }

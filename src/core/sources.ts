@@ -1,0 +1,96 @@
+/** Sources (SOUR) and notes (NOTE) attached to a record or an event, resolved to readable text. */
+
+import { childOf, childrenOf, type GedNode } from "./gedcom";
+
+/** a source citation with what the cited source record says about itself */
+export interface Citation {
+  title: string;
+  author: string;
+  publication: string;
+  repository: string;
+  /** PAGE: where in the source */
+  page: string;
+  /** DATA/TEXT: the quoted text */
+  text: string;
+  notes: string[];
+}
+
+export interface Annotations {
+  sources: Citation[];
+  notes: string[];
+}
+
+/** the record behind an `@X1@` pointer */
+export type Lookup = (xref: string) => GedNode | undefined;
+
+/** Lookup over parsed level-0 records. */
+export function lookupOf(records: GedNode[]): Lookup {
+  const byXref = new Map(records.filter((r) => r.xref).map((r) => [r.xref!, r]));
+  return (xref) => byXref.get(xref);
+}
+
+const isLink = (value: string) => /^@[^@]+@$/.test(value);
+/** the text of a NOTE line: its own value, or the value of the NOTE record it points to */
+const textOf = (n: GedNode, lookup: Lookup) => (isLink(n.value) ? lookup(n.value)?.value ?? "" : n.value).trim();
+
+function notesOf(node: GedNode, lookup: Lookup): string[] {
+  return childrenOf(node, "NOTE").map((n) => textOf(n, lookup)).filter(Boolean);
+}
+
+const valueOf = (node: GedNode | null, tag: string) => (node && childOf(node, tag)?.value.trim()) || "";
+
+function citation(cite: GedNode, lookup: Lookup): Citation {
+  const rec = isLink(cite.value) ? lookup(cite.value) : undefined;
+  const repo = rec && childOf(rec, "REPO");
+  const repoRec = repo && isLink(repo.value) ? lookup(repo.value) : undefined;
+  const data = childOf(cite, "DATA");
+  return {
+    // a citation with a text instead of a pointer is its own title
+    title: rec ? valueOf(rec, "TITL") || valueOf(rec, "ABBR") || cite.value : cite.value,
+    author: valueOf(rec || null, "AUTH"),
+    publication: valueOf(rec || null, "PUBL"),
+    repository: (repoRec ? valueOf(repoRec, "NAME") : repo && !isLink(repo.value) ? repo.value : "") || "",
+    page: valueOf(cite, "PAGE"),
+    text: (data && childOf(data, "TEXT")?.value.trim()) || "",
+    notes: [...notesOf(cite, lookup), ...(rec ? notesOf(rec, lookup) : [])],
+  };
+}
+
+/** The sources and notes written directly under `node` (a record, an event or a name). */
+export function annotations(node: GedNode | null | undefined, lookup: Lookup): Annotations {
+  if (!node) return { sources: [], notes: [] };
+  return { sources: childrenOf(node, "SOUR").map((c) => citation(c, lookup)), notes: notesOf(node, lookup) };
+}
+
+export const hasAnnotations = (a: Annotations) => a.sources.length > 0 || a.notes.length > 0;
+
+/** `a` and `b` together, each note and source once */
+export function mergeAnnotations(...list: Annotations[]): Annotations {
+  const seen = new Set<string>();
+  const once = <T,>(items: T[]) => items.filter((x) => !seen.has(JSON.stringify(x)) && !!seen.add(JSON.stringify(x)));
+  return { sources: once(list.flatMap((a) => a.sources)), notes: once(list.flatMap((a) => a.notes)) };
+}
+
+/** Event tags of a person that the timeline shows; their notes and sources go on the event. */
+export const TIMELINE_TAGS = ["BIRT", "CHR", "DEAT", "BURI"];
+
+/**
+ * The person's own notes and sources: on the record, on its names and on every line the
+ * timeline does not show (occupation, residence, …). The NOTE the edit form shows is included.
+ */
+export function personAnnotations(rec: GedNode, lookup: Lookup): Annotations {
+  const own = annotations(rec, lookup);
+  const rest = rec.children.filter((c) => c.tag !== "NOTE" && c.tag !== "SOUR" && !TIMELINE_TAGS.includes(c.tag)
+                                          && !c.verbatim);
+  return mergeAnnotations(own, ...rest.map((c) => annotations(c, lookup)));
+}
+
+/** Notes and sources of the person's event with this tag. */
+export function eventAnnotations(rec: GedNode, tag: string, lookup: Lookup): Annotations {
+  return mergeAnnotations(...childrenOf(rec, tag).map((c) => annotations(c, lookup)));
+}
+
+/** Notes and sources of a marriage: those of the MARR line and those of the family record. */
+export function marriageAnnotations(fam: GedNode, lookup: Lookup): Annotations {
+  return mergeAnnotations(annotations(fam, lookup), eventAnnotations(fam, "MARR", lookup));
+}

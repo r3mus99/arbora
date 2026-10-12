@@ -7,15 +7,19 @@ import { personFields, type EventFields } from "../core/edit";
 import { fmt, formatDate } from "../core/format";
 import type { GedNode, GedcomData, Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
+import { eventAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
 import { timeline, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { EDITOR_FORM } from "./PersonEditor";
+import { EventSources, PersonSources } from "./Sources";
 
 interface Props {
   data: GedcomData;
   id: string;
   /** the person's GEDCOM record, read the same way as the edit form reads it */
   record?: GedNode;
+  /** the record behind an xref, for the sources and notes it points to */
+  lookup: Lookup;
   rootId: string;
   lang: Lang;
   onFocus: (id: string) => void;
@@ -43,7 +47,7 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRoot, onEdit, onCancelEdit, editor, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, onMakeRoot, onEdit, onCancelEdit, editor, t }: Props) {
   const p = data.people[id];
   if (!p) return null;
   const f = record ? personFields(record) : null;
@@ -68,6 +72,13 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
   const birthFam = p.famc.length ? data.families[p.famc[0]] : null;
   const parents = birthFam ? [birthFam.husb, birthFam.wife].filter((x): x is string => !!x) : [];
   const life = timeline(data, id, f);
+  // the tag of the person's own line, or the marriage family, that a timeline item shows
+  const EVENT_TAG: Partial<Record<TimelineKind, string>> = { birth: "BIRT", christening: "CHR", death: "DEAT", burial: "BURI" };
+  const extras = (kind: TimelineKind, key: string) => {
+    if (kind === "marriage") { const fam = lookup(key); return fam ? marriageAnnotations(fam, lookup) : null; }
+    const tag = EVENT_TAG[kind];
+    return record && tag ? eventAnnotations(record, tag, lookup) : null;
+  };
   const SexIcon = p.sex === "M" ? Mars : p.sex === "F" ? Venus : null;
   const label = (kind: TimelineKind, dated: boolean, other: string | null) => {
     const sex = other ? data.people[other]?.sex : "";
@@ -127,6 +138,7 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
                   {e.place && <span className="muted"> · {e.place}</span>}
                 </div>
+                {(() => { const a = extras(e.kind, e.key); return a && <EventSources a={a} t={t} />; })()}
               </div>
             </li>;
           })}</ol>
@@ -140,6 +152,8 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
         {!f && p.occupation && <Fact icon={Briefcase} label={t("occupation")}>
           <div className="fact-value">{p.occupation}</div></Fact>}
         {f?.note && <Fact icon={StickyNote} label={t("note")}><div className="note-text">{f.note}</div></Fact>}
+        {record && <PersonSources t={t} a={(({ sources, notes }) => ({
+          sources, notes: notes.filter((n) => n !== f?.note.trim()) }))(personAnnotations(record, lookup))} />}
       </div>}
     </aside>
   );
