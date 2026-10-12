@@ -5,6 +5,8 @@
 - Bulk fix: spelling variants that will be merged are now drawn normally with a
   check mark, variants that are excluded (they keep their own spelling) are dimmed
   with an X. Previously it was the other way round, with arrow and x icons.
+- The "to" fields of the bulk fix (and the batch rename bar) are wider, so long
+  place names are readable.
 
 ## 1.3.2 – 2026-10-12
 
