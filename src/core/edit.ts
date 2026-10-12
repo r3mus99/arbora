@@ -299,12 +299,25 @@ function numericDate(s: string): string | null {
   return [d, m !== null ? MONTHS[m - 1] : null, +year].filter((x) => x !== null).join(" ");
 }
 
+/** "Okt. 1961" → "10 1961": month names of the language (and GEDCOM's) as numbers */
+function monthNumbers(s: string, lang: Lang): string {
+  const key = (w: string) => w.toLowerCase().replace(/\.$/, "");
+  const names = [TEXTS[lang].months, MONTHS];
+  return s.split(" ").map((w) => {
+    for (const list of names) {
+      const i = list.findIndex((m) => key(m) === key(w));
+      if (i >= 0) return String(i + 1);
+    }
+    return w;
+  }).join(" ");
+}
+
 const QUALIFIED = /^(ABT|CAL|EST|BEF|AFT|BET|FROM|TO|INT) /;
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
  * What a person typed into a date field, as a GEDCOM date. Accepts GEDCOM itself
- * ("ABT 1890", "14 MAY 1891"), numbers ("14.5.1891"), ranges ("1890–1895") and the
+ * ("ABT 1890", "14 MAY 1891"), numbers ("14.5.1891"), month names of the language ("Okt. 1961"), ranges ("1890–1895") and the
  * qualifiers of the language ("cca 1890", "pred 1890") or ~ < >. Anything else is
  * kept as a date phrase in parentheses, with `ok` false.
  */
@@ -320,7 +333,7 @@ export function parseDate(input: string, lang: Lang): { value: string; ok: boole
   };
   // a date GEDCOM allows: no 31 FEB, no INT without its phrase
   const plain = (t: string) => {
-    const d = numericDate(t);
+    const d = numericDate(monthNumbers(t, lang));
     return d === null ? gedcom(t) : validDateValue(d) ? d : null;
   };
   const whole = plain(s);

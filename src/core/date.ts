@@ -50,3 +50,24 @@ export function isoToGedcom(value: string): string {
 
 /** Today (or another day) as a GEDCOM date, "12 OCT 2026". */
 export const gedcomDay = (d: Date) => `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+
+/** Year, month and day (0 when not known) of the first date in a GEDCOM date value; null for a phrase. */
+export function dateParts(date: string | undefined | null): { y: number; m: number; d: number } | null {
+  const s = (date || "").toUpperCase().replace(/\(.*\)/, "");
+  const iso = /(\d{4})-(\d{2})(?:-(\d{2}))?/.exec(s);
+  if (iso) return { y: +iso[1], m: +iso[2], d: iso[3] ? +iso[3] : 0 };
+  const m = /(?:(?:^|\s)(\d{1,2})\s+)?(?:\b([A-Z]{3})\s+)?(\d{3,4})(?!\d)/.exec(s);
+  if (!m) return null;
+  const month = m[2] ? monthOf(m[2]) : 0;
+  return { y: +m[3], m: month, d: month && m[1] ? +m[1] : 0 };
+}
+
+/** Whole years between two GEDCOM dates (an age), as far as the dates tell; null if unknown or negative. */
+export function yearsBetween(from: string | undefined | null, to: string | undefined | null): number | null {
+  const a = dateParts(from), b = dateParts(to);
+  if (!a || !b) return null;
+  let years = b.y - a.y;
+  // a birthday not yet reached that year, when both months (and days) are known
+  if (a.m && b.m && (b.m < a.m || (b.m === a.m && a.d && b.d && b.d < a.d))) years--;
+  return years >= 0 ? years : null;
+}

@@ -1,12 +1,13 @@
 import {
-  Baby, Briefcase, Check, X, Church, Cross, Crosshair, Droplets, Flower2, Heart, HeartCrack, Mars, Pencil, StickyNote, Users,
-  Venus, type LucideIcon,
+  Baby, Briefcase, CalendarClock, Check, X, Church, Cross, Crosshair, Droplets, Flower2, Heart, HeartCrack, Mars, Pencil,
+  StickyNote, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { personFields, type EventFields } from "../core/edit";
-import { formatDate } from "../core/format";
+import { fmt, formatDate } from "../core/format";
 import type { GedNode, GedcomData, Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
+import { timeline, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { EDITOR_FORM } from "./PersonEditor";
 
@@ -37,7 +38,11 @@ function Fact({ icon: Icon, label, children }: { icon: LucideIcon; label: string
   </div>;
 }
 
-/** Facts and close family of one person, in the order of the edit form; relatives are links. */
+const ICONS: Record<TimelineKind, LucideIcon> = {
+  birth: Baby, christening: Droplets, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
+};
+
+/** Facts and close family of one person, with their life as a timeline; relatives are links. */
 export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRoot, onEdit, onCancelEdit, editor, t }: Props) {
   const p = data.people[id];
   if (!p) return null;
@@ -51,21 +56,30 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
     const d = q.death ? formatDate(q.death.date, false, lang) : "";
     return d ? `${b}–${d}` : b;
   };
-  const link = (pid: string | null) => {
+  const link = (pid: string | null, withYears = true) => {
     const q = pid ? data.people[pid] : null;
     if (!q) return <span className="muted">?</span>;
     return <>
       <button className="link" type="button" onClick={() => onFocus(q.id)}>{q.name || "?"}</button>
-      {years(q) && <span className="muted"> {years(q)}</span>}
+      {withYears && years(q) && <span className="muted"> {years(q)}</span>}
     </>;
   };
 
   const birthFam = p.famc.length ? data.families[p.famc[0]] : null;
   const parents = birthFam ? [birthFam.husb, birthFam.wife].filter((x): x is string => !!x) : [];
-  const marriages = p.fams.map((fid) => data.families[fid]).filter(Boolean);
-  const birth = f ? f.birth : p.birth, death = f ? f.death : p.death;
-  const deceased = f ? f.deceased : !!p.death;
+  const life = timeline(data, id, f);
   const SexIcon = p.sex === "M" ? Mars : p.sex === "F" ? Venus : null;
+  const label = (kind: TimelineKind, dated: boolean, other: string | null) => {
+    const sex = other ? data.people[other]?.sex : "";
+    switch (kind) {
+      case "birth": return t("thBirth");
+      case "christening": return t("christening");
+      case "marriage": return t("marriage");
+      case "child": return t(sex === "M" ? "childBornM" : sex === "F" ? "childBornF" : "childBorn");
+      case "burial": return t("burial");
+      case "death": return dated ? t("thDeath") : t(p.sex === "M" ? "deceasedM" : p.sex === "F" ? "deceasedF" : "deceased");
+    }
+  };
 
   return (
     <aside className="detail" aria-live="polite">
@@ -94,25 +108,30 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
           aka {f.aliases.map((a) => [a.given, a.surname].filter(Boolean).join(" ")).join(", ")} · </span>}
         {p.id.replace(/@/g, "")}</p>
       {editor || <div className="facts">
-        {when(birth) && <Fact icon={Baby} label={t("thBirth")}>{when(birth)}</Fact>}
-        {f && when(f.christening) && <Fact icon={Droplets} label={t("christening")}>{when(f.christening)}</Fact>}
-        {p.religion && <Fact icon={Church} label={t("religion")}><div className="fact-value">{p.religion}</div></Fact>}
         {parents.length > 0 && <Fact icon={Users} label={t("parents")}>
           <ul>{parents.map((pid) => <li key={pid}>{link(pid)}</li>)}</ul>
         </Fact>}
-        {marriages.map((fam) => {
-          const kids = fam.children.filter((c) => c in data.people);
-          const m = fam.marriage;
-          return <Fact key={fam.id} icon={fam.divorced ? HeartCrack : Heart} label={t("marriage")}>
-            <div>{link(fam.husb === id ? fam.wife : fam.husb)}</div>
-            {when(m && { date: m.date, place: m.place })}
-            {fam.divorced && <div className="muted">{TEXTS[lang].divorced}</div>}
-            {kids.length > 0 && <>
-              <div className="fact-sub">{t("children")}</div>
-              <ul className="kids">{kids.map((c) => <li key={c}>{link(c)}</li>)}</ul>
-            </>}
-          </Fact>;
-        })}
+        {life.length > 0 && <section className="timeline">
+          <h4><CalendarClock className="icon" aria-hidden="true" />{t("timeline")}</h4>
+          <ol>{life.map((e) => {
+            const Icon = e.kind === "marriage" && e.divorced ? HeartCrack : ICONS[e.kind];
+            return <li key={e.key} className={`tl-${e.kind}`}>
+              <span className="tl-dot" aria-hidden="true" />
+              <Icon className="icon tl-icon" aria-hidden="true" />
+              <div className="tl-body">
+                {e.date && <div className="tl-date">{formatDate(e.date, true, lang)}
+                  {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}</div>}
+                <div className="tl-what">
+                  {label(e.kind, !!e.date, e.other)}
+                  {e.other && <>: {link(e.other, e.kind === "marriage")}</>}
+                  {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
+                  {e.place && <span className="muted"> · {e.place}</span>}
+                </div>
+              </div>
+            </li>;
+          })}</ol>
+        </section>}
+        {p.religion && <Fact icon={Church} label={t("religion")}><div className="fact-value">{p.religion}</div></Fact>}
         {f && f.occupations.length > 0 && <Fact icon={Briefcase} label={t("occupation")}>
           {f.occupations.map((o) => <div key={o.origin}>
             <div className="fact-value">{o.value}</div>{when(o)}
@@ -121,9 +140,6 @@ export function PersonDetail({ data, id, record, rootId, lang, onFocus, onMakeRo
         {!f && p.occupation && <Fact icon={Briefcase} label={t("occupation")}>
           <div className="fact-value">{p.occupation}</div></Fact>}
         {f?.note && <Fact icon={StickyNote} label={t("note")}><div className="note-text">{f.note}</div></Fact>}
-        {deceased && <Fact icon={Cross} label={when(death) ? t("thDeath")
-          : t(p.sex === "M" ? "deceasedM" : p.sex === "F" ? "deceasedF" : "deceased")}>{when(death)}</Fact>}
-        {f && when(f.burial) && <Fact icon={Flower2} label={t("burial")}>{when(f.burial)}</Fact>}
       </div>}
     </aside>
   );

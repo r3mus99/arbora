@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.0 – 2026-10-12
+
+- The top bar stays at the top of the window while the page scrolls.
+- Dates with a month but no day show the month name, e.g. "Oct 1961" instead
+  of "10/1961", in all 12 languages, on screen and in the PDF. The edit form
+  also accepts month names ("Oct 1961", "1961. okt.").
+- The person detail shows the person's life as a timeline: birth, christening,
+  marriages, births of sons and daughters, death and burial in date order, each with a
+  coloured dot, an icon, the place and the person's age at the time.
+  Parents, religion, occupation and notes stay above and below it.
+
 ## 1.1.1 – 2026-10-12
 
 - Lines that are not GEDCOM (a comment from another program, a blank or damaged
