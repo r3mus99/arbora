@@ -2,7 +2,7 @@
 
 ## 1.3.4 – 2026-10-12
 
-- Bulk fix: every group is now a small card with three lines that read without
+- Bulk fix: the manual rename bar reads "Original… → New…" and every group is now a small card with three lines that read without
   knowing the software: the spelling variants as chips (check = will be unified,
   X = excluded), below them the text everything changes into ("Change to", editable)
   with the Unify and hide buttons at the end of that line, and the affected records
