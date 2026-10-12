@@ -498,3 +498,9 @@ section.check { margin: 0 0 14px; }
 /* places are long: the target spelling and the batch fields take the free space */
 .variants input.target { flex: 1 1 auto; width: auto; min-width: 0; color: var(--text, inherit); }
 .variants .batch input { flex: 1 1 220px; width: auto; }
+
+.name-parts { font-size: 13px; color: var(--muted); margin: -4px 0 10px; }
+.name-parts span { opacity: .8; }
+.map-link { display: inline-flex; vertical-align: middle; margin-left: 4px; color: var(--muted); }
+.map-link .icon { width: 14px; height: 14px; }
+.map-link:hover { color: var(--accent, currentColor); }
