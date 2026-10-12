@@ -25,6 +25,10 @@
 - The edit form no longer stores a date that the file check then reports as
   wrong: a day the month does not have (31.2.1890, 30 FEB 1890) or INT without
   its phrase is kept as a date phrase and the form says so.
+- Faster after every edit: finding spelling variants takes about 0.1 s instead
+  of 1.4 s on the sample (and stays under a second for 10 000 people instead of
+  minutes), and the file check no longer slows down with the square of the
+  number of issues.
 
 ### Development
 - One set of helpers for GEDCOM records (`childOf`, `childrenOf`, `gedNode`,
