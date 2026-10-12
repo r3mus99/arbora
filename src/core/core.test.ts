@@ -35,7 +35,10 @@ describe("GEDCOM", () => {
     expect(decode(utf8)).toBe(text);
     const u16 = new Uint8Array(2 + text.length * 2);
     u16.set([0xff, 0xfe]);
-    for (let i = 0; i < text.length; i++) u16[2 + 2 * i] = text.charCodeAt(i) & 0xff, u16[3 + 2 * i] = text.charCodeAt(i) >> 8;
+    for (let i = 0; i < text.length; i++) {
+      u16[2 + 2 * i] = text.charCodeAt(i) & 0xff;
+      u16[3 + 2 * i] = text.charCodeAt(i) >> 8;
+    }
     expect(decode(u16)).toBe(text);
     // "Ťa" in Windows-1250
     expect(decode(new Uint8Array([0x8d, 0x61]))).toBe("Ťa");
@@ -143,10 +146,8 @@ describe("descendant chart", () => {
     const rows = chartRows(data, "@I52@", opts({ chart: "descendants" }));
     const spouses = rows.filter((r) => r.spouse);
     expect(spouses.length).toBeGreaterThan(0);
-    for (const r of spouses) {
-      expect(r.personId).toBeNull();
-      if (r.spouseId) expect(r.text).toContain(data.people[r.spouseId].name);
-    }
+    for (const r of spouses) expect(r.personId).toBeNull();
+    for (const r of spouses.filter((s) => s.spouseId)) expect(r.text).toContain(data.people[r.spouseId!].name);
   });
 
   test("d'Aboville numbering and without spouses", () => {
@@ -220,6 +221,6 @@ describe("PDF", () => {
   });
 
   test("unknown person", async () => {
-    await expect(generate(data, "@X@", {}, fonts)).rejects.toThrow();
+    await expect(generate(data, "@X@", {}, fonts)).rejects.toThrow("@X@");
   });
 });

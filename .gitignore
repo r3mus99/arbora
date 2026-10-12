@@ -5,3 +5,4 @@
 !public/sample_*.pdf
 node_modules/
 dist/
+coverage/
