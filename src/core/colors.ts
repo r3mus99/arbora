@@ -1,5 +1,6 @@
 /** Colours of the dates and places in the coloured PDF (RGB 0-1), darker than on screen to read on paper.
-    The screen uses --c-birth, --c-marr and --c-death in src/ui/styles.css, in the same hues. */
+    The screen uses --c-birth, --c-marr and --c-death in src/ui/styles.css, in the same hues.
+    Sources and notes use --c-src (screen only). */
 
 import type { SegKind } from "./format";
 
