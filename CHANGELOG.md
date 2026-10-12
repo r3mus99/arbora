@@ -7,7 +7,7 @@
   Notes and sources of the person as a whole (the record, its names and other lines such as occupation)
   are in a "Sources and notes" block under the timeline. Cited source records are resolved to their title,
   page, author, publication and repository; notes may be written inline or be NOTE records.
-  Web addresses in them are clickable links. Display only: editing is unchanged and all source and note lines are kept when a record is edited.
+  Web addresses in them are clickable links and simple HTML tags such as <i> are not shown. Display only: editing is unchanged and all source and note lines are kept when a record is edited.
 
 ## 1.4.0 – 2026-10-12
 

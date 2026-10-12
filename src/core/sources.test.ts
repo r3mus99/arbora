@@ -16,7 +16,7 @@ describe("sources and notes", () => {
     const [c] = eventAnnotations(rec("@I1@"), "BIRT", lookup).sources;
     expect(c).toMatchObject({
       title: "Parish register of Sampletown", author: "Example Parish Office",
-      publication: "Handwritten, 1840-1900", repository: "Sampletown Regional Archive",
+      publication: "Handwritten, 1840-1900, Example Index", repository: "Sampletown Regional Archive",
       page: "p. 12, no. 7", text: "Born at home, baptised the same week.", notes: ["Handwriting hard to read, see https://example.org/scan/12."],
     });
   });

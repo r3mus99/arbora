@@ -29,15 +29,18 @@ export function lookupOf(records: GedNode[]): Lookup {
   return (xref) => byXref.get(xref);
 }
 
+/** Text without the simple HTML some programs put into sources (<i>…</i>, <br>). */
+export const plainText = (s: string) => s.replace(/<br\s*\/?>/gi, "\n").replace(/<\/?(?:i|b|u|em|strong|p|span)\b[^>]*>/gi, "");
+
 const isLink = (value: string) => /^@[^@]+@$/.test(value);
 /** the text of a NOTE line: its own value, or the value of the NOTE record it points to */
-const textOf = (n: GedNode, lookup: Lookup) => (isLink(n.value) ? lookup(n.value)?.value ?? "" : n.value).trim();
+const textOf = (n: GedNode, lookup: Lookup) => plainText(isLink(n.value) ? lookup(n.value)?.value ?? "" : n.value).trim();
 
 function notesOf(node: GedNode, lookup: Lookup): string[] {
   return childrenOf(node, "NOTE").map((n) => textOf(n, lookup)).filter(Boolean);
 }
 
-const valueOf = (node: GedNode | null, tag: string) => (node && childOf(node, tag)?.value.trim()) || "";
+const valueOf = (node: GedNode | null, tag: string) => plainText((node && childOf(node, tag)?.value.trim()) || "");
 
 function citation(cite: GedNode, lookup: Lookup): Citation {
   const rec = isLink(cite.value) ? lookup(cite.value) : undefined;
@@ -51,7 +54,7 @@ function citation(cite: GedNode, lookup: Lookup): Citation {
     publication: valueOf(rec || null, "PUBL"),
     repository: (repoRec ? valueOf(repoRec, "NAME") : repo && !isLink(repo.value) ? repo.value : "") || "",
     page: valueOf(cite, "PAGE"),
-    text: (data && childOf(data, "TEXT")?.value.trim()) || "",
+    text: plainText((data && childOf(data, "TEXT")?.value.trim()) || ""),
     notes: [...notesOf(cite, lookup), ...(rec ? notesOf(rec, lookup) : [])],
   };
 }

@@ -42,7 +42,7 @@ export const SOURCES_GED = `0 HEAD
 1 TITL Parish register of Sampletown
 1 AUTH Example Parish Office
 1 WWW https://example.org/register
-1 PUBL Handwritten, 1840-1900
+1 PUBL Handwritten, 1840-1900, <i>Example Index</i>
 1 REPO @R1@
 0 @S2@ SOUR
 1 ABBR Census 1869
