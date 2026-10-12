@@ -164,7 +164,7 @@ export function readRecords(records: GedNode[], fallbackEvents = true): GedcomDa
       }).sort((a, b) => a.rank - b.rank || a.i - b.i).map((x) => x.id).filter(Boolean);
       people[rec.xref] = {
         id: rec.xref, name, sex: sex ? sex.value.toUpperCase() : "",
-        aka: all(rec, "NAME").filter((n) => n !== nameNode && isAka(n)).map((n) => cleanName(n.value)).filter(Boolean),
+        aka: childrenOf(rec, "NAME").filter((n) => n !== nameNode && isAka(n)).map((n) => cleanName(n.value)).filter(Boolean),
         birth: eventOf(rec, birthTags), death: eventOf(rec, deathTags),
         occupation: childrenOf(rec, "OCCU").map((n) => n.value).filter(Boolean).join(", "), famc,
         religion: childOf(rec, "RELI")?.value || "",
