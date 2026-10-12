@@ -1,9 +1,10 @@
 import {
-  Award, Baby, Briefcase, CalendarClock, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, Hash, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
+  Award, Baby, Briefcase, CalendarClock, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, Handshake, Hash, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
   StickyNote, Star, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { personFields, type EventFields } from "../core/edit";
+import { associationsOf, type Association } from "../core/associations";
 import { personAttributes } from "../core/facts";
 import { fmt, formatDate } from "../core/format";
 import type { GedNode, GedcomData, Person } from "../core/gedcom";
@@ -21,6 +22,8 @@ interface Props {
   record?: GedNode;
   /** the record behind an xref, for the sources and notes it points to */
   lookup: Lookup;
+  /** the people whose ASSO lines name this person */
+  inbound: Association[];
   rootId: string;
   lang: Lang;
   onFocus: (id: string) => void;
@@ -54,7 +57,7 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, onMakeRoot, onEdit, onCancelEdit, editor, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, onFocus, onMakeRoot, onEdit, onCancelEdit, editor, t }: Props) {
   const p = data.people[id];
   if (!p) return null;
   const f = record ? personFields(record) : null;
@@ -171,6 +174,17 @@ export function PersonDetail({ data, id, record, lookup, rootId, lang, onFocus, 
                                                               label={t(`attr${a.tag}` as StringKey)}>
           {a.value && <div className="fact-value">{a.value}</div>}{when(a)}
         </Fact>)}
+        {(() => {
+          const roleText = (r: string) => r === "godparent" ? t("roleGodparent") : r === "witness" ? t("roleWitness")
+            : r ? r[0].toUpperCase() + r.slice(1) : t("associations");
+          const rows = [...(record ? associationsOf(record) : []).map((a) => ({ ...a, inbound: false })),
+                        ...inbound.map((a) => ({ ...a, inbound: true }))].filter((a) => a.id in data.people);
+          return rows.length > 0 && <Fact icon={Handshake} label={t("associations")}>
+            <ul>{rows.map((a, i) => <li key={i}>
+              <span className="muted">{roleText(a.role)}{a.inbound ? ` ${t("assocFor")}` : ""}:</span> {link(a.id, false)}
+            </li>)}</ul>
+          </Fact>;
+        })()}
         {f?.note && <Fact icon={StickyNote} label={t("note")}><div className="note-text"><Linked text={f.note} /></div></Fact>}
         {record && <PersonSources t={t} a={(({ sources, notes }) => ({
           sources, notes: notes.filter((n) => n !== f?.note.trim()) }))(personAnnotations(record, lookup))} />}

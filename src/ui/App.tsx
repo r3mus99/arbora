@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, FileDown, FileText, FileUp, LayoutDashboard,
          Loader2, Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
@@ -192,6 +193,7 @@ export function App() {
   };
 
   // ------------------------------------------------------------ editing
+  const inbound = useMemo(() => inboundAssociations(doc?.records || []), [doc]);
   const recordOf = useMemo(() => new Map((doc?.records || []).filter((r) => r.xref).map((r) => [r.xref!, r])), [doc]);
   // the form closes when another person is shown (set while rendering, so there is no extra render with the old form)
   const [editedFor, setEditedFor] = useState(focusId);
@@ -490,7 +492,7 @@ export function App() {
                       numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
                       onFocus={(id) => focus(id, false)} onToggle={toggle}
                       onJump={(r) => jump(r.targetIndex)} t={t} />
-            {focusId && <PersonDetail data={data} id={focusId} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} rootId={chosen.id} lang={lang}
+            {focusId && <PersonDetail data={data} id={focusId} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot}
                                       onEdit={() => setEditId(focusId)} onCancelEdit={() => setEditId(null)} t={t}
                                       editor={editId === focusId && recordOf.has(focusId) &&
