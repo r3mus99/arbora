@@ -7,6 +7,8 @@ export interface GedNode {
   children: GedNode[];
   /** level-0 records: the original lines, so an unedited record is written back unchanged */
   raw?: string[];
+  /** a line that is not GEDCOM (comment, blank, damaged): kept as it is and written back at the same place */
+  verbatim?: string;
 }
 
 export interface GedEvent {
@@ -64,7 +66,8 @@ const LINE_RE = /^\s*(\d+)\s+(?:(@[^@]+@)\s+)?(\S+)(?:\s(.*))?$/;
 
 /**
  * Level-0 records with their sub-records; CONC/CONT are joined into the value.
- * Each record keeps its original lines in `raw`.
+ * Each record keeps its original lines in `raw`. A line that is not GEDCOM stays in the
+ * tree as a node with `verbatim`, so it survives when the record is changed.
  */
 export function parseGedcom(text: string): GedNode[] {
   const records: GedNode[] = [];
@@ -74,7 +77,11 @@ export function parseGedcom(text: string): GedNode[] {
   for (const line of lines) {
     const m = LINE_RE.exec(line);
     if (!m) {
-      records[records.length - 1]?.raw?.push(line);
+      const rec = records[records.length - 1];
+      if (!rec) continue;
+      rec.raw?.push(line);
+      // under the line before it, so it is written back where it was even when the record is written anew
+      (stack[stack.length - 1] || rec).children.push({ tag: "", value: "", xref: null, children: [], verbatim: line });
       continue;
     }
     const level = parseInt(m[1], 10);

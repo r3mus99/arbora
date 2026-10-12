@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.1 – 2026-10-12
+
+- Lines that are not GEDCOM (a comment from another program, a blank or damaged
+  line inside a record) are no longer lost when that record is edited or fixed:
+  they are written back at the same place.
+
 ## 1.1.0 – 2026-10-12
 
 - Search also finds people by other forms of their name (aka); the list then

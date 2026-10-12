@@ -162,6 +162,44 @@ describe("editing and going back", () => {
   });
 });
 
+describe("lines that are not GEDCOM", () => {
+  // a comment, a blank line and a damaged line inside a record, one of them under a sub-record
+  const TEXT = [
+    "0 HEAD", "1 CHAR UTF-8",
+    "0 @I1@ INDI",
+    "1 NAME Adam /Lindner/",
+    "# a comment from another program",
+    "1 SEX M",
+    "1 BIRT",
+    "2 DATE ABT 1801",
+    "damaged line without a level",
+    "",
+    "1 OCCU miller",
+    "0 TRLR",
+  ].join("\n") + "\n";
+
+  test("they stay where they were when the record is not changed", () => {
+    expect(writeGedcom(parseGedcom(TEXT))).toBe(TEXT);
+  });
+
+  test("they stay where they were when the record is written anew", () => {
+    const records = parseGedcom(TEXT);
+    const adam = records[1];
+    const before = personFields(adam);
+    const changed = applyPerson(adam, before, { ...before, given: "Anton" });
+    expect(changed.raw).toBeUndefined();
+    const written = writeGedcom([records[0], changed, records[2]]);
+    expect(written).toBe(TEXT.replace("Adam /Lindner/", "Anton /Lindner/"));
+  });
+
+  test("they do not change what is read from the file", () => {
+    const withJunk = load(TEXT);
+    const without = load(TEXT.replace(/^(#.*|damaged.*|)\n/gm, ""));
+    expect(withJunk).toEqual(without);
+    expect(checkGedcom(parseGedcom(TEXT))).toEqual(checkGedcom(parseGedcom(TEXT.replace(/^(#.*|damaged.*|)\n/gm, ""))));
+  });
+});
+
 describe("dates", () => {
   // every way a person may type a date, in every language: what the form accepts, the file check accepts
   const days = ["", "1", "14", "29", "30", "31", "32"], months = ["", "1", "2", "4", "12", "13", "FEB", "feb", "XYZ"];

@@ -7,7 +7,7 @@ into a PDF chart of **ancestors** or **descendants**. The edited tree can be
 downloaded again as GEDCOM. Everything runs in your browser; the file is never
 uploaded anywhere.
 
-Current version: **1.1.0**, see [CHANGELOG.md](CHANGELOG.md).
+Current version: **1.1.1**, see [CHANGELOG.md](CHANGELOG.md).
 
 ### Ancestors
 
