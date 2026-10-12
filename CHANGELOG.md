@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 – 2026-10-12
 
 - Search also finds people by other forms of their name (aka); the list then
   shows which one matched.
