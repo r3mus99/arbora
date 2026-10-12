@@ -138,6 +138,20 @@ that can be undone. A missing header or `TRLR` is added, a link to nothing is
 removed, a missing link back is added and a date like `1885-12-12` is rewritten
 as `12 DEC 1885`. The list closes once everything is fixed.
 
+### Bulk data fix
+
+Part of the file check, in its **Surnames** and **Places** tabs: spellings of
+one surname or town that differ only in accents, doubled letters or the old
+Hungarian spelling (Pavlovský / Pavlovszký, Kubíček / Kubiček, Lieskovice /
+Lieszkovicz) are shown as groups. The most used spelling is offered; click
+another one or type your own, use × to leave a spelling out, and **Unify**
+renames it in every record as one step that can be undone. The number of
+records that change opens a list of them. A man's and a woman's form
+(Kováčik / Kováčiková) are never put together. For places only the town, the
+first part of the place, is renamed; the district and country stay. A group
+that is not the same name can be hidden (the **Hidden** tab shows it again),
+and **Batch rename** changes any one spelling to another.
+
 **Privacy:** everything runs only in your browser. The GEDCOM file is not sent
 anywhere and the page has no server; you download the edited file yourself. The
 browser remembers only the settings and the ID of the last person
@@ -190,6 +204,7 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   gedcom.ts         reading GEDCOM (encoding, records, people, families), search
   edit.ts           editing records, typed dates, writing GEDCOM
   check.ts          file check and safe fixes
+  variants.ts       bulk fix: spelling variants of surnames and places
   format.ts         options, dates, places, the text of a person's line
   chart.ts          ancestor and descendant chart rows
   collapse.ts       collapsed branches: which rows stay visible
@@ -197,7 +212,7 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   texts.ts          PDF texts in 12 languages
   *.test.ts         tests on the sample data
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),
-                    edit form (PersonEditor), file check (CheckPanel), language
+                    edit form (PersonEditor), file check and bulk fix (CheckPanel, Variants), language
                     menu, UI translations (i18n.ts) and flags
 public/             static files: DejaVu Sans font, sample GEDCOM and PDFs, licenses
 ```

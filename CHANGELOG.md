@@ -9,6 +9,13 @@
 - File overview after loading: people (men and women), families, generations,
   years covered, oldest ancestor, number of problems, and the most common
   surnames and places. Clicking a surname searches for it.
+- Bulk data fix in the file check: tabs for issues, surnames, places and hidden
+  groups. Spelling variants of one surname or town (Pavlovský / Pavlovszký,
+  Lieskovice / Lieszkovicz) are grouped and can be unified into one chosen
+  spelling in all records at once, as one undo step. Men's and women's forms
+  are kept apart; for places only the town is renamed. Groups can be hidden,
+  and a batch rename changes any spelling to another. The overview splits
+  problems into issues, surnames and places.
 
 ## 1.0.0 – 2026-10-11
 

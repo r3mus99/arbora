@@ -11,6 +11,7 @@ import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData }
 import type { Fonts } from "../core/pdf";
 import { overview } from "../core/stats";
 import { TEXTS, type Lang } from "../core/texts";
+import { renameVariants, spellings, variantGroups, type VariantKind } from "../core/variants";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { CheckPanel } from "./CheckPanel";
 import { LanguageMenu } from "./LanguageMenu";
@@ -226,9 +227,32 @@ export function App() {
   useEffect(() => setEditId(null), [focusId]);
   const suggest = useMemo(() => suggestions(doc?.records || []), [doc]);
   const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
+  // bulk fix: spellings of one surname or place
+  const [hidden, setHidden] = useState<Set<string>>(() => new Set(readStore().hiddenVariants || []));
+  const variants = useMemo(() => ({
+    surname: doc ? variantGroups(doc.records, "surname") : [], place: doc ? variantGroups(doc.records, "place") : [],
+  }), [doc]);
+  const spelled = useMemo(() => {
+    const sorted = (kind: VariantKind) => (doc ? [...spellings(doc.records, kind).keys()].sort((a, b) => a.localeCompare(b)) : []);
+    return { surname: sorted("surname"), place: sorted("place") };
+  }, [doc]);
+  const found = {
+    issues: issues.length,
+    surname: variants.surname.filter((g) => !hidden.has(g.key)).length,
+    place: variants.place.filter((g) => !hidden.has(g.key)).length,
+  };
+  const problems = found.issues + found.surname + found.place;
+  // the panel opens also when only hidden groups are left, to show them again
+  const checkable = problems > 0 || [...variants.surname, ...variants.place].some((g) => hidden.has(g.key));
+  const hide = (key: string, on: boolean) => {
+    const next = new Set(hidden);
+    if (on) next.add(key); else next.delete(key);
+    setHidden(next);
+    updateStore({ hiddenVariants: [...next] });
+  };
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   // the list closes once everything is fixed
-  useEffect(() => { if (!issues.length) setShowCheck(false); }, [issues]);
+  useEffect(() => { if (!checkable) setShowCheck(false); }, [checkable]);
 
   /** a new version of the file with the changed records; one step of undo */
   const commit = (changed: GedNode[]) => {
@@ -415,14 +439,14 @@ export function App() {
                     onClick={() => setShowOverview(!showOverview)} title={t("overview")} aria-label={t("overview")}>
               <LayoutDashboard className="icon" aria-hidden="true" /></button>
             {/* with nothing to report the shield only says so in its tooltip */}
-            <button type="button" className={issues.length ? "icon-btn check-btn warn" : "icon-btn check-btn ok"}
-                    aria-expanded={issues.length ? showCheck : undefined}
-                    onClick={() => issues.length && setShowCheck(!showCheck)}
-                    title={issues.length ? t("checkCount", { n: issues.length }) : t("checkOk")}
+            <button type="button" className={problems ? "icon-btn check-btn warn" : "icon-btn check-btn ok"}
+                    aria-expanded={checkable ? showCheck : undefined}
+                    onClick={() => checkable && setShowCheck(!showCheck)}
+                    title={problems ? t("checkCount", { n: problems }) : t("checkOk")}
                     aria-label={t("check")}>
-              {issues.length ? <ShieldAlert className="icon" aria-hidden="true" />
-                             : <ShieldCheck className="icon" aria-hidden="true" />}
-              {issues.length > 0 && <span className="badge">{issues.length}</span>}</button>
+              {problems ? <ShieldAlert className="icon" aria-hidden="true" />
+                        : <ShieldCheck className="icon" aria-hidden="true" />}
+              {problems > 0 && <span className="badge">{problems}</span>}</button>
             <span className="sep" aria-hidden="true" />
             <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
                     title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
@@ -445,10 +469,12 @@ export function App() {
       </header>
 
       {data && statusText && <p className={status?.err ? "status err" : "status"}>{statusText}</p>}
-      {data && showCheck && issues.length > 0 && <CheckPanel issues={issues} data={data} t={t} onClose={() => setShowCheck(false)}
+      {data && showCheck && checkable && <CheckPanel issues={issues} data={data} t={t} onClose={() => setShowCheck(false)}
                                         onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
+                                        variants={variants} values={spelled} hidden={hidden} onHide={hide}
+                                        onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to))}
                                         onFocus={(id) => focus(id, true)} />}
-      {data && showOverview && stats && <Overview stats={stats} data={data} problems={issues.length} t={t}
+      {data && showOverview && stats && <Overview stats={stats} data={data} problems={found} t={t}
                                          onClose={() => setShowOverview(false)}
                                          onProblems={() => setShowCheck(true)}
                                          onPerson={(id) => { makeRoot(id); setShowOverview(false); }}
