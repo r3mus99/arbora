@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.2.0 – 2026-10-12
 
 - The top bar stays at the top of the window while the page scrolls.
 - Dates with a month but no day show the month name, e.g. "Oct 1961" instead
