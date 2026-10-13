@@ -81,14 +81,16 @@ export function App() {
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
-  const [showCheck, setShowCheck] = useState(false);
   // the file overview opens after each load
   const [showOverview, setShowOverview] = useState(false);
   const settingsRef = useRef<HTMLDialogElement>(null);
   const finderRef = useRef<HTMLInputElement>(null);
   // the list of people starts as a narrow rail with a magnifier; the choice is remembered
-  const [listOpen, setListOpen] = useState(() => readStore().listOpen === true);
-  const showList = (on: boolean) => { setListOpen(on); updateStore({ listOpen: on }); };
+  // one tool panel is open at a time: the list of people, the file check, or none
+  const [tool, setTool] = useState<"people" | "check" | null>(() => readStore().listOpen === true ? "people" : null);
+  const listOpen = tool === "people", showCheck = tool === "check";
+  const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
+  const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
   useEffect(() => { if (listOpen) finderRef.current?.focus(); }, [listOpen]);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
@@ -160,7 +162,7 @@ export function App() {
     setDoc(next);
     setEdits(startEdits(next));
     setEditId(null);
-    setShowCheck(false);
+    setTool(null);
     setShowOverview(true);
     setLoadedName(name);
     setQuery("");
@@ -221,7 +223,6 @@ export function App() {
   };
   const problems = found.issues + found.surname + found.place;
   // the panel opens also when only hidden groups are left, to show them again
-  const checkable = problems > 0 || [...variants.surname, ...variants.place].some((g) => hidden.has(g.key));
   const hide = (key: string, on: boolean) => {
     const next = new Set(hidden);
     if (on) next.add(key); else next.delete(key);
@@ -230,7 +231,6 @@ export function App() {
   };
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   // the list closes once everything is fixed
-  if (!checkable && showCheck) setShowCheck(false);
 
   /** a new version of the file with the changed records; one step of undo */
   const commit = (changed: GedNode[]) => {
@@ -407,15 +407,6 @@ export function App() {
             <button type="button" className={showOverview ? "icon-btn on" : "icon-btn"} aria-pressed={showOverview}
                     onClick={() => setShowOverview(!showOverview)} title={t("overview")} aria-label={t("overview")}>
               <LayoutDashboard className="icon" aria-hidden="true" /></button>
-            {/* with nothing to report the shield only says so in its tooltip */}
-            <button type="button" className={problems ? "icon-btn check-btn warn" : "icon-btn check-btn ok"}
-                    aria-expanded={checkable ? showCheck : undefined}
-                    onClick={() => checkable && setShowCheck(!showCheck)}
-                    title={problems ? t("checkCount", { n: problems }) : t("checkOk")}
-                    aria-label={t("check")}>
-              {problems ? <ShieldAlert className="icon" aria-hidden="true" />
-                        : <ShieldCheck className="icon" aria-hidden="true" />}
-              {problems > 0 && <span className="badge">{problems}</span>}</button>
             <span className="sep" aria-hidden="true" />
             <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
                     title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
@@ -438,12 +429,6 @@ export function App() {
       </header>
 
       {data && statusText && <p className={status?.err ? "status err" : "status"}>{statusText}</p>}
-      {data && showCheck && checkable && <CheckPanel issues={issues} data={data} t={t} onClose={() => setShowCheck(false)}
-                                        onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
-                                        variants={variants} values={spelled} hidden={hidden} onHide={hide}
-                                        onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
-                                        keepAka={keepAka} onKeepAka={(on) => { setKeepAka(on); updateStore({ keepAka: on }); }}
-                                        onFocus={(id) => focus(id, true)} />}
       {data && showOverview && stats && <Overview stats={stats} data={data} problems={found} t={t}
                                          onClose={() => setShowOverview(false)}
                                          onProblems={() => setShowCheck(true)}
@@ -468,7 +453,20 @@ export function App() {
                 <button type="button" className={listOpen ? "on" : undefined} aria-pressed={listOpen}
                         title={t(listOpen ? "hideList" : "showList")} aria-label={t(listOpen ? "hideList" : "showList")}
                         onClick={() => showList(!listOpen)}><Search className="icon" aria-hidden="true" /></button>
+                <button type="button" className={`${showCheck ? "on " : ""}${problems ? "warn" : ""}`.trim() || undefined}
+                        aria-pressed={showCheck} title={problems ? t("checkCount", { n: problems }) : t("checkOk")}
+                        aria-label={t("check")} onClick={() => setShowCheck(!showCheck)}>
+                  {problems ? <ShieldAlert className="icon" aria-hidden="true" /> : <ShieldCheck className="icon" aria-hidden="true" />}
+                  {problems > 0 && <span className="badge">{problems}</span>}</button>
               </nav>
+              {showCheck && <aside className="check-wrap" aria-label={t("check")}>
+                <CheckPanel issues={issues} data={data} t={t}
+                            onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
+                                  variants={variants} values={spelled} hidden={hidden} onHide={hide}
+                                  onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
+                                  keepAka={keepAka} onKeepAka={(on) => { setKeepAka(on); updateStore({ keepAka: on }); }}
+                                  onFocus={(id) => focus(id, true)} />
+              </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
                             query={query} onQuery={setQuery} onSelect={pick} t={t} />

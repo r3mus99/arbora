@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.18.0 – 2026-10-13
+
+- The file check moved into the left tool panel: a shield icon sits under the magnifier in the tool bar (with the number
+  of problems on it). It opens the check (Issues, Surnames, Places, Hidden) next to the bar; the icon of the open panel
+  is highlighted and a second click closes it. Only one panel is open at a time. The shield is gone from the top bar.
+
 ## 1.17.0 – 2026-10-13
 
 - A narrow bar of tools sits at the left edge (for now with one icon, a magnifier; more will follow). Clicking an icon
