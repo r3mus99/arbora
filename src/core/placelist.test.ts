@@ -15,10 +15,10 @@ describe("place list", () => {
 
   test("the same village with another house number is another place", () => {
     const list = placeOverview(parseGedcom(ged));
-    expect(list.map((p) => p.name)).toEqual(["Dolná 22, Okres Sever", "Horná", "Dolná 7, Okres Sever"]);
-    expect(list[0]).toMatchObject({ events: 2, people: ["@I1@"] });
+    expect(list.map((p) => p.name)).toEqual(["Horná", "Dolná 22, Okres Sever", "Dolná 7, Okres Sever"]);
+    expect(list[1]).toMatchObject({ events: 2, people: ["@I1@"] });
     // the marriage counts for both spouses
-    expect(list[1].events).toBe(2);
-    expect(list[1].people.sort()).toEqual(["@I2@", "@I3@"]);
+    expect(list[0].events).toBe(2);
+    expect(list[0].people.sort()).toEqual(["@I2@", "@I3@"]);
   });
 });
