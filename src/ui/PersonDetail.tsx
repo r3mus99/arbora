@@ -2,13 +2,14 @@ import {
   Award, Baby, Briefcase, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
   StickyNote, Star, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
-import { Fragment, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { personFields, type EventFields } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
 import { mapUrl, municipality } from "../core/places";
 import { nameDetails } from "../core/names";
 import { personAttributes } from "../core/facts";
+import { dateParts } from "../core/date";
 import { fmt, formatDate } from "../core/format";
 import type { GedNode, GedcomData, Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
@@ -146,16 +147,24 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
             {names.others.map((n, i) => <div key={`o${i}`}><span>{t("otherName")}{n.type ? ` (${n.type})` : ""}:</span> {n.name}</div>)}
           </div>;
         })()}
-        {parents.length > 0 && <Section icon={Users} title={t("parents")} rows>
-          {parents.map((pid, i) => {
-            const sex = data.people[pid]?.sex;
-            const wed = i === 1 && birthFam?.marriage && (birthFam.marriage.date || birthFam.marriage.place) ? birthFam.marriage : null;
-            return <Fragment key={pid}>
-              {wed && <Row icon={Heart} tone="tone-marr" className="muted">
-                {[wed.date && formatDate(wed.date, true, lang), municipality(wed.place)].filter(Boolean).join(" · ")}</Row>}
-              <Row icon={sex === "M" ? Mars : sex === "F" ? Venus : undefined} tone={sex ? `tone-${sex}` : undefined}>{link(pid)}</Row>
-            </Fragment>;
+        {parents.length > 0 && <Section icon={Users} title={t("parents")} rows className="timeline">
+          {/* a small timeline: the parent born first, the other parent, the wedding last */}
+          {[...parents].sort((x, y) => {
+            const key = (id: string) => { const d = dateParts(data.people[id]?.birth?.date); return d ? d.y * 10000 + d.m * 100 + d.d : Infinity; };
+            return key(x) === key(y) ? 0 : key(x) < key(y) ? -1 : 1;
+          }).map((pid) => {
+            const q = data.people[pid];
+            return <Row key={pid} icon={Baby} tone={q?.sex ? `tl-birth tl-sex-${q.sex}` : "tl-birth"}>
+              <div className="tl-date">{q?.birth?.date && <span>{formatDate(q.birth.date, true, lang)}</span>}
+                <span className="tl-label">{q?.birth?.date && " · "}{t("thBirth")}</span></div>
+              <div className="tl-what">{link(pid)}</div>
+            </Row>;
           })}
+          {birthFam?.marriage && (birthFam.marriage.date || birthFam.marriage.place) && <Row icon={Heart} tone="tl-marriage">
+            <div className="tl-date">{birthFam.marriage.date && <span>{formatDate(birthFam.marriage.date, true, lang)}</span>}
+              <span className="tl-label">{birthFam.marriage.date && " · "}{t("marriage")}</span></div>
+            {birthFam.marriage.place && <div className="tl-what muted">{municipality(birthFam.marriage.place)}</div>}
+          </Row>}
         </Section>}
         {life.length > 0 && <Section icon={History} title={t("timeline")} rows className="timeline">
           {life.map((e) => {

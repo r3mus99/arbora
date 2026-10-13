@@ -178,15 +178,20 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 /*
  * Person detail layout. The blocks are built from Section and Row (src/ui/Section.tsx); these tokens decide how
  * every block looks, so change them here and nowhere else:
- *   --d-icon  the size of every icon in the detail (18px), --d-col the icon column (icons are centred in it),
- *   --d-gap   the space between the icon column and the text, --d-section-gap the space between sections.
+ *   --d-icon      the icon in a section title (18px), --d-icon-row the icons of the lines inside (15px),
+ *   --d-col       the icon column (icons are centred in it), --d-gap the space between it and the text,
+ *   --d-section-gap  the space around the line between two sections.
+ * Sections that are a timeline (events on a thin line; also the parents) get the class "timeline".
  * Text sizes: 14px content, 12px titles and small print. Icon colours: --c-src for section titles, the colour
  * of the event or the sex on a Row (--row-color).
  */
-.detail { --d-icon: 18px; --d-col: 22px; --d-gap: 10px; --d-section-gap: 22px; line-height: 1.5; }
+.detail { --d-icon: 18px; --d-icon-row: 15px; --d-col: 22px; --d-gap: 10px; --d-section-gap: 14px; line-height: 1.5; }
 .detail .icon { width: var(--d-icon); height: var(--d-icon); vertical-align: 0; }
-.facts { display: grid; gap: var(--d-section-gap); margin-top: 14px; }
+.detail .row-icon .icon { width: var(--d-icon-row); height: var(--d-icon-row); }
+.facts { margin-top: 14px; }
 .section { min-width: 0; }
+/* sections are told apart by a thin line */
+.facts > * + * { margin-top: var(--d-section-gap); padding-top: var(--d-section-gap); border-top: 1px solid var(--border); }
 .sec-head { display: grid; grid-template-columns: var(--d-col) auto 1fr; column-gap: var(--d-gap); align-items: center;
             margin: 0 0 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
             color: var(--muted); font-family: inherit; list-style: none; cursor: default; }
