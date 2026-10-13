@@ -1,15 +1,18 @@
 import { forwardRef, useEffect, useMemo, useRef } from "react";
 import { Search } from "lucide-react";
-import { formatDate } from "../core/format";
 import { findPeople, fold, matchedAka, type Person } from "../core/gedcom";
 import type { Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
+import { PersonRow } from "./PersonRow";
 
 interface Props {
   people: Record<string, Person>;
   lang: Lang;
+  /** the person shown in the detail */
   selectedId: string | null;
+  favourites: ReadonlySet<string>;
+  onStar: (id: string) => void;
   /** bump to scroll the selected row into view */
   scrollKey: number;
   /** search text: name, place or year */
@@ -21,7 +24,7 @@ interface Props {
 
 /** Compact always-visible list of everybody: sex, name, years; the search box above it filters the list. */
 export const PersonRail = forwardRef<HTMLInputElement, Props>(function PersonRail(
-  { people, lang, selectedId, scrollKey, query, onQuery, onSelect, t }, finderRef) {
+  { people, lang, selectedId, favourites, onStar, scrollKey, query, onQuery, onSelect, t }, finderRef) {
   const list = useRef<HTMLUListElement>(null);
   const sorted = useMemo(() => {
     const q = query.trim();
@@ -32,12 +35,6 @@ export const PersonRail = forwardRef<HTMLInputElement, Props>(function PersonRai
   useEffect(() => {
     if (scrollKey) list.current?.querySelector("li.sel")?.scrollIntoView({ block: "nearest" });
   }, [scrollKey]);
-
-  const year = (p: Person) => {
-    const b = p.birth?.date ? formatDate(p.birth.date, false, lang) : "";
-    const d = p.death?.date ? formatDate(p.death.date, false, lang) : "";
-    return b || d ? `${b}–${d}` : "";
-  };
 
   return (
     <>
@@ -50,13 +47,9 @@ export const PersonRail = forwardRef<HTMLInputElement, Props>(function PersonRai
       </div>
       <ul className="rail panel-body" ref={list}>
         {sorted.map((p) => (
-          <li key={p.id} className={p.id === selectedId ? "sel" : undefined} onClick={() => onSelect(p.id)}>
-            <span className={`dot sex-${p.sex === "M" || p.sex === "F" ? p.sex : "U"}`} aria-hidden="true" />
-            <span className="rname">{p.name || "?"}
-              {/* found by another form of the name: show which */}
-              {query.trim() && matchedAka(query, p) && <span className="aka"> · aka {matchedAka(query, p)}</span>}</span>
-            <span className="ryears">{year(p)}</span>
-          </li>
+          <PersonRow key={p.id} person={p} lang={lang} selected={p.id === selectedId} favourite={favourites.has(p.id)}
+                     aka={query.trim() ? matchedAka(query, p) || undefined : undefined}
+                     onSelect={onSelect} onStar={onStar} t={t} />
         ))}
         {!sorted.length && <li className="none">{t("noneFound")}</li>}
       </ul>

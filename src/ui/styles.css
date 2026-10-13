@@ -191,7 +191,7 @@ footer a { color: var(--accent); }
 .panel-head h2 { margin: 0; font-size: 14px; font-weight: 600; }
 .panel-body { flex: 1; min-height: 0; overflow-y: auto; }
 .rail { list-style: none; margin: 0; padding: 4px 0; font-size: 14px; }
-.rail li { display: flex; align-items: baseline; gap: 7px; padding: 3px 10px; cursor: pointer; }
+.rail li { display: flex; align-items: center; gap: 7px; min-height: var(--ctl-h-sm); padding: 0 4px 0 10px; cursor: pointer; }
 .rail li:hover { background: var(--accent-soft); }
 .rail li.sel { background: var(--accent); color: var(--accent-text); }
 .rail .rname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -585,8 +585,6 @@ section.check { margin: 0 0 14px; }
 .detail-name h3 { min-width: 0; overflow-wrap: anywhere; }
 .star-btn .icon { color: var(--muted); fill: none; }
 .star-btn.on .icon, .row-star.on .icon { color: var(--star); fill: currentColor; }
-.rail.recent { padding-right: 0; }
-.rail.recent li { align-items: center; padding-right: 4px; }
 .row-star { flex: none; width: var(--ctl-h-sm); height: var(--ctl-h-sm); padding: 0; display: grid; place-items: center; border: 0;
             border-radius: var(--radius); background: none; color: var(--muted); }
 .row-star:hover { background: var(--accent-soft); }

@@ -404,6 +404,10 @@ export function App() {
     select(id);
     setQuery("");
   };
+  /** a click on the selected person in the chart or in a list of people deselects it, which closes the detail */
+  const deselect = () => { setFocusId(null); setJumpRow(null); };
+  const pickListed = (id: string) => { if (id === focusId) deselect(); else pick(id); };
+  const star = (id: string) => setMarks((m) => toggleFav(m, id));
 
   return (
     <main className={data ? "loaded" : undefined}>
@@ -484,7 +488,7 @@ export function App() {
               </aside>}
               {showRecent && <aside className="rail-wrap" aria-label={t("recent")}>
                 <RecentPanel entries={recent} data={data} lang={lang} selectedId={focusId}
-                             onPerson={pick} onStar={(id) => setMarks((m) => toggleFav(m, id))} t={t} />
+                             onPerson={pickListed} onStar={star} t={t} />
               </aside>}
               {showSettings && <aside className="rail-wrap" aria-label={t("settings")}>
                 <SettingsPanel form={form} lang={lang} onChange={setOpt} t={t} />
@@ -496,8 +500,8 @@ export function App() {
                 <SourcesPanel overview={srcOverview} data={data} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
-                <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
-                            query={query} onQuery={setQuery} onSelect={pick} t={t} />
+                <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={focusId} scrollKey={scrollKey}
+                            favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} t={t} />
               </aside>}
             </div>
             {showCheck ? <aside className="check-wide" aria-label={t("check")}>
@@ -530,11 +534,11 @@ export function App() {
               </div>
               <TreeView rows={shown} focusId={focusId} starred={favourites} scrollKey={treeScroll} scrollTo={jumpRow}
                         numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
-                        onFocus={(id) => focus(id, false)} onToggle={toggle}
+                        onFocus={(id) => id === focusId ? deselect() : focus(id, false)} onToggle={toggle}
                         onJump={(r) => jump(r.targetIndex)} t={t} />
             </div>
             {focusId && <PersonDetail data={data} id={focusId} starred={favourites.has(focusId)}
-                                      onStar={() => setMarks((m) => toggleFav(m, focusId))} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
+                                      onStar={() => star(focusId)} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot}
                                       onEdit={() => setEditId(focusId)} onCancelEdit={() => setEditId(null)} t={t}
                                       editor={editId === focusId && recordOf.has(focusId) &&
