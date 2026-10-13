@@ -114,3 +114,68 @@ export function linkParts(text: string): TextPart[] {
   if (last < text.length) parts.push({ text: text.slice(last) });
   return parts;
 }
+
+/** one source of the file with the people who cite it */
+export interface SourceEntry {
+  key: string;
+  citation: Citation;
+  /** how many times it is cited (on people, events and families) */
+  citations: number;
+  /** ids of the people citing it: a family's citation counts for both spouses */
+  people: string[];
+}
+
+/** one note text with the people it is written under */
+export interface NoteEntry {
+  text: string;
+  people: string[];
+}
+
+export interface SourceOverview {
+  sources: SourceEntry[];
+  notes: NoteEntry[];
+}
+
+/**
+ * Every source and note of the file at a glance: each source record (also one nobody cites) and each
+ * text citation once, with the number of citations and the people; each note text once, with its people.
+ */
+export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(records)): SourceOverview {
+  const sources = new Map<string, SourceEntry & { who: Set<string> }>();
+  const notes = new Map<string, { text: string; who: Set<string> }>();
+  const entry = (key: string, cite: GedNode) => {
+    let e = sources.get(key);
+    if (!e) sources.set(key, e = { key, citation: citation(cite, lookup), citations: 0, people: [], who: new Set() });
+    return e;
+  };
+  for (const r of records) if (r.tag === "SOUR" && r.xref) {
+    // a source record nobody cites still belongs in the list
+    entry(r.xref, { tag: "SOUR", value: r.xref, xref: null, children: [] });
+  }
+  const walk = (node: GedNode, owners: string[]) => {
+    for (const c of node.children) {
+      if (c.tag === "SOUR" && c.value.trim()) {
+        const e = entry(isLink(c.value) ? c.value : c.value.trim(), c);
+        e.citations++;
+        owners.forEach((o) => e.who.add(o));
+      } else if (c.tag === "NOTE") {
+        const text = textOf(c, lookup);
+        if (text) {
+          const n = notes.get(text) ?? { text, who: new Set<string>() };
+          owners.forEach((o) => n.who.add(o));
+          notes.set(text, n);
+        }
+      }
+      walk(c, owners);
+    }
+  };
+  for (const r of records) {
+    if (r.tag === "INDI" && r.xref) walk(r, [r.xref]);
+    else if (r.tag === "FAM") walk(r, [childOf(r, "HUSB")?.value, childOf(r, "WIFE")?.value].filter((x): x is string => !!x));
+  }
+  const byTitle = (a: { citation: Citation }, b: { citation: Citation }) => a.citation.title.localeCompare(b.citation.title);
+  return {
+    sources: [...sources.values()].map(({ who, ...e }) => ({ ...e, people: [...who] })).sort(byTitle),
+    notes: [...notes.values()].map((n) => ({ text: n.text, people: [...n.who] })).sort((a, b) => a.text.localeCompare(b.text)),
+  };
+}

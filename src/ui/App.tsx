@@ -2,7 +2,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileUp, LayoutDashboard,
-         Loader2, Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, BookMarked, Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -10,6 +10,7 @@ import { checkGedcom, fixIssue } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
+import { sourceOverview } from "../core/sources";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
 import { renameVariants, spellings, variantGroups, type VariantKind } from "../core/variants";
@@ -20,6 +21,7 @@ import { CheckPanel } from "./CheckPanel";
 import { FileDrop } from "./FileDrop";
 import { LanguageMenu } from "./LanguageMenu";
 import { Overview } from "./Overview";
+import { SourcesPanel } from "./SourcesPanel";
 import { PersonDetail } from "./PersonDetail";
 import { PersonEditor } from "./PersonEditor";
 import { PersonRail } from "./PersonRail";
@@ -86,11 +88,12 @@ export function App() {
   const finderRef = useRef<HTMLInputElement>(null);
   // the list of people starts as a narrow rail with a magnifier; the choice is remembered
   // one tool panel is open at a time: the list of people, the file check, or none
-  const [tool, setTool] = useState<"people" | "check" | "overview" | null>(() => readStore().listOpen === true ? "people" : null);
-  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview";
+  const [tool, setTool] = useState<"people" | "check" | "overview" | "sources" | null>(() => readStore().listOpen === true ? "people" : null);
+  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview", showSources = tool === "sources";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
   const setShowOverview = (on: boolean) => setTool(on ? "overview" : listOpen ? "people" : null);
+  const setShowSources = (on: boolean) => setTool(on ? "sources" : listOpen ? "people" : null);
   useEffect(() => { if (listOpen) finderRef.current?.focus(); }, [listOpen]);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
@@ -229,6 +232,7 @@ export function App() {
     updateStore({ hiddenVariants: [...next] });
   };
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
+  const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);
   // the list closes once everything is fixed
 
   /** a new version of the file with the changed records; one step of undo */
@@ -438,12 +442,18 @@ export function App() {
                         aria-label={t("check")} onClick={() => setShowCheck(!showCheck)}>
                   {problems ? <ShieldAlert className="icon" aria-hidden="true" /> : <ShieldCheck className="icon" aria-hidden="true" />}
                   {problems > 0 && <span className="badge">{problems}</span>}</button>
+                <button type="button" className={showSources ? "on" : undefined} aria-pressed={showSources}
+                        title={t("srcNotes")} aria-label={t("srcNotes")} onClick={() => setShowSources(!showSources)}>
+                  <BookMarked className="icon" aria-hidden="true" /></button>
               </nav>
               {showOverview && stats && <aside className="rail-wrap ov-wrap" aria-label={t("overview")}>
                 <Overview stats={stats} data={data} problems={found} t={t}
                           onProblems={() => setShowCheck(true)}
                           onPerson={(id) => makeRoot(id)}
                           onSurname={(name) => { setQuery(name); showList(true); finderRef.current?.focus(); }} />
+              </aside>}
+              {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
+                <SourcesPanel overview={srcOverview} data={data} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}

@@ -2,6 +2,9 @@
 
 ## 1.21.0 – 2026-10-13
 
+- New tool in the tool bar: **Sources and notes** (book icon). It opens a panel next to the bar with every source of
+  the file and the number of times it is cited, and a second tab with every note. A filter box narrows both lists;
+  a click on an entry shows the people who cite it, and a click on a person opens them. Read-only.
 - The top bar is now the first row of the frame, in the same height and line as the headers of the panels below it:
   app name, open file, status message, undo / redo, save GED and PDF, settings and language. The page no longer
   has a separate sticky header.
