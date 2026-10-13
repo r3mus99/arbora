@@ -2,7 +2,7 @@ import {
   Award, Baby, Briefcase, Check, CircleHelp, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
   StickyNote, Star, CalendarDays, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { applyPerson, personFields, type EventFields, type PersonFields } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
@@ -17,7 +17,7 @@ import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, per
 import { timeline, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { EDITOR_FORM, GIVENS, SURNAMES, SuggestLists } from "./PersonEditor";
-import { Inline, InlineName } from "./Inline";
+import { InlineName } from "./Inline";
 import { Row, Section } from "./Section";
 import { EventSources, Linked, PersonSources } from "./Sources";
 
@@ -266,15 +266,21 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
   );
 }
 
-/** The sex icon next to the name; a click offers the three choices as a switch. */
+/** The sex icon next to the name; a click opens the three choices in a small popover, so nothing moves. */
 function SexPick({ sex, label, onPick, t }: { sex: string; label: string; onPick: (sex: string) => void; t: (key: StringKey) => string }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLSpanElement>(null);
   const Icon = sex === "M" ? Mars : sex === "F" ? Venus : CircleHelp;
   const choices: [string, StringKey][] = [["M", "male"], ["F", "female"], [sex === "" ? "" : "U", "sexUnknown"]];
-  return <Inline label={label} className="inline-sex" onClose={() => {}}
-                 edit={({ done }) => <span className="chart-switch" role="group" aria-label={label}>
-    {choices.map(([value, key]) => <button key={key} type="button" className={sex === value ? "on" : undefined} aria-pressed={sex === value}
-                                           onClick={() => { if (value !== sex) onPick(value); done(); }}>{t(key)}</button>)}
-  </span>}>
-    <Icon className={`icon sex-${sex}`} aria-hidden="true" />
-  </Inline>;
+  return <span ref={box} className="inline-sex"
+               onKeyDown={(e) => { if (e.key === "Escape" && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); } }}
+               onBlur={(e) => { if (!box.current?.contains(e.relatedTarget as Node | null)) setOpen(false); }}>
+    <button type="button" className="inline-value" title={label} aria-label={label} aria-expanded={open} onClick={() => setOpen(!open)}>
+      <Icon className={`icon sex-${sex}`} aria-hidden="true" /></button>
+    {open && <span className="chart-switch inline-pop" role="group" aria-label={label}>
+      {choices.map(([value, key]) => <button key={key} type="button" className={sex === value ? "on" : undefined}
+                                             aria-pressed={sex === value} autoFocus={sex === value}
+                                             onClick={() => { if (value !== sex) onPick(value); setOpen(false); }}>{t(key)}</button>)}
+    </span>}
+  </span>;
 }

@@ -54,9 +54,10 @@ export function InlineName({ given, surname, label, givenLabel, surnameLabel, gi
   return <Inline label={label} className="inline-name" onClose={(ok) => { if (ok) onCommit(g, s); }}
                  edit={() => <>
     <input type="text" value={g} list={givens} aria-label={givenLabel} placeholder={givenLabel}
-           onChange={(e) => setG(e.target.value)} />
+           size={Math.max(g.length, givenLabel.length - 2, 3)} onChange={(e) => setG(e.target.value)} />
+    {" "}
     <input type="text" value={s} list={surnames} aria-label={surnameLabel} placeholder={surnameLabel}
-           onChange={(e) => setS(e.target.value)} />
+           size={Math.max(s.length, surnameLabel.length - 2, 3)} onChange={(e) => setS(e.target.value)} />
   </>}>
     {children}
   </Inline>;
