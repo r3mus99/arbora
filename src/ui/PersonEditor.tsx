@@ -156,14 +156,16 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
           [...form.aliases, { origin: -1, given: form.given, surname: "" }])}>
           <Plus className="icon" aria-hidden="true" />{t("addAka")}</button>
       </fieldset>
-      <div className="sex" role="radiogroup" aria-label={t("sex")}>
+      <div className="sex-field">
         <span>{t("sex")}</span>
+        <div className="sex" role="radiogroup" aria-label={t("sex")}>
         {([["M", "male"], ["F", "female"], [form.sex === "" ? "" : "U", "sexUnknown"]] as [string, StringKey][])
           .map(([value, key]) => <label key={key}>
             <input type="radio" name="sex" value={value} checked={form.sex === value}
                    onChange={() => set("sex", value)} /> {t(key)}</label>)}
         {!["M", "F", "U", ""].includes(form.sex) && <label>
           <input type="radio" name="sex" checked readOnly /> {form.sex}</label>}
+        </div>
       </div>
       {event("birth")}
       {event("christening")}

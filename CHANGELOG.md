@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.20.0 – 2026-10-13
+
+- The design guidelines (`docs/design-guidelines.md`) are now a complete guide: layout, tokens, typography, colours,
+  icons, controls and states, and how to add a new tool to the tool bar.
+- The interface follows them: new tokens for control and icon sizes, radii, warning and sex colours (no literal
+  colours left in the rules), two text sizes (14 and 12px) instead of twelve, three corner radii instead of eleven.
+- The person form uses the same fields, buttons and focus ring as the rest of the app; the sex choice is the same
+  switch as Ancestors/Descendants. The top bar icons, the language button and the file chip share one height and hover.
+- The tool panel is a little wider so the search hint is not cut off.
+
 ## 1.19.0 – 2026-10-13
 
 - The file overview (counts, most common surnames and places) moved from the top of the page to the tool bar: a tiles
