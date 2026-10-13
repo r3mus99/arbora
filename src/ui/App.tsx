@@ -374,6 +374,9 @@ export function App() {
     return () => { ro.disconnect(); root.removeProperty("--bar-h"); };
   }, []);
 
+  // generations shown in the chart and the PDF; a value set earlier outside the usual choices stays as an extra button
+  const gens = Math.max(0, Math.round(Number(form.generations) || 0));
+  const gensChoices = [2, 3, 4, 5, 0].includes(gens) ? [2, 3, 4, 5, 0] : [2, 3, 4, 5, gens, 0].sort((a, b) => (a || 1e9) - (b || 1e9));
   const pick = (id: string) => {
     select(id);
     setQuery("");
@@ -457,13 +460,24 @@ export function App() {
                           query={query} onQuery={setQuery} onSelect={pick} t={t} />
             </aside>
             <div className="mid">
-              <div className="chart-switch" role="radiogroup">
-                <label title={`${t("ancDesc1")}, ${t("ancDesc2")}`}>
-                  <input type="radio" name="chart" value="ancestors" checked={form.chart === "ancestors"}
-                         onChange={() => setOpt("chart", "ancestors")} /><span>{t("anc")}</span></label>
-                <label title={`${t("descDesc1")}, ${t("descDesc2")}`}>
-                  <input type="radio" name="chart" value="descendants" checked={desc}
-                         onChange={() => setOpt("chart", "descendants")} /><span>{t("desc")}</span></label>
+              <div className="chart-bar">
+                <div className="chart-switch" role="radiogroup">
+                  <label title={`${t("ancDesc1")}, ${t("ancDesc2")}`}>
+                    <input type="radio" name="chart" value="ancestors" checked={form.chart === "ancestors"}
+                           onChange={() => setOpt("chart", "ancestors")} /><span>{t("anc")}</span></label>
+                  <label title={`${t("descDesc1")}, ${t("descDesc2")}`}>
+                    <input type="radio" name="chart" value="descendants" checked={desc}
+                           onChange={() => setOpt("chart", "descendants")} /><span>{t("desc")}</span></label>
+                </div>
+                <div className="gens" role="group" aria-label={t("generations")}>
+                  <span>{t("generations")}</span>
+                  <div className="chart-switch">
+                    {gensChoices.map((n) => (
+                      <button key={n} type="button" aria-pressed={gens === n} className={gens === n ? "on" : undefined}
+                              onClick={() => setOpt("generations", String(n))}>{n || t("allGens")}</button>
+                    ))}
+                  </div>
+                </div>
               </div>
               <TreeView rows={shown} focusId={focusId} scrollKey={treeScroll} scrollTo={jumpRow}
                         numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
