@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.15.0 – 2026-10-13
+
+- Person detail is more compact. The timeline has no heading and no dot on the line: each event has one
+  coloured icon (birth, residence, marriage, children, death and so on). The parents sit in one bar under
+  the name and the years of life are shown before the ID.
+
 ## 1.14.0 – 2026-10-13
 
 - The Ancestors / Descendants choice is now a compact switch above the tree. The two large cards, the

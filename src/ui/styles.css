@@ -164,6 +164,7 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .detail-head .tools { display: flex; gap: 4px; flex: none; margin-top: -2px; }
 .detail .id { color: var(--muted); font-size: 13px; margin: 0 0 8px; }
+.detail .id .lifespan { font-variant-numeric: tabular-nums; }
 .detail h3 .icon { margin-left: 6px; width: 17px; height: 17px; vertical-align: -1px; }
 .detail .sex-M { color: #3f6fa8; } .detail .sex-F { color: #b0507a; }
 .facts { display: grid; gap: 14px; margin-top: 4px; }
@@ -175,24 +176,21 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .fact-label, .fact-sub { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
                          color: var(--muted); margin-bottom: 2px; }
 .fact-sub { margin-top: 6px; }
-/* the person's life: a dot on a line, an icon, the date with the age and what happened */
-.timeline h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 12px; font-weight: 600;
-               letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
-.timeline h4 .icon { width: 17px; height: 17px; }
-.timeline ol { list-style: none; margin: 0; padding: 0 0 0 4px; position: relative; }
-.timeline ol::before { content: ""; position: absolute; left: 9px; top: 10px; bottom: 10px; width: 2px;
+/* the person's life: one coloured icon per event on a thin line, the date with the age and what happened */
+.parents { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; background: var(--accent-soft);
+           border-radius: 8px; padding: 7px 10px; }
+.parents-label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.timeline ol { list-style: none; margin: 0; padding: 0; position: relative; }
+.timeline ol::before { content: ""; position: absolute; left: 10px; top: 12px; bottom: 12px; width: 2px;
                        background: var(--border); }
-.timeline ol > li { display: grid; grid-template-columns: 12px 18px 1fr; gap: 10px; align-items: start; padding: 0 0 12px; }
-.timeline ol > li:last-child { padding-bottom: 0; }
-.tl-dot { width: 12px; height: 12px; border-radius: 50%; margin-top: 5px; position: relative;
-          background: var(--dot); box-shadow: 0 0 0 3px var(--panel); }
-.timeline .tl-icon { width: 18px; height: 18px; margin-top: 2px; color: var(--muted); }
+.timeline ol > li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; padding: 5px 0; }
+.timeline .tl-icon { width: 20px; height: 20px; margin: 2px 0 0; position: relative; color: var(--dot);
+                     background: var(--panel); box-shadow: 0 3px 0 var(--panel), 0 -3px 0 var(--panel); }
 .tl-body { min-width: 0; overflow-wrap: anywhere; }
 .tl-date { font-weight: 600; font-variant-numeric: tabular-nums; }
 .tl-date .muted { font-weight: 400; font-size: 13px; }
 .tl-what { color: var(--muted); }
 .tl-birth { --dot: var(--c-birth); } .tl-christening { --dot: #3b82c4; } .tl-marriage { --dot: var(--c-marr); }
-.tl-birth .tl-icon, .tl-marriage .tl-icon, .tl-death .tl-icon { color: var(--dot); }
 .tl-residence { --dot: #9a7b4f; } .tl-event { --dot: #7b6bb5; }
 .tl-famEvent { --dot: var(--c-marr); }
 .tl-child { --dot: #17a89c; } .tl-death { --dot: var(--c-death); } .tl-burial { --dot: #8a8f86; }
