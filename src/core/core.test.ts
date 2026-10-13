@@ -81,6 +81,23 @@ describe("GEDCOM", () => {
   });
 });
 
+describe("search by place", () => {
+  test("finds people by place of birth or death, alone or with a name or year", () => {
+    const ged = [
+      "0 @I1@ INDI", "1 NAME Anna /Test/", "1 BIRT", "2 DATE 1894", "2 PLAC Vienna", "1 DEAT", "2 PLAC Graz",
+      "0 @I2@ INDI", "1 NAME Karl /Test/", "1 BIRT", "2 DATE 1901", "2 PLAC Graz",
+      "0 @I3@ INDI", "1 NAME Eva /Other/",
+    ].join("\n");
+    const { people } = load(ged);
+    const ids = (q: string) => findPeople(q, people).map((p) => p.id);
+    expect(ids("graz")).toEqual(["@I1@", "@I2@"]);
+    expect(ids("vienna")).toEqual(["@I1@"]);
+    expect(ids("karl graz")).toEqual(["@I2@"]);
+    expect(ids("graz 1894")).toEqual(["@I1@"]);
+    expect(ids("eva graz")).toEqual([]);
+  });
+});
+
 describe("formatting", () => {
   test.each([
     ["ABT 1761", "cca 1761", "abt 1761"],
