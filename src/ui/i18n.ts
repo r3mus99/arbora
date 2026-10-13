@@ -50,7 +50,7 @@ const STRINGS_RAW = {
     srcFilter: "Filtrovať", srcPeople: "Osoby: {n}", srcEmpty: "Súbor nemá žiadne zdroje ani poznámky.", srcNothing: "Nič sa nenašlo.",
     placeEvents: "Udalosti: {n}", placesEmpty: "Súbor nemá žiadne miesta.",
     recent: "Naposledy navštívení", recentEmpty: "Zatiaľ nikto. Osoby, ktoré otvoríš, sa objavia tu.", starAdd: "Pridať medzi obľúbených", starRemove: "Odobrať z obľúbených", favourite: "Obľúbený",
-    treeTitle: "Rodokmen",
+    treeTitle: "Rodokmeň",
     settings: "Nastavenia", setPrint: "Nastavenie tlače", labels: "Popisky", symbols: "symboly", abbr: "skratky",
     dates: "Dátumy", year: "len rok", fullDate: "celý dátum",
     places: "Miesta", noPlaces: "bez miest", shortPlace: "len obec", fullPlace: "celé miesto",
