@@ -108,7 +108,7 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 
 ## 7. Panels, headers, lists
 
-- Every panel starts with a header row: `--head-h`, `0 var(--pad)`, bottom border, title 14px 600 (or the control
+- Every panel starts with a header row: `--head-h`, `0 var(--pad)`, bottom border, title in the same font as the person's name in the detail (Spectral 19px 600; the chart bar has its "Family tree" title the same way) (or the control
   that lives there). No panel has a heading style of its own.
 - **Tool panel titles use the `PanelHead` component** (`src/ui/PanelHead.tsx`): fixed at the top of the panel, it never
   scrolls (only the `.panel-body` below it does), exactly `--head-h` high, so its line runs level with the chart bar

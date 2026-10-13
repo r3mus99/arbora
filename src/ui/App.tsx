@@ -452,7 +452,7 @@ export function App() {
             <button type="button" onClick={loadSample}>{t("sample")}</button>
           </div>
         </div>}
-        {data && chosen && <div className="viewer">
+        {data && chosen && <div className={`viewer${focusId || showCheck ? "" : " no-detail"}`}>
             {/* one sidebar: a narrow bar of tools and, next to it, the panel of the active tool (second click closes it) */}
             <div className="side">
               <nav className="toolbar" aria-label={t("showList")}>
@@ -514,6 +514,7 @@ export function App() {
             </aside> : <>
             <div className="mid">
               <div className="chart-bar">
+                <h2>{t("treeTitle")}</h2>
                 <div className="chart-switch" role="radiogroup">
                   <label title={`${t("ancDesc1")}, ${t("ancDesc2")}`}>
                     <input type="radio" name="chart" value="ancestors" checked={form.chart === "ancestors"}

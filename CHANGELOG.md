@@ -9,6 +9,8 @@
   the name switches it. It is on screen only and never printed to the PDF.
 - Recent people and favourites are kept in your browser for each file separately; they are never written into the
   GEDCOM file.
+- Without a person in the detail, the chart uses the full width. Panel titles use the font of the person's name in the
+  detail (Spectral, 19 px), and the chart has a title too ("Family tree").
 - A click on the selected person deselects it and closes the detail; it works on a name in the chart, in the list
   of people and in Recent. The two lists use one shared row, so they look exactly alike.
 - The generic event in the person timeline has a calendar icon now, so the star means only "favourite".
