@@ -153,7 +153,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
           </div>
         ))}
         <button type="button" className="add" onClick={() => set("aliases",
-          [...form.aliases, { origin: -1, given: form.given, surname: "" }])}>
+          [...form.aliases, { origin: -1, given: form.given, surname: form.surname }])}>
           <Plus className="icon" aria-hidden="true" />{t("addAka")}</button>
       </fieldset>
       <div className="sex-field">

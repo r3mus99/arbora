@@ -245,6 +245,13 @@ describe("dates typed in the form", () => {
     expect(edit(ged, "@I1@", (b) => ({ aliases: [{ ...b.aliases[0], surname: "Paulovszky" },
                                                 { origin: -1, given: "Johannes", surname: "Pavlovsky" }] })))
       .toContain("1 NAME Ján /Paulovszky/\n2 TYPE aka\n1 NAME Johannes /Pavlovsky/\n2 TYPE aka\n1 SEX M\n");
+    // an aka with only one part is valid; a new aka identical to the main name is dropped
+    expect(edit(ged, "@I1@", (b) => ({ aliases: [...b.aliases, { origin: -1, given: "", surname: "Pavlovsky" }] })))
+      .toContain("1 NAME /Pavlovsky/\n2 TYPE aka\n");
+    expect(edit(ged, "@I1@", (b) => ({ aliases: [...b.aliases, { origin: -1, given: "Johannes", surname: "" }] })))
+      .toContain("1 NAME Johannes\n2 TYPE aka\n");
+    expect(edit(ged, "@I1@", (b) => ({ aliases: [...b.aliases, { origin: -1, given: "Ján", surname: "Pavlovský" }] })))
+      .toBe(ged);
     expect(edit(ged, "@I1@", () => ({ aliases: [] }))).toBe("0 @I1@ INDI\n1 NAME Ján /Pavlovský/\n1 SEX M\n0 TRLR\n");
     expect(edit(ged, "@I1@", () => ({ surname: "Pavlovszký" })))
       .toContain("1 NAME Ján /Pavlovszký/\n1 NAME Ján /Pavlovszký/\n2 TYPE aka\n");

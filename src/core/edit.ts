@@ -172,7 +172,7 @@ function setEvent(rec: GedNode, tag: string, before: EventFields, after: EventFi
 
 /** a NAME value; the slashes around an empty surname are written only when the old value had them */
 function nameValue(given: string, surname: string, suffix: string, old: GedNode | null): string {
-  const slashes = surname || !old || old.value.includes("/") ? `/${surname}/` : "";
+  const slashes = surname || old?.value.includes("/") ? `/${surname}/` : "";
   return [given, slashes, suffix].filter(Boolean).join(" ");
 }
 
@@ -201,9 +201,11 @@ function nameNode(old: GedNode | null, given: string, surname: string): GedNode 
 }
 
 /** NAME lines with TYPE aka from the rows: kept ones updated, missing ones removed, new ones added. */
-function setAliases(rec: GedNode, before: Alias[], after: Alias[]): GedNode {
+function setAliases(rec: GedNode, before: Alias[], after: Alias[], main: PersonFields): GedNode {
+  const [mg, ms] = [main.given.trim(), main.surname.trim()];
   const rows = after.map((a) => ({ ...a, given: a.given.trim(), surname: a.surname.trim() }))
-    .filter((a) => a.given || a.surname);
+    // a new aka that does not differ from the main name (the form starts as a copy of it) is dropped
+    .filter((a) => (a.given || a.surname) && (a.origin >= 0 || a.given !== mg || a.surname !== ms));
   if (rows.length === before.length && rows.every((a, i) => a.origin === i && a.given === before[i].given
                                                        && a.surname === before[i].surname)) return rec;
   const olds = akaNames(rec);
@@ -279,7 +281,7 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   for (const key of PERSON_EVENTS) out = setEvent(out, EVENT_TAGS[key], before[key], tidy(after[key]));
   out = setDeceased(out, before.deceased, after.deceased);
   out = setOccupations(out, before.occupations, after.occupations);
-  out = setAliases(out, before.aliases, after.aliases);
+  out = setAliases(out, before.aliases, after.aliases, after);
   if (after.religion.trim() !== before.religion) out = setChild(out, "RELI", after.religion.trim());
   if (after.note.trim() !== before.note.trim()) out = setNote(out, after.note);
   return out === rec ? rec : rewritten(out);

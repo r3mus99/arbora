@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.28.0 – 2026-10-13
+
+- **Also known as (aka)** in the person editor: a new aka starts as a copy of the main name, so only the part that
+  differs needs changing. An aka with only a given name or only a surname is fine (written as `NAME Johannes` or
+  `NAME /Surname/`); a new aka identical to the main name is dropped on save.
+
 ## 1.27.1 – 2026-10-13
 
 - Fix: saving with **GED** now also updates the file the browser remembers, so after a reload the saved changes are
