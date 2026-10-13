@@ -114,6 +114,9 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .tree-row .s-marr { color: var(--c-marr); }
 .tree-row .s-deat { color: var(--c-death); }
 .tree-row .s-place { font-style: italic; color: var(--muted); }
+/* a reference to a person in the detail is styled like a line of the overview */
+.detail .s-birt { color: var(--c-birth); }
+.detail .s-place { font-style: italic; color: var(--muted); }
 .tree-row.sel .name span { color: inherit; }
 .tree-row.sel .name { background: var(--accent); color: var(--accent-text); }
 .tree-row.flash .name { animation: flash 1.6s ease-out; }

@@ -7,7 +7,7 @@
 - The detail shows only the municipality of a place (the part before the first comma). The marriage icon of the
   parents is coloured like the marriage on the timeline.
 - A reference to a person (parent, spouse, child, witness, associate) reads like the middle panel: name and, in one pair of
-  brackets, the year of birth and the municipality of birth (in italics).
+  brackets, the year of birth (green) and the municipality of birth (muted italics), as in the overview.
 - Parents, note and sources and notes share one section title style.
 - The icon of a child's birth in the timeline is coloured by the child's sex.
 
