@@ -149,19 +149,23 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 
 .tree-row .dup { color: var(--muted); font-size: 13px; }
 .mid { min-width: 0; }
-.viewer { display: grid; grid-template-columns: auto minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
+/* app frame in one piece, like a trading terminal: tool bar, panel, chart and detail side by side, divided by thin lines */
+.panel.chart { padding: 0; overflow: clip; }
+.viewer { display: grid; grid-template-columns: auto minmax(0, 1fr) 340px; align-items: stretch; }
+.mid { padding: 12px 14px; border-right: 1px solid var(--border); }
+.viewer .tree { border: 0; border-radius: 0; }
 @media (max-width: 900px) { .viewer { grid-template-columns: minmax(0, 1fr); } .side { display: none; } .detail { position: static; max-height: none; }
 }
 /* one sidebar: bar of tools (one icon per panel, the open one highlighted) and the open panel next to it */
-.side { position: sticky; top: calc(var(--bar-h, 0px) + 12px); display: flex; align-items: stretch; border: 1px solid var(--border);
-         border-radius: 14px; background: var(--panel); max-height: calc(100vh - var(--bar-h, 0px) - 24px); overflow: hidden; }
-.toolbar { display: flex; flex-direction: column; gap: 6px; padding: 6px; }
+.side { display: flex; align-items: flex-start; border-right: 1px solid var(--border); background: var(--bg); }
+.toolbar { position: sticky; top: var(--bar-h, 0px); display: flex; flex-direction: column; gap: 4px; padding: 8px 6px; }
 .toolbar button { width: 40px; height: 40px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 10px;
                   background: none; color: var(--muted); cursor: pointer; }
 .toolbar button:hover { background: var(--accent-soft); color: inherit; }
-.toolbar button.on { background: var(--accent); color: var(--accent-text); }
+.toolbar button.on { background: var(--accent-soft); color: var(--accent); }
 /* the panel of the active tool: the list of people, scrolls on its own */
-.rail-wrap { width: 250px; border-left: 1px solid var(--border); overflow-y: auto; }
+.rail-wrap { width: 250px; border-left: 1px solid var(--border); background: var(--panel); position: sticky; top: var(--bar-h, 0px);
+             height: calc(100vh - var(--bar-h, 0px)); overflow-y: auto; }
 .rail { list-style: none; margin: 0; padding: 4px 0; font-size: 14px; }
 .rail li { display: flex; align-items: baseline; gap: 7px; padding: 3px 10px; cursor: pointer; }
 .rail li:hover { background: var(--accent-soft); }
@@ -171,9 +175,9 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .rail li.sel .ryears { color: inherit; opacity: .85; }
 .rail .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; align-self: center; background: var(--muted); }
 .rail .dot.sex-M { background: #3f6fa8; } .rail .dot.sex-F { background: #b0507a; }
-.detail { border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; font-size: 14px;
-          position: sticky; top: calc(var(--bar-h, 0px) + 12px);
-          max-height: calc(100vh - var(--bar-h, 0px) - 24px); overflow-y: auto; }
+.detail { padding: 12px 14px; font-size: 14px; align-self: start;
+          position: sticky; top: var(--bar-h, 0px);
+          max-height: calc(100vh - var(--bar-h, 0px)); overflow-y: auto; }
 /* the detail has two text sizes: 14px for the content and 12px for titles, labels and small print */
 .detail h3 { font-size: 19px; margin: 0; }
 .detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
