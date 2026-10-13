@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.16.0 – 2026-10-13
+
+- The person detail is built from a small set of blocks (`src/ui/Section.tsx`): every block is a Section with a title
+  row, and every line with an icon is a Row. Sizes, spacing, icon column and colours are tokens in one place in
+  styles.css, so parents, timeline, employment, religion, note and sources line up the same way (icons in one
+  column, text in another, one icon size, 14px text and 12px titles) and a new block needs no extra CSS. Sections are separated by a thin line and the icons of the lines inside a section
+  are a little smaller than the icon in the section title. The parents are a small timeline: the parent born first,
+  then the other parent, and the marriage last.
+- The sources button of a timeline event sits at the right end of the first line of the event.
+
+- The birth of a child on the timeline shows the place in the brackets after the child's name, like every other
+  reference to a person, instead of after a dot. The name in such a reference is bold and in the text colour, like in the tree.
+- On the timeline the first line of an event is the date, what happened and the age (for example "14.5.1991 · Birth of a
+  son · at 25"); the second line is the person or the place. The label no longer sits before the name with a colon.
+- The detail uses only two text sizes: 14px for the content and 12px for titles, labels and small print (the 13px and
+  13.5px variants are gone).
+- The timeline has its title again (room for a future "add" button). Employment, religion, attributes and associates
+  are sections with the same title style as parents, note and sources, with no circled icons; there is more space
+  between the sections.
+
 ## 1.15.1 – 2026-10-13
 
 - The parents are a section with a title (icon and "Parents") and one parent per row, with the sex icon.
