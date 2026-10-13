@@ -561,6 +561,6 @@ section.check { margin: 0 0 14px; }
 .check-wide .check-tabs button { border: 0; border-radius: var(--radius); padding: 0 10px; height: var(--ctl-h); margin: 0; }
 .check-wide .check-tabs button.on { background: var(--accent-soft); color: var(--accent); }
 .check-wide .check-tabs .n { margin-left: auto; }
-.check-wide .check-body { overflow-y: auto; padding: 0 var(--pad) var(--pad); max-width: 900px; }
+.check-wide .check-body { overflow-y: auto; padding: 0 var(--pad) var(--pad); }
 .check-wide .check ul, .check-wide .check ul.variant-list, .check-wide .check ul.affected-list { max-height: none; overflow: visible; }
 .check-wide .link { text-align: left; }
