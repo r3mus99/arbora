@@ -2,7 +2,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileUp, LayoutDashboard,
-         Loader2, BookMarked, Clock, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, BookMarked, History, Trash2, Clock, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -31,6 +31,7 @@ import { PersonDetail } from "./PersonDetail";
 import { PersonEditor } from "./PersonEditor";
 import { PersonRail } from "./PersonRail";
 import { SettingsPanel } from "./SettingsPanel";
+import { forgetFile, recallFile, rememberFile } from "./lastFile";
 import { readStore, updateStore } from "./store";
 import { TreeView } from "./TreeView";
 
@@ -76,6 +77,9 @@ export function App() {
   const [editId, setEditId] = useState<string | null>(null);
   // file name, or null for the sample
   const [loadedName, setLoadedName] = useState<string | null>("");
+  // the file kept in this browser (name, null for the sample), and whether it is still being read at start
+  const [last, setLast] = useState<{ name: string | null } | null>(null);
+  const [restoring, setRestoring] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [scrollKey, setScrollKey] = useState(0);
   // person shown in the detail panel next to the on-screen chart
@@ -174,7 +178,7 @@ export function App() {
   }
 
   // ------------------------------------------------------------ loading
-  function loadBytes(bytes: ArrayBuffer, name: string | null) {
+  function loadBytes(bytes: ArrayBuffer, name: string | null, keep = true) {
     let parsed: GedcomData, next: Doc;
     try {
       const text = decode(bytes);
@@ -188,6 +192,7 @@ export function App() {
       alert(t("errEmpty"));
       return;
     }
+    if (keep) void rememberFile(name, bytes).then((ok) => setLast(ok ? { name } : null));
     setDoc(next);
     setEdits(startEdits(next));
     setEditId(null);
@@ -218,6 +223,38 @@ export function App() {
   const openFile = (f: File | undefined) => {
     if (f && keepEdits()) f.arrayBuffer().then((b) => loadBytes(b, f.name));
   };
+
+  // the last opened file opens again when the page starts
+  useEffect(() => {
+    let live = true;
+    void recallFile().then((f) => {
+      if (!live) return;
+      if (f) { setLast({ name: f.name }); loadBytes(f.bytes, f.name, false); }
+      setRestoring(false);
+    });
+    return () => { live = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** back to the welcome screen; the remembered file stays */
+  const goHome = () => {
+    if (!doc || !keepEdits()) return;
+    setDoc(null);
+    setEdits(NO_EDITS);
+    setEditId(null);
+    setFocusId(null);
+    setSelectedId(null);
+    setQuery("");
+    setTool(null);
+    resetResult();
+  };
+
+  const resume = async () => {
+    const f = await recallFile();
+    if (f) loadBytes(f.bytes, f.name, false); else setLast(null);
+  };
+
+  const forget = () => { setLast(null); void forgetFile(); };
 
   const loadSample = async () => {
     if (!keepEdits()) return;
@@ -434,7 +471,8 @@ export function App() {
       {/* one frame: the top bar on top, below it the welcome screen or the viewer, see docs/design-guidelines.md */}
       <section className="panel chart">
         <header className="frame-bar">
-          <h1><TreeDeciduous className="logo" aria-hidden="true" />Arbora</h1>
+          <h1><button type="button" className="home" onClick={goHome}
+                                title={data ? t("home") : undefined}><TreeDeciduous className="logo" aria-hidden="true" />Arbora</button></h1>
           {data && <FileDrop className="drop file-chip" title={t("loaded", { count: Object.keys(data.people).length })}
                              onFile={openFile}>
             <FileUp className="icon" aria-hidden="true" />
@@ -468,9 +506,16 @@ export function App() {
             <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
           </div>
         </header>
-        {!data && <div className="welcome">
+        {!data && !restoring && <div className="welcome">
           <div className="welcome-in">
             <p className="lead">{t("lead")}</p>
+            {last && <div className="resume">
+              <button type="button" className="primary" onClick={resume}>
+                <History className="icon" aria-hidden="true" />
+                {t("resume", { name: last.name === null ? t("sampleName") : last.name })}</button>
+              <button type="button" className="icon-btn" onClick={forget} title={t("forget")} aria-label={t("forget")}>
+                <Trash2 className="icon" aria-hidden="true" /></button>
+            </div>}
             <FileDrop className="drop" onFile={openFile}>
               <FileUp className="icon" aria-hidden="true" />
               <div dangerouslySetInnerHTML={{ __html: t("drop") }} />
