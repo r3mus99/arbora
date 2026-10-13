@@ -2,7 +2,7 @@ import {
   Award, Baby, Briefcase, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
   StickyNote, Star, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { personFields, type EventFields } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
@@ -150,10 +150,18 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
         })()}
         {parents.length > 0 && <section className="section parents">
           <h4 className="sec-title"><Users className="icon" aria-hidden="true" />{t("parents")}</h4>
-          <ul>{parents.map((pid) => {
+          <ul>{parents.map((pid, i) => {
             const sex = data.people[pid]?.sex;
             const ParentIcon = sex === "M" ? Mars : sex === "F" ? Venus : null;
-            return <li key={pid}>{ParentIcon && <ParentIcon className={`icon sex-${sex}`} aria-hidden="true" />}{link(pid)}</li>;
+            const place = data.people[pid]?.birth?.place;
+            const wed = i === 1 && birthFam?.marriage && (birthFam.marriage.date || birthFam.marriage.place) ? birthFam.marriage : null;
+            return <Fragment key={pid}>
+              {wed && <li className="parents-wed muted">
+                <Heart className="icon" aria-hidden="true" />
+                {[wed.date && formatDate(wed.date, true, lang), wed.place].filter(Boolean).join(" · ")}</li>}
+              <li>{ParentIcon && <ParentIcon className={`icon sex-${sex}`} aria-hidden="true" />}{link(pid)}
+                {place && <span className="muted"> · {place}</span>}</li>
+            </Fragment>;
           })}</ul>
         </section>}
         {life.length > 0 && <section className="timeline" aria-label={t("timeline")}>
