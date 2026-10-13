@@ -202,6 +202,7 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
                      background: var(--panel); box-shadow: 0 3px 0 var(--panel), 0 -3px 0 var(--panel); }
 .tl-body { min-width: 0; overflow-wrap: anywhere; }
 .tl-date { font-weight: 600; font-variant-numeric: tabular-nums; }
+.tl-date .tl-label { font-weight: 400; color: var(--muted); }
 .tl-date .muted { font-weight: 400; font-size: 13px; }
 .tl-what { color: var(--muted); }
 .tl-birth { --dot: var(--c-birth); } .tl-christening { --dot: #3b82c4; } .tl-marriage { --dot: var(--c-marr); }

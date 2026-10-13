@@ -172,19 +172,21 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
             return <li key={e.key} className={`tl-${e.kind}${childSex ? ` tl-sex-${childSex}` : ""}`}>
               <Icon className="icon tl-icon" aria-hidden="true" />
               <div className="tl-body">
-                {e.date && <div className="tl-date">{formatDate(e.date, true, lang)}
-                  {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}</div>}
-                <div className="tl-what">
-                  {label(e.kind, !!e.date, e.other, e.title, e.tag)}
-                  {e.other && <>: {link(e.other)}</>}
-                  {e.detail && <>: {e.detail}</>}
-                  {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
+                {/* first line: date, what happened and the age; second line: who and where */}
+                <div className="tl-date">
+                  {e.date && <span>{formatDate(e.date, true, lang)}</span>}
+                  <span className="tl-label">{e.date && " · "}{label(e.kind, !!e.date, e.other, e.title, e.tag)}</span>
+                  {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}</div>
+                {(e.other || e.detail || e.divorced || (e.place && e.kind !== "child") || e.coords) && <div className="tl-what">
+                  {e.other && link(e.other)}
+                  {e.detail && <>{e.other && " · "}{e.detail}</>}
+                  {e.divorced && <span className="muted">{e.other && " · "}{TEXTS[lang].divorced}</span>}
                   {/* a child's birth place is shown with the child's name */}
-                  {e.place && e.kind !== "child" && <span className="muted"> · {municipality(e.place)}</span>}
+                  {e.place && e.kind !== "child" && <span className="muted">{(e.other || e.detail || e.divorced) && " · "}{municipality(e.place)}</span>}
                   {e.coords && <a className="map-link" href={mapUrl(e.coords)} target="_blank" rel="noopener noreferrer"
                                   title={t("showOnMap")} aria-label={t("showOnMap")}>
                     <MapPin className="icon" aria-hidden="true" /></a>}
-                </div>
+                </div>}
                 {e.witnesses && <div className="tl-details"><span>{t("witnesses")}:</span>{" "}
                   {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w)}</span>)}</div>}
                 {e.details && <div className="tl-details">{e.details.map((d) => <div key={d.key}>
