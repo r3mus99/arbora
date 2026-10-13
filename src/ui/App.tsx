@@ -2,7 +2,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileUp, LayoutDashboard,
-         Loader2, BookMarked, Clock, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, BookMarked, Clock, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -23,6 +23,7 @@ import { FileDrop } from "./FileDrop";
 import { NO_MARKS, fileKey, marksOf, toggleFav, visited, withMarks, listing, type Marks } from "./marks";
 import { RecentPanel } from "./RecentPanel";
 import { LanguageMenu } from "./LanguageMenu";
+import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./theme";
 import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
 import { PlacesPanel } from "./PlacesPanel";
@@ -111,6 +112,23 @@ export function App() {
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
+
+  // theme: the system's until the user chooses, then the choice wins
+  const [themeChoice, setThemeChoice] = useState(chosenTheme);
+  const [system, setSystem] = useState(systemTheme);
+  useEffect(() => {
+    const mq = matchMedia("(prefers-color-scheme: dark)");
+    const on = () => setSystem(mq.matches ? "dark" : "light");
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  const theme: Theme = themeChoice || system;
+  const toggleTheme = () => {
+    const next: Theme = theme === "dark" ? "light" : "dark";
+    setThemeChoice(next);
+    applyTheme(next);
+    saveTheme(next);
+  };
 
   const changeLang = (code: Lang) => {
     setLang(code);
@@ -440,6 +458,13 @@ export function App() {
                 {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
                 PDF</button>
             </div>}
+            <div className="tools">
+              <button type="button" className="icon-btn" onClick={toggleTheme}
+                      title={t(theme === "dark" ? "themeLight" : "themeDark")}
+                      aria-label={t(theme === "dark" ? "themeLight" : "themeDark")}>
+                {theme === "dark" ? <Sun className="icon" aria-hidden="true" /> : <Moon className="icon" aria-hidden="true" />}
+              </button>
+            </div>
             <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
           </div>
         </header>

@@ -8,6 +8,8 @@ const OLD_KEY = "rodostrom-options";
 
 export interface Stored {
   lang?: Lang;
+  /** light or dark theme chosen by the user; missing = follow the system */
+  theme?: "light" | "dark";
   options?: Partial<ChartOptions>;
   root?: string;
   /** bulk fix: groups of spellings marked "not the same" (VariantGroup keys) */

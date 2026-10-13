@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.26.0 – 2026-10-13
+
+- **Light / dark mode switch** in the top bar, right next to the language menu (sun / moon icon). By default the app
+  follows the system setting; once you choose, your choice is kept in your browser and wins over the system. The
+  tooltip is translated into all 12 languages.
+
 ## 1.25.0 – 2026-10-13
 
 - The **GED** save button now shows the number of unsaved changes in an orange badge in its corner, like a notification
