@@ -3,7 +3,7 @@
 ## 1.15.2 – 2026-10-13
 
 - The birth of a child on the timeline shows the place in the brackets after the child's name, like every other
-  reference to a person, instead of after a dot.
+  reference to a person, instead of after a dot. The name in such a reference is bold and in the text colour, like in the tree.
 
 ## 1.15.1 – 2026-10-13
 
