@@ -36,9 +36,8 @@
 [hidden] { display: none !important; }
 body { margin: 0; background: var(--bg); color: var(--text);
        font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
-h1 { font-size: 60px; line-height: 1.1; margin: 0 0 4px; letter-spacing: -0.01em; }
-.lead { color: var(--muted); margin: 0 0 20px; }
+main { max-width: 980px; margin: 0 auto; padding: 16px 16px 0; }
+.lead { color: var(--muted); margin: 0; text-align: center; }
 .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
          padding: 18px; margin-bottom: 16px; }
 .panel h2 { font-size: 14px; margin: 0 0 12px; display: flex; gap: 8px; align-items: center; }
@@ -89,10 +88,8 @@ input:focus, select:focus, button:focus-visible { outline: 3px solid var(--focus
 .status.err { color: var(--danger); }
 .preview { margin-top: 14px; width: 100%; height: 75vh; border: 1px solid var(--border);
            border-radius: var(--radius); background: #fff; display: none; }
-footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 28px; }
+footer { color: var(--muted); font-size: 12px; text-align: center; margin: 12px 0 16px; }
 footer a { color: var(--accent); }
-@media (max-width: 560px) { h1 { font-size: 44px; } }
-header.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .flag { width: 24px; height: 16px; border-radius: 2px; flex: none;
         box-shadow: 0 0 0 1px rgba(0,0,0,.18); display: block; }
 .lang { position: relative; flex: none; }
@@ -167,8 +164,9 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 /* app frame in one piece, like a trading terminal: tool bar, panel, chart and detail side by side, divided by thin lines */
 /* the frame has one fixed height (the window below the top bar), opening or closing a panel never changes it;
    every column scrolls on its own */
-.panel.chart { padding: 0; overflow: hidden; height: max(420px, calc(100vh - var(--bar-h, 0px) - 40px)); }
-.viewer { display: grid; grid-template-columns: auto minmax(0, 1fr) 340px; grid-template-rows: minmax(0, 1fr); height: 100%; }
+.panel.chart { padding: 0; margin: 0; display: flex; flex-direction: column; height: max(420px, calc(100vh - 72px)); }
+.viewer { display: grid; grid-template-columns: auto minmax(0, 1fr) 340px; grid-template-rows: minmax(0, 1fr); flex: 1; min-height: 0;
+          border-radius: 0 0 var(--radius-lg) var(--radius-lg); overflow: hidden; }
 .mid { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
 .viewer .tree { border: 0; border-radius: var(--radius); margin: 12px var(--pad); flex: 1; min-height: 0; max-height: none; }
 @media (max-width: 900px) { .panel.chart { height: auto; } .viewer { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; height: auto; } .viewer .tree { flex: none; max-height: max(360px, calc(100vh - 230px)); } .side { display: none; } .detail { max-height: none; }
@@ -291,8 +289,8 @@ h1 { display: flex; align-items: center; gap: .25em; }
 /* title and headings in Spectral (bundled, SIL OFL); labels and text stay in the system font */
 h1, .detail h3 { font-family: "Spectral", Georgia, serif; font-weight: 600; letter-spacing: 0; }
 h1 .logo { width: .9em; height: .9em; color: var(--accent); stroke-width: 1.6; }
-.file .drop { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 22px; }
-.file .drop .icon { width: 36px; height: 36px; color: var(--accent); }
+.welcome .drop { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 22px; }
+.welcome .drop .icon { width: 36px; height: 36px; color: var(--accent); }
 /* search box at the top of the people list */
 .finder { position: sticky; top: 0; z-index: 1; background: var(--panel); height: var(--head-h); display: flex; align-items: center;
           padding: 0 var(--pad); border-bottom: 1px solid var(--border); }
@@ -400,15 +398,18 @@ button.link { display: inline; }
 .check li .fix { margin: -4px 0 -4px auto; padding: 4px; color: var(--accent); }
 .check li .fix .icon { color: var(--accent); margin: 0; }
 
-/* top bar once a file is open: title, file, tools and language on one line */
-header.top.bar { align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 14px; padding: 6px 8px 6px 4px;
-                 border-bottom: 1px solid var(--border); padding-bottom: 10px;
-                 /* stays at the top of the window while the page scrolls */
-                 position: sticky; top: 0; z-index: 30; background: var(--bg); }
-/* what scrolls into view, and the sticky person detail, stay below the top bar */
-html { scroll-padding-top: calc(var(--bar-h, 0px) + 8px); }
-header.bar h1 { font-size: 28px; margin: 0; }
-header.bar .brand { flex: none; }
+/* the top bar is the first row of the frame: app name, file, status, tools, language */
+.frame-bar { display: flex; align-items: center; gap: var(--gap) 12px; min-height: var(--head-h); padding: 0 var(--pad);
+             border-bottom: 1px solid var(--border); background: var(--panel); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.frame-bar h1 { font-size: 28px; line-height: 1.1; margin: 0; flex: none; }
+.frame-bar .status { flex: 1; min-width: 0; font-size: 12px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.frame-bar .head-tools { margin-left: auto; }
+.frame-bar .status + .head-tools { margin-left: 0; }
+/* welcome screen: one centred column in the frame */
+.welcome { flex: 1; min-height: 0; overflow-y: auto; display: grid; place-items: center; padding: var(--pad); }
+.welcome-in { width: min(520px, 100%); display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
+.welcome-in .note { text-align: center; margin: 0; }
+.welcome-in > button { align-self: center; }
 .file-chip { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 0 1 auto; padding: 5px 12px;
              border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; background: var(--panel); min-height: var(--ctl-h); }
 .file-chip strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; color: var(--text);
@@ -417,7 +418,6 @@ header.bar .brand { flex: none; }
 .file-chip .count { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); flex: none;
                     font-variant-numeric: tabular-nums; }
 .file-chip .count .icon { width: var(--icon-sm); height: var(--icon-sm); vertical-align: 0; }
-header.bar .head-tools { margin-left: auto; }
 .tools { display: flex; align-items: center; gap: 4px; }
 /* tool buttons of the top bar and of the detail header: one size, like the controls of the other panels */
 .tools .icon-btn { width: var(--ctl-h); height: var(--ctl-h); padding: 0; border-radius: var(--radius); position: relative; border-color: transparent; background: none; }
@@ -432,12 +432,6 @@ header.bar .head-tools { margin-left: auto; }
 .tools .dot { position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; border-radius: 50%;
               background: var(--warn); box-shadow: 0 0 0 2px var(--bg); }
 main.loaded .lang > button .lname { display: none; }
-main.loaded > .status { margin: -8px 0 10px; text-align: right; }
-@media (max-width: 700px) {
-  /* the file goes to its own line under the title and the tools */
-  header.bar .file-chip { order: 3; flex: 1 1 100%; }
-  header.bar .head-tools { flex-wrap: wrap; justify-content: flex-end; }
-}
 /* file overview */
 .overview { font-size: 14px; }
 .ov-head { display: flex; align-items: center; height: var(--head-h); padding: 0 var(--pad); border-bottom: 1px solid var(--border); }

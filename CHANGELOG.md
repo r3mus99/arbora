@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.21.0 – 2026-10-13
+
+- The top bar is now the first row of the frame, in the same height and line as the headers of the panels below it:
+  app name, open file, status message, undo / redo, save GED and PDF, settings and language. The page no longer
+  has a separate sticky header.
+- The welcome screen is the same frame with the app name and the language, and one centred column with the
+  description, the drop zone, the privacy note and the sample button, built from the same tokens as the rest.
+
 ## 1.20.0 – 2026-10-13
 
 - The design guidelines (`docs/design-guidelines.md`) are now a complete guide: layout, tokens, typography, colours,
