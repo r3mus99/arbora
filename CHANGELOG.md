@@ -3,8 +3,9 @@
 ## 1.19.0 – 2026-10-13
 
 - The file overview (counts, most common surnames and places) moved from the top of the page to the tool bar: a tiles
-  icon between the magnifier and the shield opens it in the left panel next to the chart and the detail. It opens
-  after a file is loaded; the icon of the open panel is highlighted and a second click closes it. The tiles for
+  icon between the magnifier and the shield opens it in the left panel next to the chart and the detail. After a
+  file is loaded the list of people with the search box opens as before; the icon of the open panel is highlighted and
+  a second click closes it. The tiles for
   problems and the oldest ancestor still open the file check and make that person the root of the chart.
 
 ## 1.18.0 – 2026-10-13

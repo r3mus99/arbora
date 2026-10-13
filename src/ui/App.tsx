@@ -162,7 +162,7 @@ export function App() {
     setDoc(next);
     setEdits(startEdits(next));
     setEditId(null);
-    setTool("overview");
+    setTool("people");
     setLoadedName(name);
     setQuery("");
     const last = readStore().root;
