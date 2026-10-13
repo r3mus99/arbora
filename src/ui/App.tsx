@@ -330,7 +330,10 @@ export function App() {
   const gedName = (loadedName || "sample").replace(/\.(ged|gedcom)$/i, "") + ".ged";
   const downloadGedcom = () => {
     if (!doc) return;
-    saveFile(new Blob([writeGedcom(doc.records, doc.eol, { version, date: new Date() })], { type: "text/plain;charset=utf-8" }), gedName);
+    const text = writeGedcom(doc.records, doc.eol, { version, date: new Date() });
+    saveFile(new Blob([text], { type: "text/plain;charset=utf-8" }), gedName);
+    // the saved file is also what the browser remembers (the Blob above is UTF-8 too)
+    void rememberFile(loadedName, new TextEncoder().encode(text).buffer as ArrayBuffer).then((ok) => setLast(ok ? { name: loadedName } : null));
     setEdits({ ...edits, saved: doc });
   };
 
