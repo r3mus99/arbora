@@ -1,5 +1,5 @@
 import {
-  Award, Baby, Briefcase, CalendarClock, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
+  Award, Baby, Briefcase, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
   StickyNote, Star, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -133,6 +133,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
         </div>}
       </div>
       <p className="id">
+        {years(p) && <span className="lifespan">{years(p)} · </span>}
         {/* other forms of the name (aka), quietly before the ID */}
         {f && f.aliases.length > 0 && <span className="aka" title={t("aka")}>
           aka {f.aliases.map((a) => [a.given, a.surname].filter(Boolean).join(" ")).join(", ")} · </span>}
@@ -147,15 +148,14 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
             {names.others.map((n, i) => <div key={`o${i}`}><span>{t("otherName")}{n.type ? ` (${n.type})` : ""}:</span> {n.name}</div>)}
           </div>;
         })()}
-        {parents.length > 0 && <Fact icon={Users} label={t("parents")}>
-          <ul>{parents.map((pid) => <li key={pid}>{link(pid)}</li>)}</ul>
-        </Fact>}
-        {life.length > 0 && <section className="timeline">
-          <h4><CalendarClock className="icon" aria-hidden="true" />{t("timeline")}</h4>
+        {parents.length > 0 && <div className="parents">
+          <span className="parents-label">{t("parents")}</span>
+          {parents.map((pid) => <span key={pid}>{link(pid)}</span>)}
+        </div>}
+        {life.length > 0 && <section className="timeline" aria-label={t("timeline")}>
           <ol>{life.map((e) => {
             const Icon = (e.kind === "marriage" && e.divorced) || e.tag === "DIV" ? HeartCrack : ICONS[e.kind];
             return <li key={e.key} className={`tl-${e.kind}`}>
-              <span className="tl-dot" aria-hidden="true" />
               <Icon className="icon tl-icon" aria-hidden="true" />
               <div className="tl-body">
                 {e.date && <div className="tl-date">{formatDate(e.date, true, lang)}
