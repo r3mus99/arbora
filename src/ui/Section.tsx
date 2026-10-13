@@ -49,7 +49,7 @@ interface RowProps {
 
 /** One line of a section: an icon in the icon column and the content in the text column. */
 export function Row({ icon: Icon, tone, className, children }: RowProps) {
-  return <div className={`row${tone ? ` ${tone}` : ""}${className ? ` ${className}` : ""}`}>
+  return <div className={`sec-row${tone ? ` ${tone}` : ""}${className ? ` ${className}` : ""}`}>
     <span className="row-icon">{Icon && <Icon className="icon" aria-hidden="true" />}</span>
     <div className="row-body">{children}</div>
   </div>;

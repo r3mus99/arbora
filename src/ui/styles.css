@@ -201,7 +201,7 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .sec-extra { margin-left: -4px; font-weight: 400; text-transform: none; letter-spacing: 0; }
 .sources > summary.sec-head { cursor: pointer; margin: 0 0 4px; }
 .sec-body { margin-left: calc(var(--d-col) + var(--d-gap)); min-width: 0; }
-.row { display: grid; grid-template-columns: var(--d-col) 1fr; column-gap: var(--d-gap); padding: 3px 0; --row-color: var(--c-src); }
+.sec-row { display: grid; grid-template-columns: var(--d-col) 1fr; column-gap: var(--d-gap); padding: 3px 0; --row-color: var(--c-src); }
 .row-icon { color: var(--row-color); }
 .row-body { min-width: 0; }
 .tone-M { --row-color: #3f6fa8; } .tone-F { --row-color: #b0507a; } .tone-marr { --row-color: var(--c-marr); }
