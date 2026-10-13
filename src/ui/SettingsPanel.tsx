@@ -1,20 +1,17 @@
-import { Settings, X } from "lucide-react";
-import type { RefObject } from "react";
 import { TEXTS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
+import { PanelHead } from "./PanelHead";
 import { NUMBERING, type Form } from "./options";
 
 interface Props {
-  /** the dialog element, so the page can open it with `showModal()` */
-  ref: RefObject<HTMLDialogElement | null>;
   form: Form;
   lang: Lang;
   onChange: <K extends keyof Form>(key: K, value: Form[K]) => void;
   t: (key: StringKey) => string;
 }
 
-/** The settings of the chart and of the PDF, in a dialog. */
-export function SettingsDialog({ ref, form, lang, onChange, t }: Props) {
+/** The settings of the chart and of the PDF, in the tool panel; the chart on the screen changes as they do. */
+export function SettingsPanel({ form, lang, onChange, t }: Props) {
   const desc = form.chart === "descendants";
   const ab = TEXTS[lang].abbr;
   const sel = <K extends keyof Form>(key: K) => ({
@@ -27,10 +24,9 @@ export function SettingsDialog({ ref, form, lang, onChange, t }: Props) {
   });
 
   return (
-  <dialog className="settings-dialog" ref={ref} onClick={(e) => e.target === e.currentTarget && e.currentTarget.close()}>
-    <div className="dialog-head"><Settings className="icon" aria-hidden="true" /><h2>{t("settings")}</h2>
-      <button type="button" className="icon-btn" onClick={() => ref.current?.close()} aria-label={t("cancel")}>
-        <X className="icon" aria-hidden="true" /></button></div>
+  <section className="panel-col set-panel" aria-label={t("settings")}>
+    <PanelHead title={t("settings")} />
+    <div className="panel-body">
     <div className="set-group">
       <div className="grid">
         <label><span>{t("labels")}</span>
@@ -83,8 +79,7 @@ export function SettingsDialog({ ref, form, lang, onChange, t }: Props) {
         <label><input {...check("colorPdf")} /> <span>{t("colorPdf")}</span></label>
       </div>
     </div>
-    <div className="dialog-foot"><button type="button" className="primary" onClick={() => ref.current?.close()}>
-      OK</button></div>
-  </dialog>
+    </div>
+  </section>
   );
 }

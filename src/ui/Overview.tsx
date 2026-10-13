@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { GedcomData } from "../core/gedcom";
 import type { Count, Overview as Stats } from "../core/stats";
 import type { StringKey } from "./i18n";
+import { PanelHead } from "./PanelHead";
 
 interface Props {
   stats: Stats;
@@ -59,8 +60,9 @@ export function Overview({ stats: s, data, problems: found, onProblems, onPerson
   const oldest = s.oldest && data.people[s.oldest.id];
   const span = s.firstYear === null ? "–" : s.firstYear === s.lastYear ? String(s.firstYear) : `${s.firstYear}–${s.lastYear}`;
   return (
-    <section className="overview" aria-label={t("overview")}>
-      <div className="ov-head"><h2>{t("overview")}</h2></div>
+    <section className="panel-col overview" aria-label={t("overview")}>
+      <PanelHead title={t("overview")} />
+      <div className="panel-body">
       <div className="ov-tiles">
         <Tile icon={<Users className="icon" aria-hidden="true" />} label={t("ovPeople")} value={s.people}
               sub={t("ovSex", { m: s.men, f: s.women })} />
@@ -81,6 +83,7 @@ export function Overview({ stats: s, data, problems: found, onProblems, onPerson
         <Ranking icon={<Tag className="icon" aria-hidden="true" />} label={t("ovSurnames")} items={s.surnames}
                  onPick={onSurname} tip={t("ovSurnameTip")} />
         <Ranking icon={<MapPin className="icon" aria-hidden="true" />} label={t("ovPlaces")} items={s.places} />
+      </div>
       </div>
     </section>
   );

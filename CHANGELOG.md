@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.22.3 – 2026-10-13
+
+- All side panels of the tool bar (people, overview, sources and notes, settings) have the same width, 320 px, set by
+  one token (`--panel-w`); the design guidelines say so.
+
+## 1.22.2 – 2026-10-13
+
+- The list of people has the same fixed title row ("People") above the search box as the other tool panels.
+
+## 1.22.1 – 2026-10-13
+
+- Every tool panel (file overview, sources and notes, settings, file check, list of people) has the same fixed title
+  row: the title no longer scrolls with the content and sits on one line with the chart bar and the person header.
+  The title row is one shared component, and the design guidelines now require it.
+
+## 1.22.0 – 2026-10-13
+
+- The chart and PDF settings moved from a dialog to the tool bar: a sliders icon opens them in the left panel, and
+  the chart changes while you change a setting. The settings button of the top bar is gone.
+
 ## 1.21.0 – 2026-10-13
 
 - New tool in the tool bar: **Sources and notes** (book icon). It opens a panel next to the bar with every source of

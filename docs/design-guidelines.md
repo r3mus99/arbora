@@ -10,7 +10,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ TOP BAR   Arbora · open file │ undo redo │ save GED · PDF │ settings │ language │
+│ TOP BAR   Arbora · open file │ undo redo │ save GED · PDF │ language │
 ├──┬───────────────┬───────────────────────────────────────────┬───────────────┤
 │R │ MINI-APP      │  MAIN COMPONENT                           │  PERSON       │
 │A │ PANEL         │  tree view                                │  DETAIL       │
@@ -19,12 +19,12 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 └──┴───────────────┴───────────────────────────────────────────┴───────────────┘
 ```
 
-- **Top bar** (the first row of the frame, `--head-h` high, one line under it across the frame; global, not about one person): app name, the open file, undo / redo, save GED, save PDF, settings,
+- **Top bar** (the first row of the frame, `--head-h` high, one line under it across the frame; global, not about one person): app name, the open file, undo / redo, save GED, save PDF,
   language. Order is fixed: identity, file, history, output, preferences. Anything that changes the whole document
   or the app belongs here.
 - **Rail** (left, icon column): one icon per mini-app. Opens and closes the mini-app panel.
-- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, overview: roughly a quarter to a third of the screen,
-  the width is not exact; fixed 280–320px) or a *wide panel* (file check, later: people table, editor) that replaces the tree and
+- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, overview, sources and notes, settings: every one exactly
+  `--panel-w` = 320px wide) or a *wide panel* (file check, later: people table, editor) that replaces the tree and
   detail and takes the full width right of the rail. Only one mini-app is open at a time.
 - **Main component** (centre): the tree view. It is the only thing that is always there; it is never
   squeezed below a usable width, so a side panel is hidden before the tree is.
@@ -37,6 +37,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 
 | Token | Value | Used for |
 | --- | --- | --- |
+| `--panel-w` | 320px | width of every side panel of the tool bar (list of people, overview, sources and notes, settings); one value, never a width per panel |
 | `--head-h` | 52px | header row of every panel (rail first icon, search box, chart switch, person name, wide panel title); one continuous line under them across the frame |
 | `--ctl-h` | 36px | height of every control: inputs, selects, switch, buttons, icon buttons, rail icons |
 | `--ctl-h-sm` | 28px (new) | the one smaller control height, only for controls inside a list row or a card (chips, inline inputs, row buttons) |
@@ -81,7 +82,7 @@ No other radius, height or padding number is used for a control. Dialogs use `--
 - Colour: `currentColor`; muted when idle, accent when active, event colour on timeline rows. An icon never
   has its own background circle except in the overview tile.
 - One meaning, one icon: Search = find a person, LayoutDashboard = overview, ShieldCheck / ShieldAlert = file check,
-  Settings = settings, FileDown = save GED, FileText = save PDF, Undo2 / Redo2 = history, X = close or remove,
+  SlidersHorizontal = settings (tool bar), FileDown = save GED, FileText = save PDF, Undo2 / Redo2 = history, X = close or remove,
   MapPin = place. Do not reuse an icon for a different meaning (the old file-check wand and the overview's
   shield must not be mixed).
 - Icon-only buttons always have `title` (tooltip) and `aria-label` with the same text, and a shortcut in the title when there is one.
@@ -108,6 +109,10 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 
 - Every panel starts with a header row: `--head-h`, `0 var(--pad)`, bottom border, title 14px 600 (or the control
   that lives there). No panel has a heading style of its own.
+- **Tool panel titles use the `PanelHead` component** (`src/ui/PanelHead.tsx`): fixed at the top of the panel, it never
+  scrolls (only the `.panel-body` below it does), exactly `--head-h` high, so its line runs level with the chart bar
+  and the person detail header. Never write a title row, a title size or a sticky header of your own; the
+  panel is `.panel-col` = `PanelHead` + `.panel-body`.
 - Body padding `--pad`; blocks inside are separated by a 1px line with `--pad` above and below, not by margins alone.
 - List rows (people, rankings): 14px, padding `3px 10px`, hover `--accent-soft`, selected = accent fill with
   `--accent-text`. Secondary text on the row is 12px `--muted`.
@@ -126,8 +131,8 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 ## 9. Adding a new mini-app
 
 1. Add one icon button to the rail (`.toolbar`), in the order of use (find, overview, check, then new ones). Pick a lucide icon that is not used yet; add a `title` + `aria-label`; a status badge uses `--warn`.
-2. Decide the width: **side panel** (fixed 280–320px, opens between rail and tree; the tree stays visible) if it works next to the tree, otherwise **wide panel** (full width right of the rail; tree and detail are hidden).
-3. Build it as a component with a header row (`--head-h`) and a scrolling body; use only the controls from section 6.
+2. Decide the width: **side panel** (always `--panel-w` = 320px, never its own width, opens between rail and tree; the tree stays visible) if it works next to the tree, otherwise **wide panel** (full width right of the rail; tree and detail are hidden).
+3. Build it as a component with a `PanelHead` (fixed, section 7) and a scrolling `.panel-body`; use only the controls from section 6.
 4. State: `on` on the rail icon while open; clicking it again closes it; opening another mini-app closes this one.
 5. Put new tokens in `:root` with a dark value; add a line to this document; strings go to `src/ui/i18n.ts` in all 12 languages.
 6. Check light and dark theme, keyboard focus, and the tooltip text before opening a PR. Screenshots in a PR use the Habsburg sample and the English UI.
