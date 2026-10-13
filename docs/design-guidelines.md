@@ -4,7 +4,7 @@ This is the single reference for how Arbora looks. Every screen is built from th
 add a component, pick from here instead of inventing a number. The tokens live at the top of `src/ui/styles.css`:
 change a token, never a literal value in a rule.
 
-The code follows these rules since 1.20.0; section 10 lists what is still left.
+The code follows these rules since 1.20.0 (the top bar is part of the frame since 1.21.0); section 11 lists what is still left.
 
 ## 1. Layout
 
@@ -19,7 +19,7 @@ The code follows these rules since 1.20.0; section 10 lists what is still left.
 └──┴───────────────┴───────────────────────────────────────────┴───────────────┘
 ```
 
-- **Top bar** (global, not about one person): app name, the open file, undo / redo, save GED, save PDF, settings,
+- **Top bar** (the first row of the frame, `--head-h` high, one line under it across the frame; global, not about one person): app name, the open file, undo / redo, save GED, save PDF, settings,
   language. Order is fixed: identity, file, history, output, preferences. Anything that changes the whole document
   or the app belongs here.
 - **Rail** (left, icon column): one icon per mini-app. Opens and closes the mini-app panel.
@@ -29,7 +29,7 @@ The code follows these rules since 1.20.0; section 10 lists what is still left.
 - **Main component** (centre): the tree view. It is the only thing that is always there; it is never
   squeezed below a usable width, so a side panel is hidden before the tree is.
 - **Detail** (right): the selected person, read-only timeline now, editing later. Hidden by a wide panel.
-- The frame below the top bar has **one fixed height** (window minus top bar). Panels never change it; their content
+- The frame (top bar included) has **one fixed height** (the window minus a small margin and the footer). Panels never change it; their content
   scrolls inside. Columns are divided by 1px `--border` lines, not by cards or shadows.
 - Mobile layout is out of scope for now.
 
@@ -132,10 +132,13 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 5. Put new tokens in `:root` with a dark value; add a line to this document; strings go to `src/ui/i18n.ts` in all 12 languages.
 6. Check light and dark theme, keyboard focus, and the tooltip text before opening a PR. Screenshots in a PR use the Habsburg sample and the English UI.
 
-## 10. Still open
+## 10. The welcome screen
 
-- The top bar is a separate sticky header with its own line, not part of the frame, and not `--head-h` high; the app name has its own 28px Spectral size. Moving it into the frame is a layout change that needs Marek's decision.
+The welcome screen is the same frame: the top bar (app name, language) and below it one centred column of at most 520px: the short description (14px, muted), the drop zone (dashed `--border`, `--radius-lg`, one 36px icon, accent on hover and while dragging), the privacy note (12px, muted) and one regular button for the sample. No other large type or colour is used.
+
+## 11. Still open
+
 - The language button shows a flag (flags are the only way to recognise a language); it follows the icon-button size and hover.
-- The welcome screen, footer and drop zone have their own scale.
 - Tooltips and `aria-label` of GED / PDF differ slightly (the tooltip carries the hint text).
 - The overview tiles keep their 28–34px circular icons.
+- Mobile layout is not designed yet.
