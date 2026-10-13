@@ -2,7 +2,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileUp, LayoutDashboard,
-         Loader2, BookMarked, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, BookMarked, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -11,6 +11,7 @@ import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceOverview } from "../core/sources";
+import { placeOverview } from "../core/placelist";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
 import { renameVariants, spellings, variantGroups, type VariantKind } from "../core/variants";
@@ -22,6 +23,7 @@ import { FileDrop } from "./FileDrop";
 import { LanguageMenu } from "./LanguageMenu";
 import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
+import { PlacesPanel } from "./PlacesPanel";
 import { PersonDetail } from "./PersonDetail";
 import { PersonEditor } from "./PersonEditor";
 import { PersonRail } from "./PersonRail";
@@ -87,13 +89,14 @@ export function App() {
   const finderRef = useRef<HTMLInputElement>(null);
   // the list of people starts as a narrow rail with a magnifier; the choice is remembered
   // one tool panel is open at a time: the list of people, the file check, or none
-  const [tool, setTool] = useState<"people" | "check" | "overview" | "sources" | "settings" | null>(() => readStore().listOpen === true ? "people" : null);
-  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview", showSources = tool === "sources", showSettings = tool === "settings";
+  const [tool, setTool] = useState<"people" | "check" | "overview" | "sources" | "places" | "settings" | null>(() => readStore().listOpen === true ? "people" : null);
+  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showSettings = tool === "settings";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
   const setShowOverview = (on: boolean) => setTool(on ? "overview" : listOpen ? "people" : null);
   const setShowSettings = (on: boolean) => setTool(on ? "settings" : listOpen ? "people" : null);
   const setShowSources = (on: boolean) => setTool(on ? "sources" : listOpen ? "people" : null);
+  const setShowPlaces = (on: boolean) => setTool(on ? "places" : listOpen ? "people" : null);
   useEffect(() => { if (listOpen) finderRef.current?.focus(); }, [listOpen]);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
@@ -232,6 +235,7 @@ export function App() {
     updateStore({ hiddenVariants: [...next] });
   };
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
+  const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
   const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);
   // the list closes once everything is fixed
 
@@ -442,6 +446,9 @@ export function App() {
                 <button type="button" className={showSources ? "on" : undefined} aria-pressed={showSources}
                         title={t("srcNotes")} aria-label={t("srcNotes")} onClick={() => setShowSources(!showSources)}>
                   <BookMarked className="icon" aria-hidden="true" /></button>
+                <button type="button" className={showPlaces ? "on" : undefined} aria-pressed={showPlaces}
+                        title={t("places")} aria-label={t("places")} onClick={() => setShowPlaces(!showPlaces)}>
+                  <MapPin className="icon" aria-hidden="true" /></button>
                 <button type="button" className={showSettings ? "on" : undefined} aria-pressed={showSettings}
                         title={t("settings")} aria-label={t("settings")} onClick={() => setShowSettings(!showSettings)}>
                   <SlidersHorizontal className="icon" aria-hidden="true" /></button>
@@ -454,6 +461,9 @@ export function App() {
               </aside>}
               {showSettings && <aside className="rail-wrap" aria-label={t("settings")}>
                 <SettingsPanel form={form} lang={lang} onChange={setOpt} t={t} />
+              </aside>}
+              {showPlaces && placeList && <aside className="rail-wrap sp-wrap" aria-label={t("places")}>
+                <PlacesPanel places={placeList} data={data} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
                 <SourcesPanel overview={srcOverview} data={data} onPerson={(id) => pick(id)} t={t} />

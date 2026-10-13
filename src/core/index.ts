@@ -20,3 +20,4 @@ export * from "./sources";
 export * from "./places";
 export * from "./names";
 export * from "./info";
+export * from "./placelist";
