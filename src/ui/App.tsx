@@ -82,15 +82,15 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
   // the file overview opens after each load
-  const [showOverview, setShowOverview] = useState(false);
   const settingsRef = useRef<HTMLDialogElement>(null);
   const finderRef = useRef<HTMLInputElement>(null);
   // the list of people starts as a narrow rail with a magnifier; the choice is remembered
   // one tool panel is open at a time: the list of people, the file check, or none
-  const [tool, setTool] = useState<"people" | "check" | null>(() => readStore().listOpen === true ? "people" : null);
-  const listOpen = tool === "people", showCheck = tool === "check";
+  const [tool, setTool] = useState<"people" | "check" | "overview" | null>(() => readStore().listOpen === true ? "people" : null);
+  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
+  const setShowOverview = (on: boolean) => setTool(on ? "overview" : listOpen ? "people" : null);
   useEffect(() => { if (listOpen) finderRef.current?.focus(); }, [listOpen]);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
@@ -162,8 +162,7 @@ export function App() {
     setDoc(next);
     setEdits(startEdits(next));
     setEditId(null);
-    setTool(null);
-    setShowOverview(true);
+    setTool("overview");
     setLoadedName(name);
     setQuery("");
     const last = readStore().root;
@@ -404,9 +403,6 @@ export function App() {
         </FileDrop>}
         <div className="head-tools">
           {data && <div className="tools" role="toolbar">
-            <button type="button" className={showOverview ? "icon-btn on" : "icon-btn"} aria-pressed={showOverview}
-                    onClick={() => setShowOverview(!showOverview)} title={t("overview")} aria-label={t("overview")}>
-              <LayoutDashboard className="icon" aria-hidden="true" /></button>
             <span className="sep" aria-hidden="true" />
             <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
                     title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
@@ -429,12 +425,6 @@ export function App() {
       </header>
 
       {data && statusText && <p className={status?.err ? "status err" : "status"}>{statusText}</p>}
-      {data && showOverview && stats && <Overview stats={stats} data={data} problems={found} t={t}
-                                         onClose={() => setShowOverview(false)}
-                                         onProblems={() => setShowCheck(true)}
-                                         onPerson={(id) => { makeRoot(id); setShowOverview(false); }}
-                                         onSurname={(name) => { setQuery(name); showList(true); finderRef.current?.focus(); }} />}
-
       {!data && <section className="panel file">
         <FileDrop className="drop" onFile={openFile}>
           <FileUp className="icon" aria-hidden="true" />
@@ -453,12 +443,21 @@ export function App() {
                 <button type="button" className={listOpen ? "on" : undefined} aria-pressed={listOpen}
                         title={t(listOpen ? "hideList" : "showList")} aria-label={t(listOpen ? "hideList" : "showList")}
                         onClick={() => showList(!listOpen)}><Search className="icon" aria-hidden="true" /></button>
+                <button type="button" className={showOverview ? "on" : undefined} aria-pressed={showOverview}
+                        title={t("overview")} aria-label={t("overview")} onClick={() => setShowOverview(!showOverview)}>
+                  <LayoutDashboard className="icon" aria-hidden="true" /></button>
                 <button type="button" className={`${showCheck ? "on " : ""}${problems ? "warn" : ""}`.trim() || undefined}
                         aria-pressed={showCheck} title={problems ? t("checkCount", { n: problems }) : t("checkOk")}
                         aria-label={t("check")} onClick={() => setShowCheck(!showCheck)}>
                   {problems ? <ShieldAlert className="icon" aria-hidden="true" /> : <ShieldCheck className="icon" aria-hidden="true" />}
                   {problems > 0 && <span className="badge">{problems}</span>}</button>
               </nav>
+              {showOverview && stats && <aside className="rail-wrap ov-wrap" aria-label={t("overview")}>
+                <Overview stats={stats} data={data} problems={found} t={t}
+                          onProblems={() => setShowCheck(true)}
+                          onPerson={(id) => makeRoot(id)}
+                          onSurname={(name) => { setQuery(name); showList(true); finderRef.current?.focus(); }} />
+              </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
                             query={query} onQuery={setQuery} onSelect={pick} t={t} />

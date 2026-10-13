@@ -1,4 +1,4 @@
-import { CalendarRange, GitBranch, Hourglass, House, MapPin, ShieldAlert, ShieldCheck, Tag, Users, X } from "lucide-react";
+import { CalendarRange, GitBranch, Hourglass, House, MapPin, ShieldAlert, ShieldCheck, Tag, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import type { GedcomData } from "../core/gedcom";
 import type { Count, Overview as Stats } from "../core/stats";
@@ -12,7 +12,6 @@ interface Props {
   onProblems: () => void;
   onPerson: (id: string) => void;
   onSurname: (surname: string) => void;
-  onClose: () => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
@@ -53,19 +52,15 @@ function Ranking({ icon, label, items, onPick, tip }:
 }
 
 /** Counts and most common names and places of the loaded file, shown after it is opened. */
-export function Overview({ stats: s, data, problems: found, onProblems, onPerson, onSurname, onClose, t }: Props) {
+export function Overview({ stats: s, data, problems: found, onProblems, onPerson, onSurname, t }: Props) {
   const problems = found.issues + found.surname + found.place;
   const parts = ([["tabIssues", found.issues], ["tabSurnames", found.surname], ["tabPlaces", found.place]] as const)
     .filter(([, n]) => n).map(([key, n]) => `${t(key).toLowerCase()} ${n}`).join(" · ");
   const oldest = s.oldest && data.people[s.oldest.id];
   const span = s.firstYear === null ? "–" : s.firstYear === s.lastYear ? String(s.firstYear) : `${s.firstYear}–${s.lastYear}`;
   return (
-    <section className="panel overview" aria-label={t("overview")}>
-      <div className="ov-head">
-        <h2>{t("overview")}</h2>
-        <button type="button" className="icon-btn" onClick={onClose} title={t("cancel")} aria-label={t("cancel")}>
-          <X className="icon" aria-hidden="true" /></button>
-      </div>
+    <section className="overview" aria-label={t("overview")}>
+      <div className="ov-head"><h2>{t("overview")}</h2></div>
       <div className="ov-tiles">
         <Tile icon={<Users className="icon" aria-hidden="true" />} label={t("ovPeople")} value={s.people}
               sub={t("ovSex", { m: s.men, f: s.women })} />
