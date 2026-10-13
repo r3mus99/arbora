@@ -4,7 +4,7 @@ This is the single reference for how Arbora looks. Every screen is built from th
 add a component, pick from here instead of inventing a number. The tokens live at the top of `src/ui/styles.css`:
 change a token, never a literal value in a rule.
 
-The code follows these rules since 1.20.0 (the top bar is part of the frame since 1.21.0); section 10 lists what is still left.
+The code follows these rules since 1.20.0 (the top bar is part of the frame since 1.21.0); section 11 lists what is still left.
 
 ## 1. Layout
 
