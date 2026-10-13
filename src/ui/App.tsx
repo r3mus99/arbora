@@ -2,7 +2,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, FileDown, FileText, FileUp, LayoutDashboard,
-         Loader2, Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, Redo2, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { fmt, type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -22,7 +22,6 @@ import { LanguageMenu } from "./LanguageMenu";
 import { Overview } from "./Overview";
 import { PersonDetail } from "./PersonDetail";
 import { PersonEditor } from "./PersonEditor";
-import { PersonList } from "./PersonList";
 import { PersonRail } from "./PersonRail";
 import { SettingsDialog } from "./SettingsDialog";
 import { readStore, updateStore } from "./store";
@@ -476,21 +475,12 @@ export function App() {
                 <ArrowRight className="icon" aria-hidden="true" /></button>
               <h2>{chartTitle}</h2>
             </div>
-            <div className="finder">
-              <Search className="icon" aria-hidden="true" />
-              <input ref={finderRef} type="search" placeholder={t("search")} autoComplete="off" value={query}
-                     onChange={(e) => setQuery(e.target.value)}
-                     onKeyDown={(e) => { if (e.key === "Escape") setQuery(""); }} />
-              {query.trim() && <div className="found">
-                <PersonList people={data.people} query={query} lang={lang} selectedId={selectedId}
-                            scrollKey={scrollKey} onSelect={pick} t={t} />
-              </div>}
-            </div>
           </div>
           <p className="note tree-hint">{t("treeHint")}</p>
           <div className="viewer">
             <aside className="rail-wrap" aria-label={t("thName")}>
-              <PersonRail people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey} onSelect={pick} />
+              <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
+                          query={query} onQuery={setQuery} onSelect={pick} t={t} />
             </aside>
             <TreeView rows={shown} focusId={focusId} scrollKey={treeScroll} scrollTo={jumpRow}
                       numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}

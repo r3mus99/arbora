@@ -6,6 +6,9 @@
   always-visible list of all people (sex, name, years), in the middle the tree, on the right the detail.
   Each column scrolls on its own. Clicking a person in the list makes them the root of the chart, as the
   search does. The list is hidden on narrow screens for now.
+- The search box moved from above the tree to the top of the people list and filters that list directly,
+  without a popup. It finds people by name, place of birth or death, and year; words can be combined
+  (for example "anna graz 1894").
 
 ## 1.12.0 – 2026-10-12
 

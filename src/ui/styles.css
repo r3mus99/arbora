@@ -49,18 +49,6 @@ input[type=text], input[type=search], input[type=number], select {
   font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border);
   border-radius: 8px; padding: 7px 10px; width: 100%; }
 input:focus, select:focus, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
-.people { margin-top: 10px; border: 1px solid var(--border); border-radius: 8px;
-          max-height: 300px; overflow: auto; }
-.people table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.people th { position: sticky; top: 0; background: var(--panel); text-align: left;
-             font-weight: 600; color: var(--muted); font-size: 12px; text-transform: uppercase;
-             letter-spacing: .04em; padding: 6px 10px; border-bottom: 1px solid var(--border); }
-.people td { padding: 6px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-.people td.name { white-space: normal; }
-.people tr { cursor: pointer; }
-.people tbody tr:hover { background: var(--accent-soft); }
-.people tr.sel { background: var(--accent); color: var(--accent-text); }
-.people .num { font-variant-numeric: tabular-nums; color: inherit; opacity: .8; }
 .chosen { margin-top: 10px; font-size: 14px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px 16px; }
 .grid label { display: block; font-size: 13px; color: var(--muted); }
@@ -85,7 +73,7 @@ input:focus, select:focus, button:focus-visible { outline: 3px solid var(--focus
            border-radius: 8px; background: #fff; display: none; }
 footer { color: var(--muted); font-size: 13px; text-align: center; margin-top: 28px; }
 footer a { color: var(--accent); }
-@media (max-width: 560px) { .people .hide-sm { display: none; } h1 { font-size: 44px; } }
+@media (max-width: 560px) { h1 { font-size: 44px; } }
 header.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .flag { width: 24px; height: 16px; border-radius: 2px; flex: none;
         box-shadow: 0 0 0 1px rgba(0,0,0,.18); display: block; }
@@ -252,14 +240,10 @@ h1 .logo { width: .9em; height: .9em; color: var(--accent); stroke-width: 1.6; }
 .chart-head { display: flex; justify-content: space-between; align-items: center; gap: 12px;
               flex-wrap: wrap; margin-bottom: 10px; }
 .chart-head h2 { font-size: 21px; margin: 0; }
-/* as wide as the detail panel below it */
-.finder { position: relative; width: min(100%, 340px); }
-.finder > .icon { position: absolute; left: 10px; top: 10px; color: var(--muted); pointer-events: none; }
+/* search box at the top of the people list */
+.finder { position: sticky; top: 0; z-index: 1; background: var(--panel); padding: 8px; border-bottom: 1px solid var(--border); }
+.finder > .icon { position: absolute; left: 18px; top: 18px; color: var(--muted); pointer-events: none; }
 .finder input { padding-left: 36px; }
-.found { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; width: max(100%, 460px);
-         max-width: calc(100vw - 32px); background: var(--panel); border-radius: 8px;
-         box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-.found .people { margin-top: 0; max-height: 360px; }
 .settings { padding: 0; }
 .settings summary { display: flex; align-items: center; gap: 10px; padding: 14px 18px; cursor: pointer;
                     font-weight: 600; list-style: none; }
@@ -507,7 +491,6 @@ section.check { margin: 0 0 14px; }
 .editor .item.alias .icon-btn { border-radius: 12px; padding: 0 11px; }
 .detail .id .aka { font-style: italic; }
 .detail .tools .save .icon { color: var(--accent); }
-.people .aka { color: var(--muted); font-size: 13px; font-style: italic; }
 /* places are long: the target spelling and the batch fields take the free space */
 .variants input.target { flex: 1 1 auto; width: auto; min-width: 0; color: var(--text, inherit); }
 .variants .batch input { flex: 1 1 220px; width: auto; }
@@ -521,3 +504,7 @@ section.check { margin: 0 0 14px; }
 .record-info { font-size: 13px; color: var(--muted); margin-top: 8px; }
 .record-info summary { cursor: pointer; }
 .record-info span { opacity: .8; }
+.rail li.none { color: var(--muted); cursor: default; }
+.rail li.none:hover { background: none; }
+.rail .aka { color: var(--muted); font-size: 12px; font-style: italic; }
+.rail li.sel .aka { color: inherit; }

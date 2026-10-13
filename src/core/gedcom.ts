@@ -213,23 +213,27 @@ const lifeYears = (p: Person) => `${p.birth?.date ?? ""} ${p.death?.date ?? ""}`
 const matchesAll = (text: string, years: string[], words: string[]) =>
   words.every((w) => fold(text).includes(w) || (/^\d{3,}$/.test(w) && years.some((y) => y.startsWith(w))));
 
+/** Birth and death place, searched together with the name. */
+const lifePlaces = (p: Person) => `${p.birth?.place ?? ""} ${p.death?.place ?? ""}`;
+
 /** People whose name, or another form of it (aka), contains every word of the query, or the one with that ID.
- *  A number such as 1894 (or 189) also matches the year of birth or death. */
+ *  A word may also be in the place of birth or death, and a number such as 1894 (or 189) matches the year of
+ *  birth or death. */
 export function findPeople(query: string, people: Record<string, Person>): Person[] {
   const q = query.trim();
   const key = q.startsWith("@") ? q : `@${q}@`;
   if (people[key]) return [people[key]];
   const words = queryWords(q);
   return Object.values(people).filter((p) => {
-    const years = lifeYears(p);
-    return matchesAll(p.name, years, words) || p.aka.some((a) => matchesAll(a, years, words));
+    const years = lifeYears(p), places = lifePlaces(p);
+    return matchesAll(`${p.name} ${places}`, years, words) || p.aka.some((a) => matchesAll(`${a} ${places}`, years, words));
   });
 }
 
 /** The aka a person was found by, when the name itself does not match the query. */
 export function matchedAka(query: string, p: Person): string | null {
   const words = queryWords(query);
-  const years = lifeYears(p);
-  if (!words.length || matchesAll(p.name, years, words)) return null;
-  return p.aka.find((a) => matchesAll(a, years, words)) || null;
+  const years = lifeYears(p), places = lifePlaces(p);
+  if (!words.length || matchesAll(`${p.name} ${places}`, years, words)) return null;
+  return p.aka.find((a) => matchesAll(`${a} ${places}`, years, words)) || null;
 }
