@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.30.0 – 2026-10-13
+
+- **Inline editing of facts** in the person detail: click **religion**, **occupation** (text, date, place), the other
+  attributes (education, nationality, title, property, … with date and place), the **age, cause and agency** written
+  under an event, or the **note** to change them right there. Religion is suggested from the file; a note opens as a
+  text area (Ctrl+Enter or leaving it applies, Esc drops). Clearing an occupation text removes that line (Ctrl+Z brings it
+  back). Same rules as before: one undo step per edit, only the edited GEDCOM line changes.
+
 ## 1.29.0 – 2026-10-13
 
 - **Inline editing of dates and places** in the person detail timeline: click the date or the place of a birth,

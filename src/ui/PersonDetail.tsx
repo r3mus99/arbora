@@ -3,21 +3,21 @@ import {
   StickyNote, Star, CalendarDays, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
-import { applyEventNode, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields } from "../core/edit";
+import { applyAttribute, applyEventLine, applyEventNode, applyFamily, applyPerson, type AttributeFields, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
 import { mapUrl, municipality } from "../core/places";
 import { nameDetails } from "../core/names";
-import { personAttributes } from "../core/facts";
+import { personAttributes, type Attribute } from "../core/facts";
 import { dateParts } from "../core/date";
 import { fmt, formatDate } from "../core/format";
-import type { GedNode, GedcomData, Person } from "../core/gedcom";
+import { childOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
 import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
-import { EDITOR_FORM, GIVENS, PLACES, SURNAMES, SuggestLists } from "./PersonEditor";
-import { InlineName, InlineText } from "./Inline";
+import { EDITOR_FORM, GIVENS, PLACES, RELIGIONS, SURNAMES, SuggestLists } from "./PersonEditor";
+import { InlineName, InlineNote, InlineText } from "./Inline";
 import { Row, Section } from "./Section";
 import { EventSources, Linked, PersonSources } from "./Sources";
 
@@ -96,17 +96,42 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
   /** whether the date and place of a timeline item can be edited here */
   const editable = (e: TimelineItem) => live && e.kind !== "child" && (e.kind === "marriage" ? !!lookup(e.key)
     : e.kind === "residence" || e.kind === "event" || e.kind === "famEvent" ? !!e.node && (!e.family || !!lookup(e.family)) : true);
-  const dateField = (e: TimelineItem) => {
-    const shown = dateInput(e.date, lang);
-    return <InlineText value={shown} label={t("date")} onCommit={(v) => { if (v !== shown) changeEvent(e, { date: parseDate(v, lang).value }); }}>
-      {formatDate(e.date, true, lang)}</InlineText>;
+  /** a date shown as text that can be changed in place; `set` gets the new date as GEDCOM */
+  const dateInline = (stored: string, set: (date: string) => void) => {
+    const shown = dateInput(stored, lang);
+    return <InlineText value={shown} label={t("date")} onCommit={(v) => { if (v !== shown) set(parseDate(v, lang).value); }}>
+      {formatDate(stored, true, lang)}</InlineText>;
   };
-  const placeField = (e: TimelineItem) =>
-    <InlineText value={e.place} label={t("place")} list={PLACES} onCommit={(v) => { if (v !== e.place) changeEvent(e, { place: v }); }}>
-      {municipality(e.place)}</InlineText>;
-  const when = (e: EventFields | null) => e && (e.date || e.place) ? <div className="fact-value">
-    {e.date && <span>{formatDate(e.date, true, lang)}</span>}
-    {e.place && <span className="place">{municipality(e.place)}</span>}
+  const placeInline = (stored: string, set: (place: string) => void) =>
+    <InlineText value={stored} label={t("place")} list={PLACES} onCommit={(v) => { if (v !== stored) set(v); }}>
+      {municipality(stored)}</InlineText>;
+  const dateField = (e: TimelineItem) => dateInline(e.date, (date) => changeEvent(e, { date }));
+  const placeField = (e: TimelineItem) => placeInline(e.place, (place) => changeEvent(e, { place }));
+  /** a changed value, date or place of an attribute line (EDUC, TITL, …) */
+  const changeAttribute = (a: Attribute, patch: Partial<AttributeFields>) => {
+    if (!record) return;
+    const before = { value: a.value, date: a.date, place: a.place };
+    const next = applyAttribute(record, a.node, before, { ...before, ...patch });
+    if (next !== record) onChange([next]);
+  };
+  /** the event line of a timeline item and the record it is in, for its sub-lines (AGE, CAUS, AGNC) */
+  const eventLine = (e: TimelineItem): { owner: GedNode; node: GedNode } | null => {
+    if (e.kind === "birth" || e.kind === "christening" || e.kind === "death" || e.kind === "burial") {
+      const node = record && childOf(record, EVENT_TAG[e.kind]!);
+      return record && node ? { owner: record, node } : null;
+    }
+    if (e.kind === "marriage") {
+      const fam = lookup(e.key), node = fam && childOf(fam, "MARR");
+      return fam && node ? { owner: fam, node } : null;
+    }
+    const owner = e.family ? lookup(e.family) : record;
+    return owner && e.node ? { owner, node: e.node } : null;
+  };
+  const LINE_TAGS = { age: "AGE", cause: "CAUS", agency: "AGNC" } as const;
+  /** date and place of a fact; with `set` (and an open detail) they can be changed in place */
+  const when = (e: EventFields | null, set?: (patch: Partial<EventFields>) => void) => e && (e.date || e.place) ? <div className="fact-value">
+    {e.date && <span>{live && set ? dateInline(e.date, (date) => set({ date })) : formatDate(e.date, true, lang)}</span>}
+    {e.place && <span className="place">{live && set ? placeInline(e.place, (place) => set({ place })) : municipality(e.place)}</span>}
   </div> : null;
   const years = (q: Person) => {
     const b = q.birth ? formatDate(q.birth.date, false, lang) : "";
@@ -248,24 +273,39 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
                 </div>}
                 {e.witnesses && <div className="tl-details"><span>{t("witnesses")}:</span>{" "}
                   {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w)}</span>)}</div>}
-                {e.details && <div className="tl-details">{e.details.map((d) => <div key={d.key}>
-                  <span>{t(DETAIL_KEYS[d.key])}:</span> {d.value}</div>)}</div>}
+                {e.details && <div className="tl-details">{e.details.map((d) => {
+                  const line = live && d.key !== "address" ? eventLine(e) : null;
+                  const tag = d.key !== "address" ? LINE_TAGS[d.key] : "";
+                  return <div key={d.key}><span>{t(DETAIL_KEYS[d.key])}:</span>{" "}
+                    {line ? <InlineText value={d.value} label={t(DETAIL_KEYS[d.key])} onCommit={(v) => {
+                      const next = applyEventLine(line.owner, line.node, tag, d.value, v);
+                      if (next !== line.owner) onChange([next]);
+                    }}>{d.value}</InlineText> : d.value}</div>;
+                })}</div>}
                 {src && <EventSources a={src} t={t} />}
               </div>
             </Row>;
           })}
         </Section>}
-        {p.religion && <Fact icon={Church} label={t("religion")}><div className="fact-value">{p.religion}</div></Fact>}
+        {p.religion && <Fact icon={Church} label={t("religion")}><div className="fact-value">
+          {live && f ? <InlineText value={f.religion} label={t("religion")} list={RELIGIONS}
+                                   onCommit={(v) => { if (v.trim() !== f.religion) change({ religion: v }); }}>{p.religion}</InlineText>
+            : p.religion}</div></Fact>}
         {f && f.occupations.length > 0 && <Fact icon={Briefcase} label={t("occupation")}>
           {f.occupations.map((o) => <div key={o.origin}>
-            <div className="fact-value">{o.value}</div>{when(o)}
+            <div className="fact-value">{live ? <InlineText value={o.value} label={t("occupation")}
+              onCommit={(v) => { if (v.trim() !== o.value) change({ occupations: f.occupations.map((x) => (x === o ? { ...x, value: v } : x)) }); }}>
+              {o.value}</InlineText> : o.value}</div>
+            {when(o, (patch) => change({ occupations: f.occupations.map((x) => (x === o ? { ...x, ...patch } : x)) }))}
           </div>)}
         </Fact>}
         {!f && p.occupation && <Fact icon={Briefcase} label={t("occupation")}>
           <div className="fact-value">{p.occupation}</div></Fact>}
         {record && personAttributes(record).map((a, i) => <Fact key={i} icon={ATTRIBUTE_ICONS[a.tag] || Tag}
                                                               label={t(`attr${a.tag}` as StringKey)}>
-          {a.value && <div className="fact-value">{a.value}</div>}{when(a)}
+          {a.value && <div className="fact-value">{live ? <InlineText value={a.value} label={t(`attr${a.tag}` as StringKey)}
+            onCommit={(v) => changeAttribute(a, { value: v })}>{a.value}</InlineText> : a.value}</div>}
+          {when(a, (patch) => changeAttribute(a, patch))}
         </Fact>)}
         {(() => {
           const roleText = (r: string) => r === "godparent" ? t("roleGodparent") : r === "witness" ? t("roleWitness")
@@ -278,7 +318,8 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
             </li>)}</ul>
           </Fact>;
         })()}
-        {f?.note && <Section icon={StickyNote} title={t("note")}><div className="note-text"><Linked text={f.note} /></div></Section>}
+        {f?.note && <Section icon={StickyNote} title={t("note")}>{live ? <InlineNote className="note-text" value={f.note} label={t("note")} onCommit={(v) => { if (v.trim() !== f.note.trim()) change({ note: v }); }}>
+            <Linked text={f.note} /></InlineNote> : <div className="note-text"><Linked text={f.note} /></div>}</Section>}
         {record && <PersonSources t={t} a={(({ sources, notes }) => ({
           sources, notes: notes.filter((n) => n !== f?.note.trim()) }))(personAnnotations(record, lookup))} />}
         {(() => {

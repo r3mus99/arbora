@@ -80,3 +80,23 @@ export function InlineText({ value, label, list, onCommit, children }: {
     {children}
   </Inline>;
 }
+
+/** A note edited in place: shown as text (links stay clickable), a click opens a text area of the same size. */
+export function InlineNote({ value, label, onCommit, className, children }: {
+  value: string; label: string; onCommit: (value: string) => void; className?: string; children: ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const [v, setV] = useState(value);
+  useEffect(() => setV(value), [value]);
+  const done = (ok: boolean) => { setOpen(false); if (ok) onCommit(v); else setV(value); };
+  if (!open) {
+    return <div className={`${className || ""} inline-note`} title={label} onClick={(e) => { if (!(e.target as HTMLElement).closest("a")) setOpen(true); }}>
+      {children}</div>;
+  }
+  return <textarea className={`${className || ""} inline-note-field`} value={v} aria-label={label} autoFocus rows={Math.max(2, v.split("\n").length)}
+                   onChange={(e) => setV(e.target.value)} onBlur={() => done(true)}
+                   onKeyDown={(e) => {
+                     if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); }
+                     else if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); done(true); }
+                   }} />;
+}
