@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.29.0 – 2026-10-13
+## 1.31.0 – 2026-10-13
 
 - **Unsaved edits survive a reload.** The browser now keeps, beside the opened file, a small log of your edits (only
   the changed records). After a refresh the edits come back, the **GED** badge shows the real number of unsaved
@@ -9,6 +9,23 @@
 - The undo history is now this log instead of copies of the file, so it is not limited to 200 steps.
 - Downloading **GED** makes the downloaded file the new remembered original and **drops the old edit log**, so the
   browser never piles up logs. Undo starts again from the saved version.
+
+## 1.30.0 – 2026-10-13
+
+- **Inline editing of facts** in the person detail: click **religion**, **occupation** (text, date, place), the other
+  attributes (education, nationality, title, property, … with date and place), the **age, cause and agency** written
+  under an event, the **aka names** (given name and surname, next to the ID) or the **note** to change them right there. Religion is suggested from the file; a note opens as a
+  text area (Ctrl+Enter or leaving it applies, Esc drops). Clearing an occupation text removes that line (Ctrl+Z brings it
+  back). Same rules as before: one undo step per edit, only the edited GEDCOM line changes.
+
+## 1.29.0 – 2026-10-13
+
+- **Inline editing of dates and places** in the person detail timeline: click the date or the place of a birth,
+  christening, marriage, divorce, residence, custom event, death or burial to change it right there. Dates are
+  understood the same way as in the edit form (`14.5.1891`, `cca 1890`), places are suggested from the file. Enter or
+  leaving the field applies, Esc drops; each change is one undo step and only that event line changes. Children's
+  births are not editable here (they belong to the child's own detail). An event that has no date or place yet still
+  needs the edit form.
 
 ## 1.28.0 – 2026-10-13
 

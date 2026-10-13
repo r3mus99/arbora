@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, findPeople, matchedAka, suggestions, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
+  applyAttribute, applyEventLine, applyEventNode, applyFamily, applyPerson, findPeople, matchedAka, suggestions, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
   LANGS, readRecords, writeGedcom, type GedNode, type PersonFields,
 } from "./index";
 
@@ -271,4 +271,39 @@ describe("dates typed in the form", () => {
     expect(matchedAka("johannes", people["@I1@"])).toBe("Johannes Pavlovszky");
     expect(matchedAka("ján", people["@I1@"])).toBeNull();
   });
+});
+
+test("applyEventNode changes the date and place of one event line only", () => {
+  const ged = "0 @I1@ INDI\n1 NAME Anna /Nova/\n1 RESI\n2 DATE 1900\n2 PLAC Brezno\n2 SOUR @S1@\n1 RESI\n2 DATE 1910\n";
+  const [rec] = parseGedcom(ged);
+  const [first, second] = rec.children.filter((c) => c.tag === "RESI");
+  const out = applyEventNode(rec, first, { date: "1900", place: "Brezno" }, { date: "1 JAN 1901", place: "Zvolen" });
+  const lines = out.children.filter((c) => c.tag === "RESI");
+  expect(lines[0].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1 JAN 1901", "PLAC Zvolen", "SOUR @S1@"]);
+  expect(lines[1]).toBe(second);
+  expect(applyEventNode(rec, first, { date: "1900", place: "Brezno" }, { date: "1900", place: "Brezno" })).toBe(rec);
+});
+
+test("applyAttribute changes value, date and place of one attribute line", () => {
+  const ged = "0 @I1@ INDI\n1 NAME Anna /Nova/\n1 EDUC Basic school\n2 DATE 1910\n2 SOUR @S1@\n1 TITL Y\n";
+  const [rec] = parseGedcom(ged);
+  const educ = rec.children.find((c) => c.tag === "EDUC")!;
+  const out = applyAttribute(rec, educ, { value: "Basic school", date: "1910", place: "" },
+                             { value: "Grammar school", date: "1912", place: "Brezno" });
+  const line = out.children.find((c) => c.tag === "EDUC")!;
+  expect(line.value).toBe("Grammar school");
+  expect(line.children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1912", "PLAC Brezno", "SOUR @S1@"]);
+  const titl = rec.children.find((c) => c.tag === "TITL")!;
+  expect(applyAttribute(rec, titl, { value: "", date: "", place: "" }, { value: "", date: "", place: "" })).toBe(rec);
+});
+
+test("applyEventLine sets, changes and removes a sub-line of an event", () => {
+  const ged = "0 @I1@ INDI\n1 NAME Anna /Nova/\n1 DEAT\n2 DATE 1950\n2 CAUS Flu\n";
+  const [rec] = parseGedcom(ged);
+  const deat = rec.children.find((c) => c.tag === "DEAT")!;
+  const changed = applyEventLine(rec, deat, "CAUS", "Flu", "Pneumonia");
+  expect(changed.children.find((c) => c.tag === "DEAT")!.children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1950", "CAUS Pneumonia"]);
+  const removed = applyEventLine(rec, deat, "CAUS", "Flu", "");
+  expect(removed.children.find((c) => c.tag === "DEAT")!.children.map((c) => c.tag)).toEqual(["DATE"]);
+  expect(applyEventLine(rec, deat, "CAUS", "Flu", "Flu")).toBe(rec);
 });
