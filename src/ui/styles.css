@@ -570,3 +570,28 @@ section.check { margin: 0 0 14px; }
 .ov-wrap .ov-icon { width: 28px; height: 28px; }
 .ov-wrap .ov-value { font-size: 19px; }
 .ov-wrap .ov-ranks { grid-template-columns: 1fr; padding-bottom: var(--pad); }
+
+/* sources and notes panel in the tool bar: rows of the shared list look, opened row shows the people */
+.sp-wrap { width: 320px; }
+.sp { display: flex; flex-direction: column; min-height: 0; }
+.sp-tabs { padding: var(--pad); }
+.sp-tabs .chart-switch { display: flex; width: 100%; }
+.sp-tabs .chart-switch button { flex: 1; }
+.sp .finder { position: relative; border-top: 1px solid var(--border); }
+.sp-list { list-style: none; margin: 0; padding: 4px 0; }
+.sp-list > li { border-bottom: 1px solid var(--border); }
+.sp-list > li.open { background: var(--accent-soft); }
+.sp-row { display: flex; align-items: flex-start; gap: 8px; width: 100%; padding: 8px var(--pad); border: 0; border-radius: 0;
+          background: none; text-align: left; font-size: 14px; color: inherit; }
+.sp-row:hover { background: var(--accent-soft); }
+.sp-row .icon { width: var(--icon-sm); height: var(--icon-sm); margin-top: 3px; flex: none; color: var(--c-src); }
+.sp-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.sp-title { font-weight: 600; overflow-wrap: anywhere; }
+.sp-sub { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.sp-count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; flex: none; margin-top: 2px; }
+.sp-note { white-space: pre-wrap; overflow-wrap: anywhere; }
+.sp-note.clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sp-more { padding: 0 var(--pad) 10px calc(var(--pad) + var(--icon-sm) + 8px); font-size: 14px; }
+.sp-people { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; }
+.sp-people button.link { text-align: left; }
+.sp-none { padding: var(--pad); color: var(--muted); list-style: none; }

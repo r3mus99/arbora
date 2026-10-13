@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
-  applyPerson, decode, eventAnnotations, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
+  applyPerson, decode, eventAnnotations, sourceOverview, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
   personFields, writeGedcom, type GedNode,
 } from "./index";
 import { SOURCES_GED } from "./fixtures/sources";
@@ -71,5 +71,29 @@ describe("sources and notes", () => {
     // a rewritten record keeps the continued line (CONC) as it was
     expect(out).toContain("4 TEXT Born at home, baptised\n5 CONC  the same week.");
     expect(out).toContain("1 NAME Anne /Example/");
+  });
+});
+
+describe("sources overview", () => {
+  const ov = sourceOverview(records, lookup);
+
+  test("each source once with its citations and people, including one nobody cites", () => {
+    const reg = ov.sources.find((s) => s.key === "@S1@")!;
+    expect(reg.citation.title).toBe("Parish register of Sampletown");
+    expect(reg.citations).toBe(2);
+    expect(reg.people.sort()).toEqual(["@I1@", "@I2@"]);
+    expect(ov.sources.map((s) => s.citation.title)).toContain("Census 1869");
+    expect(ov.sources.find((s) => s.key === "@S2@")!.citations).toBe(1);
+  });
+
+  test("a text citation is its own source", () => {
+    const e = ov.sources.find((s) => s.key === "Family tradition")!;
+    expect(e).toMatchObject({ citations: 1, people: ["@I1@"] });
+  });
+
+  test("each note text once with the people it is under; a family's note belongs to the spouses", () => {
+    const witnesses = ov.notes.find((n) => n.text.startsWith("Witnesses"))!;
+    expect(witnesses.people.sort()).toEqual(["@I1@", "@I2@"]);
+    expect(ov.notes.map((n) => n.text)).toContain("Shared note about the baptism\nin the parish.");
   });
 });

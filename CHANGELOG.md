@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.21.0 – 2026-10-13
+
+- New tool in the tool bar: **Sources and notes** (book icon). It opens a panel next to the bar with every source of
+  the file and the number of times it is cited, and a second tab with every note. A filter box narrows both lists;
+  a click on an entry shows the people who cite it, and a click on a person opens them. Read-only.
+
 ## 1.20.0 – 2026-10-13
 
 - The design guidelines (`docs/design-guidelines.md`) are now a complete guide: layout, tokens, typography, colours,
