@@ -377,12 +377,9 @@ export function App() {
   // generations shown in the chart and the PDF; a value set earlier outside the usual choices stays as an extra button
   const gens = Math.max(0, Math.round(Number(form.generations) || 0));
   const gensChoices = [3, 4, 5, 0].includes(gens) ? [3, 4, 5, 0] : [3, 4, 5, gens, 0].sort((a, b) => (a || 1e9) - (b || 1e9));
-  const gensTip = (n: number) => {
-    const chart = t(desc ? "desc" : "anc");
-    if (!n) return t("genTipAll", { chart });
-    const what = n >= 3 && n <= 5 ? t(`${desc ? "tipD" : "tipA"}${n}` as StringKey) : "";
-    return what ? t("genTip", { chart, n, what }) : `${chart} – ${t("generations")} ${n}`;
-  };
+  // tooltip: which generations the choice shows, e.g. 3 = children and grandchildren
+  const gensTip = (n: number) => !n ? t("genTipAll")
+    : n >= 3 && n <= 5 ? t(`${desc ? "tipD" : "tipA"}${n}` as StringKey) : `${t("generations")} ${n}`;
   const pick = (id: string) => {
     select(id);
     setQuery("");
