@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.15.1 – 2026-10-13
+
+- The parents are a section with a title (icon and "Parents") and one parent per row, with the sex icon.
+- Each parent shows the place of birth, and the date and place of the parents' marriage sit between them when known.
+- The detail shows only the municipality of a place (the part before the first comma). The marriage icon of the
+  parents is coloured like the marriage on the timeline.
+- A reference to a person (parent, spouse, child, witness, associate) reads like the middle panel: name and, in one pair of
+  brackets, the year of birth (green) and the municipality of birth (muted italics), as in the overview.
+- Parents, note and sources and notes share one section title style.
+- The icon of a child's birth in the timeline is coloured by the child's sex.
+
 ## 1.15.0 – 2026-10-13
 
 - Person detail is more compact. The timeline has no heading and no dot on the line: each event has one

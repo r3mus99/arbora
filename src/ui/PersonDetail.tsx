@@ -2,11 +2,11 @@ import {
   Award, Baby, Briefcase, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
   StickyNote, Star, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { personFields, type EventFields } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
-import { mapUrl } from "../core/places";
+import { mapUrl, municipality } from "../core/places";
 import { nameDetails } from "../core/names";
 import { personAttributes } from "../core/facts";
 import { fmt, formatDate } from "../core/format";
@@ -66,19 +66,22 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
   const f = record ? personFields(record) : null;
   const when = (e: EventFields | null) => e && (e.date || e.place) ? <div className="fact-value">
     {e.date && <span>{formatDate(e.date, true, lang)}</span>}
-    {e.place && <span className="place">{e.place}</span>}
+    {e.place && <span className="place">{municipality(e.place)}</span>}
   </div> : null;
   const years = (q: Person) => {
     const b = q.birth ? formatDate(q.birth.date, false, lang) : "";
     const d = q.death ? formatDate(q.death.date, false, lang) : "";
     return d ? `${b}–${d}` : b;
   };
-  const link = (pid: string | null, withYears = true) => {
+  /** a reference to a person: name, year of birth in brackets and the municipality of birth */
+  const link = (pid: string | null, withPlace = true) => {
     const q = pid ? data.people[pid] : null;
     if (!q) return <span className="muted">?</span>;
+    const year = q.birth ? formatDate(q.birth.date, false, lang) : "";
+    const place = withPlace && q.birth ? municipality(q.birth.place) : "";
     return <>
       <button className="link" type="button" onClick={() => onFocus(q.id)}>{q.name || "?"}</button>
-      {withYears && years(q) && <span className="muted"> {years(q)}</span>}
+      {(year || place) && <span> (<span className="s-birt">{year}</span>{year && place && " "}<span className="s-place">{place}</span>)</span>}
     </>;
   };
 
@@ -148,30 +151,41 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
             {names.others.map((n, i) => <div key={`o${i}`}><span>{t("otherName")}{n.type ? ` (${n.type})` : ""}:</span> {n.name}</div>)}
           </div>;
         })()}
-        {parents.length > 0 && <div className="parents">
-          <span className="parents-label">{t("parents")}</span>
-          {parents.map((pid) => <span key={pid}>{link(pid)}</span>)}
-        </div>}
+        {parents.length > 0 && <section className="section parents">
+          <h4 className="sec-title"><Users className="icon" aria-hidden="true" />{t("parents")}</h4>
+          <ul>{parents.map((pid, i) => {
+            const sex = data.people[pid]?.sex;
+            const ParentIcon = sex === "M" ? Mars : sex === "F" ? Venus : null;
+            const wed = i === 1 && birthFam?.marriage && (birthFam.marriage.date || birthFam.marriage.place) ? birthFam.marriage : null;
+            return <Fragment key={pid}>
+              {wed && <li className="parents-wed muted">
+                <Heart className="icon" aria-hidden="true" />
+                {[wed.date && formatDate(wed.date, true, lang), municipality(wed.place)].filter(Boolean).join(" · ")}</li>}
+              <li>{ParentIcon && <ParentIcon className={`icon sex-${sex}`} aria-hidden="true" />}{link(pid)}</li>
+            </Fragment>;
+          })}</ul>
+        </section>}
         {life.length > 0 && <section className="timeline" aria-label={t("timeline")}>
           <ol>{life.map((e) => {
             const Icon = (e.kind === "marriage" && e.divorced) || e.tag === "DIV" ? HeartCrack : ICONS[e.kind];
-            return <li key={e.key} className={`tl-${e.kind}`}>
+            const childSex = e.kind === "child" && e.other ? data.people[e.other]?.sex : "";
+            return <li key={e.key} className={`tl-${e.kind}${childSex ? ` tl-sex-${childSex}` : ""}`}>
               <Icon className="icon tl-icon" aria-hidden="true" />
               <div className="tl-body">
                 {e.date && <div className="tl-date">{formatDate(e.date, true, lang)}
                   {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}</div>}
                 <div className="tl-what">
                   {label(e.kind, !!e.date, e.other, e.title, e.tag)}
-                  {e.other && <>: {link(e.other, e.kind === "marriage")}</>}
+                  {e.other && <>: {link(e.other, e.kind !== "child")}</>}
                   {e.detail && <>: {e.detail}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
-                  {e.place && <span className="muted"> · {e.place}</span>}
+                  {e.place && <span className="muted"> · {municipality(e.place)}</span>}
                   {e.coords && <a className="map-link" href={mapUrl(e.coords)} target="_blank" rel="noopener noreferrer"
                                   title={t("showOnMap")} aria-label={t("showOnMap")}>
                     <MapPin className="icon" aria-hidden="true" /></a>}
                 </div>
                 {e.witnesses && <div className="tl-details"><span>{t("witnesses")}:</span>{" "}
-                  {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w, false)}</span>)}</div>}
+                  {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w)}</span>)}</div>}
                 {e.details && <div className="tl-details">{e.details.map((d) => <div key={d.key}>
                   <span>{t(DETAIL_KEYS[d.key])}:</span> {d.value}</div>)}</div>}
                 {(() => { const a = extras(e.kind, e.key, e.node); return a && <EventSources a={a} t={t} />; })()}
@@ -198,11 +212,14 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
                         ...inbound.map((a) => ({ ...a, inbound: true }))].filter((a) => a.id in data.people);
           return rows.length > 0 && <Fact icon={Handshake} label={t("associations")}>
             <ul>{rows.map((a, i) => <li key={i}>
-              <span className="muted">{roleText(a.role)}{a.inbound ? ` ${t("assocFor")}` : ""}:</span> {link(a.id, false)}
+              <span className="muted">{roleText(a.role)}{a.inbound ? ` ${t("assocFor")}` : ""}:</span> {link(a.id)}
             </li>)}</ul>
           </Fact>;
         })()}
-        {f?.note && <Fact icon={StickyNote} label={t("note")}><div className="note-text"><Linked text={f.note} /></div></Fact>}
+        {f?.note && <section className="section">
+          <h4 className="sec-title"><StickyNote className="icon" aria-hidden="true" />{t("note")}</h4>
+          <div className="note-text"><Linked text={f.note} /></div>
+        </section>}
         {record && <PersonSources t={t} a={(({ sources, notes }) => ({
           sources, notes: notes.filter((n) => n !== f?.note.trim()) }))(personAnnotations(record, lookup))} />}
         {(() => {
