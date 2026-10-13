@@ -6,7 +6,7 @@ import { Fragment, type ReactNode } from "react";
 import { personFields, type EventFields } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
-import { mapUrl } from "../core/places";
+import { mapUrl, municipality } from "../core/places";
 import { nameDetails } from "../core/names";
 import { personAttributes } from "../core/facts";
 import { fmt, formatDate } from "../core/format";
@@ -66,7 +66,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
   const f = record ? personFields(record) : null;
   const when = (e: EventFields | null) => e && (e.date || e.place) ? <div className="fact-value">
     {e.date && <span>{formatDate(e.date, true, lang)}</span>}
-    {e.place && <span className="place">{e.place}</span>}
+    {e.place && <span className="place">{municipality(e.place)}</span>}
   </div> : null;
   const years = (q: Person) => {
     const b = q.birth ? formatDate(q.birth.date, false, lang) : "";
@@ -153,12 +153,12 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
           <ul>{parents.map((pid, i) => {
             const sex = data.people[pid]?.sex;
             const ParentIcon = sex === "M" ? Mars : sex === "F" ? Venus : null;
-            const place = data.people[pid]?.birth?.place;
+            const place = municipality(data.people[pid]?.birth?.place || "");
             const wed = i === 1 && birthFam?.marriage && (birthFam.marriage.date || birthFam.marriage.place) ? birthFam.marriage : null;
             return <Fragment key={pid}>
               {wed && <li className="parents-wed muted">
                 <Heart className="icon" aria-hidden="true" />
-                {[wed.date && formatDate(wed.date, true, lang), wed.place].filter(Boolean).join(" · ")}</li>}
+                {[wed.date && formatDate(wed.date, true, lang), municipality(wed.place)].filter(Boolean).join(" · ")}</li>}
               <li>{ParentIcon && <ParentIcon className={`icon sex-${sex}`} aria-hidden="true" />}{link(pid)}
                 {place && <span className="muted"> · {place}</span>}</li>
             </Fragment>;
@@ -178,7 +178,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
                   {e.other && <>: {link(e.other, e.kind === "marriage")}</>}
                   {e.detail && <>: {e.detail}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
-                  {e.place && <span className="muted"> · {e.place}</span>}
+                  {e.place && <span className="muted"> · {municipality(e.place)}</span>}
                   {e.coords && <a className="map-link" href={mapUrl(e.coords)} target="_blank" rel="noopener noreferrer"
                                   title={t("showOnMap")} aria-label={t("showOnMap")}>
                     <MapPin className="icon" aria-hidden="true" /></a>}

@@ -34,3 +34,6 @@ export function placeCoords(event: GedNode, lookup?: (xref: string) => GedNode |
 /** A page showing the point on a map. */
 export const mapUrl = (c: Coords) =>
   `https://www.openstreetmap.org/?mlat=${c.lat}&mlon=${c.lon}#map=12/${c.lat}/${c.lon}`;
+
+/** The municipality of a place written as "Village, District, Country": the part before the first comma. */
+export const municipality = (place: string) => place.split(",")[0].trim();
