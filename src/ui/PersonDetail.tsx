@@ -13,7 +13,7 @@ import { dateParts } from "../core/date";
 import { fmt, formatDate } from "../core/format";
 import type { GedNode, GedcomData, Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
-import { annotations, eventAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
+import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
 import { timeline, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { EDITOR_FORM } from "./PersonEditor";
@@ -169,9 +169,11 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
         {life.length > 0 && <Section icon={History} title={t("timeline")} rows className="timeline">
           {life.map((e) => {
             const Icon = (e.kind === "marriage" && e.divorced) || e.tag === "DIV" ? HeartCrack : ICONS[e.kind];
+            const found = extras(e.kind, e.key, e.node);
+            const src = found && hasAnnotations(found) ? found : null;
             const childSex = e.kind === "child" && e.other ? data.people[e.other]?.sex : "";
             return <Row key={e.key} icon={Icon} tone={`tl-${e.kind}${childSex ? ` tl-sex-${childSex}` : ""}`}>
-              <div className="tl-body">
+              <div className={`tl-body${src ? " has-src" : ""}`}>
                 {/* first line: date, what happened and the age; second line: who and where */}
                 <div className="tl-date">
                   {e.date && <span>{formatDate(e.date, true, lang)}</span>}
@@ -191,7 +193,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
                   {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w)}</span>)}</div>}
                 {e.details && <div className="tl-details">{e.details.map((d) => <div key={d.key}>
                   <span>{t(DETAIL_KEYS[d.key])}:</span> {d.value}</div>)}</div>}
-                {(() => { const a = extras(e.kind, e.key, e.node); return a && <EventSources a={a} t={t} />; })()}
+                {src && <EventSources a={src} t={t} />}
               </div>
             </Row>;
           })}

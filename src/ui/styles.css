@@ -210,7 +210,11 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .timeline .sec-rows::before { content: ""; position: absolute; left: calc(var(--d-col) / 2 - 1px); top: 14px; bottom: 14px;
                               width: 2px; background: var(--border); }
 .timeline .row-icon .icon { position: relative; background: var(--panel); box-shadow: 0 3px 0 var(--panel), 0 -3px 0 var(--panel); }
-.tl-body { min-width: 0; overflow-wrap: anywhere; }
+.tl-body { min-width: 0; overflow-wrap: anywhere; position: relative; }
+/* the sources button sits at the right end of the first line; the opened sources go below the event */
+.tl-body.has-src .tl-date { padding-right: 52px; }
+.tl-body.has-src .src-toggle { position: absolute; top: 0; right: 0; margin: 0; }
+.tl-body.has-src .tl-extra { margin-top: 0; }
 .tl-date { font-weight: 600; font-variant-numeric: tabular-nums; }
 .tl-date .tl-label { font-weight: 400; color: var(--muted); }
 .tl-date .muted { font-weight: 400; }

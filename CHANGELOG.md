@@ -8,6 +8,7 @@
   column, text in another, one icon size, 14px text and 12px titles) and a new block needs no extra CSS. Sections are separated by a thin line and the icons of the lines inside a section
   are a little smaller than the icon in the section title. The parents are a small timeline: the parent born first,
   then the other parent, and the marriage last.
+- The sources button of a timeline event sits at the right end of the first line of the event.
 
 - The birth of a child on the timeline shows the place in the brackets after the child's name, like every other
   reference to a person, instead of after a dot. The name in such a reference is bold and in the text colour, like in the tree.
