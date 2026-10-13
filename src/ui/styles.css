@@ -6,7 +6,7 @@
   --c-bapt: #3b82c4; --c-res: #9a7b4f; --c-event: #7b6bb5; --c-child: #17a89c; --c-burial: #8a8f86;
   /* size tokens of the app frame, see docs/design-guidelines.md */
   --head-h: 52px; --ctl-h: 36px; --ctl-h-sm: 28px; --icon: 18px; --icon-sm: 14px;
-  --radius: 8px; --radius-lg: 12px; --radius-pill: 999px; --pad: 14px; --gap: 8px;
+  --radius: 8px; --radius-lg: 12px; --radius-pill: 999px; --pad: 14px; --gap: 8px; --panel-w: 320px;
   /* event colours: the tree, the timeline and (darker) the PDF, see src/core/colors.ts */
   --line: color-mix(in srgb, var(--muted) 50%, var(--bg));
   --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --c-src: #5f7f9a; --zebra: #00000005;
@@ -183,7 +183,7 @@ footer a { color: var(--accent); }
                   background: var(--warn); color: #fff; font-size: 12px; font-weight: 600; line-height: 17px; text-align: center; }
 .toolbar button.on { background: var(--accent-soft); color: var(--accent); }
 /* the panel of the active tool: the list of people, scrolls on its own */
-.rail-wrap { width: 280px; border-left: 1px solid var(--border); background: var(--panel); display: flex; flex-direction: column; overflow: hidden; }
+.rail-wrap { width: var(--panel-w); border-left: 1px solid var(--border); background: var(--panel); display: flex; flex-direction: column; overflow: hidden; }
 /* every tool panel: a fixed title row (PanelHead) and a body that scrolls */
 .panel-col { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .panel-head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; height: var(--head-h);
@@ -545,7 +545,6 @@ section.check { margin: 0 0 14px; }
 .check-wide .link { text-align: left; }
 
 /* the file overview as a tool panel: a bit wider than the list, tiles two by two, rankings one under another */
-.ov-wrap { width: 320px; }
 .ov-wrap .ov-tiles { grid-template-columns: 1fr 1fr; }
 .ov-wrap .ov-tile { grid-template-columns: 1fr; gap: 6px; padding: 8px 10px; }
 .ov-wrap .ov-icon { width: 28px; height: 28px; }
@@ -553,7 +552,6 @@ section.check { margin: 0 0 14px; }
 .ov-wrap .ov-ranks { grid-template-columns: 1fr; padding-bottom: var(--pad); }
 
 /* sources and notes panel in the tool bar: rows of the shared list look, opened row shows the people */
-.sp-wrap { width: 320px; }
 .sp-tabs { padding: var(--pad); }
 .sp-tabs .chart-switch { display: flex; width: 100%; }
 .sp-tabs .chart-switch button { flex: 1; }

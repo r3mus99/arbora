@@ -23,8 +23,8 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
   language. Order is fixed: identity, file, history, output, preferences. Anything that changes the whole document
   or the app belongs here.
 - **Rail** (left, icon column): one icon per mini-app. Opens and closes the mini-app panel.
-- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, overview: roughly a quarter to a third of the screen,
-  the width is not exact; fixed 280–320px) or a *wide panel* (file check, later: people table, editor) that replaces the tree and
+- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, overview, sources and notes, settings: every one exactly
+  `--panel-w` = 320px wide) or a *wide panel* (file check, later: people table, editor) that replaces the tree and
   detail and takes the full width right of the rail. Only one mini-app is open at a time.
 - **Main component** (centre): the tree view. It is the only thing that is always there; it is never
   squeezed below a usable width, so a side panel is hidden before the tree is.
@@ -37,6 +37,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 
 | Token | Value | Used for |
 | --- | --- | --- |
+| `--panel-w` | 320px | width of every side panel of the tool bar (list of people, overview, sources and notes, settings); one value, never a width per panel |
 | `--head-h` | 52px | header row of every panel (rail first icon, search box, chart switch, person name, wide panel title); one continuous line under them across the frame |
 | `--ctl-h` | 36px | height of every control: inputs, selects, switch, buttons, icon buttons, rail icons |
 | `--ctl-h-sm` | 28px (new) | the one smaller control height, only for controls inside a list row or a card (chips, inline inputs, row buttons) |
@@ -130,7 +131,7 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 ## 9. Adding a new mini-app
 
 1. Add one icon button to the rail (`.toolbar`), in the order of use (find, overview, check, then new ones). Pick a lucide icon that is not used yet; add a `title` + `aria-label`; a status badge uses `--warn`.
-2. Decide the width: **side panel** (fixed 280–320px, opens between rail and tree; the tree stays visible) if it works next to the tree, otherwise **wide panel** (full width right of the rail; tree and detail are hidden).
+2. Decide the width: **side panel** (always `--panel-w` = 320px, never its own width, opens between rail and tree; the tree stays visible) if it works next to the tree, otherwise **wide panel** (full width right of the rail; tree and detail are hidden).
 3. Build it as a component with a `PanelHead` (fixed, section 7) and a scrolling `.panel-body`; use only the controls from section 6.
 4. State: `on` on the rail icon while open; clicking it again closes it; opening another mini-app closes this one.
 5. Put new tokens in `:root` with a dark value; add a line to this document; strings go to `src/ui/i18n.ts` in all 12 languages.

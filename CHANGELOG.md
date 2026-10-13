@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.22.3 – 2026-10-13
+
+- All side panels of the tool bar (people, overview, sources and notes, settings) have the same width, 320 px, set by
+  one token (`--panel-w`); the design guidelines say so.
+
 ## 1.22.2 – 2026-10-13
 
 - The list of people has the same fixed title row ("People") above the search box as the other tool panels.
