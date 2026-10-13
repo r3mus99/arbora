@@ -4,8 +4,7 @@ This is the single reference for how Arbora looks. Every screen is built from th
 add a component, pick from here instead of inventing a number. The tokens live at the top of `src/ui/styles.css`:
 change a token, never a literal value in a rule.
 
-Status of this document: the **rules** below are the target. Section 10 lists where the current code still differs;
-the follow-up "unify" change brings the code in line.
+The code follows these rules since 1.20.0; section 10 lists what is still left.
 
 ## 1. Layout
 
@@ -24,8 +23,8 @@ the follow-up "unify" change brings the code in line.
   language. Order is fixed: identity, file, history, output, preferences. Anything that changes the whole document
   or the app belongs here.
 - **Rail** (left, icon column): one icon per mini-app. Opens and closes the mini-app panel.
-- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, overview: about 1/3 of the screen,
-  fixed width 250–320px) or a *wide panel* (file check, later: people table, editor) that replaces the tree and
+- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, overview: roughly a quarter to a third of the screen,
+  the width is not exact; fixed 280–320px) or a *wide panel* (file check, later: people table, editor) that replaces the tree and
   detail and takes the full width right of the rail. Only one mini-app is open at a time.
 - **Main component** (centre): the tree view. It is the only thing that is always there; it is never
   squeezed below a usable width, so a side panel is hidden before the tree is.
@@ -127,43 +126,16 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 ## 9. Adding a new mini-app
 
 1. Add one icon button to the rail (`.toolbar`), in the order of use (find, overview, check, then new ones). Pick a lucide icon that is not used yet; add a `title` + `aria-label`; a status badge uses `--warn`.
-2. Decide the width: **side panel** (fixed 250–320px, opens between rail and tree; the tree stays visible) if it works next to the tree, otherwise **wide panel** (full width right of the rail; tree and detail are hidden).
+2. Decide the width: **side panel** (fixed 280–320px, opens between rail and tree; the tree stays visible) if it works next to the tree, otherwise **wide panel** (full width right of the rail; tree and detail are hidden).
 3. Build it as a component with a header row (`--head-h`) and a scrolling body; use only the controls from section 6.
 4. State: `on` on the rail icon while open; clicking it again closes it; opening another mini-app closes this one.
 5. Put new tokens in `:root` with a dark value; add a line to this document; strings go to `src/ui/i18n.ts` in all 12 languages.
 6. Check light and dark theme, keyboard focus, and the tooltip text before opening a PR. Screenshots in a PR use the Habsburg sample and the English UI.
 
-## 10. Known inconsistencies in the code (to fix in the unify step)
+## 10. Still open
 
-Layout and top bar
-- The top bar is a separate sticky header with its own 1px bottom line, 14px margin and a dashed pill for the file; it is not part of the frame and not `--head-h` high. The app name is a second place with its own 28px Spectral size.
-- Top bar buttons: GED / PDF are text+icon, undo/redo/settings are icon-only; the language button has a different padding (6px 10px) and shows a flag instead of an icon.
-- The status line ("saved" etc.) is a loose paragraph below the bar.
-- The footer and the welcome page use 13px and 60px text outside the scale.
-
-Typography and colour
-- Font sizes in use: 10.5, 11, 11.5, 12, 12.5, 13, 14, 15, 16, 17, 19, 22 px; the scale allows 12 and 14.
-- Literal colours in rules: `#b7791f` (warning, 6x), sex colours `#3f6fa8` / `#b0507a` (4x each), event colours of christening, residence, event, child, burial, the tab count badge (`#f3e3c3` / `#7a4f0e` / `#4a3a1c` / `#f1cf8a`), `#fff` backgrounds.
-- Text is dimmed with `opacity: .8` in several places (tree meta, sources, name parts) instead of `--muted`.
-
-Radii, heights, spacing
-- Radii in use: 2, 4, 5, 6, 8, 9, 10, 12, 14, 16, 999px and 50%; the system has 8, 12 and pill.
-- The editor form (fields, buttons, sex choice, items) uses 12/14px radii, 15px text, 9–10px paddings, pill "add" buttons and no `--ctl-h`: it looks like another app.
-- Bulk-fix (Variants) uses a local 32px row height, inputs with 8px radius and 150px width, chips and buttons of that height.
-- The file check list has its own card (14px radius, 15px title) in addition to the wide-panel header.
-- Overview tiles use 34px/28px circular icons, 22px/19px numbers and an 11px uppercase label with .07em tracking (section titles use 12px / .04em).
-- Dialog: 16px radius, 17px title, separate footer.
-
-Controls and states
-- Three different "segmented" implementations (generation buttons, Ancestors/Descendants radios, editor sex choice) with different paddings and hover.
-- `button.link` (underlined accent) vs `.src-entries a` (underlined, offset 2px) vs `.tl` links vs the map-link icon: four link looks.
-- Hover on rail/top bar icons differs: rail = soft accent background, top bar = border + panel fill, detail header = same as top bar.
-- Focus ring: global 3px outline, but the editor fields replace it with border + box-shadow, the segmented inputs use an inset ring.
-- Disabled state: opacity .5 on buttons; the editor `.copy` and the `.link:disabled` have their own look.
-- Icon sizes in CSS: 13, 14, 15, 16, 17, 18 px; the system has 14, 15 (detail rows) and 18.
-- Icon-only buttons without a keyboard shortcut hint vs with (Ctrl+Z); several tooltips and labels differ (`title` text vs `aria-label`, e.g. the GED button's label is shorter than its tooltip).
-- Icon meaning: ShieldCheck / ShieldAlert is used both for the check tool and inside the overview tile; MapPin for place in two different sizes.
-
-Text
-- Mixed casing: small-caps labels (editor, overview, section titles) use three different sizes/tracking; button labels are sentence case, tab labels vary.
-- Hint/help text is 12px, 13px or 14px depending on the panel.
+- The top bar is a separate sticky header with its own line, not part of the frame, and not `--head-h` high; the app name has its own 28px Spectral size. Moving it into the frame is a layout change that needs Marek's decision.
+- The language button shows a flag (flags are the only way to recognise a language); it follows the icon-button size and hover.
+- The welcome screen, footer and drop zone have their own scale.
+- Tooltips and `aria-label` of GED / PDF differ slightly (the tooltip carries the hint text).
+- The overview tiles keep their 28–34px circular icons.
