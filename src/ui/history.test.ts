@@ -1,59 +1,123 @@
 import { describe, expect, test } from "vitest";
 import { parseGedcom } from "../core/gedcom";
 import {
-  NO_BROWSING, edited, changeCount, isDirty, move, startEdits, stepEdits, visit, withRecords, type Doc,
+  NO_BROWSING, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move, replay, startEdits, stepEdits, visit, withRecords,
+  applyOp, diffRecords, type Doc,
 } from "./history";
 import { NUMBERING, storedOptions, toForm, toOptions, withOption } from "./options";
 import { DEFAULTS } from "../core/format";
 
 const doc = (name: string): Doc => ({ records: parseGedcom(`0 @I1@ INDI\n1 NAME ${name}\n`), eol: "\n" });
 
+const next = (d: Doc, name: string) => withRecords(d, parseGedcom(`0 @I1@ INDI\n1 NAME ${name}\n`));
+const name = (d: Doc) => d.records[0].children[0].value;
+
 describe("edit history", () => {
+
   test("undo and redo walk through the versions", () => {
-    const [a, b, c] = [doc("A"), doc("B"), doc("C")];
-    let edits = startEdits(a);
-    edits = edited(edits, a);          // a → b
-    edits = edited(edits, b);          // b → c
+    const a = doc("A"), b = next(a, "B"), c = next(b, "C");
+    let edits = edited(edited(startEdits(a), a, b), b, c);
+    expect(canUndo(edits)).toBe(true);
     const back = stepEdits(edits, c, -1)!;
-    expect(back.doc).toBe(b);
+    expect(name(back.doc)).toBe("B");
     const back2 = stepEdits(back.edits, back.doc, -1)!;
-    expect(back2.doc).toBe(a);
+    expect(name(back2.doc)).toBe("A");
+    expect(back2.doc.records[0]).toBe(a.records[0]);
     expect(stepEdits(back2.edits, back2.doc, -1)).toBeNull();
+    expect(canRedo(back2.edits)).toBe(true);
     const forward = stepEdits(back2.edits, back2.doc, 1)!;
-    expect(forward.doc).toBe(b);
-    expect(forward.edits.future).toEqual([c]);
+    expect(name(forward.doc)).toBe("B");
+    edits = forward.edits;
+    expect(canRedo(edits)).toBe(true);
   });
 
   test("a new edit after undo drops what could be redone", () => {
-    const [a, b, c] = [doc("A"), doc("B"), doc("C")];
-    const undone = stepEdits(edited(startEdits(a), a), b, -1)!;
-    expect(undone.edits.future).toEqual([b]);
-    expect(edited(undone.edits, undone.doc).future).toEqual([]);
-    expect(c).toBeDefined();
+    const a = doc("A"), b = next(a, "B");
+    const undone = stepEdits(edited(startEdits(a), a, b), b, -1)!;
+    expect(canRedo(undone.edits)).toBe(true);
+    const again = edited(undone.edits, undone.doc, next(undone.doc, "Z"));
+    expect(canRedo(again)).toBe(false);
   });
 
-  test("only the last 200 steps are kept", () => {
-    let edits = startEdits(doc("0"));
-    for (let i = 0; i < 250; i++) edits = edited(edits, doc(String(i)));
-    expect(edits.past).toHaveLength(200);
+  test("an edit that changes nothing adds no step", () => {
+    const a = doc("A");
+    expect(edited(startEdits(a), a, { ...a })).toEqual(startEdits(a));
   });
 
-  test("unsaved changes are those that differ from the saved version", () => {
-    const [a, b] = [doc("A"), doc("B")];
+  test("the log replays to the same file and holds only changed records", () => {
+    const a: Doc = { records: parseGedcom("0 @I1@ INDI\n1 NAME A\n0 @I2@ INDI\n1 NAME X\n0 @I3@ INDI\n1 NAME Y\n"), eol: "\n" };
+    const b = withRecords(a, parseGedcom("0 @I2@ INDI\n1 NAME X2\n"));
+    const edits = edited(startEdits(a), a, b);
+    expect(edits.ops[0]).toHaveLength(1);
+    expect(edits.ops[0][0].remove).toHaveLength(1);
+    const again = replay(edits);
+    expect(again.records[0]).toBe(a.records[0]);
+    expect(again.records[1]).toBe(b.records[1]);
+    // JSON round trip (what the browser keeps) replays the same
+    const kept = { ...edits, ops: JSON.parse(JSON.stringify(edits.ops)) };
+    expect(replay(kept).records[1].children[0].value).toBe("X2");
+  });
+
+  test("records added or removed are undone too", () => {
+    const a = doc("A");
+    const extra = parseGedcom("0 @I9@ INDI\n1 NAME N\n");
+    const added: Doc = { ...a, records: [...a.records, ...extra] };
+    const op = diffRecords(a.records, added.records);
+    expect(applyOp(a.records, op)).toEqual(added.records);
+    expect(applyOp(added.records, op, true)).toEqual(a.records);
+    const gone = { ...a, records: [] as typeof a.records };
+    expect(applyOp(a.records, diffRecords(a.records, gone.records))).toEqual([]);
+  });
+
+  test("several separate changes in one edit undo in order", () => {
+    const a: Doc = { records: parseGedcom("0 @I1@ INDI\n1 NAME A\n0 @I2@ INDI\n1 NAME B\n0 @I3@ INDI\n1 NAME C\n"), eol: "\n" };
+    const bulk = parseGedcom("0 @I1@ INDI\n1 NAME A2\n0 @I2@ INDI\n1 NAME B\n0 @I3@ INDI\n1 NAME C2\n");
+    const nextRecs = [bulk[0], a.records[1], bulk[2]];
+    const op = diffRecords(a.records, nextRecs);
+    expect(op).toHaveLength(2);
+    expect(applyOp(nextRecs, op, true)).toEqual(a.records);
+  });
+
+  test("a log that does not fit the file is rejected", () => {
+    expect(() => applyOp([], [{ at: 3, remove: parseGedcom("0 @I1@ INDI\n"), insert: [] }])).toThrow("does not fit");
+  });
+
+  test("unsaved changes are those after the version last opened or downloaded", () => {
+    const a = doc("A"), b = next(a, "B");
     const edits = startEdits(a);
-    expect(isDirty(a, edits)).toBe(false);
-    expect(isDirty(b, edits)).toBe(true);
-    expect(isDirty(null, edits)).toBe(false);
+    expect(isDirty(edits)).toBe(false);
+    const one = edited(edits, a, b);
+    expect(isDirty(one)).toBe(true);
+    expect(changeCount(one)).toBe(1);
     // undo back to the saved version is clean again
-    expect(isDirty(stepEdits(edited(edits, a), b, -1)!.doc, edits)).toBe(false);
+    expect(isDirty(stepEdits(one, b, -1)!.edits)).toBe(false);
+    // saving starts a fresh log from the saved version: nothing old is kept
+    const saved = startEdits(b);
+    expect(isDirty(saved)).toBe(false);
+    expect(saved.ops).toEqual([]);
+    expect(canUndo(saved)).toBe(false);
+  });
+
+  test("discarding goes back to the saved version and forgets what came after", () => {
+    const a = doc("A"), b = next(a, "B"), c = next(b, "C");
+    let edits = edited(startEdits(a), a, b);
+    edits = { ...edits, saved: edits.at };
+    edits = edited(edits, b, c);
+    const back = discardUnsaved(edits);
+    expect(name(back.doc)).toBe("B");
+    expect(isDirty(back.edits)).toBe(false);
+    expect(canRedo(back.edits)).toBe(false);
+    // when the saved version is gone from the log, the file as opened is the way back
+    const lost = discardUnsaved({ ...edits, saved: null });
+    expect(name(lost.doc)).toBe("A");
   });
 
   test("changed records replace the ones with the same ID", () => {
     const a = doc("A");
     const changed = parseGedcom("0 @I1@ INDI\n1 NAME Z\n");
-    const next = withRecords(a, changed);
-    expect(next.records[0]).toBe(changed[0]);
-    expect(next.eol).toBe("\n");
+    const merged = withRecords(a, changed);
+    expect(merged.records[0]).toBe(changed[0]);
+    expect(merged.eol).toBe("\n");
     expect(withRecords(a, []).records[0]).toBe(a.records[0]);
   });
 });
@@ -116,19 +180,17 @@ describe("chart options", () => {
   });
 
   test("the number of unsaved changes counts steps since the saved version", () => {
-    const [a, b, c] = [doc("A"), doc("B"), doc("C")];
+    const a = doc("A"), b = next(a, "B"), c = next(b, "C");
     let edits = startEdits(a);
-    expect(changeCount(a, edits)).toBe(0);
-    edits = edited(edits, a);
-    edits = edited(edits, b);
-    expect(changeCount(c, edits)).toBe(2);
-    // undo one step
+    expect(changeCount(edits)).toBe(0);
+    edits = edited(edited(edits, a, b), b, c);
+    expect(changeCount(edits)).toBe(2);
     const back = stepEdits(edits, c, -1)!;
-    expect(changeCount(back.doc, back.edits)).toBe(1);
+    expect(changeCount(back.edits)).toBe(1);
     // undo past the saved version (saved after B, then two undos) still counts
-    const saved = { ...edits, saved: b };
-    expect(changeCount(c, saved)).toBe(1);
+    const saved = { ...edits, saved: 1 };
+    expect(changeCount(saved)).toBe(1);
     const undone = stepEdits(stepEdits(saved, c, -1)!.edits, b, -1)!;
-    expect(changeCount(undone.doc, undone.edits)).toBe(1);
+    expect(changeCount(undone.edits)).toBe(1);
   });
 });

@@ -6,39 +6,98 @@ const LIMIT = 200;
 /** The loaded file: its records (replaced, never changed in place, by edits) and line ending. */
 export interface Doc { records: GedNode[]; eol: string }
 
-/** Edit history; `saved` is the version last loaded or downloaded. */
-export interface Edits { past: Doc[]; future: Doc[]; saved: Doc | null }
+/** Records `remove`d at position `at` of the record list before the edit and `insert`ed in their place. */
+export interface Splice { at: number; remove: GedNode[]; insert: GedNode[] }
 
-export const NO_EDITS: Edits = { past: [], future: [], saved: null };
+/** One edit: its splices in ascending order of `at` (positions as in the list before the edit). Undo is the same splices backwards. */
+export type Op = Splice[];
 
-/** A fresh history for a file just loaded. */
-export const startEdits = (doc: Doc): Edits => ({ past: [], future: [], saved: doc });
+/**
+ * Edit history as a log: the file as it was opened plus the edits made to it, so the log alone (small, it
+ * holds only the changed records) is enough to keep the history over a reload.
+ * `at` is how many edits are applied, `saved` the `at` of the version last downloaded
+ * (null when that version was dropped from the log by a new edit after undo).
+ */
+export interface Edits { base: Doc | null; ops: Op[]; at: number; saved: number | null }
 
-/** Whether the file differs from the version last loaded or downloaded. */
-export const isDirty = (doc: Doc | null, edits: Edits) => !!doc && doc !== edits.saved;
+export const NO_EDITS: Edits = { base: null, ops: [], at: 0, saved: null };
 
-/** How many edit steps separate the file from the version last loaded or downloaded (0 when clean). Undo past the saved version counts too. */
-export function changeCount(doc: Doc | null, edits: Edits): number {
-  if (!isDirty(doc, edits)) return 0;
-  const back = edits.past.lastIndexOf(edits.saved!);
-  if (back >= 0) return edits.past.length - back;
-  const ahead = edits.future.indexOf(edits.saved!);
-  // the saved version fell out of the kept history: at least all the steps still known
-  return ahead >= 0 ? ahead + 1 : Math.max(1, edits.past.length);
+/** A fresh log for a file just opened. */
+export const startEdits = (doc: Doc): Edits => ({ base: doc, ops: [], at: 0, saved: 0 });
+
+/** Whether the file differs from the version last opened or downloaded. */
+export const isDirty = (edits: Edits) => !!edits.base && edits.at !== edits.saved;
+
+/** How many edit steps separate the file from the version last opened or downloaded (0 when clean). Undo past the saved version counts too. */
+export const changeCount = (edits: Edits) =>
+  !isDirty(edits) ? 0 : edits.saved === null ? Math.max(1, edits.at) : Math.abs(edits.at - edits.saved);
+
+export const canUndo = (edits: Edits) => edits.at > 0;
+export const canRedo = (edits: Edits) => edits.at < edits.ops.length;
+
+/** The splices turning record list `a` into `b` (none when they are the same lists of the same records). */
+export function diffRecords(a: GedNode[], b: GedNode[]): Op {
+  const ops: Op = [];
+  if (a.length === b.length) {
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] === b[i]) continue;
+      let j = i;
+      while (j < a.length && a[j] !== b[j]) j++;
+      ops.push({ at: i, remove: a.slice(i, j), insert: b.slice(i, j) });
+      i = j;
+    }
+    return ops;
+  }
+  let head = 0;
+  while (head < a.length && head < b.length && a[head] === b[head]) head++;
+  let tail = 0;
+  while (tail < a.length - head && tail < b.length - head && a[a.length - 1 - tail] === b[b.length - 1 - tail]) tail++;
+  return [{ at: head, remove: a.slice(head, a.length - tail), insert: b.slice(head, b.length - tail) }];
 }
 
-/** The history after `current` was replaced by a new version: one step of undo, nothing to redo. */
-export const edited = (edits: Edits, current: Doc): Edits =>
-  ({ ...edits, past: [...edits.past, current].slice(-LIMIT), future: [] });
-
-/** One step back or forward from `current`: the document to show and the history after the step. */
-export function stepEdits(edits: Edits, current: Doc, step: -1 | 1): { doc: Doc; edits: Edits } | null {
-  if (step < 0) {
-    const doc = edits.past[edits.past.length - 1];
-    return doc ? { doc, edits: { ...edits, past: edits.past.slice(0, -1), future: [current, ...edits.future] } } : null;
+/** The record list after an edit (or, with `back`, before it); throws when the log does not fit the records. */
+export function applyOp(records: GedNode[], op: Op, back = false): GedNode[] {
+  const out = records.slice();
+  const shifts: number[] = [];
+  let shift = 0;
+  for (const s of op) { shifts.push(shift); shift += s.insert.length - s.remove.length; }
+  for (let k = op.length - 1; k >= 0; k--) {
+    const s = op[k];
+    const [gone, put] = back ? [s.insert, s.remove] : [s.remove, s.insert];
+    const at = back ? s.at + shifts[k] : s.at;
+    if (at < 0 || at + gone.length > out.length) throw new Error("edit log does not fit the file");
+    out.splice(at, gone.length, ...put);
   }
-  const doc = edits.future[0];
-  return doc ? { doc, edits: { ...edits, past: [...edits.past, current], future: edits.future.slice(1) } } : null;
+  return out;
+}
+
+/** The log after `current` was replaced by `next`: one step of undo, nothing to redo. */
+export function edited(edits: Edits, current: Doc, next: Doc): Edits {
+  const op = diffRecords(current.records, next.records);
+  if (!op.length) return edits;
+  const saved = edits.saved !== null && edits.saved <= edits.at ? edits.saved : null;
+  return { ...edits, ops: [...edits.ops.slice(0, edits.at), op], at: edits.at + 1, saved };
+}
+
+/** The file with the log applied up to `at` edits. */
+export function replay(edits: Edits, at = edits.at): Doc {
+  let records = edits.base!.records;
+  for (const op of edits.ops.slice(0, at)) records = applyOp(records, op);
+  return { ...edits.base!, records };
+}
+
+/** One step back or forward from `current`: the document to show and the log after the step. */
+export function stepEdits(edits: Edits, current: Doc, step: -1 | 1): { doc: Doc; edits: Edits } | null {
+  const op = edits.ops[step < 0 ? edits.at - 1 : edits.at];
+  if (!op) return null;
+  return { doc: { ...current, records: applyOp(current.records, op, step < 0) }, edits: { ...edits, at: edits.at + step } };
+}
+
+/** Back to the version last downloaded, or to the file as opened when that is gone; the edits after it are dropped. */
+export function discardUnsaved(edits: Edits): { doc: Doc; edits: Edits } {
+  const at = edits.saved !== null && edits.saved <= edits.ops.length ? edits.saved : 0;
+  const log = { ...edits, ops: edits.ops.slice(0, at), at, saved: at };
+  return { doc: replay(log), edits: log };
 }
 
 /** A document with some of its records replaced (by ID); the same document when nothing is given. */
