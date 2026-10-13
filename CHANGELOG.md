@@ -7,7 +7,7 @@
   file is loaded the list of people with the search box opens as before; the icon of the open panel is highlighted and
   a second click closes it. The tiles for
   problems and the oldest ancestor still open the file check and make that person the root of the chart.
-- The two save buttons in the top bar look alike: GED (the edited file) and PDF, both with an icon and a label.
+- The two save buttons in the top bar look alike: GED (the edited file) and PDF, both flat like the other icons of the bar, with an icon and a label.
 
 ## 1.18.0 – 2026-10-13
 
