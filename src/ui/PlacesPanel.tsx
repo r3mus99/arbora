@@ -20,13 +20,6 @@ export function PlacesPanel({ places, data, onPerson, t }: Props) {
   const [open, setOpen] = useState<string | null>(null);
   const q = fold(query.trim());
   const shown = useMemo(() => places.filter((p) => !q || fold(p.name).includes(q)), [places, q]);
-  // the house number of each person at the open place
-  const houses = useMemo(() => {
-    const out: Record<string, string> = {};
-    const entry = places.find((p) => p.name === open);
-    if (entry) for (const [house, ids] of entry.houses) for (const id of ids) out[id] = out[id] ? `${out[id]}, ${house}` : house;
-    return out;
-  }, [places, open]);
 
   return (
     <section className="panel-col sp" aria-label={t("places")}>
@@ -47,7 +40,7 @@ export function PlacesPanel({ places, data, onPerson, t }: Props) {
                   <span className="sp-sub">{t("srcPeople", { n: p.people.length })} · {t("placeEvents", { n: p.events })}</span>
                 </span>
               </button>
-              {open === p.name && <div className="sp-more"><People ids={p.people} data={data} onPerson={onPerson} t={t} notes={houses} /></div>}
+              {open === p.name && <div className="sp-more"><People ids={p.people} data={data} onPerson={onPerson} t={t} /></div>}
             </li>
           ))}
           {!shown.length && <li className="sp-none">{t("srcNothing")}</li>}

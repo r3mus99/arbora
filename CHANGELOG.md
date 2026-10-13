@@ -3,9 +3,9 @@
 ## 1.23.0 – 2026-10-13
 
 - New tool in the tool bar: **Places** (map pin icon). It opens a panel next to the bar with every place of the file,
-  the number of people and events that use it, and a filter box. House numbers do not split a place ("Dolná 22,
-  Okres" and "Dolná 7, Okres" are one entry). A click on a place shows the people connected to it (with their house
-  number), and a click on a person opens them. Read-only; no map yet.
+  the number of people and events that use it, and a filter box. Village and house number stay together: "Dolná 22,
+  Okres" and "Dolná 7, Okres" are two places. A click on a place shows the people connected to it, and a click on a
+  person opens them. Read-only; no map yet.
 
 ## 1.22.3 – 2026-10-13
 
