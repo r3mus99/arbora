@@ -106,6 +106,7 @@ All controls are `--ctl-h` high, `--radius`, 14px text, 1px `--border`, no shado
 | Input, select, textarea | `--ctl-h` (textarea auto), `--bg` fill, 1px `--border`, `--radius`, padding `0 10px`. Focus: 3px `--focus` outline offset 1px; the same for every focusable element. The editor must use the same fields (no 12px radius, 15px text). |
 | Checkbox / radio | 16px, `accent-color: var(--accent)`, label 14px. |
 | Chip / count badge | `--ctl-h-sm`, pill, 12px. Picked: accent border + `--accent-soft`. |
+| Notification badge (`.badge`) | iOS-style counter on the corner of an icon or button in the top bar and rail: `--warn` pill, white 12px bold number, 17px high, 2px ring in `--bg`, pinned to the top-right corner (`top -4px, right -6px`) so it never changes the layout. Hidden at 0, "99+" above 99. Used for the number of problems (check) and of unsaved changes (GED save button); its tooltip text describes the number ("unsaved changes: 3"). |
 | Tabs (vertical, in a wide panel) | rail-like rows: `--ctl-h`, `--radius`, active = `--accent-soft` + `--accent`. Count badge on the right. |
 | Link | `--accent`, underlined on hover only, except inside long free text (sources) where it is always underlined. A link that is a person's name is `--text`, 600, underlined on hover. Links to other sites open in a new tab with `rel="noopener noreferrer"`. A text-looking button (`button.link`) looks exactly like a link. |
 

@@ -17,6 +17,16 @@ export const startEdits = (doc: Doc): Edits => ({ past: [], future: [], saved: d
 /** Whether the file differs from the version last loaded or downloaded. */
 export const isDirty = (doc: Doc | null, edits: Edits) => !!doc && doc !== edits.saved;
 
+/** How many edit steps separate the file from the version last loaded or downloaded (0 when clean). Undo past the saved version counts too. */
+export function changeCount(doc: Doc | null, edits: Edits): number {
+  if (!isDirty(doc, edits)) return 0;
+  const back = edits.past.lastIndexOf(edits.saved!);
+  if (back >= 0) return edits.past.length - back;
+  const ahead = edits.future.indexOf(edits.saved!);
+  // the saved version fell out of the kept history: at least all the steps still known
+  return ahead >= 0 ? ahead + 1 : Math.max(1, edits.past.length);
+}
+
 /** The history after `current` was replaced by a new version: one step of undo, nothing to redo. */
 export const edited = (edits: Edits, current: Doc): Edits =>
   ({ ...edits, past: [...edits.past, current].slice(-LIMIT), future: [] });

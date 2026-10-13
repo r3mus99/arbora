@@ -1,7 +1,7 @@
 :root {
   --bg: #f6f5f1; --panel: #ffffff; --text: #1d1f1c; --muted: #62675f;
   --border: #dcdad2; --accent: #2f6b4f; --accent-text: #ffffff; --accent-soft: #e3efe8;
-  --danger: #a3341f; --focus: #2f6b4f55; --warn: #b7791f; --warn-soft: #f3e3c3; --warn-text: #7a4f0e;
+  --danger: #a3341f; --focus: #2f6b4f55; --warn: #b7791f; --warn-soft: #f3e3c3; --warn-text: #7a4f0e; --warn-on: #fff;
   --sex-M: #3f6fa8; --sex-F: #b0507a; --star: #c58a12;
   --c-bapt: #3b82c4; --c-res: #9a7b4f; --c-event: #7b6bb5; --c-child: #17a89c; --c-burial: #8a8f86;
   /* size tokens of the app frame, see docs/design-guidelines.md */
@@ -16,7 +16,7 @@
   :root:not([data-theme="light"]) {
     --bg: #151714; --panel: #1f221e; --text: #e8eae4; --muted: #a0a69b;
     --border: #363a33; --accent: #6fbf95; --accent-text: #0f1a14; --accent-soft: #24352b;
-    --danger: #f08a73; --focus: #6fbf9566; --warn: #d9a441; --warn-soft: #4a3a1c; --warn-text: #f1cf8a;
+    --danger: #f08a73; --focus: #6fbf9566; --warn: #d9a441; --warn-soft: #4a3a1c; --warn-text: #f1cf8a; --warn-on: #1b1b1b;
     --sex-M: #7aa3d6; --sex-F: #d98aae; --star: #e0b04a;
     --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --c-src: #8fb0cc; --zebra: #ffffff05;
     color-scheme: dark;
@@ -25,7 +25,7 @@
 :root[data-theme="dark"] {
   --bg: #151714; --panel: #1f221e; --text: #e8eae4; --muted: #a0a69b;
   --border: #363a33; --accent: #6fbf95; --accent-text: #0f1a14; --accent-soft: #24352b;
-  --danger: #f08a73; --focus: #6fbf9566; --warn: #d9a441; --warn-soft: #4a3a1c; --warn-text: #f1cf8a;
+  --danger: #f08a73; --focus: #6fbf9566; --warn: #d9a441; --warn-soft: #4a3a1c; --warn-text: #f1cf8a; --warn-on: #1b1b1b;
     --sex-M: #7aa3d6; --sex-F: #d98aae; --star: #e0b04a;
   --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --c-src: #8fb0cc; --zebra: #ffffff05;
   color-scheme: dark;
@@ -418,12 +418,9 @@ button.link { display: inline; }
 .tools .icon-btn.on { background: var(--accent-soft); color: var(--accent); }
 .tools .sep { width: 1px; height: 22px; background: var(--border); margin: 0 4px; }
 .tools .save-btn { width: auto; padding: 0 12px; gap: 6px; display: inline-flex; align-items: center; font-weight: 600; color: var(--text); }
-.tools .save-btn .dot { top: 3px; right: 3px; }
-.tools .badge { position: absolute; top: -3px; right: -5px; min-width: 17px; height: 17px; padding: 0 4px;
-                border-radius: var(--radius); background: var(--warn); color: #fff; font-size: 12px; font-weight: 700;
+.tools .badge { position: absolute; top: -4px; right: -6px; pointer-events: none; font-variant-numeric: tabular-nums; min-width: 17px; height: 17px; padding: 0 4px;
+                border-radius: var(--radius-pill); background: var(--warn); color: var(--warn-on); box-shadow: 0 0 0 2px var(--bg); font-size: 12px; font-weight: 700;
                 line-height: 17px; text-align: center; }
-.tools .dot { position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; border-radius: 50%;
-              background: var(--warn); box-shadow: 0 0 0 2px var(--bg); }
 main.loaded .lang > button .lname { display: none; }
 /* file overview */
 .overview { font-size: 14px; }
