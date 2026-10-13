@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.13.0 – 2026-10-13
+
+- New layout on wide screens: the page uses the full width and has three columns. On the left is an
+  always-visible list of all people (sex, name, years), in the middle the tree, on the right the detail.
+  Each column scrolls on its own. Clicking a person in the list makes them the root of the chart, as the
+  search does. The list is hidden on narrow screens for now.
+
 ## 1.12.0 – 2026-10-12
 
 - Fixed: when a record is written anew after an edit, values that were not changed keep their line breaks

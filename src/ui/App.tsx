@@ -23,6 +23,7 @@ import { Overview } from "./Overview";
 import { PersonDetail } from "./PersonDetail";
 import { PersonEditor } from "./PersonEditor";
 import { PersonList } from "./PersonList";
+import { PersonRail } from "./PersonRail";
 import { SettingsDialog } from "./SettingsDialog";
 import { readStore, updateStore } from "./store";
 import { TreeView } from "./TreeView";
@@ -488,6 +489,9 @@ export function App() {
           </div>
           <p className="note tree-hint">{t("treeHint")}</p>
           <div className="viewer">
+            <aside className="rail-wrap" aria-label={t("thName")}>
+              <PersonRail people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey} onSelect={pick} />
+            </aside>
             <TreeView rows={shown} focusId={focusId} scrollKey={treeScroll} scrollTo={jumpRow}
                       numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
                       onFocus={(id) => focus(id, false)} onToggle={toggle}
