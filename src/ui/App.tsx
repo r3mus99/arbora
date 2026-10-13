@@ -407,10 +407,11 @@ export function App() {
                     title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
             <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
                     title={`${t("redo")} (Ctrl+Y)`} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
-            <button type="button" className={dirty ? "icon-btn dirty" : "icon-btn"} onClick={downloadGedcom}
+            <button type="button" className="primary pdf-btn" onClick={downloadGedcom}
                     title={`${t("exportGed")}${dirty ? ` (${t("unsaved")})` : ""}. ${t("exportTip")}`}
                     aria-label={dirty ? `${t("exportGed")} (${t("unsaved")})` : t("exportGed")}>
-              <FileDown className="icon" aria-hidden="true" />{dirty && <span className="dot" />}</button>
+              <FileDown className="icon" aria-hidden="true" />
+              GED{dirty && <span className="dot" />}</button>
             <button type="button" className="primary pdf-btn" disabled={busy} onClick={() => create()} title={t("go")}
                     aria-label={t("go")}>
               {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
