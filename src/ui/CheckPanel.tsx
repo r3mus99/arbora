@@ -1,4 +1,4 @@
-import { CircleAlert, EyeOff, MapPin, ShieldCheck, Tag, TriangleAlert, WandSparkles, X } from "lucide-react";
+import { CircleAlert, EyeOff, MapPin, ShieldCheck, Tag, TriangleAlert, WandSparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { Issue } from "../core/check";
 import type { GedcomData } from "../core/gedcom";
@@ -14,7 +14,6 @@ interface Props {
   onFocus: (id: string) => void;
   /** repair one issue (only those marked fixable) */
   onFix: (issue: Issue) => void;
-  onClose: () => void;
   /** bulk fix: groups of spellings of one surname or place, and every spelling in the file */
   variants: Record<VariantKind, VariantGroup[]>;
   values: Record<VariantKind, string[]>;
@@ -34,7 +33,7 @@ const EVENT: Record<string, StringKey> = {
 const WHO = "\u0000who\u0000", OTHER = "\u0000other\u0000";
 
 /** The file check: problems found (people in them are links) and the bulk fix of spellings. */
-export function CheckPanel({ issues, data, onFocus, onFix, onClose, variants, values, hidden, onRename, onHide,
+export function CheckPanel({ issues, data, onFocus, onFix, variants, values, hidden, onRename, onHide,
                             keepAka, onKeepAka, t }: Props) {
   const shown = (kind: VariantKind) => variants[kind].filter((g) => !hidden.has(g.key));
   const hiddenGroups = (kind: VariantKind) => variants[kind].filter((g) => hidden.has(g.key));
@@ -81,15 +80,13 @@ export function CheckPanel({ issues, data, onFocus, onFix, onClose, variants, va
 
   return (
     <section className="check" aria-label={t("check")}>
-      <div className="check-head">
-        <div className="check-tabs" role="tablist">{tabs.map(([key, label, icon]) =>
-          <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? "on" : ""}
-                  onClick={() => setTab(key)}>
-            {icon}{t(label)}<span className={counts[key] ? "n" : "n zero"}>{counts[key]}</span></button>)}
-        </div>
-        <button type="button" className="icon-btn" onClick={onClose} title={t("cancel")} aria-label={t("cancel")}>
-          <X className="icon" aria-hidden="true" /></button>
+      <div className="check-head"><h2>{t("check")}</h2></div>
+      <div className="check-tabs" role="tablist" aria-orientation="vertical">{tabs.map(([key, label, icon]) =>
+        <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? "on" : ""}
+                onClick={() => setTab(key)}>
+          {icon}{t(label)}<span className={counts[key] ? "n" : "n zero"}>{counts[key]}</span></button>)}
       </div>
+      <div className="check-body">
       {(tab === "surname" || tab === "place") &&
         <Variants kind={tab} groups={shown(tab)} values={values[tab]} hidden={false} {...common} />}
       {tab === "hidden" && (counts.hidden === 0 ? <p className="hint">{t("noVariants")}</p>
@@ -105,6 +102,7 @@ export function CheckPanel({ issues, data, onFocus, onFix, onClose, variants, va
             <WandSparkles className="icon" aria-hidden="true" /></button>}
         </li>)}</ul>
       </>)}
+      </div>
     </section>
   );
 }
