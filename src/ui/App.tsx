@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
-import { ArrowDownFromLine, ArrowLeft, ArrowRight, ArrowUpFromLine, FileDown, FileText, FileUp, LayoutDashboard,
+import { FileDown, FileText, FileUp, LayoutDashboard,
          Loader2, Redo2, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
-import { fmt, type ChartKind } from "../core/format";
+import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
 import { checkGedcom, fixIssue } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { overview } from "../core/stats";
-import { TEXTS, type Lang } from "../core/texts";
+import { type Lang } from "../core/texts";
 import { renameVariants, spellings, variantGroups, type VariantKind } from "../core/variants";
 import { NO_BROWSING, NO_EDITS, edited, isDirty, move as moveIn, startEdits, stepEdits, visit, withRecords, type Browsing, type Doc, type Place } from "./history";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
@@ -330,7 +330,6 @@ export function App() {
     if (place.root === chosen?.id) showPerson(place.focus);
     setTreeScroll((k) => k + 1);
   };
-  const canBack = hist.at > 0, canForward = hist.at < hist.list.length - 1;
   // Alt + arrow, as in the browser; Ctrl+Z / Ctrl+Y. An effect event always sees the current state.
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     // Ctrl+Z / Ctrl+Y undo the edits, except in a text field, where they undo typing
@@ -375,12 +374,16 @@ export function App() {
     return () => { ro.disconnect(); root.removeProperty("--bar-h"); };
   }, []);
 
+  // generations shown in the chart and the PDF; a value set earlier outside the usual choices stays as an extra button
+  const gens = Math.max(0, Math.round(Number(form.generations) || 0));
+  const gensChoices = [3, 4, 5, 0].includes(gens) ? [3, 4, 5, 0] : [3, 4, 5, gens, 0].sort((a, b) => (a || 1e9) - (b || 1e9));
+  // tooltip: which generations the choice shows, e.g. 3 = children and grandchildren
+  const gensTip = (n: number) => !n ? t("genTipAll")
+    : n >= 3 && n <= 5 ? t(`${desc ? "tipD" : "tipA"}${n}` as StringKey) : `${t("generations")} ${n}`;
   const pick = (id: string) => {
     select(id);
     setQuery("");
   };
-  const chartTitle = chosen
-    ? fmt(TEXTS[lang][desc ? "titleDesc" : "title"], { name: chosen.name || "?" }) : "";
 
   return (
     <main className={data ? "loaded" : undefined}>
@@ -453,39 +456,37 @@ export function App() {
       </section>}
 
       {data && chosen && <>
-        <div className="seg" role="radiogroup">
-          <label><input type="radio" name="chart" value="ancestors" checked={form.chart === "ancestors"}
-                        onChange={() => setOpt("chart", "ancestors")} />
-            <span><ArrowUpFromLine className="icon" aria-hidden="true" />
-              <span><b>{t("anc")}</b><small>{t("ancDesc1")}<br />{t("ancDesc2")}</small></span></span></label>
-          <label><input type="radio" name="chart" value="descendants" checked={desc}
-                        onChange={() => setOpt("chart", "descendants")} />
-            <span><ArrowDownFromLine className="icon" aria-hidden="true" />
-              <span><b>{t("desc")}</b><small>{t("descDesc1")}<br />{t("descDesc2")}</small></span></span></label>
-        </div>
-
         <section className="panel chart">
-          <div className="chart-head">
-            <div className="nav">
-              <button type="button" className="icon-btn" disabled={!canBack} onClick={() => move(-1)}
-                      title={`${t("back")} (Alt+←)`} aria-label={t("back")}>
-                <ArrowLeft className="icon" aria-hidden="true" /></button>
-              <button type="button" className="icon-btn" disabled={!canForward} onClick={() => move(1)}
-                      title={`${t("forward")} (Alt+→)`} aria-label={t("forward")}>
-                <ArrowRight className="icon" aria-hidden="true" /></button>
-              <h2>{chartTitle}</h2>
-            </div>
-          </div>
-          <p className="note tree-hint">{t("treeHint")}</p>
           <div className="viewer">
             <aside className="rail-wrap" aria-label={t("thName")}>
               <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
                           query={query} onQuery={setQuery} onSelect={pick} t={t} />
             </aside>
-            <TreeView rows={shown} focusId={focusId} scrollKey={treeScroll} scrollTo={jumpRow}
-                      numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
-                      onFocus={(id) => focus(id, false)} onToggle={toggle}
-                      onJump={(r) => jump(r.targetIndex)} t={t} />
+            <div className="mid">
+              <div className="chart-bar">
+                <div className="chart-switch" role="radiogroup">
+                  <label title={`${t("ancDesc1")}, ${t("ancDesc2")}`}>
+                    <input type="radio" name="chart" value="ancestors" checked={form.chart === "ancestors"}
+                           onChange={() => setOpt("chart", "ancestors")} /><span>{t("anc")}</span></label>
+                  <label title={`${t("descDesc1")}, ${t("descDesc2")}`}>
+                    <input type="radio" name="chart" value="descendants" checked={desc}
+                           onChange={() => setOpt("chart", "descendants")} /><span>{t("desc")}</span></label>
+                </div>
+                <div className="gens" role="group" aria-label={t("generations")}>
+                  <span>{t("generations")}</span>
+                  <div className="chart-switch">
+                    {gensChoices.map((n) => (
+                      <button key={n} type="button" title={gensTip(n)} aria-label={gensTip(n)} aria-pressed={gens === n} className={gens === n ? "on" : undefined}
+                              onClick={() => setOpt("generations", String(n))}>{n || t("allGens")}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <TreeView rows={shown} focusId={focusId} scrollKey={treeScroll} scrollTo={jumpRow}
+                        numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
+                        onFocus={(id) => focus(id, false)} onToggle={toggle}
+                        onJump={(r) => jump(r.targetIndex)} t={t} />
+            </div>
             {focusId && <PersonDetail data={data} id={focusId} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot}
                                       onEdit={() => setEditId(focusId)} onCancelEdit={() => setEditId(null)} t={t}

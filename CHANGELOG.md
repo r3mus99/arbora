@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.14.0 – 2026-10-13
+
+- The Ancestors / Descendants choice is now a compact switch above the tree. The two large cards, the
+  back and forward arrows, the chart title and the line of hints above the tree are gone to save space.
+  Alt+Left and Alt+Right still walk through the history.
+- The search box says what it finds: name, place, year.
+- The number of generations moved from the settings to a switch (3, 4, 5, all; all by default) next to the
+  Ancestors/Descendants switch. It still applies to both the chart on screen and the PDF. A value set
+  earlier (for example 7) stays available as an extra button. Each button has a tooltip, for example
+  "children and grandchildren" for 3 generations of descendants.
+
 ## 1.13.0 – 2026-10-13
 
 - New layout on wide screens: the page uses the full width and has three columns. On the left is an

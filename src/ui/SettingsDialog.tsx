@@ -56,8 +56,6 @@ export function SettingsDialog({ ref, form, lang, onChange, t }: Props) {
             <option value="father">{t("marrFather")}</option><option value="both">{t("marrBoth")}</option>
             <option value="none">{t("marrNone")}</option>
           </select></label>}
-        <label><span>{t("generations")}</span>
-          <input type="number" min="0" max="99" step="1" {...sel("generations")} /></label>
       </div>
       {desc && <div className="checks">
         <label><input {...check("showSpouses")} /> <span>{t("showSpouses")}</span></label>
