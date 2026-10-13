@@ -10,7 +10,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ TOP BAR   Arbora · open file │ undo redo │ save GED · PDF │ settings │ language │
+│ TOP BAR   Arbora · open file │ undo redo │ save GED · PDF │ language │
 ├──┬───────────────┬───────────────────────────────────────────┬───────────────┤
 │R │ MINI-APP      │  MAIN COMPONENT                           │  PERSON       │
 │A │ PANEL         │  tree view                                │  DETAIL       │
@@ -19,7 +19,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 └──┴───────────────┴───────────────────────────────────────────┴───────────────┘
 ```
 
-- **Top bar** (the first row of the frame, `--head-h` high, one line under it across the frame; global, not about one person): app name, the open file, undo / redo, save GED, save PDF, settings,
+- **Top bar** (the first row of the frame, `--head-h` high, one line under it across the frame; global, not about one person): app name, the open file, undo / redo, save GED, save PDF,
   language. Order is fixed: identity, file, history, output, preferences. Anything that changes the whole document
   or the app belongs here.
 - **Rail** (left, icon column): one icon per mini-app. Opens and closes the mini-app panel.
@@ -81,7 +81,7 @@ No other radius, height or padding number is used for a control. Dialogs use `--
 - Colour: `currentColor`; muted when idle, accent when active, event colour on timeline rows. An icon never
   has its own background circle except in the overview tile.
 - One meaning, one icon: Search = find a person, LayoutDashboard = overview, ShieldCheck / ShieldAlert = file check,
-  Settings = settings, FileDown = save GED, FileText = save PDF, Undo2 / Redo2 = history, X = close or remove,
+  SlidersHorizontal = settings (tool bar), FileDown = save GED, FileText = save PDF, Undo2 / Redo2 = history, X = close or remove,
   MapPin = place. Do not reuse an icon for a different meaning (the old file-check wand and the overview's
   shield must not be mixed).
 - Icon-only buttons always have `title` (tooltip) and `aria-label` with the same text, and a shortcut in the title when there is one.

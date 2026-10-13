@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.22.0 – 2026-10-13
+
+- The chart and PDF settings moved from a dialog to the tool bar: a sliders icon opens them in the left panel, and
+  the chart changes while you change a setting. The settings button of the top bar is gone.
+
 ## 1.21.0 – 2026-10-13
 
 - New tool in the tool bar: **Sources and notes** (book icon). It opens a panel next to the bar with every source of
