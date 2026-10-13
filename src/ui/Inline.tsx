@@ -62,3 +62,16 @@ export function InlineName({ given, surname, label, givenLabel, surnameLabel, gi
     {children}
   </Inline>;
 }
+
+/** One text value (a date, a place) edited in place; `value` is what the field starts with, `children` how it is shown. */
+export function InlineText({ value, label, list, onCommit, children }: {
+  value: string; label: string; list?: string; onCommit: (value: string) => void; children: ReactNode;
+}) {
+  const [v, setV] = useState(value);
+  useEffect(() => setV(value), [value]);
+  return <Inline label={label} onClose={(ok) => { if (ok) onCommit(v); else setV(value); }}
+                 edit={() => <input type="text" value={v} list={list} aria-label={label} size={Math.max(v.length, 4)}
+                                    onChange={(e) => setV(e.target.value)} />}>
+    {children}
+  </Inline>;
+}

@@ -34,6 +34,8 @@ export interface TimelineItem {
   detail?: string;
   /** the GEDCOM line of a residence or custom event, to read its sources and notes from */
   node?: GedNode;
+  /** a family event (divorce, custom): the xref of the family record whose line `node` is */
+  family?: string;
 }
 
 export interface EventDetail { key: "age" | "cause" | "agency" | "address"; value: string }
@@ -148,6 +150,7 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
         const at = placeCoords(node, family);
         if (at) item.coords = at;
         item.node = node;
+        item.family = fid;
       });
     }
     for (const c of fam.children) {
