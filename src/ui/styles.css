@@ -401,6 +401,10 @@ button.link { display: inline; }
 .frame-bar .status { flex: 1; min-width: 0; font-size: 12px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .frame-bar .head-tools { margin-left: auto; }
 .frame-bar .status + .head-tools { margin-left: 0; }
+/* notice strip under the frame bar: a message, one text button, a dismiss X */
+.notice { display: flex; align-items: center; gap: 8px; padding: 6px var(--pad); font-size: 13px; background: var(--warn-soft);
+          color: var(--warn-text); border-bottom: 1px solid var(--border); }
+.notice span { flex: 1; min-width: 0; }
 /* welcome screen: one centred column in the frame */
 .welcome { flex: 1; min-height: 0; overflow-y: auto; display: grid; place-items: center; padding: var(--pad); }
 .welcome-in { width: min(520px, 100%); display: flex; flex-direction: column; align-items: stretch; gap: 12px; }

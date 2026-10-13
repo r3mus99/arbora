@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.29.0 – 2026-10-13
+
+- **Unsaved edits survive a reload.** The browser now keeps, beside the opened file, a small log of your edits (only
+  the changed records). After a refresh the edits come back, the **GED** badge shows the real number of unsaved
+  changes again, and **Undo / Redo keep working** through the whole history. A strip under the top bar says so and
+  offers *Discard them* (back to the version last downloaded) or a dismiss X. Still only in this browser.
+- The undo history is now this log instead of copies of the file, so it is not limited to 200 steps.
+- Downloading **GED** makes the downloaded file the new remembered original and **drops the old edit log**, so the
+  browser never piles up logs. Undo starts again from the saved version.
+
 ## 1.28.0 – 2026-10-13
 
 - **Inline editing in the person detail**, first step: click the **name** (given name and surname in two fields, with

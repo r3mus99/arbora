@@ -2,7 +2,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileUp, LayoutDashboard,
-         Loader2, BookMarked, History, Trash2, Clock, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, BookMarked, History, Trash2, Clock, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -15,7 +15,7 @@ import { placeOverview } from "../core/placelist";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
 import { renameVariants, spellings, variantGroups, type VariantKind } from "../core/variants";
-import { NO_BROWSING, NO_EDITS, edited, changeCount, isDirty, move as moveIn, startEdits, stepEdits, visit, withRecords, type Browsing, type Doc, type Place } from "./history";
+import { NO_BROWSING, NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move as moveIn, replay, startEdits, stepEdits, visit, withRecords, type Browsing, type Doc, type Edits, type Op, type Place } from "./history";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { storedOptions, toForm, toOptions, withOption, type Form } from "./options";
 import { CheckPanel } from "./CheckPanel";
@@ -31,7 +31,7 @@ import { PersonDetail } from "./PersonDetail";
 import { PersonEditor } from "./PersonEditor";
 import { PersonRail } from "./PersonRail";
 import { SettingsPanel } from "./SettingsPanel";
-import { forgetFile, recallFile, rememberFile } from "./lastFile";
+import { clearLog, fingerprint, forgetFile, recallFile, recallLog, rememberFile, saveLog, type EditLog } from "./lastFile";
 import { readStore, updateStore } from "./store";
 import { TreeView } from "./TreeView";
 
@@ -42,6 +42,9 @@ interface Status { key: StringKey; vars: Vars; err: boolean }
 /** collapsed branches of one chart (`key`) */
 interface Folding { key: string; paths: ReadonlySet<string> }
 const NO_PATHS: ReadonlySet<string> = new Set();
+
+/** The edit log as it is kept in the browser. */
+const logOf = (e: Edits, of: string): EditLog => ({ of, ops: e.ops, at: e.at, saved: e.saved });
 
 /** Hand a file to the browser as a download. */
 function saveFile(blob: Blob, name: string) {
@@ -72,6 +75,9 @@ export function App() {
   const [form, setForm] = useState<Form>(() => toForm(storedOptions(readStore().options)));
   const [doc, setDoc] = useState<Doc | null>(null);
   const [edits, setEdits] = useState(NO_EDITS);
+  // fingerprint of the file as opened (the edit log kept in the browser belongs to it) and the edits restored after a reload, not yet dismissed
+  const [origin, setOrigin] = useState<string | null>(null);
+  const [restored, setRestored] = useState(0);
   const data = useMemo(() => (doc ? readRecords(doc.records) : null), [doc]);
   // person whose facts are being edited in the detail panel
   const [editId, setEditId] = useState<string | null>(null);
@@ -178,7 +184,7 @@ export function App() {
   }
 
   // ------------------------------------------------------------ loading
-  function loadBytes(bytes: ArrayBuffer, name: string | null, keep = true) {
+  function loadBytes(bytes: ArrayBuffer, name: string | null, keep = true, log: EditLog | null = null) {
     let parsed: GedcomData, next: Doc;
     try {
       const text = decode(bytes);
@@ -193,8 +199,18 @@ export function App() {
       return;
     }
     if (keep) void rememberFile(name, bytes).then((ok) => setLast(ok ? { name } : null));
-    setDoc(next);
-    setEdits(startEdits(next));
+    let shown = next, history = startEdits(next);
+    if (log) {
+      try {
+        const kept: Edits = { base: next, ops: log.ops as Op[], at: log.at, saved: log.saved };
+        shown = replay(kept);
+        history = kept;
+      } catch { void clearLog(); /* a log that does not fit the file is dropped */ }
+    }
+    setDoc(shown);
+    setEdits(history);
+    setOrigin(fingerprint(bytes));
+    setRestored(isDirty(history) ? changeCount(history) : 0);
     setEditId(null);
     setTool("people");
     setLoadedName(name);
@@ -215,8 +231,8 @@ export function App() {
     import("../core/pdf").catch(() => { /* retried when the PDF is made */ });
   }
 
-  const dirty = isDirty(doc, edits);
-  const changes = changeCount(doc, edits);
+  const dirty = isDirty(edits);
+  const changes = changeCount(edits);
   const unsavedText = `${t("unsaved")}: ${changes}`;
   const keepEdits = () => !dirty || confirm(t("discard"));
 
@@ -227,9 +243,10 @@ export function App() {
   // the last opened file opens again when the page starts
   useEffect(() => {
     let live = true;
-    void recallFile().then((f) => {
+    void recallFile().then(async (f) => {
+      const log = f ? await recallLog(f) : null;
       if (!live) return;
-      if (f) { setLast({ name: f.name }); loadBytes(f.bytes, f.name, false); }
+      if (f) { setLast({ name: f.name }); loadBytes(f.bytes, f.name, false, log); }
       setRestoring(false);
     });
     return () => { live = false; };
@@ -239,8 +256,11 @@ export function App() {
   /** back to the welcome screen; the remembered file stays */
   const goHome = () => {
     if (!doc || !keepEdits()) return;
+    // unsaved edits are dropped, the version last downloaded stays
+    if (origin && edits.base) void saveLog(logOf(discardUnsaved(edits).edits, origin));
     setDoc(null);
     setEdits(NO_EDITS);
+    setRestored(0);
     setEditId(null);
     setFocusId(null);
     setSelectedId(null);
@@ -251,7 +271,7 @@ export function App() {
 
   const resume = async () => {
     const f = await recallFile();
-    if (f) loadBytes(f.bytes, f.name, false); else setLast(null);
+    if (f) loadBytes(f.bytes, f.name, false, await recallLog(f)); else setLast(null);
   };
 
   const forget = () => { setLast(null); void forgetFile(); };
@@ -307,15 +327,17 @@ export function App() {
   const commit = (changed: GedNode[]) => {
     setEditId(null);
     if (!doc || !changed.length) return;
-    setEdits(edited(edits, doc));
-    setDoc(withRecords(doc, changed));
+    const next = withRecords(doc, changed);
+    setEdits(edited(edits, doc, next));
+    setDoc(next);
     resetResult();
   };
   /** the whole record list changed at once, as one undo step */
   const replaceRecords = (records: GedNode[]) => {
     if (!doc || records === doc.records) return;
-    setEdits(edited(edits, doc));
-    setDoc({ ...doc, records });
+    const next = { ...doc, records };
+    setEdits(edited(edits, doc, next));
+    setDoc(next);
     resetResult();
   };
   const undoRedo = (step: -1 | 1) => {
@@ -332,10 +354,43 @@ export function App() {
     if (!doc) return;
     const text = writeGedcom(doc.records, doc.eol, { version, date: new Date() });
     saveFile(new Blob([text], { type: "text/plain;charset=utf-8" }), gedName);
-    // the saved file is also what the browser remembers (the Blob above is UTF-8 too)
-    void rememberFile(loadedName, new TextEncoder().encode(text).buffer as ArrayBuffer).then((ok) => setLast(ok ? { name: loadedName } : null));
-    setEdits({ ...edits, saved: doc });
+    // the saved file becomes what the browser remembers (the Blob above is UTF-8 too); the old edit log is dropped with the old original,
+    // so undo starts again from the saved version
+    const bytes = new TextEncoder().encode(text).buffer as ArrayBuffer;
+    void rememberFile(loadedName, bytes).then((ok) => setLast(ok ? { name: loadedName } : null));
+    setOrigin(fingerprint(bytes));
+    setEdits(startEdits(doc));
+    setRestored(0);
   };
+
+  /** the edits restored after a reload are dropped: back to the version last downloaded */
+  const discardRestored = () => {
+    if (!confirm(t("discard"))) return;
+    const back = discardUnsaved(edits);
+    setDoc(back.doc);
+    setEdits(back.edits);
+    setEditId(null);
+    setRestored(0);
+    resetResult();
+  };
+
+  // the edit log is kept in the browser shortly after each change, so a reload does not lose the edits and their undo steps
+  const kept = useRef<{ log: EditLog | null }>({ log: null });
+  useEffect(() => {
+    if (!origin || !edits.base || restoring) return;
+    const log = logOf(edits, origin);
+    kept.current.log = log;
+    const timer = setTimeout(() => { kept.current.log = null; void saveLog(log); }, 1000);
+    return () => clearTimeout(timer);
+  }, [edits, origin, restoring]);
+  useEffect(() => {
+    // leaving the page does not wait for the timer
+    const flush = () => { const l = kept.current.log; if (l) { kept.current.log = null; void saveLog(l); } };
+    const onHide = () => { if (document.visibilityState === "hidden") flush(); };
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", flush);
+    return () => { document.removeEventListener("visibilitychange", onHide); window.removeEventListener("pagehide", flush); };
+  }, []);
 
   useEffect(() => {
     if (!dirty) return;
@@ -485,9 +540,9 @@ export function App() {
           {data && statusText && <span className={status?.err ? "status err" : "status"} role="status">{statusText}</span>}
           <div className="head-tools">
             {data && <div className="tools" role="toolbar">
-              <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
+              <button type="button" className="icon-btn" disabled={!canUndo(edits)} onClick={() => undoRedo(-1)}
                       title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
-              <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
+              <button type="button" className="icon-btn" disabled={!canRedo(edits)} onClick={() => undoRedo(1)}
                       title={`${t("redo")} (Ctrl+Y)`} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn save-btn" onClick={downloadGedcom}
                       title={`${t("exportGed")}${dirty ? ` (${unsavedText})` : ""}. ${t("exportTip")}`}
@@ -509,6 +564,12 @@ export function App() {
             <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
           </div>
         </header>
+        {data && dirty && restored > 0 && <div className="notice" role="status">
+          <span>{t("restored", { n: restored })}</span>
+          <button type="button" onClick={discardRestored}>{t("restoredDiscard")}</button>
+          <button type="button" className="icon-btn" onClick={() => setRestored(0)} title={t("dismiss")} aria-label={t("dismiss")}>
+            <X className="icon" aria-hidden="true" /></button>
+        </div>}
         {!data && !restoring && <div className="welcome">
           <div className="welcome-in">
             <p className="lead">{t("lead")}</p>
