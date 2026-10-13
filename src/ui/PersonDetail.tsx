@@ -1,6 +1,6 @@
 import {
   Award, Baby, Briefcase, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
-  StickyNote, Star, Tag, Users, Venus, type LucideIcon,
+  StickyNote, Star, CalendarDays, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { personFields, type EventFields } from "../core/edit";
@@ -30,6 +30,9 @@ interface Props {
   /** the people whose ASSO lines name this person */
   inbound: Association[];
   rootId: string;
+  /** favourite person: the star next to the name */
+  starred: boolean;
+  onStar: () => void;
   lang: Lang;
   onFocus: (id: string) => void;
   onMakeRoot: (id: string) => void;
@@ -52,11 +55,11 @@ const ATTRIBUTE_ICONS: Record<string, LucideIcon> = {
 };
 
 const ICONS: Record<TimelineKind, LucideIcon> = {
-  birth: Baby, christening: Droplets, residence: Home, event: Star, famEvent: Heart, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
+  birth: Baby, christening: Droplets, residence: Home, event: CalendarDays, famEvent: Heart, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, onFocus, onMakeRoot, onEdit, onCancelEdit, editor, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, inbound, rootId, starred, onStar, lang, onFocus, onMakeRoot, onEdit, onCancelEdit, editor, t }: Props) {
   const p = data.people[id];
   if (!p) return null;
   const f = record ? personFields(record) : null;
@@ -113,9 +116,16 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
   return (
     <aside className="detail" aria-live="polite">
       <div className="detail-head">
+        <div className="detail-name">
         <h3>{prefix && `${prefix} `}{p.name || "?"}
           {SexIcon && <SexIcon className={`icon sex-${p.sex}`} aria-label={t(p.sex === "M" ? "male" : "female")} />}
         </h3>
+        <div className="tools">
+          <button type="button" className={`icon-btn star-btn${starred ? " on" : ""}`} aria-pressed={starred} onClick={onStar}
+                  title={t(starred ? "starRemove" : "starAdd")} aria-label={t(starred ? "starRemove" : "starAdd")}>
+            <Star className="icon" aria-hidden="true" /></button>
+        </div>
+        </div>
         {/* while editing: save and cancel as icons, the same as the buttons below the form */}
         {editor && <div className="tools">
           <button type="submit" form={EDITOR_FORM} className="icon-btn save" title={`${t("save")} (Ctrl+Enter)`}

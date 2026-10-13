@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.24.0 – 2026-10-13
+
+- New tool in the tool bar: **Recent** (clock icon). It lists the people you visited last (30 are kept), the latest
+  on top; a click opens the person. A star on each row, here and in the list of people, marks a **favourite**: favourites are always at the top of
+  the list.
+- The star also shows next to a favourite's name in the chart and in the person detail, where the star button next to
+  the name switches it. It is on screen only and never printed to the PDF.
+- Recent people and favourites are kept in your browser for each file separately; they are never written into the
+  GEDCOM file.
+- Without a person in the detail, the chart uses the full width. Panel titles use the font of the person's name in the
+  detail (Spectral, 19 px), and the chart has a title too ("Family tree").
+- A click on the selected person deselects it and closes the detail; it works on a name in the chart, in the list
+  of people and in Recent. The two lists use one shared row, so they look exactly alike.
+- The generic event in the person timeline has a calendar icon now, so the star means only "favourite".
+
 ## 1.23.0 – 2026-10-13
 
 - New tool in the tool bar: **Places** (map pin icon). It opens a panel next to the bar with every place of the file,
