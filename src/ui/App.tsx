@@ -459,19 +459,19 @@ export function App() {
                   {problems ? <ShieldAlert className="icon" aria-hidden="true" /> : <ShieldCheck className="icon" aria-hidden="true" />}
                   {problems > 0 && <span className="badge">{problems}</span>}</button>
               </nav>
-              {showCheck && <aside className="check-wrap" aria-label={t("check")}>
-                <CheckPanel issues={issues} data={data} t={t}
-                            onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
-                                  variants={variants} values={spelled} hidden={hidden} onHide={hide}
-                                  onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
-                                  keepAka={keepAka} onKeepAka={(on) => { setKeepAka(on); updateStore({ keepAka: on }); }}
-                                  onFocus={(id) => focus(id, true)} />
-              </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
                             query={query} onQuery={setQuery} onSelect={pick} t={t} />
               </aside>}
             </div>
+            {showCheck ? <aside className="check-wide" aria-label={t("check")}>
+              <CheckPanel issues={issues} data={data} t={t}
+                          onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
+                                variants={variants} values={spelled} hidden={hidden} onHide={hide}
+                                onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
+                                keepAka={keepAka} onKeepAka={(on) => { setKeepAka(on); updateStore({ keepAka: on }); }}
+                                onFocus={(id) => focus(id, true)} />
+            </aside> : <>
             <div className="mid">
               <div className="chart-bar">
                 <div className="chart-switch" role="radiogroup">
@@ -506,6 +506,7 @@ export function App() {
                                                         .map((f) => recordOf.get(f)).filter((r) => !!r)}
                                                       lang={lang} suggest={suggest} onSave={commit} onCancel={() => setEditId(null)}
                                                       t={t} />} />}
+            </>}
           </div>
         </section>
 

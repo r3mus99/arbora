@@ -179,7 +179,7 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
                   background: #b7791f; color: #fff; font-size: 11px; font-weight: 600; line-height: 17px; text-align: center; }
 .toolbar button.on { background: var(--accent-soft); color: var(--accent); }
 /* the panel of the active tool: the list of people, scrolls on its own */
-.rail-wrap, .check-wrap { width: 250px; border-left: 1px solid var(--border); background: var(--panel); overflow-y: auto; }
+.rail-wrap { width: 250px; border-left: 1px solid var(--border); background: var(--panel); overflow-y: auto; }
 .rail { list-style: none; margin: 0; padding: 4px 0; font-size: 14px; }
 .rail li { display: flex; align-items: baseline; gap: 7px; padding: 3px 10px; cursor: pointer; }
 .rail li:hover { background: var(--accent-soft); }
@@ -551,13 +551,16 @@ section.check { margin: 0 0 14px; }
 .rail .aka { color: var(--muted); font-size: 12px; font-style: italic; }
 .rail li.sel .aka { color: inherit; }
 
-/* the file check as a tool panel: header row, tabs, scrolling body */
-.check-wrap { width: 380px; }
-.check-wrap .check { border: 0; border-radius: 0; margin: 0; padding: 0; background: none; }
-.check-wrap .check-head { height: var(--head-h); padding: 0 var(--pad); border-bottom: 1px solid var(--border); }
-.check-wrap .check-head h2 { margin: 0; font-size: 14px; font-weight: 600; }
-.check-wrap .check-tabs { padding: 0 var(--pad); gap: 0 4px; }
-.check-wrap .check-body { padding: 0 var(--pad) var(--pad); }
-.check-wrap .check ul { max-height: none; overflow: visible; }
-.check-wrap .check ul.variant-list, .check-wrap .check ul.affected-list { max-height: none; }
-.check-wrap .link { text-align: left; }
+/* the file check as a tool panel across the whole width: list of tabs on the left, the open tab on the right */
+.check-wide { grid-column: 2 / -1; min-width: 0; min-height: 0; background: var(--panel); overflow: hidden; display: flex; }
+.check-wide .check { display: grid; grid-template-columns: 220px minmax(0, 1fr); grid-template-rows: var(--head-h) minmax(0, 1fr);
+                     width: 100%; border: 0; border-radius: 0; margin: 0; padding: 0; background: none; }
+.check-wide .check-head { grid-column: 1 / -1; height: var(--head-h); padding: 0 var(--pad); border-bottom: 1px solid var(--border); }
+.check-wide .check-head h2 { margin: 0; font-size: 14px; font-weight: 600; }
+.check-wide .check-tabs { flex-direction: column; flex-wrap: nowrap; gap: 2px; border: 0; border-right: 1px solid var(--border); padding: var(--pad); }
+.check-wide .check-tabs button { border: 0; border-radius: var(--radius); padding: 0 10px; height: var(--ctl-h); margin: 0; }
+.check-wide .check-tabs button.on { background: var(--accent-soft); color: var(--accent); }
+.check-wide .check-tabs .n { margin-left: auto; }
+.check-wide .check-body { overflow-y: auto; padding: 0 var(--pad) var(--pad); max-width: 900px; }
+.check-wide .check ul, .check-wide .check ul.variant-list, .check-wide .check ul.affected-list { max-height: none; overflow: visible; }
+.check-wide .link { text-align: left; }

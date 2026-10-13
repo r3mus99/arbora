@@ -2,9 +2,10 @@
 
 ## 1.18.0 – 2026-10-13
 
-- The file check moved into the left tool panel: a shield icon sits under the magnifier in the tool bar (with the number
-  of problems on it). It opens the check (Issues, Surnames, Places, Hidden) next to the bar; the icon of the open panel
-  is highlighted and a second click closes it. Only one panel is open at a time. The shield is gone from the top bar.
+- The file check moved to the tool bar: a shield icon under the magnifier (with the number of problems on it) opens it
+  across the whole width of the frame in place of the chart and the detail, with the tabs (Issues, Surnames, Places,
+  Hidden) as a list on the left. The icon of the open panel is highlighted and a second click closes it. Only one
+  panel is open at a time. The shield is gone from the top bar.
 
 ## 1.17.0 – 2026-10-13
 

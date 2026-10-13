@@ -81,7 +81,7 @@ export function CheckPanel({ issues, data, onFocus, onFix, variants, values, hid
   return (
     <section className="check" aria-label={t("check")}>
       <div className="check-head"><h2>{t("check")}</h2></div>
-      <div className="check-tabs" role="tablist">{tabs.map(([key, label, icon]) =>
+      <div className="check-tabs" role="tablist" aria-orientation="vertical">{tabs.map(([key, label, icon]) =>
         <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? "on" : ""}
                 onClick={() => setTab(key)}>
           {icon}{t(label)}<span className={counts[key] ? "n" : "n zero"}>{counts[key]}</span></button>)}
