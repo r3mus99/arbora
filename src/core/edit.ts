@@ -298,6 +298,25 @@ export function applyEventNode(rec: GedNode, node: GedNode, before: EventFields,
   return rewritten({ ...rec, children: rec.children.map((c, i) => (i === at ? changed : c)) });
 }
 
+export interface AttributeFields extends EventFields { value: string }
+
+/** The record with the value, date and place of one of its own lines (an attribute such as EDUC) changed. */
+export function applyAttribute(rec: GedNode, node: GedNode, before: AttributeFields, after: AttributeFields): GedNode {
+  const at = rec.children.indexOf(node);
+  if (at < 0) return rec;
+  let changed = setDatePlace(node, before, tidy(after));
+  if (after.value.trim() !== before.value) changed = { ...changed, value: after.value.trim() };
+  if (changed === node) return rec;
+  return rewritten({ ...rec, children: rec.children.map((c, i) => (i === at ? changed : c)) });
+}
+
+/** The record with one sub-line (AGE, CAUS, AGNC) of one of its event lines set; "" removes it. */
+export function applyEventLine(rec: GedNode, node: GedNode, tag: string, before: string, after: string): GedNode {
+  const at = rec.children.indexOf(node);
+  if (at < 0 || after.trim() === before.trim()) return rec;
+  return rewritten({ ...rec, children: rec.children.map((c, i) => (i === at ? setChild(node, tag, after.trim()) : c)) });
+}
+
 export function applyFamily(rec: GedNode, before: FamilyFields, after: FamilyFields): GedNode {
   let out = setEvent(rec, "MARR", before.marriage, tidy(after.marriage));
   if (after.divorced !== before.divorced) {
