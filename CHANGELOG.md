@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.27.1 – 2026-10-13
+
+- Fix: saving with **GED** now also updates the file the browser remembers, so after a reload the saved changes are
+  there instead of the file as it was first opened. Unsaved edits are still not kept over a reload.
+
 ## 1.27.0 – 2026-10-13
 
 - The app **remembers the last opened file** and opens it again when the page starts. The file is kept only in this
