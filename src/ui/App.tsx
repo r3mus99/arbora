@@ -615,7 +615,7 @@ export function App() {
             </div>
             {focusId && <PersonDetail data={data} id={focusId} starred={favourites.has(focusId)}
                                       onStar={() => star(focusId)} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
-                                      onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot}
+                                      onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} onChange={commit} suggest={suggest}
                                       onEdit={() => setEditId(focusId)} onCancelEdit={() => setEditId(null)} t={t}
                                       editor={editId === focusId && recordOf.has(focusId) &&
                                         <PersonEditor key={focusId} data={data} record={recordOf.get(focusId)!}

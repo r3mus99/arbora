@@ -103,6 +103,8 @@ export function suggestions(records: GedNode[]):
   };
   records.forEach((rec) => {
     walk(rec);
+    // only people: other records (places, repositories) have a NAME too
+    if (rec.tag !== "INDI") return;
     const name = mainName(rec);
     if (!name) return;
     const parts = splitName(name.value);

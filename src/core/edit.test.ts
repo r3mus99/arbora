@@ -167,6 +167,11 @@ test("suggestions skip aka names", () => {
   expect(suggestions(parseGedcom(ged))).toMatchObject({ givens: ["Anna", "Ota"], surnames: ["Nova", "Stary"] });
 });
 
+test("suggestions take names from people only, not from place or repository records", () => {
+  const ged = "0 @I1@ INDI\n1 NAME Anna /Nova/\n0 @P1@ _LOC\n1 NAME Brezno, Slovakia\n0 @R1@ REPO\n1 NAME Archive\n";
+  expect(suggestions(parseGedcom(ged))).toMatchObject({ givens: ["Anna"], surnames: ["Nova"] });
+});
+
 test("given names, surnames and places for suggestions", () => {
   const ged = "0 @I1@ INDI\n1 NAME Ján /Kováč/\n1 BIRT\n2 PLAC Brezno\n0 @I2@ INDI\n1 NAME Eva\n2 SURN Malá\n" +
               "1 DEAT\n2 PLAC Brezno\n0 @F1@ FAM\n1 MARR\n2 PLAC Ábelová\n";

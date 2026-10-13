@@ -1,9 +1,9 @@
 import {
-  Award, Baby, Briefcase, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
+  Award, Baby, Briefcase, Check, CircleHelp, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
   StickyNote, Star, CalendarDays, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
-import type { ReactNode } from "react";
-import { personFields, type EventFields } from "../core/edit";
+import { useRef, useState, type ReactNode } from "react";
+import { applyPerson, personFields, type EventFields, type PersonFields } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
 import { mapUrl, municipality } from "../core/places";
@@ -16,7 +16,8 @@ import { TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
 import { timeline, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
-import { EDITOR_FORM } from "./PersonEditor";
+import { EDITOR_FORM, GIVENS, SURNAMES, SuggestLists } from "./PersonEditor";
+import { InlineName } from "./Inline";
 import { Row, Section } from "./Section";
 import { EventSources, Linked, PersonSources } from "./Sources";
 
@@ -36,6 +37,10 @@ interface Props {
   lang: Lang;
   onFocus: (id: string) => void;
   onMakeRoot: (id: string) => void;
+  /** inline edits: the changed records, one undo step each */
+  onChange: (changed: GedNode[]) => void;
+  /** surnames and places in the file, offered while typing */
+  suggest: { givens: string[]; surnames: string[]; places: string[]; religions: string[] };
   onEdit: () => void;
   onCancelEdit: () => void;
   /** the edit form, shown instead of the facts */
@@ -59,10 +64,17 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, lookup, inbound, rootId, starred, onStar, lang, onFocus, onMakeRoot, onEdit, onCancelEdit, editor, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, inbound, rootId, starred, onStar, lang, onFocus, onMakeRoot, onChange, suggest, onEdit, onCancelEdit, editor, t }: Props) {
   const p = data.people[id];
   if (!p) return null;
   const f = record ? personFields(record) : null;
+  /** an inline edit: the fields that changed, applied the same way as the form applies them */
+  const change = (patch: Partial<PersonFields>) => {
+    if (!record || !f) return;
+    const next = applyPerson(record, f, { ...f, ...patch });
+    if (next !== record) onChange([next]);
+  };
+  const live = !editor && !!record;
   const when = (e: EventFields | null) => e && (e.date || e.place) ? <div className="fact-value">
     {e.date && <span>{formatDate(e.date, true, lang)}</span>}
     {e.place && <span className="place">{municipality(e.place)}</span>}
@@ -117,8 +129,13 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
     <aside className="detail" aria-live="polite">
       <div className="detail-head">
         <div className="detail-name">
-        <h3>{prefix && `${prefix} `}{p.name || "?"}
-          {SexIcon && <SexIcon className={`icon sex-${p.sex}`} aria-label={t(p.sex === "M" ? "male" : "female")} />}
+        <h3>{prefix && `${prefix} `}
+          {live && f ? <InlineName key={`${id}|${f.given}|${f.surname}`} given={f.given} surname={f.surname} label={t("edit")}
+                                   givenLabel={t("givenName")} surnameLabel={t("surname")} givens={GIVENS} surnames={SURNAMES}
+                                   onCommit={(given, surname) => change({ given, surname })}>{p.name || "?"}</InlineName>
+            : <>{p.name || "?"}</>}
+          {live && f ? <SexPick sex={f.sex} label={t("sex")} t={t} onPick={(sex) => change({ sex })} />
+            : SexIcon && <SexIcon className={`icon sex-${p.sex}`} aria-label={t(p.sex === "M" ? "male" : "female")} />}
         </h3>
         <div className="tools">
           <button type="button" className={`icon-btn star-btn${starred ? " on" : ""}`} aria-pressed={starred} onClick={onStar}
@@ -141,6 +158,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
             <Crosshair className="icon" aria-hidden="true" /></button>}
         </div>}
       </div>
+      {live && <SuggestLists suggest={suggest} />}
       <p className="id">
         {years(p) && <span className="lifespan">{years(p)} · </span>}
         {/* other forms of the name (aka), quietly before the ID */}
@@ -246,4 +264,23 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
       </div>}
     </aside>
   );
+}
+
+/** The sex icon next to the name; a click opens the three choices in a small popover, so nothing moves. */
+function SexPick({ sex, label, onPick, t }: { sex: string; label: string; onPick: (sex: string) => void; t: (key: StringKey) => string }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLSpanElement>(null);
+  const Icon = sex === "M" ? Mars : sex === "F" ? Venus : CircleHelp;
+  const choices: [string, StringKey][] = [["M", "male"], ["F", "female"], [sex === "" ? "" : "U", "sexUnknown"]];
+  return <span ref={box} className="inline-sex"
+               onKeyDown={(e) => { if (e.key === "Escape" && open) { e.preventDefault(); e.stopPropagation(); setOpen(false); } }}
+               onBlur={(e) => { if (!box.current?.contains(e.relatedTarget as Node | null)) setOpen(false); }}>
+    <button type="button" className="inline-value" title={label} aria-label={label} aria-expanded={open} onClick={() => setOpen(!open)}>
+      <Icon className={`icon sex-${sex}`} aria-hidden="true" /></button>
+    {open && <span className="chart-switch inline-pop" role="group" aria-label={label}>
+      {choices.map(([value, key]) => <button key={key} type="button" className={sex === value ? "on" : undefined}
+                                             aria-pressed={sex === value} autoFocus={sex === value}
+                                             onClick={() => { if (value !== sex) onPick(value); setOpen(false); }}>{t(key)}</button>)}
+    </span>}
+  </span>;
 }
