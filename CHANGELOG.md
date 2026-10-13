@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.29.0 – 2026-10-13
+
+- **Inline editing of dates and places** in the person detail timeline: click the date or the place of a birth,
+  christening, marriage, divorce, residence, custom event, death or burial to change it right there. Dates are
+  understood the same way as in the edit form (`14.5.1891`, `cca 1890`), places are suggested from the file. Enter or
+  leaving the field applies, Esc drops; each change is one undo step and only that event line changes. Children's
+  births are not editable here (they belong to the child's own detail). An event that has no date or place yet still
+  needs the edit form.
+
 ## 1.28.0 – 2026-10-13
 
 - **Inline editing in the person detail**, first step: click the **name** (given name and surname in two fields, with

@@ -611,7 +611,11 @@ section.check { margin: 0 0 14px; }
 .inline-value:hover { border-bottom-color: var(--muted); }
 .inline-value:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
 .inline-fields { display: inline; font: inherit; letter-spacing: inherit; }
-.inline-fields input { font: inherit; letter-spacing: inherit; color: inherit; width: auto; min-height: 0; padding: 0; margin: 0;
+.fit { display: inline-grid; vertical-align: baseline; }
+.fit > * { grid-area: 1 / 1; min-width: 0; white-space: pre; font: inherit; letter-spacing: inherit; }
+.fit > input { width: 0; min-width: 100%; }
+.fit-ghost { visibility: hidden; padding-right: 1px; min-width: 2ch; }
+.inline-fields input { box-sizing: border-box; line-height: inherit; font: inherit; letter-spacing: inherit; color: inherit; min-height: 0; padding: 0; margin: 0;
                        background: none; border: 0; border-bottom: 1px solid var(--accent); border-radius: 0; }
 .inline-fields input:focus { outline: none; }
 .inline-fields input::-webkit-calendar-picker-indicator { display: none !important; }

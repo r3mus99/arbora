@@ -289,6 +289,15 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   return out === rec ? rec : rewritten(out);
 }
 
+/** The record with the date and place of one of its own event lines (`node`, by identity) changed; other lines stay. */
+export function applyEventNode(rec: GedNode, node: GedNode, before: EventFields, after: EventFields): GedNode {
+  const at = rec.children.indexOf(node);
+  if (at < 0) return rec;
+  const changed = setDatePlace(node, before, tidy(after));
+  if (changed === node) return rec;
+  return rewritten({ ...rec, children: rec.children.map((c, i) => (i === at ? changed : c)) });
+}
+
 export function applyFamily(rec: GedNode, before: FamilyFields, after: FamilyFields): GedNode {
   let out = setEvent(rec, "MARR", before.marriage, tidy(after.marriage));
   if (after.divorced !== before.divorced) {

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, findPeople, matchedAka, suggestions, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
+  applyEventNode, applyFamily, applyPerson, findPeople, matchedAka, suggestions, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
   LANGS, readRecords, writeGedcom, type GedNode, type PersonFields,
 } from "./index";
 
@@ -271,4 +271,15 @@ describe("dates typed in the form", () => {
     expect(matchedAka("johannes", people["@I1@"])).toBe("Johannes Pavlovszky");
     expect(matchedAka("ján", people["@I1@"])).toBeNull();
   });
+});
+
+test("applyEventNode changes the date and place of one event line only", () => {
+  const ged = "0 @I1@ INDI\n1 NAME Anna /Nova/\n1 RESI\n2 DATE 1900\n2 PLAC Brezno\n2 SOUR @S1@\n1 RESI\n2 DATE 1910\n";
+  const [rec] = parseGedcom(ged);
+  const [first, second] = rec.children.filter((c) => c.tag === "RESI");
+  const out = applyEventNode(rec, first, { date: "1900", place: "Brezno" }, { date: "1 JAN 1901", place: "Zvolen" });
+  const lines = out.children.filter((c) => c.tag === "RESI");
+  expect(lines[0].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1 JAN 1901", "PLAC Zvolen", "SOUR @S1@"]);
+  expect(lines[1]).toBe(second);
+  expect(applyEventNode(rec, first, { date: "1900", place: "Brezno" }, { date: "1900", place: "Brezno" })).toBe(rec);
 });

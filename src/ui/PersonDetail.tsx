@@ -3,7 +3,7 @@ import {
   StickyNote, Star, CalendarDays, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
-import { applyPerson, personFields, type EventFields, type PersonFields } from "../core/edit";
+import { applyEventNode, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
 import { mapUrl, municipality } from "../core/places";
@@ -14,10 +14,10 @@ import { fmt, formatDate } from "../core/format";
 import type { GedNode, GedcomData, Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
-import { timeline, type TimelineKind } from "../core/timeline";
+import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
-import { EDITOR_FORM, GIVENS, SURNAMES, SuggestLists } from "./PersonEditor";
-import { InlineName } from "./Inline";
+import { EDITOR_FORM, GIVENS, PLACES, SURNAMES, SuggestLists } from "./PersonEditor";
+import { InlineName, InlineText } from "./Inline";
 import { Row, Section } from "./Section";
 import { EventSources, Linked, PersonSources } from "./Sources";
 
@@ -75,6 +75,35 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
     if (next !== record) onChange([next]);
   };
   const live = !editor && !!record;
+  /** a changed date or place of a timeline event, written to the record that holds the event */
+  const changeEvent = (e: TimelineItem, patch: Partial<EventFields>) => {
+    const before = { date: e.date, place: e.place };
+    const after = { ...before, ...patch };
+    if (e.kind === "birth" || e.kind === "christening" || e.kind === "death" || e.kind === "burial") {
+      change({ [e.kind]: after });
+    } else if (e.kind === "marriage") {
+      const fam = lookup(e.key);
+      if (!fam) return;
+      const ff = familyFields(fam);
+      const next = applyFamily(fam, ff, { ...ff, marriage: after });
+      if (next !== fam) onChange([next]);
+    } else if (e.node) {
+      const owner = e.family ? lookup(e.family) : record;
+      const next = owner && applyEventNode(owner, e.node, before, after);
+      if (next && next !== owner) onChange([next]);
+    }
+  };
+  /** whether the date and place of a timeline item can be edited here */
+  const editable = (e: TimelineItem) => live && e.kind !== "child" && (e.kind === "marriage" ? !!lookup(e.key)
+    : e.kind === "residence" || e.kind === "event" || e.kind === "famEvent" ? !!e.node && (!e.family || !!lookup(e.family)) : true);
+  const dateField = (e: TimelineItem) => {
+    const shown = dateInput(e.date, lang);
+    return <InlineText value={shown} label={t("date")} onCommit={(v) => { if (v !== shown) changeEvent(e, { date: parseDate(v, lang).value }); }}>
+      {formatDate(e.date, true, lang)}</InlineText>;
+  };
+  const placeField = (e: TimelineItem) =>
+    <InlineText value={e.place} label={t("place")} list={PLACES} onCommit={(v) => { if (v !== e.place) changeEvent(e, { place: v }); }}>
+      {municipality(e.place)}</InlineText>;
   const when = (e: EventFields | null) => e && (e.date || e.place) ? <div className="fact-value">
     {e.date && <span>{formatDate(e.date, true, lang)}</span>}
     {e.place && <span className="place">{municipality(e.place)}</span>}
@@ -204,7 +233,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
               <div className={`tl-body${src ? " has-src" : ""}`}>
                 {/* first line: date, what happened and the age; second line: who and where */}
                 <div className="tl-date">
-                  {e.date && <span>{formatDate(e.date, true, lang)}</span>}
+                  {e.date && <span>{editable(e) ? dateField(e) : formatDate(e.date, true, lang)}</span>}
                   <span className="tl-label">{e.date && " · "}{label(e.kind, !!e.date, e.other, e.title, e.tag)}</span>
                   {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}</div>
                 {(e.other || e.detail || e.divorced || (e.place && e.kind !== "child") || e.coords) && <div className="tl-what">
@@ -212,7 +241,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
                   {e.detail && <>{e.other && " · "}{e.detail}</>}
                   {e.divorced && <span className="muted">{e.other && " · "}{TEXTS[lang].divorced}</span>}
                   {/* a child's birth place is shown with the child's name */}
-                  {e.place && e.kind !== "child" && <span className="muted">{(e.other || e.detail || e.divorced) && " · "}{municipality(e.place)}</span>}
+                  {e.place && e.kind !== "child" && <span className="muted">{(e.other || e.detail || e.divorced) && " · "}{editable(e) ? placeField(e) : municipality(e.place)}</span>}
                   {e.coords && <a className="map-link" href={mapUrl(e.coords)} target="_blank" rel="noopener noreferrer"
                                   title={t("showOnMap")} aria-label={t("showOnMap")}>
                     <MapPin className="icon" aria-hidden="true" /></a>}
