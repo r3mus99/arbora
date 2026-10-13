@@ -4,7 +4,7 @@
 
 - **Inline editing of facts** in the person detail: click **religion**, **occupation** (text, date, place), the other
   attributes (education, nationality, title, property, … with date and place), the **age, cause and agency** written
-  under an event, or the **note** to change them right there. Religion is suggested from the file; a note opens as a
+  under an event, the **aka names** (given name and surname, next to the ID) or the **note** to change them right there. Religion is suggested from the file; a note opens as a
   text area (Ctrl+Enter or leaving it applies, Esc drops). Clearing an occupation text removes that line (Ctrl+Z brings it
   back). Same rules as before: one undo step per edit, only the edited GEDCOM line changes.
 

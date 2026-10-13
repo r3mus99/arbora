@@ -217,7 +217,13 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
         {years(p) && <span className="lifespan">{years(p)} · </span>}
         {/* other forms of the name (aka), quietly before the ID */}
         {f && f.aliases.length > 0 && <span className="aka" title={t("aka")}>
-          aka {f.aliases.map((a) => [a.given, a.surname].filter(Boolean).join(" ")).join(", ")} · </span>}
+          aka {f.aliases.map((a, i) => {
+            const text = [a.given, a.surname].filter(Boolean).join(" ");
+            return <span key={a.origin}>{i > 0 && ", "}{live ? <InlineName key={`${id}|${a.given}|${a.surname}`} given={a.given}
+              surname={a.surname} label={t("aka")} givenLabel={t("givenName")} surnameLabel={t("surname")} givens={GIVENS} surnames={SURNAMES}
+              onCommit={(given, surname) => change({ aliases: f.aliases.map((x) => (x === a ? { ...x, given, surname } : x)) })}>{text}</InlineName>
+              : text}</span>;
+          })} · </span>}
         {p.id.replace(/@/g, "")}</p>
       {editor || <div className="facts">
         {(() => {
