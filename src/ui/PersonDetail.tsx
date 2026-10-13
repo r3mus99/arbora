@@ -79,10 +79,10 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
     if (!q) return <span className="muted">?</span>;
     const year = q.birth ? formatDate(q.birth.date, false, lang) : "";
     const place = withPlace && q.birth ? municipality(q.birth.place) : "";
-    return <>
+    return <span className="person-ref">
       <button className="link person" type="button" onClick={() => onFocus(q.id)}>{q.name || "?"}</button>
       {(year || place) && <span> (<span className="s-birt">{year}</span>{year && place && " "}<span className="s-place">{place}</span>)</span>}
-    </>;
+    </span>;
   };
 
   const birthFam = p.famc.length ? data.families[p.famc[0]] : null;

@@ -116,6 +116,7 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .tree-row .s-place { font-style: italic; color: var(--muted); }
 /* a reference to a person in the detail is styled like a line of the overview */
 /* the name of a person in the detail: bold and in the text colour like in the tree, underlined on hover */
+.detail .person-ref { color: var(--text); }
 .detail button.link.person { color: inherit; font-weight: 650; text-decoration: none; }
 .detail button.link.person:hover { text-decoration: underline; }
 .detail .s-birt { color: var(--c-birth); }
