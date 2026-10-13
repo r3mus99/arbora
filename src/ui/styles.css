@@ -298,7 +298,7 @@ h1 .logo { width: .9em; height: .9em; color: var(--accent); stroke-width: 1.6; }
 .welcome .drop { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 22px; }
 .welcome .drop .icon { width: 36px; height: 36px; color: var(--accent); }
 /* search box at the top of the people list */
-.finder { flex: none; background: var(--panel); height: var(--head-h); display: flex; align-items: center;
+.finder { position: relative; flex: none; background: var(--panel); height: var(--head-h); display: flex; align-items: center;
           padding: 0 var(--pad); border-bottom: 1px solid var(--border); }
 .finder > .icon { position: absolute; left: calc(var(--pad) + 10px); color: var(--muted); pointer-events: none; }
 .finder input { padding-left: 36px; }
@@ -557,7 +557,7 @@ section.check { margin: 0 0 14px; }
 .sp-tabs { padding: var(--pad); }
 .sp-tabs .chart-switch { display: flex; width: 100%; }
 .sp-tabs .chart-switch button { flex: 1; }
-.sp .finder { position: relative; border-top: 1px solid var(--border); }
+.sp .finder { border-top: 1px solid var(--border); }
 .sp-tabs { flex: none; }
 .sp-list { list-style: none; margin: 0; padding: 4px 0; }
 .sp-list > li { border-bottom: 1px solid var(--border); }

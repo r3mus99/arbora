@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.22.2 – 2026-10-13
+
+- The list of people has the same fixed title row ("People") above the search box as the other tool panels.
+
 ## 1.22.1 – 2026-10-13
 
 - Every tool panel (file overview, sources and notes, settings, file check, list of people) has the same fixed title

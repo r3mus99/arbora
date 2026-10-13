@@ -4,6 +4,7 @@ import { formatDate } from "../core/format";
 import { findPeople, fold, matchedAka, type Person } from "../core/gedcom";
 import type { Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
+import { PanelHead } from "./PanelHead";
 
 interface Props {
   people: Record<string, Person>;
@@ -40,6 +41,7 @@ export const PersonRail = forwardRef<HTMLInputElement, Props>(function PersonRai
 
   return (
     <>
+      <PanelHead title={t("ovPeople")} />
       <div className="finder">
         <Search className="icon" aria-hidden="true" />
         <input ref={finderRef} type="search" placeholder={t("search")} autoComplete="off" value={query}
