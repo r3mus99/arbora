@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.15.2 – 2026-10-13
+
+- The birth of a child on the timeline shows the place in the brackets after the child's name, like every other
+  reference to a person, instead of after a dot.
+
 ## 1.15.1 – 2026-10-13
 
 - The parents are a section with a title (icon and "Parents") and one parent per row, with the sex icon.

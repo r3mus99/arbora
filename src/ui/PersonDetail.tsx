@@ -176,10 +176,11 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
                   {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}</div>}
                 <div className="tl-what">
                   {label(e.kind, !!e.date, e.other, e.title, e.tag)}
-                  {e.other && <>: {link(e.other, e.kind !== "child")}</>}
+                  {e.other && <>: {link(e.other)}</>}
                   {e.detail && <>: {e.detail}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
-                  {e.place && <span className="muted"> · {municipality(e.place)}</span>}
+                  {/* a child's birth place is shown with the child's name */}
+                  {e.place && e.kind !== "child" && <span className="muted"> · {municipality(e.place)}</span>}
                   {e.coords && <a className="map-link" href={mapUrl(e.coords)} target="_blank" rel="noopener noreferrer"
                                   title={t("showOnMap")} aria-label={t("showOnMap")}>
                     <MapPin className="icon" aria-hidden="true" /></a>}
