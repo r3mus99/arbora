@@ -108,6 +108,10 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 
 - Every panel starts with a header row: `--head-h`, `0 var(--pad)`, bottom border, title 14px 600 (or the control
   that lives there). No panel has a heading style of its own.
+- **Tool panel titles use the `PanelHead` component** (`src/ui/PanelHead.tsx`): fixed at the top of the panel, it never
+  scrolls (only the `.panel-body` below it does), exactly `--head-h` high, so its line runs level with the chart bar
+  and the person detail header. Never write a title row, a title size or a sticky header of your own; the
+  panel is `.panel-col` = `PanelHead` + `.panel-body`.
 - Body padding `--pad`; blocks inside are separated by a 1px line with `--pad` above and below, not by margins alone.
 - List rows (people, rankings): 14px, padding `3px 10px`, hover `--accent-soft`, selected = accent fill with
   `--accent-text`. Secondary text on the row is 12px `--muted`.
@@ -127,7 +131,7 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 
 1. Add one icon button to the rail (`.toolbar`), in the order of use (find, overview, check, then new ones). Pick a lucide icon that is not used yet; add a `title` + `aria-label`; a status badge uses `--warn`.
 2. Decide the width: **side panel** (fixed 280–320px, opens between rail and tree; the tree stays visible) if it works next to the tree, otherwise **wide panel** (full width right of the rail; tree and detail are hidden).
-3. Build it as a component with a header row (`--head-h`) and a scrolling body; use only the controls from section 6.
+3. Build it as a component with a `PanelHead` (fixed, section 7) and a scrolling `.panel-body`; use only the controls from section 6.
 4. State: `on` on the rail icon while open; clicking it again closes it; opening another mini-app closes this one.
 5. Put new tokens in `:root` with a dark value; add a line to this document; strings go to `src/ui/i18n.ts` in all 12 languages.
 6. Check light and dark theme, keyboard focus, and the tooltip text before opening a PR. Screenshots in a PR use the Habsburg sample and the English UI.

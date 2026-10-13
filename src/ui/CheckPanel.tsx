@@ -4,6 +4,7 @@ import type { Issue } from "../core/check";
 import type { GedcomData } from "../core/gedcom";
 import type { VariantGroup, VariantKind } from "../core/variants";
 import type { StringKey } from "./i18n";
+import { PanelHead } from "./PanelHead";
 import { Variants } from "./Variants";
 
 export type CheckTab = "issues" | "surname" | "place" | "hidden";
@@ -80,7 +81,7 @@ export function CheckPanel({ issues, data, onFocus, onFix, variants, values, hid
 
   return (
     <section className="check" aria-label={t("check")}>
-      <div className="check-head"><h2>{t("check")}</h2></div>
+      <PanelHead className="check-head" title={t("check")} />
       <div className="check-tabs" role="tablist" aria-orientation="vertical">{tabs.map(([key, label, icon]) =>
         <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? "on" : ""}
                 onClick={() => setTab(key)}>

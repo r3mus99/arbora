@@ -4,6 +4,7 @@ import type { GedcomData } from "../core/gedcom";
 import { fold } from "../core/gedcom";
 import type { SourceOverview } from "../core/sources";
 import type { StringKey } from "./i18n";
+import { PanelHead } from "./PanelHead";
 import { Linked } from "./Sources";
 
 interface Props {
@@ -37,9 +38,9 @@ export function SourcesPanel({ overview, data, onPerson, t }: Props) {
   const empty = !overview.sources.length && !overview.notes.length;
 
   return (
-    <section className="sp" aria-label={t("srcNotes")}>
-      <div className="ov-head"><h2>{t("srcNotes")}</h2></div>
-      {empty ? <p className="sp-none">{t("srcEmpty")}</p> : <>
+    <section className="panel-col sp" aria-label={t("srcNotes")}>
+      <PanelHead title={t("srcNotes")} />
+      {empty ? <p className="sp-none panel-body">{t("srcEmpty")}</p> : <>
         <div className="sp-tabs">
           <div className="chart-switch" role="group">
             {(["sources", "notes"] as const).map((k) => (
@@ -54,7 +55,7 @@ export function SourcesPanel({ overview, data, onPerson, t }: Props) {
           <input type="search" placeholder={t("srcFilter")} autoComplete="off" value={query}
                  onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setQuery(""); }} />
         </div>
-        <ul className="sp-list">
+        <ul className="sp-list panel-body">
           {tab === "sources" && sources.map((s) => (
             <li key={s.key} className={open === s.key ? "open" : undefined}>
               <button type="button" className="sp-row" aria-expanded={open === s.key} onClick={() => toggle(s.key)}>

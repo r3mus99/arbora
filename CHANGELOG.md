@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.22.1 – 2026-10-13
+
+- Every tool panel (file overview, sources and notes, settings, file check, list of people) has the same fixed title
+  row: the title no longer scrolls with the content and sits on one line with the chart bar and the person header.
+  The title row is one shared component, and the design guidelines now require it.
+
 ## 1.22.0 – 2026-10-13
 
 - The chart and PDF settings moved from a dialog to the tool bar: a sliders icon opens them in the left panel, and

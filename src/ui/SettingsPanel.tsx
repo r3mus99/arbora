@@ -1,5 +1,6 @@
 import { TEXTS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
+import { PanelHead } from "./PanelHead";
 import { NUMBERING, type Form } from "./options";
 
 interface Props {
@@ -23,8 +24,9 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
   });
 
   return (
-  <section className="set-panel" aria-label={t("settings")}>
-    <div className="ov-head"><h2>{t("settings")}</h2></div>
+  <section className="panel-col set-panel" aria-label={t("settings")}>
+    <PanelHead title={t("settings")} />
+    <div className="panel-body">
     <div className="set-group">
       <div className="grid">
         <label><span>{t("labels")}</span>
@@ -76,6 +78,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
         <label><input {...check("showDate")} /> <span>{t("showDate")}</span></label>
         <label><input {...check("colorPdf")} /> <span>{t("colorPdf")}</span></label>
       </div>
+    </div>
     </div>
   </section>
   );

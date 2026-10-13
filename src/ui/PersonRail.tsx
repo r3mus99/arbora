@@ -46,7 +46,7 @@ export const PersonRail = forwardRef<HTMLInputElement, Props>(function PersonRai
                onChange={(e) => onQuery(e.target.value)}
                onKeyDown={(e) => { if (e.key === "Escape") onQuery(""); }} />
       </div>
-      <ul className="rail" ref={list}>
+      <ul className="rail panel-body" ref={list}>
         {sorted.map((p) => (
           <li key={p.id} className={p.id === selectedId ? "sel" : undefined} onClick={() => onSelect(p.id)}>
             <span className={`dot sex-${p.sex === "M" || p.sex === "F" ? p.sex : "U"}`} aria-hidden="true" />

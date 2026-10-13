@@ -183,7 +183,13 @@ footer a { color: var(--accent); }
                   background: var(--warn); color: #fff; font-size: 12px; font-weight: 600; line-height: 17px; text-align: center; }
 .toolbar button.on { background: var(--accent-soft); color: var(--accent); }
 /* the panel of the active tool: the list of people, scrolls on its own */
-.rail-wrap { width: 280px; border-left: 1px solid var(--border); background: var(--panel); overflow-y: auto; }
+.rail-wrap { width: 280px; border-left: 1px solid var(--border); background: var(--panel); display: flex; flex-direction: column; overflow: hidden; }
+/* every tool panel: a fixed title row (PanelHead) and a body that scrolls */
+.panel-col { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.panel-head { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; height: var(--head-h);
+              padding: 0 var(--pad); border-bottom: 1px solid var(--border); background: var(--panel); }
+.panel-head h2 { margin: 0; font-size: 14px; font-weight: 600; }
+.panel-body { flex: 1; min-height: 0; overflow-y: auto; }
 .rail { list-style: none; margin: 0; padding: 4px 0; font-size: 14px; }
 .rail li { display: flex; align-items: baseline; gap: 7px; padding: 3px 10px; cursor: pointer; }
 .rail li:hover { background: var(--accent-soft); }
@@ -292,7 +298,7 @@ h1 .logo { width: .9em; height: .9em; color: var(--accent); stroke-width: 1.6; }
 .welcome .drop { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 22px; }
 .welcome .drop .icon { width: 36px; height: 36px; color: var(--accent); }
 /* search box at the top of the people list */
-.finder { position: sticky; top: 0; z-index: 1; background: var(--panel); height: var(--head-h); display: flex; align-items: center;
+.finder { flex: none; background: var(--panel); height: var(--head-h); display: flex; align-items: center;
           padding: 0 var(--pad); border-bottom: 1px solid var(--border); }
 .finder > .icon { position: absolute; left: calc(var(--pad) + 10px); color: var(--muted); pointer-events: none; }
 .finder input { padding-left: 36px; }
@@ -418,8 +424,6 @@ button.link { display: inline; }
 main.loaded .lang > button .lname { display: none; }
 /* file overview */
 .overview { font-size: 14px; }
-.ov-head { display: flex; align-items: center; height: var(--head-h); padding: 0 var(--pad); border-bottom: 1px solid var(--border); }
-.overview .ov-head h2 { margin: 0; font-size: 14px; font-weight: 600; }
 .overview .ov-tiles, .overview .ov-ranks { padding: var(--pad) var(--pad) 0; }
 .ov-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); gap: 10px; }
 .ov-tile { display: grid; grid-template-columns: 34px 1fr; gap: 10px; align-items: start; text-align: left;
@@ -531,8 +535,7 @@ section.check { margin: 0 0 14px; }
 .check-wide { grid-column: 2 / -1; min-width: 0; min-height: 0; background: var(--panel); overflow: hidden; display: flex; }
 .check-wide .check { display: grid; grid-template-columns: 220px minmax(0, 1fr); grid-template-rows: var(--head-h) minmax(0, 1fr);
                      width: 100%; border: 0; border-radius: 0; margin: 0; padding: 0; background: none; }
-.check-wide .check-head { grid-column: 1 / -1; height: var(--head-h); padding: 0 var(--pad); border-bottom: 1px solid var(--border); }
-.check-wide .check-head h2 { margin: 0; font-size: 14px; font-weight: 600; }
+.check-wide .check-head { grid-column: 1 / -1; }
 .check-wide .check-tabs { flex-direction: column; flex-wrap: nowrap; gap: 2px; border: 0; border-right: 1px solid var(--border); padding: var(--pad); }
 .check-wide .check-tabs button { border: 0; border-radius: var(--radius); padding: 0 10px; height: var(--ctl-h); margin: 0; }
 .check-wide .check-tabs button.on { background: var(--accent-soft); color: var(--accent); }
@@ -551,11 +554,11 @@ section.check { margin: 0 0 14px; }
 
 /* sources and notes panel in the tool bar: rows of the shared list look, opened row shows the people */
 .sp-wrap { width: 320px; }
-.sp { display: flex; flex-direction: column; min-height: 0; }
 .sp-tabs { padding: var(--pad); }
 .sp-tabs .chart-switch { display: flex; width: 100%; }
 .sp-tabs .chart-switch button { flex: 1; }
 .sp .finder { position: relative; border-top: 1px solid var(--border); }
+.sp-tabs { flex: none; }
 .sp-list { list-style: none; margin: 0; padding: 4px 0; }
 .sp-list > li { border-bottom: 1px solid var(--border); }
 .sp-list > li.open { background: var(--accent-soft); }
