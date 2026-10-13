@@ -73,12 +73,16 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
     const d = q.death ? formatDate(q.death.date, false, lang) : "";
     return d ? `${b}–${d}` : b;
   };
-  const link = (pid: string | null, withYears = true) => {
+  /** a reference to a person: name, year of birth in brackets and the municipality of birth */
+  const link = (pid: string | null, withPlace = true) => {
     const q = pid ? data.people[pid] : null;
     if (!q) return <span className="muted">?</span>;
+    const year = q.birth ? formatDate(q.birth.date, false, lang) : "";
+    const place = withPlace && q.birth ? municipality(q.birth.place) : "";
     return <>
       <button className="link" type="button" onClick={() => onFocus(q.id)}>{q.name || "?"}</button>
-      {withYears && years(q) && <span className="muted"> {years(q)}</span>}
+      {year && <span className="muted"> ({year})</span>}
+      {place && <span className="muted"> · {place}</span>}
     </>;
   };
 
@@ -153,14 +157,12 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
           <ul>{parents.map((pid, i) => {
             const sex = data.people[pid]?.sex;
             const ParentIcon = sex === "M" ? Mars : sex === "F" ? Venus : null;
-            const place = municipality(data.people[pid]?.birth?.place || "");
             const wed = i === 1 && birthFam?.marriage && (birthFam.marriage.date || birthFam.marriage.place) ? birthFam.marriage : null;
             return <Fragment key={pid}>
               {wed && <li className="parents-wed muted">
                 <Heart className="icon" aria-hidden="true" />
                 {[wed.date && formatDate(wed.date, true, lang), municipality(wed.place)].filter(Boolean).join(" · ")}</li>}
-              <li>{ParentIcon && <ParentIcon className={`icon sex-${sex}`} aria-hidden="true" />}{link(pid)}
-                {place && <span className="muted"> · {place}</span>}</li>
+              <li>{ParentIcon && <ParentIcon className={`icon sex-${sex}`} aria-hidden="true" />}{link(pid)}</li>
             </Fragment>;
           })}</ul>
         </section>}
@@ -175,7 +177,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
                   {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}</div>}
                 <div className="tl-what">
                   {label(e.kind, !!e.date, e.other, e.title, e.tag)}
-                  {e.other && <>: {link(e.other, e.kind === "marriage")}</>}
+                  {e.other && <>: {link(e.other, e.kind !== "child")}</>}
                   {e.detail && <>: {e.detail}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
                   {e.place && <span className="muted"> · {municipality(e.place)}</span>}
@@ -184,7 +186,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
                     <MapPin className="icon" aria-hidden="true" /></a>}
                 </div>
                 {e.witnesses && <div className="tl-details"><span>{t("witnesses")}:</span>{" "}
-                  {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w, false)}</span>)}</div>}
+                  {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w)}</span>)}</div>}
                 {e.details && <div className="tl-details">{e.details.map((d) => <div key={d.key}>
                   <span>{t(DETAIL_KEYS[d.key])}:</span> {d.value}</div>)}</div>}
                 {(() => { const a = extras(e.kind, e.key, e.node); return a && <EventSources a={a} t={t} />; })()}
@@ -211,7 +213,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
                         ...inbound.map((a) => ({ ...a, inbound: true }))].filter((a) => a.id in data.people);
           return rows.length > 0 && <Fact icon={Handshake} label={t("associations")}>
             <ul>{rows.map((a, i) => <li key={i}>
-              <span className="muted">{roleText(a.role)}{a.inbound ? ` ${t("assocFor")}` : ""}:</span> {link(a.id, false)}
+              <span className="muted">{roleText(a.role)}{a.inbound ? ` ${t("assocFor")}` : ""}:</span> {link(a.id)}
             </li>)}</ul>
           </Fact>;
         })()}
