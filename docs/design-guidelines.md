@@ -146,6 +146,8 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 
 The welcome screen is the same frame: the top bar (app name, language) and below it one centred column of at most 520px: the short description (14px, muted), the drop zone (dashed `--border`, `--radius-lg`, one 36px icon, accent on hover and while dragging), the privacy note (12px, muted) and one regular button for the sample. No other large type or colour is used.
 
+When the browser holds a remembered file (IndexedDB, only in this browser; the app opens it at start), the welcome screen shows, above the drop zone, one row: a `primary` button "Continue with <name>" with the `History` icon and a `.icon-btn` with the `Trash2` icon (`title` = `aria-label` "Forget this file") that deletes the remembered file. The app name in the top bar is a button (`.home`, looks like the heading, accent on hover) that returns to this screen; it asks `discard` first when there are unsaved changes and keeps the remembered file.
+
 ## 11. Still open
 
 - The language button shows a flag (flags are the only way to recognise a language); it follows the icon-button size and hover.
