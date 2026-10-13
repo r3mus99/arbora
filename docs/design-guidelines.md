@@ -23,7 +23,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
   language. Order is fixed: identity, file, history, output, preferences. Anything that changes the whole document
   or the app belongs here.
 - **Rail** (left, icon column): one icon per mini-app. Opens and closes the mini-app panel.
-- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, overview, sources and notes, settings: every one exactly
+- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, overview, sources and notes, places, settings: every one exactly
   `--panel-w` = 320px wide) or a *wide panel* (file check, later: people table, editor) that replaces the tree and
   detail and takes the full width right of the rail. Only one mini-app is open at a time.
 - **Main component** (centre): the tree view. It is the only thing that is always there; it is never
@@ -37,7 +37,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 
 | Token | Value | Used for |
 | --- | --- | --- |
-| `--panel-w` | 320px | width of every side panel of the tool bar (list of people, overview, sources and notes, settings); one value, never a width per panel |
+| `--panel-w` | 320px | width of every side panel of the tool bar (list of people, overview, sources and notes, places, settings); one value, never a width per panel |
 | `--head-h` | 52px | header row of every panel (rail first icon, search box, chart switch, person name, wide panel title); one continuous line under them across the frame |
 | `--ctl-h` | 36px | height of every control: inputs, selects, switch, buttons, icon buttons, rail icons |
 | `--ctl-h-sm` | 28px (new) | the one smaller control height, only for controls inside a list row or a card (chips, inline inputs, row buttons) |
@@ -117,6 +117,7 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 - List rows (people, rankings): 14px, padding `3px 10px`, hover `--accent-soft`, selected = accent fill with
   `--accent-text`. Secondary text on the row is 12px `--muted`.
 - Tiles / cards (overview, variant groups): `--radius-lg`, 1px border, `--bg` fill, padding `10px 12px`.
+- Lists of records with a count line (sources, notes, places) are `.sp-list` rows: a 14px icon in `--c-src`, title 600, one 12px `--muted` line ("People: n · Events: m"); a click opens the row and shows its people as links (`People` component), a second click closes it. Above the list sits the same filter box (`.finder`) as the people list.
 - Empty state: one line of `--muted` text, centred in the panel.
 - Dialogs: `--radius-lg`, header row as in a panel with a close X, footer with buttons on the right,
   backdrop dimmed; Esc and the X close it.

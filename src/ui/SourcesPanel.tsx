@@ -17,10 +17,11 @@ interface Props {
 type Tab = "sources" | "notes";
 
 /** The people under one entry, as links. */
-function People({ ids, data, onPerson, t }: { ids: string[]; data: GedcomData } & Pick<Props, "onPerson" | "t">) {
+export function People({ ids, data, onPerson, t, notes }: { ids: string[]; data: GedcomData; notes?: Record<string, string> } & Pick<Props, "onPerson" | "t">) {
   const people = ids.map((id) => data.people[id]).filter(Boolean).sort((a, b) => fold(a.name).localeCompare(fold(b.name)));
   return <ul className="sp-people" aria-label={t("srcPeople", { n: people.length })}>
-    {people.map((p) => <li key={p.id}><button type="button" className="link" onClick={() => onPerson(p.id)}>{p.name || "?"}</button></li>)}
+    {people.map((p) => <li key={p.id}><button type="button" className="link" onClick={() => onPerson(p.id)}>{p.name || "?"}</button>
+      {notes?.[p.id] && <span className="sp-sub"> · {notes[p.id]}</span>}</li>)}
   </ul>;
 }
 
