@@ -36,6 +36,7 @@ export const flagSvg = (lang: Lang) => FLAGS[lang] || "";
 const STRINGS_RAW = {
   sk: {
     name: "Slovenčina", language: "Jazyk",
+    themeDark: "Prepnúť na tmavý režim", themeLight: "Prepnúť na svetlý režim",
     lead: "Prezerajte a upravujte rodokmeň z GEDCOM súboru priamo v prehliadači. Schéma predkov alebo potomkov ukazuje pri každej osobe rok narodenia, sobáša a úmrtia; stiahnete ju ako PDF a upravené údaje ako GEDCOM.",
     drop: "<strong>Vyberte súbor</strong> alebo ho sem pretiahnite (.ged)",
     privacy: "Súbor sa nikam neodosiela, spracuje sa iba vo vašom prehliadači, kde sa uchová aj posledný otvorený súbor. Nemáte vlastný?",
@@ -117,6 +118,7 @@ const STRINGS_RAW = {
   },
   cs: {
     name: "Čeština", language: "Jazyk",
+    themeDark: "Přepnout na tmavý režim", themeLight: "Přepnout na světlý režim",
     lead: "Prohlížejte a upravujte rodokmen ze souboru GEDCOM přímo v prohlížeči. Schéma předků nebo potomků ukazuje u každé osoby rok narození, sňatku a úmrtí; stáhnete ho jako PDF a upravené údaje jako GEDCOM.",
     drop: "<strong>Vyberte soubor</strong> nebo ho sem přetáhněte (.ged)",
     privacy: "Soubor se nikam neodesílá, zpracuje se jen ve vašem prohlížeči, kde zůstane i naposledy otevřený soubor. Nemáte vlastní?",
@@ -198,6 +200,7 @@ const STRINGS_RAW = {
   },
   pl: {
     name: "Polski", language: "Język",
+    themeDark: "Przełącz na tryb ciemny", themeLight: "Przełącz na tryb jasny",
     lead: "Przeglądaj i edytuj drzewo genealogiczne z pliku GEDCOM bezpośrednio w przeglądarce. Schemat przodków lub potomków pokazuje przy każdej osobie rok urodzenia, ślubu i śmierci; pobierzesz go jako PDF, a zmienione dane jako GEDCOM.",
     drop: "<strong>Wybierz plik</strong> lub przeciągnij go tutaj (.ged)",
     privacy: "Plik nie jest nigdzie wysyłany, przetwarzany jest tylko w Twojej przeglądarce, w której zostaje też ostatnio otwarty plik. Nie masz własnego?",
@@ -280,6 +283,7 @@ const STRINGS_RAW = {
   },
   hu: {
     name: "Magyar", language: "Nyelv",
+    themeDark: "Váltás sötét módra", themeLight: "Váltás világos módra",
     lead: "Tekintse meg és szerkessze a családfát GEDCOM fájlból, közvetlenül a böngészőben. A felmenői vagy leszármazotti tábla minden személynél mutatja a születés, a házasság és a halál évét; PDF-ként töltheti le, a módosított adatokat pedig GEDCOM-ként.",
     drop: "<strong>Válasszon fájlt</strong>, vagy húzza ide (.ged)",
     privacy: "A fájl sehová nem kerül feltöltésre, csak az Ön böngészőjében dolgozzuk fel, ahol az utoljára megnyitott fájl is megmarad. Nincs saját fájlja?",
@@ -362,6 +366,7 @@ const STRINGS_RAW = {
   },
   de: {
     name: "Deutsch", language: "Sprache",
+    themeDark: "Zum dunklen Modus wechseln", themeLight: "Zum hellen Modus wechseln",
     lead: "Stammbaum aus einer GEDCOM-Datei direkt im Browser ansehen und bearbeiten. Die Ahnen- oder Nachkommentafel zeigt bei jeder Person die Jahre von Geburt, Heirat und Tod; sie lässt sich als PDF herunterladen, die bearbeiteten Daten als GEDCOM.",
     drop: "<strong>Datei auswählen</strong> oder hierher ziehen (.ged)",
     privacy: "Die Datei wird nirgendwohin gesendet, sie wird nur in Ihrem Browser verarbeitet, wo auch die zuletzt geöffnete Datei gespeichert bleibt. Keine eigene Datei?",
@@ -445,6 +450,7 @@ const STRINGS_RAW = {
   },
   en: {
     name: "English", language: "Language",
+    themeDark: "Switch to dark mode", themeLight: "Switch to light mode",
     lead: "View and edit a family tree from a GEDCOM file right in your browser. The ancestor or descendant chart shows each person's years of birth, marriage and death; download it as a PDF and the edited data as GEDCOM.",
     drop: "<strong>Choose a file</strong> or drop it here (.ged)",
     privacy: "The file is not uploaded anywhere; it is processed only in your browser, which also keeps the last opened file. Don't have one?",
@@ -526,6 +532,7 @@ const STRINGS_RAW = {
   },
   fr: {
     name: "Français", language: "Langue",
+    themeDark: "Passer en mode sombre", themeLight: "Passer en mode clair",
     lead: "Consultez et modifiez un arbre généalogique à partir d'un fichier GEDCOM, directement dans le navigateur. L'arbre d'ascendance ou de descendance indique pour chaque personne les années de naissance, de mariage et de décès ; téléchargez-le en PDF et les données modifiées en GEDCOM.",
     drop: "<strong>Choisissez un fichier</strong> ou déposez-le ici (.ged)",
     privacy: "Le fichier n'est envoyé nulle part, il est traité uniquement dans votre navigateur, qui conserve aussi le dernier fichier ouvert. Vous n'en avez pas ?",
@@ -608,6 +615,7 @@ const STRINGS_RAW = {
   },
   it: {
     name: "Italiano", language: "Lingua",
+    themeDark: "Passa alla modalità scura", themeLight: "Passa alla modalità chiara",
     lead: "Visualizza e modifica un albero genealogico da un file GEDCOM direttamente nel browser. L'albero degli antenati o dei discendenti mostra per ogni persona gli anni di nascita, matrimonio e morte; scaricalo in PDF e i dati modificati in GEDCOM.",
     drop: "<strong>Scegli un file</strong> o trascinalo qui (.ged)",
     privacy: "Il file non viene inviato da nessuna parte, viene elaborato solo nel tuo browser, che conserva anche l'ultimo file aperto. Non ne hai uno?",
@@ -690,6 +698,7 @@ const STRINGS_RAW = {
   },
   es: {
     name: "Español", language: "Idioma",
+    themeDark: "Cambiar a modo oscuro", themeLight: "Cambiar a modo claro",
     lead: "Consulta y edita un árbol genealógico a partir de un archivo GEDCOM directamente en el navegador. El árbol de antepasados o de descendientes muestra de cada persona los años de nacimiento, matrimonio y defunción; descárgalo en PDF y los datos editados en GEDCOM.",
     drop: "<strong>Elija un archivo</strong> o arrástrelo aquí (.ged)",
     privacy: "El archivo no se envía a ningún sitio; se procesa solo en su navegador, que también guarda el último archivo abierto. ¿No tiene uno?",
@@ -772,6 +781,7 @@ const STRINGS_RAW = {
   },
   pt: {
     name: "Português", language: "Idioma",
+    themeDark: "Mudar para o modo escuro", themeLight: "Mudar para o modo claro",
     lead: "Veja e edite uma árvore genealógica a partir de um ficheiro GEDCOM, diretamente no navegador. A árvore de antepassados ou de descendentes mostra para cada pessoa os anos de nascimento, casamento e falecimento; descarregue-a em PDF e os dados editados em GEDCOM.",
     drop: "<strong>Escolha um ficheiro</strong> ou arraste-o para aqui (.ged)",
     privacy: "O ficheiro não é enviado para lado nenhum; é processado apenas no seu navegador, que também guarda o último ficheiro aberto. Não tem nenhum?",
@@ -855,6 +865,7 @@ const STRINGS_RAW = {
   },
   nl: {
     name: "Nederlands", language: "Taal",
+    themeDark: "Overschakelen naar donkere modus", themeLight: "Overschakelen naar lichte modus",
     lead: "Bekijk en bewerk een stamboom uit een GEDCOM-bestand, direct in de browser. De kwartierstaat of parenteel toont bij elke persoon de jaren van geboorte, huwelijk en overlijden; download hem als PDF en de bewerkte gegevens als GEDCOM.",
     drop: "<strong>Kies een bestand</strong> of sleep het hierheen (.ged)",
     privacy: "Het bestand wordt nergens naartoe gestuurd; het wordt alleen in uw browser verwerkt, die ook het laatst geopende bestand bewaart. Geen eigen bestand?",
@@ -937,6 +948,7 @@ const STRINGS_RAW = {
   },
   uk: {
     name: "Українська", language: "Мова",
+    themeDark: "Перемкнути на темний режим", themeLight: "Перемкнути на світлий режим",
     lead: "Переглядайте й редагуйте родовід із файлу GEDCOM прямо в браузері. Схема предків або нащадків показує для кожної особи роки народження, шлюбу та смерті; завантажте її як PDF, а змінені дані — як GEDCOM.",
     drop: "<strong>Виберіть файл</strong> або перетягніть його сюди (.ged)",
     privacy: "Файл нікуди не надсилається, він обробляється лише у вашому браузері, який також зберігає останній відкритий файл. Немає власного?",

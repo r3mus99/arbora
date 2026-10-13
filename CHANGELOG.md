@@ -1,12 +1,18 @@
 # Changelog
 
-## 1.26.0 – 2026-10-13
+## 1.27.0 – 2026-10-13
 
 - The app **remembers the last opened file** and opens it again when the page starts. The file is kept only in this
   browser (IndexedDB); it is never sent anywhere. Unsaved edits are not kept, only the file as it was opened.
 - A click on **Arbora** (top left) goes back to the welcome screen, after asking when there are unsaved changes. The
   remembered file stays; the welcome screen offers **Continue with <file>** and a small button to **forget** the file.
 - The privacy note of the welcome screen says that the browser keeps the last opened file (all 12 languages).
+
+## 1.26.0 – 2026-10-13
+
+- **Light / dark mode switch** in the top bar, right next to the language menu (sun / moon icon). By default the app
+  follows the system setting; once you choose, your choice is kept in your browser and wins over the system. The
+  tooltip is translated into all 12 languages.
 
 ## 1.25.0 – 2026-10-13
 

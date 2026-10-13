@@ -10,6 +10,7 @@
   /* event colours: the tree, the timeline and (darker) the PDF, see src/core/colors.ts */
   --line: color-mix(in srgb, var(--muted) 50%, var(--bg));
   --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --c-src: #5f7f9a; --zebra: #00000005;
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -18,6 +19,7 @@
     --danger: #f08a73; --focus: #6fbf9566; --warn: #d9a441; --warn-soft: #4a3a1c; --warn-text: #f1cf8a; --warn-on: #1b1b1b;
     --sex-M: #7aa3d6; --sex-F: #d98aae; --star: #e0b04a;
     --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --c-src: #8fb0cc; --zebra: #ffffff05;
+    color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
@@ -26,6 +28,7 @@
   --danger: #f08a73; --focus: #6fbf9566; --warn: #d9a441; --warn-soft: #4a3a1c; --warn-text: #f1cf8a; --warn-on: #1b1b1b;
     --sex-M: #7aa3d6; --sex-F: #d98aae; --star: #e0b04a;
   --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --c-src: #8fb0cc; --zebra: #ffffff05;
+  color-scheme: dark;
 }
 * { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 45%, transparent) transparent; }
 /* thin, quiet scrollbars (the browser default is a wide bright bar that stands out on the dark theme) */
