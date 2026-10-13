@@ -16,6 +16,7 @@ import { annotations, eventAnnotations, marriageAnnotations, personAnnotations, 
 import { timeline, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { EDITOR_FORM } from "./PersonEditor";
+import { Row, Section } from "./Section";
 import { EventSources, Linked, PersonSources } from "./Sources";
 
 interface Props {
@@ -38,12 +39,9 @@ interface Props {
   t: (key: StringKey) => string;
 }
 
-/** one fact: a section with the common title (icon and label) and the value below it */
-function Fact({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children?: ReactNode }) {
-  return <section className="section">
-    <h4 className="sec-title"><Icon className="icon" aria-hidden="true" />{label}</h4>
-    <div className="fact-body">{children}</div>
-  </section>;
+/** one fact (employment, religion, …): a section with the common title and the value in the text column */
+function Fact({ icon, label, children }: { icon: LucideIcon; label: string; children?: ReactNode }) {
+  return <Section icon={icon} title={label}>{children}</Section>;
 }
 
 const DETAIL_KEYS = { age: "detAge", cause: "detCause", agency: "detAgency", address: "detAddress" } as const;
@@ -148,27 +146,22 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
             {names.others.map((n, i) => <div key={`o${i}`}><span>{t("otherName")}{n.type ? ` (${n.type})` : ""}:</span> {n.name}</div>)}
           </div>;
         })()}
-        {parents.length > 0 && <section className="section parents">
-          <h4 className="sec-title"><Users className="icon" aria-hidden="true" />{t("parents")}</h4>
-          <ul>{parents.map((pid, i) => {
+        {parents.length > 0 && <Section icon={Users} title={t("parents")} rows>
+          {parents.map((pid, i) => {
             const sex = data.people[pid]?.sex;
-            const ParentIcon = sex === "M" ? Mars : sex === "F" ? Venus : null;
             const wed = i === 1 && birthFam?.marriage && (birthFam.marriage.date || birthFam.marriage.place) ? birthFam.marriage : null;
             return <Fragment key={pid}>
-              {wed && <li className="parents-wed muted">
-                <Heart className="icon" aria-hidden="true" />
-                {[wed.date && formatDate(wed.date, true, lang), municipality(wed.place)].filter(Boolean).join(" · ")}</li>}
-              <li>{ParentIcon && <ParentIcon className={`icon sex-${sex}`} aria-hidden="true" />}{link(pid)}</li>
+              {wed && <Row icon={Heart} tone="tone-marr" className="muted">
+                {[wed.date && formatDate(wed.date, true, lang), municipality(wed.place)].filter(Boolean).join(" · ")}</Row>}
+              <Row icon={sex === "M" ? Mars : sex === "F" ? Venus : undefined} tone={sex ? `tone-${sex}` : undefined}>{link(pid)}</Row>
             </Fragment>;
-          })}</ul>
-        </section>}
-        {life.length > 0 && <section className="section timeline">
-          <h4 className="sec-title"><History className="icon" aria-hidden="true" />{t("timeline")}</h4>
-          <ol>{life.map((e) => {
+          })}
+        </Section>}
+        {life.length > 0 && <Section icon={History} title={t("timeline")} rows className="timeline">
+          {life.map((e) => {
             const Icon = (e.kind === "marriage" && e.divorced) || e.tag === "DIV" ? HeartCrack : ICONS[e.kind];
             const childSex = e.kind === "child" && e.other ? data.people[e.other]?.sex : "";
-            return <li key={e.key} className={`tl-${e.kind}${childSex ? ` tl-sex-${childSex}` : ""}`}>
-              <Icon className="icon tl-icon" aria-hidden="true" />
+            return <Row key={e.key} icon={Icon} tone={`tl-${e.kind}${childSex ? ` tl-sex-${childSex}` : ""}`}>
               <div className="tl-body">
                 {/* first line: date, what happened and the age; second line: who and where */}
                 <div className="tl-date">
@@ -191,9 +184,9 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
                   <span>{t(DETAIL_KEYS[d.key])}:</span> {d.value}</div>)}</div>}
                 {(() => { const a = extras(e.kind, e.key, e.node); return a && <EventSources a={a} t={t} />; })()}
               </div>
-            </li>;
-          })}</ol>
-        </section>}
+            </Row>;
+          })}
+        </Section>}
         {p.religion && <Fact icon={Church} label={t("religion")}><div className="fact-value">{p.religion}</div></Fact>}
         {f && f.occupations.length > 0 && <Fact icon={Briefcase} label={t("occupation")}>
           {f.occupations.map((o) => <div key={o.origin}>
@@ -217,10 +210,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
             </li>)}</ul>
           </Fact>;
         })()}
-        {f?.note && <section className="section">
-          <h4 className="sec-title"><StickyNote className="icon" aria-hidden="true" />{t("note")}</h4>
-          <div className="note-text"><Linked text={f.note} /></div>
-        </section>}
+        {f?.note && <Section icon={StickyNote} title={t("note")}><div className="note-text"><Linked text={f.note} /></div></Section>}
         {record && <PersonSources t={t} a={(({ sources, notes }) => ({
           sources, notes: notes.filter((n) => n !== f?.note.trim()) }))(personAnnotations(record, lookup))} />}
         {(() => {

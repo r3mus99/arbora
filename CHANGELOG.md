@@ -1,6 +1,11 @@
 # Changelog
 
-## 1.15.2 – 2026-10-13
+## 1.16.0 – 2026-10-13
+
+- The person detail is built from a small set of blocks (`src/ui/Section.tsx`): every block is a Section with a title
+  row, and every line with an icon is a Row. Sizes, spacing, icon column and colours are tokens in one place in
+  styles.css, so parents, timeline, employment, religion, note and sources line up the same way (icons in one
+  column, text in another, one icon size, 14px text and 12px titles) and a new block needs no extra CSS.
 
 - The birth of a child on the timeline shows the place in the brackets after the child's name, like every other
   reference to a person, instead of after a dot. The name in such a reference is bold and in the text colour, like in the tree.

@@ -175,35 +175,47 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .detail .id .lifespan { font-variant-numeric: tabular-nums; }
 .detail h3 .icon { margin-left: 6px; width: 17px; height: 17px; vertical-align: -1px; }
 .detail .sex-M { color: #3f6fa8; } .detail .sex-F { color: #b0507a; }
-.facts { display: grid; gap: 18px; margin-top: 4px; }
-.fact-body { min-width: 0; padding-top: 1px; }
+/*
+ * Person detail layout. The blocks are built from Section and Row (src/ui/Section.tsx); these tokens decide how
+ * every block looks, so change them here and nowhere else:
+ *   --d-icon  the size of every icon in the detail (18px), --d-col the icon column (icons are centred in it),
+ *   --d-gap   the space between the icon column and the text, --d-section-gap the space between sections.
+ * Text sizes: 14px content, 12px titles and small print. Icon colours: --c-src for section titles, the colour
+ * of the event or the sex on a Row (--row-color).
+ */
+.detail { --d-icon: 18px; --d-col: 22px; --d-gap: 10px; --d-section-gap: 22px; line-height: 1.5; }
+.detail .icon { width: var(--d-icon); height: var(--d-icon); vertical-align: 0; }
+.facts { display: grid; gap: var(--d-section-gap); margin-top: 14px; }
+.section { min-width: 0; }
+.sec-head { display: grid; grid-template-columns: var(--d-col) auto 1fr; column-gap: var(--d-gap); align-items: center;
+            margin: 0 0 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+            color: var(--muted); font-family: inherit; list-style: none; cursor: default; }
+.sec-head::-webkit-details-marker { display: none; }
+.sec-icon, .row-icon { display: grid; place-items: center; height: 1.5em; }
+.sec-icon { color: var(--c-src); }
+.sec-extra { margin-left: -4px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.sources > summary.sec-head { cursor: pointer; margin: 0 0 4px; }
+.sec-body { margin-left: calc(var(--d-col) + var(--d-gap)); min-width: 0; }
+.row { display: grid; grid-template-columns: var(--d-col) 1fr; column-gap: var(--d-gap); padding: 3px 0; --row-color: var(--c-src); }
+.row-icon { color: var(--row-color); }
+.row-body { min-width: 0; }
+.tone-M { --row-color: #3f6fa8; } .tone-F { --row-color: #b0507a; } .tone-marr { --row-color: var(--c-marr); }
 /* the person's life: one coloured icon per event on a thin line, the date with the age and what happened */
-/* a titled section of the detail (parents, note, sources and notes): the same title everywhere */
-.sec-title { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; cursor: default; font-size: 12px;
-             font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
-             font-family: inherit; }
-.sec-title .icon { width: 17px; height: 17px; color: var(--c-src); flex: none; }
-.sources summary.sec-title { cursor: pointer; margin: 0; }
-.parents li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 6px; padding: 2px 0; }
-.parents-wed .icon { color: var(--c-marr); }
-.parents li .icon { width: 14px; height: 14px; align-self: center; flex: none; }
-.timeline ol { list-style: none; margin: 0; padding: 0; position: relative; }
-.timeline ol::before { content: ""; position: absolute; left: 10px; top: 12px; bottom: 12px; width: 2px;
-                       background: var(--border); }
-.timeline ol > li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; padding: 5px 0; }
-.timeline .tl-icon { width: 20px; height: 20px; margin: 2px 0 0; position: relative; color: var(--dot);
-                     background: var(--panel); box-shadow: 0 3px 0 var(--panel), 0 -3px 0 var(--panel); }
+.timeline .sec-rows { position: relative; }
+.timeline .sec-rows::before { content: ""; position: absolute; left: calc(var(--d-col) / 2 - 1px); top: 14px; bottom: 14px;
+                              width: 2px; background: var(--border); }
+.timeline .row-icon .icon { position: relative; background: var(--panel); box-shadow: 0 3px 0 var(--panel), 0 -3px 0 var(--panel); }
 .tl-body { min-width: 0; overflow-wrap: anywhere; }
 .tl-date { font-weight: 600; font-variant-numeric: tabular-nums; }
 .tl-date .tl-label { font-weight: 400; color: var(--muted); }
 .tl-date .muted { font-weight: 400; }
 .tl-what { color: var(--muted); }
-.tl-birth { --dot: var(--c-birth); } .tl-christening { --dot: #3b82c4; } .tl-marriage { --dot: var(--c-marr); }
-.tl-residence { --dot: #9a7b4f; } .tl-event { --dot: #7b6bb5; }
-.tl-famEvent { --dot: var(--c-marr); }
-.tl-child { --dot: #17a89c; } .tl-death { --dot: var(--c-death); } .tl-burial { --dot: #8a8f86; }
+.tl-birth { --row-color: var(--c-birth); } .tl-christening { --row-color: #3b82c4; } .tl-marriage { --row-color: var(--c-marr); }
+.tl-residence { --row-color: #9a7b4f; } .tl-event { --row-color: #7b6bb5; }
+.tl-famEvent { --row-color: var(--c-marr); }
+.tl-child { --row-color: #17a89c; } .tl-death { --row-color: var(--c-death); } .tl-burial { --row-color: #8a8f86; }
 /* a child born: the icon takes the colour of the child's sex */
-.tl-sex-M { --dot: #3f6fa8; } .tl-sex-F { --dot: #b0507a; }
+.tl-sex-M { --row-color: #3f6fa8; } .tl-sex-F { --row-color: #b0507a; }
 /* sources and notes: the one colour --c-src marks the icons, the text stays muted */
 .tl-details { color: var(--muted); }
 .tl-details span { opacity: .8; }
@@ -223,7 +235,6 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .src-pub summary { cursor: pointer; }
 .src-text { margin: 2px 0 0; padding: 0; font-style: italic; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 .src-entries > .src-note { white-space: pre-wrap; margin-top: 8px; }
-.sources .src-entries { margin-top: 8px; }
 .fact-value { overflow-wrap: anywhere; }
 .fact-value .place { color: var(--muted); }
 .fact-value span + .place::before { content: " · "; }

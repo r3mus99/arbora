@@ -2,6 +2,7 @@ import { BookMarked, StickyNote } from "lucide-react";
 import { useState } from "react";
 import { hasAnnotations, linkParts, type Annotations, type Citation } from "../core/sources";
 import type { StringKey } from "./i18n";
+import { SectionHead } from "./Section";
 
 type T = (key: StringKey) => string;
 
@@ -37,9 +38,8 @@ const count = (a: Annotations) => a.sources.length + a.notes.length;
 export function PersonSources({ a, t }: { a: Annotations; t: T }) {
   if (!hasAnnotations(a)) return null;
   return <details className="sources section" open>
-    <summary className="sec-title"><BookMarked className="icon" aria-hidden="true" />{t("srcNotes")}
-      <span className="muted"> · {count(a)}</span></summary>
-    <Entries a={a} t={t} />
+    <summary className="sec-head"><SectionHead icon={BookMarked} title={t("srcNotes")} extra={`· ${count(a)}`} /></summary>
+    <div className="sec-body"><Entries a={a} t={t} /></div>
   </details>;
 }
 
