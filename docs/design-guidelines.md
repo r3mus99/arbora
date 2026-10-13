@@ -20,6 +20,7 @@ Colours: `--panel` for panel surfaces, `--bg` for the page, tool bar and inputs,
 
 Rules for a new panel or tool:
 
+- The frame has one fixed height (the window below the top bar). A panel never changes it; its content scrolls inside the panel.
 - The header row is `--head-h` high with `--pad` on the sides and a bottom line in `--border`.
 - A tool is one icon button in the tool bar; the icon of the open panel is highlighted (`.on`) and a second click on it closes the panel.
 - Controls use `--ctl-h`, `--radius` and the 14px text; do not size a control with its own padding numbers.

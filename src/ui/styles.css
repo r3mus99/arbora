@@ -159,22 +159,23 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .tree-row .dup { color: var(--muted); font-size: 13px; }
 .mid { min-width: 0; }
 /* app frame in one piece, like a trading terminal: tool bar, panel, chart and detail side by side, divided by thin lines */
-.panel.chart { padding: 0; overflow: clip; }
-.viewer { display: grid; grid-template-columns: auto minmax(0, 1fr) 340px; align-items: stretch; }
-.mid { border-right: 1px solid var(--border); }
-.viewer .tree { border: 0; border-radius: var(--radius); margin: 12px var(--pad); }
-@media (max-width: 900px) { .viewer { grid-template-columns: minmax(0, 1fr); } .side { display: none; } .detail { position: static; max-height: none; }
+/* the frame has one fixed height (the window below the top bar), opening or closing a panel never changes it;
+   every column scrolls on its own */
+.panel.chart { padding: 0; overflow: hidden; height: max(420px, calc(100vh - var(--bar-h, 0px) - 40px)); }
+.viewer { display: grid; grid-template-columns: auto minmax(0, 1fr) 340px; grid-template-rows: minmax(0, 1fr); height: 100%; }
+.mid { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
+.viewer .tree { border: 0; border-radius: var(--radius); margin: 12px var(--pad); flex: 1; min-height: 0; max-height: none; }
+@media (max-width: 900px) { .panel.chart { height: auto; } .viewer { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; height: auto; } .viewer .tree { flex: none; max-height: max(360px, calc(100vh - 230px)); } .side { display: none; } .detail { max-height: none; }
 }
 /* one sidebar: bar of tools (one icon per panel, the open one highlighted) and the open panel next to it */
-.side { display: flex; align-items: flex-start; border-right: 1px solid var(--border); background: var(--bg); }
-.toolbar { position: sticky; top: var(--bar-h, 0px); display: flex; flex-direction: column; gap: 4px; padding: calc((var(--head-h) - var(--ctl-h)) / 2); }
+.side { display: flex; align-items: stretch; min-height: 0; border-right: 1px solid var(--border); background: var(--bg); }
+.toolbar { display: flex; flex-direction: column; gap: 4px; padding: calc((var(--head-h) - var(--ctl-h)) / 2); }
 .toolbar button { width: var(--ctl-h); height: var(--ctl-h); padding: 0; display: grid; place-items: center; border: 0; border-radius: var(--radius);
                   background: none; color: var(--muted); cursor: pointer; }
 .toolbar button:hover { background: var(--accent-soft); color: inherit; }
 .toolbar button.on { background: var(--accent-soft); color: var(--accent); }
 /* the panel of the active tool: the list of people, scrolls on its own */
-.rail-wrap { width: 250px; border-left: 1px solid var(--border); background: var(--panel); position: sticky; top: var(--bar-h, 0px);
-             height: calc(100vh - var(--bar-h, 0px)); overflow-y: auto; }
+.rail-wrap { width: 250px; border-left: 1px solid var(--border); background: var(--panel); overflow-y: auto; }
 .rail { list-style: none; margin: 0; padding: 4px 0; font-size: 14px; }
 .rail li { display: flex; align-items: baseline; gap: 7px; padding: 3px 10px; cursor: pointer; }
 .rail li:hover { background: var(--accent-soft); }
@@ -184,9 +185,7 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .rail li.sel .ryears { color: inherit; opacity: .85; }
 .rail .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; align-self: center; background: var(--muted); }
 .rail .dot.sex-M { background: #3f6fa8; } .rail .dot.sex-F { background: #b0507a; }
-.detail { padding: 0 var(--pad) 12px; font-size: 14px; align-self: start; background: var(--panel);
-          position: sticky; top: var(--bar-h, 0px);
-          max-height: calc(100vh - var(--bar-h, 0px)); overflow-y: auto; }
+.detail { padding: 0 var(--pad) 12px; font-size: 14px; background: var(--panel); min-height: 0; overflow-y: auto; }
 /* the detail has two text sizes: 14px for the content and 12px for titles, labels and small print */
 .detail h3 { font-size: 19px; margin: 0; }
 .detail-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--head-h);
