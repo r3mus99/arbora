@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { parseGedcom } from "../core/gedcom";
 import {
-  NO_BROWSING, edited, isDirty, move, startEdits, stepEdits, visit, withRecords, type Doc,
+  NO_BROWSING, edited, changeCount, isDirty, move, startEdits, stepEdits, visit, withRecords, type Doc,
 } from "./history";
 import { NUMBERING, storedOptions, toForm, toOptions, withOption } from "./options";
 import { DEFAULTS } from "../core/format";
@@ -113,5 +113,22 @@ describe("chart options", () => {
                                 lineHeight: Number.NaN });
     expect(bad).toEqual(DEFAULTS);
     expect(storedOptions({ chart: "descendants", numbering: "ahnentafel" }).numbering).toBe("daboville");
+  });
+
+  test("the number of unsaved changes counts steps since the saved version", () => {
+    const [a, b, c] = [doc("A"), doc("B"), doc("C")];
+    let edits = startEdits(a);
+    expect(changeCount(a, edits)).toBe(0);
+    edits = edited(edits, a);
+    edits = edited(edits, b);
+    expect(changeCount(c, edits)).toBe(2);
+    // undo one step
+    const back = stepEdits(edits, c, -1)!;
+    expect(changeCount(back.doc, back.edits)).toBe(1);
+    // undo past the saved version (saved after B, then two undos) still counts
+    const saved = { ...edits, saved: b };
+    expect(changeCount(c, saved)).toBe(1);
+    const undone = stepEdits(stepEdits(saved, c, -1)!.edits, b, -1)!;
+    expect(changeCount(undone.doc, undone.edits)).toBe(1);
   });
 });

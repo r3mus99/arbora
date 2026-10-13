@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.0 – 2026-10-13
+
+- The **GED** save button now shows the number of unsaved changes in an orange badge in its corner, like a notification
+  badge (99+ above 99), instead of the plain dot. The tooltip says what the number is ("unsaved changes: 3"). The count
+  is the number of edit steps since the file was loaded or saved; undo lowers it.
+- The badge is one component for the save button and the problem count of the file check; it is described in
+  `docs/design-guidelines.md`.
+
 ## 1.24.0 – 2026-10-13
 
 - New tool in the tool bar: **Recent** (clock icon). It lists the people you visited last (30 are kept), the latest

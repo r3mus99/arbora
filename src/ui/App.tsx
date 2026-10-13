@@ -15,7 +15,7 @@ import { placeOverview } from "../core/placelist";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
 import { renameVariants, spellings, variantGroups, type VariantKind } from "../core/variants";
-import { NO_BROWSING, NO_EDITS, edited, isDirty, move as moveIn, startEdits, stepEdits, visit, withRecords, type Browsing, type Doc, type Place } from "./history";
+import { NO_BROWSING, NO_EDITS, edited, changeCount, isDirty, move as moveIn, startEdits, stepEdits, visit, withRecords, type Browsing, type Doc, type Place } from "./history";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { storedOptions, toForm, toOptions, withOption, type Form } from "./options";
 import { CheckPanel } from "./CheckPanel";
@@ -193,6 +193,8 @@ export function App() {
   }
 
   const dirty = isDirty(doc, edits);
+  const changes = changeCount(doc, edits);
+  const unsavedText = `${t("unsaved")}: ${changes}`;
   const keepEdits = () => !dirty || confirm(t("discard"));
 
   const openFile = (f: File | undefined) => {
@@ -429,10 +431,10 @@ export function App() {
               <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
                       title={`${t("redo")} (Ctrl+Y)`} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn save-btn" onClick={downloadGedcom}
-                      title={`${t("exportGed")}${dirty ? ` (${t("unsaved")})` : ""}. ${t("exportTip")}`}
-                      aria-label={dirty ? `${t("exportGed")} (${t("unsaved")})` : t("exportGed")}>
+                      title={`${t("exportGed")}${dirty ? ` (${unsavedText})` : ""}. ${t("exportTip")}`}
+                      aria-label={dirty ? `${t("exportGed")} (${unsavedText})` : t("exportGed")}>
                 <FileDown className="icon" aria-hidden="true" />
-                GED{dirty && <span className="dot" />}</button>
+                GED{dirty && <span className="badge" aria-hidden="true">{changes > 99 ? "99+" : changes}</span>}</button>
               <button type="button" className="icon-btn save-btn" disabled={busy} onClick={() => create()} title={t("go")}
                       aria-label={t("go")}>
                 {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
