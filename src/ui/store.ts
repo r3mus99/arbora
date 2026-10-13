@@ -1,5 +1,6 @@
 /* Settings kept in localStorage: language, options and the last chosen person (never the file). */
 import type { ChartOptions, Lang } from "../core";
+import type { Marks } from "./marks";
 
 const STORE_KEY = "arbora-options";
 // before the app was renamed
@@ -15,6 +16,8 @@ export interface Stored {
   keepAka?: boolean;
   /** the list of people is expanded (default: a narrow rail with a magnifier) */
   listOpen?: boolean;
+  /** recently visited and favourite people, per file (see marks.ts) */
+  marks?: Record<string, Marks>;
 }
 
 export function readStore(): Stored {

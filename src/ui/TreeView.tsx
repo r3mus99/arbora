@@ -1,4 +1,4 @@
-import { CornerDownRight } from "lucide-react";
+import { CornerDownRight, Star } from "lucide-react";
 import { useEffect, useEffectEvent, useRef, type MouseEvent } from "react";
 import type { ShownRow } from "../core/collapse";
 import type { StringKey } from "./i18n";
@@ -18,6 +18,8 @@ const mid = (row: number) => row * LINE + LINE / 2;
 interface Props {
   rows: ShownRow[];
   focusId: string | null;
+  /** favourite people get a star after their name (on screen only; the PDF never has it) */
+  starred: ReadonlySet<string>;
   /** bump to scroll the focused person (or the `scrollTo` row) into view */
   scrollKey: number;
   /** index of a row to scroll to and highlight, instead of the focused person */
@@ -32,7 +34,7 @@ interface Props {
 }
 
 /** The chart rows as on the PDF page: indented lines joined by connectors; people are clickable. */
-export function TreeView({ rows, focusId, scrollKey, scrollTo, numbered, onFocus, onToggle, onJump, t }: Props) {
+export function TreeView({ rows, focusId, starred, scrollKey, scrollTo, numbered, onFocus, onToggle, onJump, t }: Props) {
   const box = useRef<HTMLDivElement>(null);
 
   // scroll only the chart box, so the page itself stays where it is; only a new `scrollKey` scrolls
@@ -89,6 +91,7 @@ export function TreeView({ rows, focusId, scrollKey, scrollTo, numbered, onFocus
               {id
                 ? <button type="button" className="name" onClick={() => onFocus(id)}>{styled(r)}</button>
                 : <span>{styled(r)}</span>}
+              {id && starred.has(id) && <Star className="icon star" role="img" aria-label={t("favourite")} />}
               {r.dup && r.target && <button type="button" className="jump" onClick={() => onJump(r)}>
                 <CornerDownRight className="icon" aria-hidden="true" />{seeText(r)}</button>}
               {r.dup && !r.target && <span className="dup"> ({t("repeated")})</span>}

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileUp, LayoutDashboard,
-         Loader2, BookMarked, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, BookMarked, Clock, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -20,6 +20,8 @@ import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { storedOptions, toForm, toOptions, withOption, type Form } from "./options";
 import { CheckPanel } from "./CheckPanel";
 import { FileDrop } from "./FileDrop";
+import { NO_MARKS, fileKey, marksOf, toggleFav, visited, withMarks, listing, type Marks } from "./marks";
+import { RecentPanel } from "./RecentPanel";
 import { LanguageMenu } from "./LanguageMenu";
 import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
@@ -83,20 +85,23 @@ export function App() {
   const [folding, setFolding] = useState<Folding>({ key: "", paths: NO_PATHS });
   const [hist, setHist] = useState<Browsing>(NO_BROWSING);
   const [query, setQuery] = useState("");
+  // recently visited and favourite people of this file, kept in the browser only
+  const [marks, setMarks] = useState<Marks>(NO_MARKS);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
   // the file overview opens after each load
   const finderRef = useRef<HTMLInputElement>(null);
   // the list of people starts as a narrow rail with a magnifier; the choice is remembered
   // one tool panel is open at a time: the list of people, the file check, or none
-  const [tool, setTool] = useState<"people" | "check" | "overview" | "sources" | "places" | "settings" | null>(() => readStore().listOpen === true ? "people" : null);
-  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showSettings = tool === "settings";
+  const [tool, setTool] = useState<"people" | "check" | "overview" | "sources" | "places" | "recent" | "settings" | null>(() => readStore().listOpen === true ? "people" : null);
+  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
   const setShowOverview = (on: boolean) => setTool(on ? "overview" : listOpen ? "people" : null);
   const setShowSettings = (on: boolean) => setTool(on ? "settings" : listOpen ? "people" : null);
   const setShowSources = (on: boolean) => setTool(on ? "sources" : listOpen ? "people" : null);
   const setShowPlaces = (on: boolean) => setTool(on ? "places" : listOpen ? "people" : null);
+  const setShowRecent = (on: boolean) => setTool(on ? "recent" : listOpen ? "people" : null);
   useEffect(() => { if (listOpen) finderRef.current?.focus(); }, [listOpen]);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
@@ -176,6 +181,8 @@ export function App() {
     const root = last && parsed.people[last] ? last : Object.keys(parsed.people)[0];
     setSelectedId(root);
     setFocusId(root);
+    setMarks(visited(marksOf(readStore().marks, fileKey(name)), root));
+    setMarkedFor(root);
     setJumpRow(null);
     setHist({ list: [{ root, focus: root }], at: 0 });
     setScrollKey((k) => k + 1);
@@ -279,6 +286,19 @@ export function App() {
   }, [dirty]);
 
   const remember = (place: Place) => setHist((h) => visit(h, place));
+
+  // a person shown in the detail counts as visited; the marks are saved per file
+  const markKey = fileKey(loadedName);
+  const [markedFor, setMarkedFor] = useState(focusId);
+  if (markedFor !== focusId) {
+    setMarkedFor(focusId);
+    if (focusId) setMarks((m) => visited(m, focusId));
+  }
+  useEffect(() => {
+    if (data) updateStore({ marks: withMarks(readStore().marks, markKey, marks) });
+  }, [marks, markKey, data]);
+  const favourites = useMemo(() => new Set(marks.fav), [marks]);
+  const recent = useMemo(() => (data ? listing(marks, (id) => !!data.people[id]) : []), [marks, data]);
 
   const select = (id: string) => {
     setSelectedId(id);
@@ -435,6 +455,9 @@ export function App() {
                 <button type="button" className={listOpen ? "on" : undefined} aria-pressed={listOpen}
                         title={t(listOpen ? "hideList" : "showList")} aria-label={t(listOpen ? "hideList" : "showList")}
                         onClick={() => showList(!listOpen)}><Search className="icon" aria-hidden="true" /></button>
+                <button type="button" className={showRecent ? "on" : undefined} aria-pressed={showRecent}
+                        title={t("recent")} aria-label={t("recent")} onClick={() => setShowRecent(!showRecent)}>
+                  <Clock className="icon" aria-hidden="true" /></button>
                 <button type="button" className={showOverview ? "on" : undefined} aria-pressed={showOverview}
                         title={t("overview")} aria-label={t("overview")} onClick={() => setShowOverview(!showOverview)}>
                   <LayoutDashboard className="icon" aria-hidden="true" /></button>
@@ -458,6 +481,10 @@ export function App() {
                           onProblems={() => setShowCheck(true)}
                           onPerson={(id) => makeRoot(id)}
                           onSurname={(name) => { setQuery(name); showList(true); finderRef.current?.focus(); }} />
+              </aside>}
+              {showRecent && <aside className="rail-wrap" aria-label={t("recent")}>
+                <RecentPanel entries={recent} data={data} lang={lang} selectedId={focusId}
+                             onPerson={pick} onStar={(id) => setMarks((m) => toggleFav(m, id))} t={t} />
               </aside>}
               {showSettings && <aside className="rail-wrap" aria-label={t("settings")}>
                 <SettingsPanel form={form} lang={lang} onChange={setOpt} t={t} />
@@ -501,12 +528,13 @@ export function App() {
                   </div>
                 </div>
               </div>
-              <TreeView rows={shown} focusId={focusId} scrollKey={treeScroll} scrollTo={jumpRow}
+              <TreeView rows={shown} focusId={focusId} starred={favourites} scrollKey={treeScroll} scrollTo={jumpRow}
                         numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
                         onFocus={(id) => focus(id, false)} onToggle={toggle}
                         onJump={(r) => jump(r.targetIndex)} t={t} />
             </div>
-            {focusId && <PersonDetail data={data} id={focusId} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
+            {focusId && <PersonDetail data={data} id={focusId} starred={favourites.has(focusId)}
+                                      onStar={() => setMarks((m) => toggleFav(m, focusId))} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot}
                                       onEdit={() => setEditId(focusId)} onCancelEdit={() => setEditId(null)} t={t}
                                       editor={editId === focusId && recordOf.has(focusId) &&

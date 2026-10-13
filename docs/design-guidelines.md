@@ -23,7 +23,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
   language. Order is fixed: identity, file, history, output, preferences. Anything that changes the whole document
   or the app belongs here.
 - **Rail** (left, icon column): one icon per mini-app. Opens and closes the mini-app panel.
-- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, overview, sources and notes, places, settings: every one exactly
+- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, recent, overview, sources and notes, places, settings: every one exactly
   `--panel-w` = 320px wide) or a *wide panel* (file check, later: people table, editor) that replaces the tree and
   detail and takes the full width right of the rail. Only one mini-app is open at a time.
 - **Main component** (centre): the tree view. It is the only thing that is always there; it is never
@@ -47,6 +47,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 | `--radius-lg` | 12px (new) | corners of the frame, dialogs' inner cards, tiles |
 | `--radius-pill` | 999px (new) | chips, count badges only |
 | `--pad` | 14px | side padding of a panel and gap between blocks inside it |
+| `--star` | #c58a12 / #e0b04a dark | the favourite star, nothing else |
 | `--gap` | 8px (new) | gap between controls in a row; 4px between icon buttons in a tool group |
 
 No other radius, height or padding number is used for a control. Dialogs use `--radius-lg`.
@@ -83,7 +84,7 @@ No other radius, height or padding number is used for a control. Dialogs use `--
   has its own background circle except in the overview tile.
 - One meaning, one icon: Search = find a person, LayoutDashboard = overview, ShieldCheck / ShieldAlert = file check,
   SlidersHorizontal = settings (tool bar), FileDown = save GED, FileText = save PDF, Undo2 / Redo2 = history, X = close or remove,
-  MapPin = place. Do not reuse an icon for a different meaning (the old file-check wand and the overview's
+  MapPin = place, Clock = recent people, Star = favourite person (the generic event in the timeline is CalendarDays). Do not reuse an icon for a different meaning (the old file-check wand and the overview's
   shield must not be mixed).
 - Icon-only buttons always have `title` (tooltip) and `aria-label` with the same text, and a shortcut in the title when there is one.
 
@@ -118,6 +119,8 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
   `--accent-text`. Secondary text on the row is 12px `--muted`.
 - Tiles / cards (overview, variant groups): `--radius-lg`, 1px border, `--bg` fill, padding `10px 12px`.
 - Lists of records with a count line (sources, notes, places) are `.sp-list` rows: a 14px icon in `--c-src`, title 600, one 12px `--muted` line ("People: n · Events: m"); a click opens the row and shows its people as links (`People` component), a second click closes it. Above the list sits the same filter box (`.finder`) as the people list.
+- **Favourite star** (`--star`, always a filled glyph): the toggle is an icon button (`.star-btn`, `--ctl-h`, `aria-pressed`, `title` = `aria-label`, hover `--accent-soft`) right after the person's name in the detail header; in a list row it is the `--ctl-h-sm` `.row-star` at the row's right end; where it only shows the state (the tree, after the name) it is a plain 14px `.star` icon. The star is on-screen only: it never reaches the PDF.
+- **Recent panel** (`RecentPanel`): the people-list row look (`.rail`: sex dot, name, years) plus the row star; favourites first, then the most recent (30 kept), saved per file in the browser, never in the GEDCOM.
 - Empty state: one line of `--muted` text, centred in the panel.
 - Dialogs: `--radius-lg`, header row as in a panel with a close X, footer with buttons on the right,
   backdrop dimmed; Esc and the X close it.
