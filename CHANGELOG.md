@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.14.0 – 2026-10-13
+
+- The Ancestors / Descendants choice is now a compact switch above the tree. The two large cards, the
+  back and forward arrows, the chart title and the line of hints above the tree are gone to save space.
+  Alt+Left and Alt+Right still walk through the history.
+- The search box says what it finds: name, place, year.
+
 ## 1.13.0 – 2026-10-13
 
 - New layout on wide screens: the page uses the full width and has three columns. On the left is an
