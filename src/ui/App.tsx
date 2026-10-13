@@ -403,7 +403,6 @@ export function App() {
         </FileDrop>}
         <div className="head-tools">
           {data && <div className="tools" role="toolbar">
-            <span className="sep" aria-hidden="true" />
             <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
                     title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
             <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
