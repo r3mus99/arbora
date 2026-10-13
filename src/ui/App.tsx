@@ -2,7 +2,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileUp, LayoutDashboard,
-         Loader2, BookMarked, History, Trash2, Clock, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, BookMarked, History, Trash2, Clock, ListChecks, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -11,6 +11,7 @@ import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceOverview } from "../core/sources";
+import { recordChanges } from "../core/changes";
 import { placeOverview } from "../core/placelist";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
@@ -18,6 +19,7 @@ import { renameVariants, spellings, variantGroups, type VariantKind } from "../c
 import { NO_BROWSING, NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move as moveIn, replay, startEdits, stepEdits, visit, withRecords, type Browsing, type Doc, type Edits, type Op, type Place } from "./history";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { storedOptions, toForm, toOptions, withOption, type Form } from "./options";
+import { ChangesPanel } from "./ChangesPanel";
 import { CheckPanel } from "./CheckPanel";
 import { FileDrop } from "./FileDrop";
 import { NO_MARKS, fileKey, marksOf, toggleFav, visited, withMarks, listing, type Marks } from "./marks";
@@ -104,14 +106,15 @@ export function App() {
   const finderRef = useRef<HTMLInputElement>(null);
   // the list of people starts as a narrow rail with a magnifier; the choice is remembered
   // one tool panel is open at a time: the list of people, the file check, or none
-  const [tool, setTool] = useState<"people" | "check" | "overview" | "sources" | "places" | "recent" | "settings" | null>(() => readStore().listOpen === true ? "people" : null);
-  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings";
+  const [tool, setTool] = useState<"people" | "check" | "overview" | "sources" | "places" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
+  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
   const setShowOverview = (on: boolean) => setTool(on ? "overview" : listOpen ? "people" : null);
   const setShowSettings = (on: boolean) => setTool(on ? "settings" : listOpen ? "people" : null);
   const setShowSources = (on: boolean) => setTool(on ? "sources" : listOpen ? "people" : null);
   const setShowPlaces = (on: boolean) => setTool(on ? "places" : listOpen ? "people" : null);
+  const setShowChanges = (on: boolean) => setTool(on ? "changes" : listOpen ? "people" : null);
   const setShowRecent = (on: boolean) => setTool(on ? "recent" : listOpen ? "people" : null);
   useEffect(() => { if (listOpen) finderRef.current?.focus(); }, [listOpen]);
   const fonts = useRef<Promise<Fonts> | null>(null);
@@ -318,6 +321,9 @@ export function App() {
     setHidden(next);
     updateStore({ hiddenVariants: [...next] });
   };
+  // unsaved changes: this version against the one last downloaded (or the file as opened when that is gone)
+  const unsaved = useMemo(() => (doc && showChanges && edits.base ? recordChanges(replay(edits, edits.saved ?? 0).records, doc.records) : []),
+                          [doc, edits, showChanges]);
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
   const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);
@@ -612,6 +618,9 @@ export function App() {
                 <button type="button" className={showPlaces ? "on" : undefined} aria-pressed={showPlaces}
                         title={t("places")} aria-label={t("places")} onClick={() => setShowPlaces(!showPlaces)}>
                   <MapPin className="icon" aria-hidden="true" /></button>
+                {(dirty || showChanges) && <button type="button" className={showChanges ? "on" : undefined} aria-pressed={showChanges}
+                        title={`${t("changes")}: ${changes}`} aria-label={t("changes")} onClick={() => setShowChanges(!showChanges)}>
+                  <ListChecks className="icon" aria-hidden="true" />{changes > 0 && <span className="badge">{changes > 99 ? "99+" : changes}</span>}</button>}
                 <button type="button" className={showSettings ? "on" : undefined} aria-pressed={showSettings}
                         title={t("settings")} aria-label={t("settings")} onClick={() => setShowSettings(!showSettings)}>
                   <SlidersHorizontal className="icon" aria-hidden="true" /></button>
@@ -625,6 +634,9 @@ export function App() {
               {showRecent && <aside className="rail-wrap" aria-label={t("recent")}>
                 <RecentPanel entries={recent} data={data} lang={lang} selectedId={focusId}
                              onPerson={pickListed} onStar={star} t={t} />
+              </aside>}
+              {showChanges && <aside className="rail-wrap sp-wrap" aria-label={t("changes")}>
+                <ChangesPanel changes={unsaved} lang={lang} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {showSettings && <aside className="rail-wrap" aria-label={t("settings")}>
                 <SettingsPanel form={form} lang={lang} onChange={setOpt} t={t} />

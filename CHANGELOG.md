@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.32.0 – 2026-10-13
+
+- **Changes panel**: a new icon in the tool bar (shown while there are unsaved changes, with their count) lists what
+  differs from the version last downloaded: per person (or family) the lines that were added, removed or changed, old
+  value → new value. A click on a name opens the person. It works from the same edit log that keeps the changes over
+  a reload, so it reflects the current state, including undo and redo.
+
 ## 1.31.0 – 2026-10-13
 
 - **Unsaved edits survive a reload.** The browser now keeps, beside the opened file, a small log of your edits (only
