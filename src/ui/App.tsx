@@ -370,17 +370,6 @@ export function App() {
     }
   }
 
-  // the height of the sticky top bar, for what has to stay below it
-  const headerRef = useRef<HTMLElement>(null);
-  useEffect(() => {
-    const el = headerRef.current;
-    if (!el) return;
-    const root = document.documentElement.style;
-    const ro = new ResizeObserver(() => root.setProperty("--bar-h", `${el.offsetHeight}px`));
-    ro.observe(el);
-    return () => { ro.disconnect(); root.removeProperty("--bar-h"); };
-  }, []);
-
   // generations shown in the chart and the PDF; a value set earlier outside the usual choices stays as an extra button
   const gens = Math.max(0, Math.round(Number(form.generations) || 0));
   const gensChoices = [3, 4, 5, 0].includes(gens) ? [3, 4, 5, 0] : [3, 4, 5, gens, 0].sort((a, b) => (a || 1e9) - (b || 1e9));
@@ -394,53 +383,51 @@ export function App() {
 
   return (
     <main className={data ? "loaded" : undefined}>
-      <header ref={headerRef} className={data ? "top bar" : "top"}>
-        <div className="brand">
+      {/* one frame: the top bar on top, below it the welcome screen or the viewer, see docs/design-guidelines.md */}
+      <section className="panel chart">
+        <header className="frame-bar">
           <h1><TreeDeciduous className="logo" aria-hidden="true" />Arbora</h1>
-          {!data && <p className="lead">{t("lead")}</p>}
-        </div>
-        {data && <FileDrop className="drop file-chip" title={t("loaded", { count: Object.keys(data.people).length })}
-                           onFile={openFile}>
-          <FileUp className="icon" aria-hidden="true" />
-          <strong>{loadedName === null ? t("sampleName") : loadedName}</strong>
-          <span className="count"><Users className="icon" aria-hidden="true" />{Object.keys(data.people).length}</span>
-        </FileDrop>}
-        <div className="head-tools">
-          {data && <div className="tools" role="toolbar">
-            <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
-                    title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
-            <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
-                    title={`${t("redo")} (Ctrl+Y)`} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
-            <button type="button" className="icon-btn save-btn" onClick={downloadGedcom}
-                    title={`${t("exportGed")}${dirty ? ` (${t("unsaved")})` : ""}. ${t("exportTip")}`}
-                    aria-label={dirty ? `${t("exportGed")} (${t("unsaved")})` : t("exportGed")}>
-              <FileDown className="icon" aria-hidden="true" />
-              GED{dirty && <span className="dot" />}</button>
-            <button type="button" className="icon-btn save-btn" disabled={busy} onClick={() => create()} title={t("go")}
-                    aria-label={t("go")}>
-              {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
-              PDF</button>
-            <span className="sep" aria-hidden="true" />
-            <button type="button" className="icon-btn" onClick={() => settingsRef.current?.showModal()}
-                    title={t("settings")} aria-label={t("settings")}><Settings className="icon" aria-hidden="true" /></button>
-          </div>}
-          <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
-        </div>
-      </header>
-
-      {data && statusText && <p className={status?.err ? "status err" : "status"}>{statusText}</p>}
-      {!data && <section className="panel file">
-        <FileDrop className="drop" onFile={openFile}>
-          <FileUp className="icon" aria-hidden="true" />
-          <div dangerouslySetInnerHTML={{ __html: t("drop") }} />
-        </FileDrop>
-        <p className="note"><span>{t("privacy")}</span>{" "}
-          <button className="link" type="button" onClick={loadSample}>{t("sample")}</button></p>
-      </section>}
-
-      {data && chosen && <>
-        <section className="panel chart">
-          <div className="viewer">
+          {data && <FileDrop className="drop file-chip" title={t("loaded", { count: Object.keys(data.people).length })}
+                             onFile={openFile}>
+            <FileUp className="icon" aria-hidden="true" />
+            <strong>{loadedName === null ? t("sampleName") : loadedName}</strong>
+            <span className="count"><Users className="icon" aria-hidden="true" />{Object.keys(data.people).length}</span>
+          </FileDrop>}
+          {data && statusText && <span className={status?.err ? "status err" : "status"} role="status">{statusText}</span>}
+          <div className="head-tools">
+            {data && <div className="tools" role="toolbar">
+              <button type="button" className="icon-btn" disabled={!edits.past.length} onClick={() => undoRedo(-1)}
+                      title={`${t("undo")} (Ctrl+Z)`} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
+              <button type="button" className="icon-btn" disabled={!edits.future.length} onClick={() => undoRedo(1)}
+                      title={`${t("redo")} (Ctrl+Y)`} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
+              <button type="button" className="icon-btn save-btn" onClick={downloadGedcom}
+                      title={`${t("exportGed")}${dirty ? ` (${t("unsaved")})` : ""}. ${t("exportTip")}`}
+                      aria-label={dirty ? `${t("exportGed")} (${t("unsaved")})` : t("exportGed")}>
+                <FileDown className="icon" aria-hidden="true" />
+                GED{dirty && <span className="dot" />}</button>
+              <button type="button" className="icon-btn save-btn" disabled={busy} onClick={() => create()} title={t("go")}
+                      aria-label={t("go")}>
+                {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
+                PDF</button>
+              <span className="sep" aria-hidden="true" />
+              <button type="button" className="icon-btn" onClick={() => settingsRef.current?.showModal()}
+                      title={t("settings")} aria-label={t("settings")}><Settings className="icon" aria-hidden="true" /></button>
+            </div>}
+            <LanguageMenu lang={lang} label={t("language")} onChange={changeLang} />
+          </div>
+        </header>
+        {!data && <div className="welcome">
+          <div className="welcome-in">
+            <p className="lead">{t("lead")}</p>
+            <FileDrop className="drop" onFile={openFile}>
+              <FileUp className="icon" aria-hidden="true" />
+              <div dangerouslySetInnerHTML={{ __html: t("drop") }} />
+            </FileDrop>
+            <p className="note">{t("privacy")}</p>
+            <button type="button" onClick={loadSample}>{t("sample")}</button>
+          </div>
+        </div>}
+        {data && chosen && <div className="viewer">
             {/* one sidebar: a narrow bar of tools and, next to it, the panel of the active tool (second click closes it) */}
             <div className="side">
               <nav className="toolbar" aria-label={t("showList")}>
@@ -516,12 +503,10 @@ export function App() {
                                                       lang={lang} suggest={suggest} onSave={commit} onCancel={() => setEditId(null)}
                                                       t={t} />} />}
             </>}
-          </div>
-        </section>
+        </div>}
+      </section>
 
-        <SettingsDialog ref={settingsRef} form={form} lang={lang} onChange={setOpt} t={t} />
-
-      </>}
+      {data && chosen && <SettingsDialog ref={settingsRef} form={form} lang={lang} onChange={setOpt} t={t} />}
 
       <footer>Open source · <a href="https://github.com/r3mus99/arbora">GitHub</a> · <span>{t("license")}</span></footer>
     </main>
