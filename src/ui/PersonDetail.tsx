@@ -81,8 +81,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
     const place = withPlace && q.birth ? municipality(q.birth.place) : "";
     return <>
       <button className="link" type="button" onClick={() => onFocus(q.id)}>{q.name || "?"}</button>
-      {year && <span className="muted"> ({year})</span>}
-      {place && <span className="muted"> · {place}</span>}
+      {(year || place) && <span className="muted"> ({year}{year && place && ", "}{place && <i>{place}</i>})</span>}
     </>;
   };
 
