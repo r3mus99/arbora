@@ -1,9 +1,12 @@
 import type { RecordChange } from "../core/changes";
+import { formatDate } from "../core/format";
+import type { Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
 
 interface Props {
   changes: RecordChange[];
+  lang: Lang;
   /** open a person (by ID) in the chart and the detail */
   onPerson: (id: string) => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
@@ -19,7 +22,9 @@ const TAG_TEXT: Record<string, StringKey> = {
 const label = (path: string, t: Props["t"]) => path.split("/").map((tag) => (TAG_TEXT[tag] ? t(TAG_TEXT[tag]) : tag)).join(" › ");
 
 /** The unsaved changes, one block per record: what was added, removed or changed, old value → new value. */
-export function ChangesPanel({ changes, onPerson, t }: Props) {
+export function ChangesPanel({ changes, lang, onPerson, t }: Props) {
+  /** a date is shown the way the detail shows it ("18 Aug 1887"), any other value as written */
+  const shown = (path: string, v: string) => (!v ? t("noValue") : path.endsWith("DATE") ? formatDate(v, true, lang) : v);
   return (
     <section className="panel-col" aria-label={t("changes")}>
       <PanelHead title={t("changes")} />
@@ -36,9 +41,11 @@ export function ChangesPanel({ changes, onPerson, t }: Props) {
               {c.fields.map((f) => (
                 <li key={f.path + (f.before ?? "") + (f.after ?? "")}>
                   <span className="chg-path">{label(f.path, t)}</span>
-                  {f.before !== null && <del>{f.before || t("noValue")}</del>}
-                  {f.before !== null && f.after !== null && <span aria-hidden="true">→</span>}
-                  {f.after !== null && <ins>{f.after || t("noValue")}</ins>}
+                  <span className="chg-val">
+                    {f.before !== null && <del>{shown(f.path, f.before)}</del>}
+                    {f.before !== null && f.after !== null && <span aria-hidden="true"> → </span>}
+                    {f.after !== null && <ins>{shown(f.path, f.after)}</ins>}
+                  </span>
                 </li>
               ))}
             </ul>

@@ -618,9 +618,9 @@ export function App() {
                 <button type="button" className={showPlaces ? "on" : undefined} aria-pressed={showPlaces}
                         title={t("places")} aria-label={t("places")} onClick={() => setShowPlaces(!showPlaces)}>
                   <MapPin className="icon" aria-hidden="true" /></button>
-                {dirty && <button type="button" className={showChanges ? "on" : undefined} aria-pressed={showChanges}
+                {(dirty || showChanges) && <button type="button" className={showChanges ? "on" : undefined} aria-pressed={showChanges}
                         title={`${t("changes")}: ${changes}`} aria-label={t("changes")} onClick={() => setShowChanges(!showChanges)}>
-                  <ListChecks className="icon" aria-hidden="true" /><span className="badge">{changes > 99 ? "99+" : changes}</span></button>}
+                  <ListChecks className="icon" aria-hidden="true" />{changes > 0 && <span className="badge">{changes > 99 ? "99+" : changes}</span>}</button>}
                 <button type="button" className={showSettings ? "on" : undefined} aria-pressed={showSettings}
                         title={t("settings")} aria-label={t("settings")} onClick={() => setShowSettings(!showSettings)}>
                   <SlidersHorizontal className="icon" aria-hidden="true" /></button>
@@ -636,7 +636,7 @@ export function App() {
                              onPerson={pickListed} onStar={star} t={t} />
               </aside>}
               {showChanges && <aside className="rail-wrap sp-wrap" aria-label={t("changes")}>
-                <ChangesPanel changes={unsaved} onPerson={(id) => pick(id)} t={t} />
+                <ChangesPanel changes={unsaved} lang={lang} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {showSettings && <aside className="rail-wrap" aria-label={t("settings")}>
                 <SettingsPanel form={form} lang={lang} onChange={setOpt} t={t} />
