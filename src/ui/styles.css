@@ -149,20 +149,19 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 
 .tree-row .dup { color: var(--muted); font-size: 13px; }
 .mid { min-width: 0; }
-.viewer { display: grid; grid-template-columns: 250px minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
-.viewer { grid-template-columns: 44px minmax(0, 1fr) 340px; }
-.viewer.list-open { grid-template-columns: 44px 250px minmax(0, 1fr) 340px; }
-@media (max-width: 900px) { .viewer, .viewer.list-open { grid-template-columns: minmax(0, 1fr); } .toolbar { display: none; } .detail { position: static; max-height: none; }
-  .rail-wrap { display: none; } }
-/* the list of people: always visible next to the tree, scrolls on its own */
-.rail-wrap { position: sticky; top: calc(var(--bar-h, 0px) + 12px); border: 1px solid var(--border); border-radius: 14px;
-             max-height: calc(100vh - var(--bar-h, 0px) - 24px); overflow-y: auto; background: var(--panel); }
-/* bar of tools at the left edge: one icon per panel, the open one highlighted */
-.toolbar { position: sticky; top: calc(var(--bar-h, 0px) + 12px); display: flex; flex-direction: column; gap: 6px; }
-.toolbar button { width: 44px; height: 44px; padding: 0; display: grid; place-items: center; border: 1px solid var(--border);
-                  border-radius: 14px; background: var(--panel); color: var(--muted); cursor: pointer; }
+.viewer { display: grid; grid-template-columns: auto minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
+@media (max-width: 900px) { .viewer { grid-template-columns: minmax(0, 1fr); } .side { display: none; } .detail { position: static; max-height: none; }
+}
+/* one sidebar: bar of tools (one icon per panel, the open one highlighted) and the open panel next to it */
+.side { position: sticky; top: calc(var(--bar-h, 0px) + 12px); display: flex; align-items: stretch; border: 1px solid var(--border);
+         border-radius: 14px; background: var(--panel); max-height: calc(100vh - var(--bar-h, 0px) - 24px); overflow: hidden; }
+.toolbar { display: flex; flex-direction: column; gap: 6px; padding: 6px; }
+.toolbar button { width: 40px; height: 40px; padding: 0; display: grid; place-items: center; border: 0; border-radius: 10px;
+                  background: none; color: var(--muted); cursor: pointer; }
 .toolbar button:hover { background: var(--accent-soft); color: inherit; }
-.toolbar button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+.toolbar button.on { background: var(--accent); color: var(--accent-text); }
+/* the panel of the active tool: the list of people, scrolls on its own */
+.rail-wrap { width: 250px; border-left: 1px solid var(--border); overflow-y: auto; }
 .rail { list-style: none; margin: 0; padding: 4px 0; font-size: 14px; }
 .rail li { display: flex; align-items: baseline; gap: 7px; padding: 3px 10px; cursor: pointer; }
 .rail li:hover { background: var(--accent-soft); }

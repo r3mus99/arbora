@@ -461,17 +461,19 @@ export function App() {
 
       {data && chosen && <>
         <section className="panel chart">
-          <div className={`viewer${listOpen ? " list-open" : ""}`}>
-            {/* narrow bar of tools: the active one is highlighted, a second click closes its panel */}
-            <nav className="toolbar" aria-label={t("showList")}>
-              <button type="button" className={listOpen ? "on" : undefined} aria-pressed={listOpen}
-                      title={t(listOpen ? "hideList" : "showList")} aria-label={t(listOpen ? "hideList" : "showList")}
-                      onClick={() => showList(!listOpen)}><Search className="icon" aria-hidden="true" /></button>
-            </nav>
-            {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
-              <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
-                          query={query} onQuery={setQuery} onSelect={pick} t={t} />
-            </aside>}
+          <div className="viewer">
+            {/* one sidebar: a narrow bar of tools and, next to it, the panel of the active tool (second click closes it) */}
+            <div className="side">
+              <nav className="toolbar" aria-label={t("showList")}>
+                <button type="button" className={listOpen ? "on" : undefined} aria-pressed={listOpen}
+                        title={t(listOpen ? "hideList" : "showList")} aria-label={t(listOpen ? "hideList" : "showList")}
+                        onClick={() => showList(!listOpen)}><Search className="icon" aria-hidden="true" /></button>
+              </nav>
+              {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
+                <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
+                            query={query} onQuery={setQuery} onSelect={pick} t={t} />
+              </aside>}
+            </div>
             <div className="mid">
               <div className="chart-bar">
                 <div className="chart-switch" role="radiogroup">
