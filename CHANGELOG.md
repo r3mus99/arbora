@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.28.0 – 2026-10-13
+
+- **Inline editing in the person detail**, first step: click the **name** (given name and surname in two fields, with
+  suggestions) or the **sex icon** (a three-choice switch) to change it right there, without the edit form. Enter or
+  leaving the field applies the change, Esc drops it. Each change is one undo step and counts in the unsaved-changes
+  badge; only the edited GEDCOM lines change. The edit form (pencil) stays for everything else; more fields follow.
+
 ## 1.27.2 – 2026-10-13
 
 - **Also known as (aka)** in the person editor: a new aka starts as a copy of the main name, so only the part that

@@ -45,7 +45,19 @@ function DateField({ value, shown, lang, onChange, t }: {
 export const EDITOR_FORM = "person-editor";
 
 // the lists of suggestions, once per page
-const GIVENS = "arbora-givens", SURNAMES = "arbora-surnames", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
+export const GIVENS = "arbora-givens", SURNAMES = "arbora-surnames", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
+
+type Suggest = Props["suggest"];
+
+/** the lists of suggestions that the fields of the form and of the detail point to */
+export function SuggestLists({ suggest }: { suggest: Suggest }) {
+  return <>
+    <datalist id={GIVENS}>{suggest.givens.map((s) => <option key={s} value={s} />)}</datalist>
+    <datalist id={SURNAMES}>{suggest.surnames.map((s) => <option key={s} value={s} />)}</datalist>
+    <datalist id={PLACES}>{suggest.places.map((s) => <option key={s} value={s} />)}</datalist>
+    <datalist id={RELIGIONS}>{suggest.religions.map((s) => <option key={s} value={s} />)}</datalist>
+  </>;
+}
 
 /** christening and burial can take the date and place of birth and death */
 const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "death", StringKey]>> = {
@@ -217,10 +229,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
                onChange={(e) => set("deceased", e.target.checked)} />
         <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
       {form.deceased && <>{event("death")}{event("burial")}</>}
-      <datalist id={GIVENS}>{suggest.givens.map((s) => <option key={s} value={s} />)}</datalist>
-      <datalist id={SURNAMES}>{suggest.surnames.map((s) => <option key={s} value={s} />)}</datalist>
-      <datalist id={PLACES}>{suggest.places.map((s) => <option key={s} value={s} />)}</datalist>
-      <datalist id={RELIGIONS}>{suggest.religions.map((s) => <option key={s} value={s} />)}</datalist>
+      <SuggestLists suggest={suggest} />
       <div className="actions">
         <button className="primary" type="submit" title="Ctrl+Enter">
           <Check className="icon" aria-hidden="true" />{t("save")}</button>
