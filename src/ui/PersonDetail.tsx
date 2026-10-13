@@ -1,5 +1,5 @@
 import {
-  Award, Baby, Briefcase, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
+  Award, Baby, Briefcase, Check, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
   StickyNote, Star, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import { Fragment, type ReactNode } from "react";
@@ -38,15 +38,12 @@ interface Props {
   t: (key: StringKey) => string;
 }
 
-/** one fact: an icon, a small label and the value below it */
+/** one fact: a section with the common title (icon and label) and the value below it */
 function Fact({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children?: ReactNode }) {
-  return <div className="fact">
-    <span className="fact-icon"><Icon className="icon" aria-hidden="true" /></span>
-    <div className="fact-body">
-      <div className="fact-label">{label}</div>
-      {children}
-    </div>
-  </div>;
+  return <section className="section">
+    <h4 className="sec-title"><Icon className="icon" aria-hidden="true" />{label}</h4>
+    <div className="fact-body">{children}</div>
+  </section>;
 }
 
 const DETAIL_KEYS = { age: "detAge", cause: "detCause", agency: "detAgency", address: "detAddress" } as const;
@@ -165,7 +162,8 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
             </Fragment>;
           })}</ul>
         </section>}
-        {life.length > 0 && <section className="timeline" aria-label={t("timeline")}>
+        {life.length > 0 && <section className="section timeline">
+          <h4 className="sec-title"><History className="icon" aria-hidden="true" />{t("timeline")}</h4>
           <ol>{life.map((e) => {
             const Icon = (e.kind === "marriage" && e.divorced) || e.tag === "DIV" ? HeartCrack : ICONS[e.kind];
             const childSex = e.kind === "child" && e.other ? data.people[e.other]?.sex : "";

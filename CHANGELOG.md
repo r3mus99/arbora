@@ -8,6 +8,9 @@
   son · at 25"); the second line is the person or the place. The label no longer sits before the name with a colon.
 - The detail uses only two text sizes: 14px for the content and 12px for titles, labels and small print (the 13px and
   13.5px variants are gone).
+- The timeline has its title again (room for a future "add" button). Employment, religion, attributes and associates
+  are sections with the same title style as parents, note and sources, with no circled icons; there is more space
+  between the sections.
 
 ## 1.15.1 – 2026-10-13
 
