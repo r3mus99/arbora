@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.15.1 – 2026-10-13
+
+- The parents are a section with a title (icon and "Parents") and one parent per row, with the sex icon.
+- Parents, note and sources and notes share one section title style.
+- The icon of a child's birth in the timeline is coloured by the child's sex.
+
 ## 1.15.0 – 2026-10-13
 
 - Person detail is more compact. The timeline has no heading and no dot on the line: each event has one

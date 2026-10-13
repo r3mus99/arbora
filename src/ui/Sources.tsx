@@ -36,8 +36,8 @@ const count = (a: Annotations) => a.sources.length + a.notes.length;
 /** The block under the timeline: everything that belongs to the person as a whole. */
 export function PersonSources({ a, t }: { a: Annotations; t: T }) {
   if (!hasAnnotations(a)) return null;
-  return <details className="sources" open>
-    <summary><BookMarked className="icon" aria-hidden="true" />{t("srcNotes")}
+  return <details className="sources section" open>
+    <summary className="sec-title"><BookMarked className="icon" aria-hidden="true" />{t("srcNotes")}
       <span className="muted"> · {count(a)}</span></summary>
     <Entries a={a} t={t} />
   </details>;

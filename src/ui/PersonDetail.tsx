@@ -148,14 +148,19 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
             {names.others.map((n, i) => <div key={`o${i}`}><span>{t("otherName")}{n.type ? ` (${n.type})` : ""}:</span> {n.name}</div>)}
           </div>;
         })()}
-        {parents.length > 0 && <div className="parents">
-          <span className="parents-label">{t("parents")}</span>
-          {parents.map((pid) => <span key={pid}>{link(pid)}</span>)}
-        </div>}
+        {parents.length > 0 && <section className="section parents">
+          <h4 className="sec-title"><Users className="icon" aria-hidden="true" />{t("parents")}</h4>
+          <ul>{parents.map((pid) => {
+            const sex = data.people[pid]?.sex;
+            const ParentIcon = sex === "M" ? Mars : sex === "F" ? Venus : null;
+            return <li key={pid}>{ParentIcon && <ParentIcon className={`icon sex-${sex}`} aria-hidden="true" />}{link(pid)}</li>;
+          })}</ul>
+        </section>}
         {life.length > 0 && <section className="timeline" aria-label={t("timeline")}>
           <ol>{life.map((e) => {
             const Icon = (e.kind === "marriage" && e.divorced) || e.tag === "DIV" ? HeartCrack : ICONS[e.kind];
-            return <li key={e.key} className={`tl-${e.kind}`}>
+            const childSex = e.kind === "child" && e.other ? data.people[e.other]?.sex : "";
+            return <li key={e.key} className={`tl-${e.kind}${childSex ? ` tl-sex-${childSex}` : ""}`}>
               <Icon className="icon tl-icon" aria-hidden="true" />
               <div className="tl-body">
                 {e.date && <div className="tl-date">{formatDate(e.date, true, lang)}
@@ -202,7 +207,10 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, lang, 
             </li>)}</ul>
           </Fact>;
         })()}
-        {f?.note && <Fact icon={StickyNote} label={t("note")}><div className="note-text"><Linked text={f.note} /></div></Fact>}
+        {f?.note && <section className="section">
+          <h4 className="sec-title"><StickyNote className="icon" aria-hidden="true" />{t("note")}</h4>
+          <div className="note-text"><Linked text={f.note} /></div>
+        </section>}
         {record && <PersonSources t={t} a={(({ sources, notes }) => ({
           sources, notes: notes.filter((n) => n !== f?.note.trim()) }))(personAnnotations(record, lookup))} />}
         {(() => {
