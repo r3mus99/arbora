@@ -376,7 +376,13 @@ export function App() {
 
   // generations shown in the chart and the PDF; a value set earlier outside the usual choices stays as an extra button
   const gens = Math.max(0, Math.round(Number(form.generations) || 0));
-  const gensChoices = [2, 3, 4, 5, 0].includes(gens) ? [2, 3, 4, 5, 0] : [2, 3, 4, 5, gens, 0].sort((a, b) => (a || 1e9) - (b || 1e9));
+  const gensChoices = [3, 4, 5, 0].includes(gens) ? [3, 4, 5, 0] : [3, 4, 5, gens, 0].sort((a, b) => (a || 1e9) - (b || 1e9));
+  const gensTip = (n: number) => {
+    const chart = t(desc ? "desc" : "anc");
+    if (!n) return t("genTipAll", { chart });
+    const what = n >= 3 && n <= 5 ? t(`${desc ? "tipD" : "tipA"}${n}` as StringKey) : "";
+    return what ? t("genTip", { chart, n, what }) : `${chart} – ${t("generations")} ${n}`;
+  };
   const pick = (id: string) => {
     select(id);
     setQuery("");
@@ -473,7 +479,7 @@ export function App() {
                   <span>{t("generations")}</span>
                   <div className="chart-switch">
                     {gensChoices.map((n) => (
-                      <button key={n} type="button" aria-pressed={gens === n} className={gens === n ? "on" : undefined}
+                      <button key={n} type="button" title={gensTip(n)} aria-label={gensTip(n)} aria-pressed={gens === n} className={gens === n ? "on" : undefined}
                               onClick={() => setOpt("generations", String(n))}>{n || t("allGens")}</button>
                     ))}
                   </div>
