@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.17.0 – 2026-10-13
+
+- A narrow bar of tools sits at the left edge (for now with one icon, a magnifier; more will follow). Clicking an icon
+  opens its panel next to the bar, here the list of people with the search box; the icon of the open panel is
+  highlighted and a second click on it closes the panel. The panel starts closed and the choice is remembered between visits.
+- The app is one frame in the style of a trading terminal: the tool bar, the list, the chart and the detail sit side by
+  side divided by thin lines instead of separate cards. The first row of every panel has the same height with one line
+  under it, controls (search box, switches, icon buttons) share one height, icon size and corner radius, and the
+  scrollbars are thin and quiet. The rules and size tokens are in `docs/design-guidelines.md`.
+
 ## 1.16.0 – 2026-10-13
 
 - The person detail is built from a small set of blocks (`src/ui/Section.tsx`): every block is a Section with a title

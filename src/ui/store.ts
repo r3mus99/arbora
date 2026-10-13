@@ -13,6 +13,8 @@ export interface Stored {
   hiddenVariants?: string[];
   /** bulk fix: keep an unified surname's old spelling as a name with TYPE aka (default yes) */
   keepAka?: boolean;
+  /** the list of people is expanded (default: a narrow rail with a magnifier) */
+  listOpen?: boolean;
 }
 
 export function readStore(): Stored {

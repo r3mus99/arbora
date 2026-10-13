@@ -2,6 +2,8 @@
   --bg: #f6f5f1; --panel: #ffffff; --text: #1d1f1c; --muted: #62675f;
   --border: #dcdad2; --accent: #2f6b4f; --accent-text: #ffffff; --accent-soft: #e3efe8;
   --danger: #a3341f; --focus: #2f6b4f55;
+  /* size tokens of the app frame, see docs/design-guidelines.md */
+  --head-h: 52px; --ctl-h: 36px; --icon: 18px; --radius: 8px; --pad: 14px;
   /* event colours: the tree, the timeline and (darker) the PDF, see src/core/colors.ts */
   --line: color-mix(in srgb, var(--muted) 50%, var(--bg));
   --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --c-src: #5f7f9a; --zebra: #00000005;
@@ -20,7 +22,12 @@
   --danger: #f08a73; --focus: #6fbf9566;
   --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --c-src: #8fb0cc; --zebra: #ffffff05;
 }
-* { box-sizing: border-box; }
+* { box-sizing: border-box; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 45%, transparent) transparent; }
+/* thin, quiet scrollbars (the browser default is a wide bright bar that stands out on the dark theme) */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 40%, transparent); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted) 70%, transparent); }
 [hidden] { display: none !important; }
 body { margin: 0; background: var(--bg); color: var(--text);
        font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
@@ -41,13 +48,14 @@ button, .btn { font: inherit; border-radius: 8px; border: 1px solid var(--border
                text-decoration: none; display: inline-flex; align-items: center;
                justify-content: center; gap: 8px; }
 button:hover, .btn:hover { border-color: var(--accent); }
+button.primary, .btn.primary, .btn { min-height: var(--ctl-h); }
 button.primary, .btn.primary { background: var(--accent); color: var(--accent-text);
                                border-color: var(--accent); font-weight: 600; }
 button:disabled { opacity: .5; cursor: not-allowed; }
 button.link { border: 0; background: none; color: var(--accent); padding: 0; text-decoration: underline; }
 input[type=text], input[type=search], input[type=number], select {
   font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border);
-  border-radius: 8px; padding: 7px 10px; width: 100%; }
+  border-radius: var(--radius); padding: 0 10px; min-height: var(--ctl-h); width: 100%; }
 input:focus, select:focus, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
 .chosen { margin-top: 10px; font-size: 14px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px 16px; }
@@ -57,17 +65,18 @@ input:focus, select:focus, button:focus-visible { outline: 3px solid var(--focus
 .checks label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
 .wide { grid-column: 1 / -1; }
 /* compact switch above the tree: ancestors or descendants */
-.chart-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-bottom: 8px; }
+.chart-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; min-height: var(--head-h); padding: 0 var(--pad);
+             border-bottom: 1px solid var(--border); }
 .chart-bar .gens { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
-.chart-switch { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+.chart-switch { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: var(--ctl-h);
                 background: var(--panel); }
-.chart-switch button { border: 0; border-radius: 0; background: none; padding: 4px 12px; font-size: 14px; min-width: 38px; }
+.chart-switch button { border: 0; border-radius: 0; background: none; padding: 0 12px; font-size: 14px; min-width: 38px; }
 .chart-switch button + button { border-left: 1px solid var(--border); }
 .chart-switch button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .chart-switch button:focus-visible { outline-offset: -3px; }
 .chart-switch label { cursor: pointer; }
 .chart-switch input { position: absolute; opacity: 0; pointer-events: none; }
-.chart-switch span { display: block; padding: 4px 14px; font-size: 14px; }
+.chart-switch span { display: block; padding: 0 14px; line-height: calc(var(--ctl-h) - 2px); font-size: 14px; }
 .chart-switch label + label span { border-left: 1px solid var(--border); }
 .chart-switch input:checked + span { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .chart-switch input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: -3px; }
@@ -149,12 +158,24 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 
 .tree-row .dup { color: var(--muted); font-size: 13px; }
 .mid { min-width: 0; }
-.viewer { display: grid; grid-template-columns: 250px minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
-@media (max-width: 900px) { .viewer { grid-template-columns: minmax(0, 1fr); } .detail { position: static; max-height: none; }
-  .rail-wrap { display: none; } }
-/* the list of people: always visible next to the tree, scrolls on its own */
-.rail-wrap { position: sticky; top: calc(var(--bar-h, 0px) + 12px); border: 1px solid var(--border); border-radius: 14px;
-             max-height: calc(100vh - var(--bar-h, 0px) - 24px); overflow-y: auto; background: var(--panel); }
+/* app frame in one piece, like a trading terminal: tool bar, panel, chart and detail side by side, divided by thin lines */
+/* the frame has one fixed height (the window below the top bar), opening or closing a panel never changes it;
+   every column scrolls on its own */
+.panel.chart { padding: 0; overflow: hidden; height: max(420px, calc(100vh - var(--bar-h, 0px) - 40px)); }
+.viewer { display: grid; grid-template-columns: auto minmax(0, 1fr) 340px; grid-template-rows: minmax(0, 1fr); height: 100%; }
+.mid { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
+.viewer .tree { border: 0; border-radius: var(--radius); margin: 12px var(--pad); flex: 1; min-height: 0; max-height: none; }
+@media (max-width: 900px) { .panel.chart { height: auto; } .viewer { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; height: auto; } .viewer .tree { flex: none; max-height: max(360px, calc(100vh - 230px)); } .side { display: none; } .detail { max-height: none; }
+}
+/* one sidebar: bar of tools (one icon per panel, the open one highlighted) and the open panel next to it */
+.side { display: flex; align-items: stretch; min-height: 0; border-right: 1px solid var(--border); background: var(--bg); }
+.toolbar { display: flex; flex-direction: column; gap: 4px; padding: calc((var(--head-h) - var(--ctl-h)) / 2); }
+.toolbar button { width: var(--ctl-h); height: var(--ctl-h); padding: 0; display: grid; place-items: center; border: 0; border-radius: var(--radius);
+                  background: none; color: var(--muted); cursor: pointer; }
+.toolbar button:hover { background: var(--accent-soft); color: inherit; }
+.toolbar button.on { background: var(--accent-soft); color: var(--accent); }
+/* the panel of the active tool: the list of people, scrolls on its own */
+.rail-wrap { width: 250px; border-left: 1px solid var(--border); background: var(--panel); overflow-y: auto; }
 .rail { list-style: none; margin: 0; padding: 4px 0; font-size: 14px; }
 .rail li { display: flex; align-items: baseline; gap: 7px; padding: 3px 10px; cursor: pointer; }
 .rail li:hover { background: var(--accent-soft); }
@@ -164,13 +185,13 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .rail li.sel .ryears { color: inherit; opacity: .85; }
 .rail .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; align-self: center; background: var(--muted); }
 .rail .dot.sex-M { background: #3f6fa8; } .rail .dot.sex-F { background: #b0507a; }
-.detail { border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; font-size: 14px;
-          position: sticky; top: calc(var(--bar-h, 0px) + 12px);
-          max-height: calc(100vh - var(--bar-h, 0px) - 24px); overflow-y: auto; }
+.detail { padding: 0 var(--pad) 12px; font-size: 14px; background: var(--panel); min-height: 0; overflow-y: auto; }
 /* the detail has two text sizes: 14px for the content and 12px for titles, labels and small print */
 .detail h3 { font-size: 19px; margin: 0; }
-.detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.detail-head .tools { display: flex; gap: 4px; flex: none; margin-top: -2px; }
+.detail-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--head-h);
+               margin: 0 calc(-1 * var(--pad)) 8px; padding: 0 var(--pad); border-bottom: 1px solid var(--border);
+               position: sticky; top: 0; z-index: 1; background: var(--panel); }
+.detail-head .tools { display: flex; gap: 4px; flex: none; }
 .detail .id { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
 .detail .id .lifespan { font-variant-numeric: tabular-nums; }
 .detail h3 .icon { margin-left: 6px; width: 17px; height: 17px; vertical-align: -1px; }
@@ -257,7 +278,7 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .icon-btn { padding: 5px; border-radius: 6px; }
 
 main.loaded { max-width: 1800px; }
-.icon { width: 18px; height: 18px; flex: none; vertical-align: -3px; }
+.icon { width: var(--icon); height: var(--icon); flex: none; vertical-align: -3px; }
 h1 { display: flex; align-items: center; gap: .25em; }
 /* title and headings in Spectral (bundled, SIL OFL); labels and text stay in the system font */
 h1, .detail h3 { font-family: "Spectral", Georgia, serif; font-weight: 600; letter-spacing: 0; }
@@ -265,8 +286,9 @@ h1 .logo { width: .9em; height: .9em; color: var(--accent); stroke-width: 1.6; }
 .file .drop { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 22px; }
 .file .drop .icon { width: 36px; height: 36px; color: var(--accent); }
 /* search box at the top of the people list */
-.finder { position: sticky; top: 0; z-index: 1; background: var(--panel); padding: 8px; border-bottom: 1px solid var(--border); }
-.finder > .icon { position: absolute; left: 18px; top: 18px; color: var(--muted); pointer-events: none; }
+.finder { position: sticky; top: 0; z-index: 1; background: var(--panel); height: var(--head-h); display: flex; align-items: center;
+          padding: 0 var(--pad); border-bottom: 1px solid var(--border); }
+.finder > .icon { position: absolute; left: calc(var(--pad) + 10px); color: var(--muted); pointer-events: none; }
 .finder input { padding-left: 36px; }
 .settings { padding: 0; }
 .settings summary { display: flex; align-items: center; gap: 10px; padding: 14px 18px; cursor: pointer;
@@ -396,7 +418,8 @@ header.bar .brand { flex: none; }
 .file-chip .count .icon { width: 15px; height: 15px; vertical-align: 0; }
 header.bar .head-tools { margin-left: auto; }
 .tools { display: flex; align-items: center; gap: 4px; }
-.tools .icon-btn { padding: 7px; position: relative; border-color: transparent; background: none; }
+/* tool buttons of the top bar and of the detail header: one size, like the controls of the other panels */
+.tools .icon-btn { width: var(--ctl-h); height: var(--ctl-h); padding: 0; border-radius: var(--radius); position: relative; border-color: transparent; background: none; }
 .tools .icon-btn:hover:not(:disabled) { border-color: var(--border); background: var(--panel); }
 .tools .icon-btn.on { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 40%, transparent); }
 .tools .sep { width: 1px; height: 22px; background: var(--border); margin: 0 4px; }
