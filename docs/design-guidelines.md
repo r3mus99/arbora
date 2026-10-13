@@ -74,6 +74,11 @@ No other radius, height or padding number is used for a control. Dialogs use `--
 - Event and sex colours are tokens too (`--c-birth`, `--c-marr`, `--c-death`, `--c-src`, `--sex-M`, `--sex-F`
   (new), and one token per event kind). They colour icons and dates only, never backgrounds or borders.
 - A literal colour in a rule is a bug. Every colour has a dark-theme value.
+- **Theme rule:** the theme follows the system (`prefers-color-scheme`) until the user chooses with the sun/moon icon
+  button in the top bar, right next to the language menu. The choice is kept in `localStorage` (`arbora-options`, key
+  `theme`) and then wins over the system. It is set as `data-theme` on `<html>`; the tokens live in `:root` (light),
+  `:root:not([data-theme="light"])` inside the media query, and `:root[data-theme="dark"]`. New tokens need a value in
+  all three places. The button shows the theme you would switch to; its tooltip says so (`themeDark`/`themeLight`).
 
 ## 5. Icons
 
