@@ -6,6 +6,8 @@
   reference to a person, instead of after a dot. The name in such a reference is bold and in the text colour, like in the tree.
 - On the timeline the first line of an event is the date, what happened and the age (for example "14.5.1991 · Birth of a
   son · at 25"); the second line is the person or the place. The label no longer sits before the name with a colon.
+- The detail uses only two text sizes: 14px for the content and 12px for titles, labels and small print (the 13px and
+  13.5px variants are gone).
 
 ## 1.15.1 – 2026-10-13
 
