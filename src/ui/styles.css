@@ -150,20 +150,19 @@ header.top { display: flex; justify-content: space-between; align-items: flex-st
 .tree-row .dup { color: var(--muted); font-size: 13px; }
 .mid { min-width: 0; }
 .viewer { display: grid; grid-template-columns: 250px minmax(0, 1fr) 340px; gap: 14px; align-items: start; }
-.viewer.list-min { grid-template-columns: 44px minmax(0, 1fr) 340px; }
-@media (max-width: 900px) { .viewer, .viewer.list-min { grid-template-columns: minmax(0, 1fr); } .rail-min { display: none; } .detail { position: static; max-height: none; }
+.viewer { grid-template-columns: 44px minmax(0, 1fr) 340px; }
+.viewer.list-open { grid-template-columns: 44px 250px minmax(0, 1fr) 340px; }
+@media (max-width: 900px) { .viewer, .viewer.list-open { grid-template-columns: minmax(0, 1fr); } .toolbar { display: none; } .detail { position: static; max-height: none; }
   .rail-wrap { display: none; } }
 /* the list of people: always visible next to the tree, scrolls on its own */
 .rail-wrap { position: sticky; top: calc(var(--bar-h, 0px) + 12px); border: 1px solid var(--border); border-radius: 14px;
              max-height: calc(100vh - var(--bar-h, 0px) - 24px); overflow-y: auto; background: var(--panel); }
-/* collapsed list: a narrow rail with a magnifier */
-.rail-min { position: sticky; top: calc(var(--bar-h, 0px) + 12px); width: 44px; height: 44px; padding: 0; display: grid; place-items: center;
-            border: 1px solid var(--border); border-radius: 14px; background: var(--panel); color: var(--muted); cursor: pointer; }
-.rail-min:hover { background: var(--accent-soft); color: inherit; }
-.rail-toggle { position: absolute; right: 8px; top: 8px; width: 36px; height: 36px; padding: 0; display: grid; place-items: center;
-               border: 0; background: none; color: var(--muted); cursor: pointer; border-radius: 8px; }
-.rail-toggle:hover { background: var(--accent-soft); color: inherit; }
-.finder input { padding-right: 44px; }
+/* bar of tools at the left edge: one icon per panel, the open one highlighted */
+.toolbar { position: sticky; top: calc(var(--bar-h, 0px) + 12px); display: flex; flex-direction: column; gap: 6px; }
+.toolbar button { width: 44px; height: 44px; padding: 0; display: grid; place-items: center; border: 1px solid var(--border);
+                  border-radius: 14px; background: var(--panel); color: var(--muted); cursor: pointer; }
+.toolbar button:hover { background: var(--accent-soft); color: inherit; }
+.toolbar button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
 .rail { list-style: none; margin: 0; padding: 4px 0; font-size: 14px; }
 .rail li { display: flex; align-items: baseline; gap: 7px; padding: 3px 10px; cursor: pointer; }
 .rail li:hover { background: var(--accent-soft); }

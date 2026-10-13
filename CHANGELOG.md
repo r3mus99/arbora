@@ -2,9 +2,9 @@
 
 ## 1.17.0 – 2026-10-13
 
-- The list of people on the left starts minimized as a narrow rail with a magnifier icon. Clicking the icon expands it
-  into the full list with the search box; the button at the right end of the search box collapses it back. The choice
-  is remembered between visits.
+- A narrow bar of tools sits at the left edge (for now with one icon, a magnifier; more will follow). Clicking an icon
+  opens its panel next to the bar, here the list of people with the search box; the icon of the open panel is
+  highlighted and a second click on it closes the panel. The panel starts closed and the choice is remembered between visits.
 
 ## 1.16.0 – 2026-10-13
 
