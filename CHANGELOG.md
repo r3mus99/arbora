@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.17.0 – 2026-10-13
+
+- The list of people on the left starts minimized as a narrow rail with a magnifier icon. Clicking the icon expands it
+  into the full list with the search box; the button at the right end of the search box collapses it back. The choice
+  is remembered between visits.
+
 ## 1.16.0 – 2026-10-13
 
 - The person detail is built from a small set of blocks (`src/ui/Section.tsx`): every block is a Section with a title

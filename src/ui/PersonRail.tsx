@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useMemo, useRef } from "react";
-import { Search } from "lucide-react";
+import { PanelLeftClose, Search } from "lucide-react";
 import { formatDate } from "../core/format";
 import { findPeople, fold, matchedAka, type Person } from "../core/gedcom";
 import type { Lang } from "../core/texts";
@@ -15,12 +15,14 @@ interface Props {
   query: string;
   onQuery: (query: string) => void;
   onSelect: (id: string) => void;
+  /** collapse the list back to the narrow rail */
+  onCollapse: () => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
 /** Compact always-visible list of everybody: sex, name, years; the search box above it filters the list. */
 export const PersonRail = forwardRef<HTMLInputElement, Props>(function PersonRail(
-  { people, lang, selectedId, scrollKey, query, onQuery, onSelect, t }, finderRef) {
+  { people, lang, selectedId, scrollKey, query, onQuery, onSelect, onCollapse, t }, finderRef) {
   const list = useRef<HTMLUListElement>(null);
   const sorted = useMemo(() => {
     const q = query.trim();
@@ -45,6 +47,8 @@ export const PersonRail = forwardRef<HTMLInputElement, Props>(function PersonRai
         <input ref={finderRef} type="search" placeholder={t("search")} autoComplete="off" value={query}
                onChange={(e) => onQuery(e.target.value)}
                onKeyDown={(e) => { if (e.key === "Escape") onQuery(""); }} />
+        <button type="button" className="rail-toggle" title={t("hideList")} aria-label={t("hideList")}
+                onClick={onCollapse}><PanelLeftClose className="icon" aria-hidden="true" /></button>
       </div>
       <ul className="rail" ref={list}>
         {sorted.map((p) => (

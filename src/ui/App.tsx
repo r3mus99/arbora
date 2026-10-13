@@ -2,7 +2,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileUp, LayoutDashboard,
-         Loader2, Redo2, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, Redo2, Search, Settings, ShieldAlert, ShieldCheck, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -86,6 +86,10 @@ export function App() {
   const [showOverview, setShowOverview] = useState(false);
   const settingsRef = useRef<HTMLDialogElement>(null);
   const finderRef = useRef<HTMLInputElement>(null);
+  // the list of people starts as a narrow rail with a magnifier; the choice is remembered
+  const [listOpen, setListOpen] = useState(() => readStore().listOpen === true);
+  const showList = (on: boolean) => { setListOpen(on); updateStore({ listOpen: on }); };
+  useEffect(() => { if (listOpen) finderRef.current?.focus(); }, [listOpen]);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
   const t = useCallback((key: StringKey, vars: Vars = {}) =>
@@ -444,7 +448,7 @@ export function App() {
                                          onClose={() => setShowOverview(false)}
                                          onProblems={() => setShowCheck(true)}
                                          onPerson={(id) => { makeRoot(id); setShowOverview(false); }}
-                                         onSurname={(name) => { setQuery(name); finderRef.current?.focus(); }} />}
+                                         onSurname={(name) => { setQuery(name); showList(true); finderRef.current?.focus(); }} />}
 
       {!data && <section className="panel file">
         <FileDrop className="drop" onFile={openFile}>
@@ -457,11 +461,13 @@ export function App() {
 
       {data && chosen && <>
         <section className="panel chart">
-          <div className="viewer">
-            <aside className="rail-wrap" aria-label={t("thName")}>
+          <div className={`viewer${listOpen ? "" : " list-min"}`}>
+            {!listOpen && <button type="button" className="rail-min" title={t("showList")} aria-label={t("showList")}
+                                  onClick={() => showList(true)}><Search className="icon" aria-hidden="true" /></button>}
+            {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
               <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
-                          query={query} onQuery={setQuery} onSelect={pick} t={t} />
-            </aside>
+                          query={query} onQuery={setQuery} onSelect={pick} onCollapse={() => showList(false)} t={t} />
+            </aside>}
             <div className="mid">
               <div className="chart-bar">
                 <div className="chart-switch" role="radiogroup">
