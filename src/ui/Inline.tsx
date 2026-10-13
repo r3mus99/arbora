@@ -44,6 +44,14 @@ export function Inline({ children, label, edit, onClose, className }: Props) {
   </span>;
 }
 
+/** A text field exactly as wide as its text: a hidden copy of the text sets the width, the input covers it. */
+function FitInput({ value, list, label, onChange }: { value: string; list?: string; label: string; onChange: (v: string) => void }) {
+  return <span className="fit">
+    <span className="fit-ghost" aria-hidden="true">{value}</span>
+    <input type="text" value={value} list={list} aria-label={label} title={label} onChange={(e) => onChange(e.target.value)} />
+  </span>;
+}
+
 /** A name in two fields (given name, surname) edited in place; give it a `key` that changes with the stored name. */
 export function InlineName({ given, surname, label, givenLabel, surnameLabel, givens, surnames, onCommit, children }: {
   given: string; surname: string; label: string; givenLabel: string; surnameLabel: string;
@@ -53,11 +61,9 @@ export function InlineName({ given, surname, label, givenLabel, surnameLabel, gi
   const [s, setS] = useState(surname);
   return <Inline label={label} className="inline-name" onClose={(ok) => { if (ok) onCommit(g, s); }}
                  edit={() => <>
-    <input type="text" value={g} list={givens} aria-label={givenLabel} placeholder={givenLabel}
-           size={Math.max(g.length, givenLabel.length - 2, 3)} onChange={(e) => setG(e.target.value)} />
+    <FitInput value={g} list={givens} label={givenLabel} onChange={setG} />
     {" "}
-    <input type="text" value={s} list={surnames} aria-label={surnameLabel} placeholder={surnameLabel}
-           size={Math.max(s.length, surnameLabel.length - 2, 3)} onChange={(e) => setS(e.target.value)} />
+    <FitInput value={s} list={surnames} label={surnameLabel} onChange={setS} />
   </>}>
     {children}
   </Inline>;
@@ -70,8 +76,7 @@ export function InlineText({ value, label, list, onCommit, children }: {
   const [v, setV] = useState(value);
   useEffect(() => setV(value), [value]);
   return <Inline label={label} onClose={(ok) => { if (ok) onCommit(v); else setV(value); }}
-                 edit={() => <input type="text" value={v} list={list} aria-label={label} size={Math.max(v.length, 4)}
-                                    onChange={(e) => setV(e.target.value)} />}>
+                 edit={() => <FitInput value={v} list={list} label={label} onChange={setV} />}>
     {children}
   </Inline>;
 }
