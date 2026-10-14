@@ -1,11 +1,12 @@
 import { Check, Copy, Plus, X } from "lucide-react";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
   PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields,
   type Alias, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
+import { surnamesFor } from "../core/surnames";
 import type { StringKey } from "./i18n";
 
 interface Props {
@@ -45,15 +46,22 @@ function DateField({ value, shown, lang, onChange, t }: {
 export const EDITOR_FORM = "person-editor";
 
 // the lists of suggestions, once per page
-export const GIVENS = "arbora-givens", SURNAMES = "arbora-surnames", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
+/** the list of surnames that fits the person's sex (the male or female forms), all of them when it is not known */
+export const surnameList = (sex: string) => (sex === "M" ? SURNAMES_M : sex === "F" ? SURNAMES_F : SURNAMES);
+
+export const GIVENS = "arbora-givens", SURNAMES = "arbora-surnames", SURNAMES_M = "arbora-surnames-m", SURNAMES_F = "arbora-surnames-f", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
 
 type Suggest = Props["suggest"];
 
 /** the lists of suggestions that the fields of the form and of the detail point to */
-export function SuggestLists({ suggest }: { suggest: Suggest }) {
+export function SuggestLists({ suggest, lang }: { suggest: Suggest; lang: Lang }) {
+  const male = useMemo(() => surnamesFor(suggest.surnames, "M", lang), [suggest.surnames, lang]);
+  const female = useMemo(() => surnamesFor(suggest.surnames, "F", lang), [suggest.surnames, lang]);
   return <>
     <datalist id={GIVENS}>{suggest.givens.map((s) => <option key={s} value={s} />)}</datalist>
     <datalist id={SURNAMES}>{suggest.surnames.map((s) => <option key={s} value={s} />)}</datalist>
+    <datalist id={SURNAMES_M}>{male.map((s) => <option key={s} value={s} />)}</datalist>
+    <datalist id={SURNAMES_F}>{female.map((s) => <option key={s} value={s} />)}</datalist>
     <datalist id={PLACES}>{suggest.places.map((s) => <option key={s} value={s} />)}</datalist>
     <datalist id={RELIGIONS}>{suggest.religions.map((s) => <option key={s} value={s} />)}</datalist>
   </>;
@@ -148,7 +156,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
         <label><span>{t("givenName")}</span>
           <input ref={firstInput} type="text" value={form.given} list={GIVENS} onChange={(e) => set("given", e.target.value)} /></label>
         <label><span>{t("surname")}</span>
-          <input type="text" value={form.surname} list={SURNAMES}
+          <input type="text" value={form.surname} list={surnameList(form.sex)}
                  onChange={(e) => set("surname", e.target.value)} /></label>
       </div>
       <fieldset className="list">
@@ -157,7 +165,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
           <div className="item alias" key={a.origin < 0 ? `new${i}` : a.origin}>
             <input type="text" value={a.given} list={GIVENS} aria-label={t("givenName")} placeholder={t("givenName")}
                    onChange={(e) => setAlias(i, { given: e.target.value })} />
-            <input type="text" value={a.surname} list={SURNAMES} aria-label={t("surname")} placeholder={t("surname")}
+            <input type="text" value={a.surname} list={surnameList(form.sex)} aria-label={t("surname")} placeholder={t("surname")}
                    onChange={(e) => setAlias(i, { surname: e.target.value })} />
             <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                     onClick={() => set("aliases", form.aliases.filter((_, j) => j !== i))}>
@@ -229,7 +237,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
                onChange={(e) => set("deceased", e.target.checked)} />
         <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
       {form.deceased && <>{event("death")}{event("burial")}</>}
-      <SuggestLists suggest={suggest} />
+      <SuggestLists suggest={suggest} lang={lang} />
       <div className="actions">
         <button className="primary" type="submit" title="Ctrl+Enter">
           <Check className="icon" aria-hidden="true" />{t("save")}</button>

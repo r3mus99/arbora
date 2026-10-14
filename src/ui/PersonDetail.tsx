@@ -16,7 +16,7 @@ import { TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
 import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
-import { EDITOR_FORM, GIVENS, PLACES, RELIGIONS, SURNAMES, SuggestLists } from "./PersonEditor";
+import { EDITOR_FORM, GIVENS, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
 import { InlineName, InlineNote, InlineText } from "./Inline";
 import { Row, Section } from "./Section";
 import { EventSources, Linked, PersonSources } from "./Sources";
@@ -185,7 +185,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
         <div className="detail-name">
         <h3>{prefix && `${prefix} `}
           {live && f ? <InlineName key={`${id}|${f.given}|${f.surname}`} given={f.given} surname={f.surname} label={t("edit")}
-                                   givenLabel={t("givenName")} surnameLabel={t("surname")} givens={GIVENS} surnames={SURNAMES}
+                                   givenLabel={t("givenName")} surnameLabel={t("surname")} givens={GIVENS} surnames={surnameList(f.sex)}
                                    onCommit={(given, surname) => change({ given, surname })}>{p.name || "?"}</InlineName>
             : <>{p.name || "?"}</>}
           {live && f ? <SexPick sex={f.sex} label={t("sex")} t={t} onPick={(sex) => change({ sex })} />
@@ -212,7 +212,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
             <Crosshair className="icon" aria-hidden="true" /></button>}
         </div>}
       </div>
-      {live && <SuggestLists suggest={suggest} />}
+      {live && <SuggestLists suggest={suggest} lang={lang} />}
       <p className="id">
         {years(p) && <span className="lifespan">{years(p)} · </span>}
         {/* other forms of the name (aka), quietly before the ID */}
@@ -220,7 +220,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
           aka {f.aliases.map((a, i) => {
             const text = [a.given, a.surname].filter(Boolean).join(" ");
             return <span key={a.origin}>{i > 0 && ", "}{live ? <InlineName key={`${id}|${a.given}|${a.surname}`} given={a.given}
-              surname={a.surname} label={t("aka")} givenLabel={t("givenName")} surnameLabel={t("surname")} givens={GIVENS} surnames={SURNAMES}
+              surname={a.surname} label={t("aka")} givenLabel={t("givenName")} surnameLabel={t("surname")} givens={GIVENS} surnames={surnameList(f.sex)}
               onCommit={(given, surname) => change({ aliases: f.aliases.map((x) => (x === a ? { ...x, given, surname } : x)) })}>{text}</InlineName>
               : text}</span>;
           })} · </span>}
