@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.33.0 – 2026-10-14
+
+- **Surname suggestions follow the person's sex.** Where surnames have a male and a female form (Slovak, Czech, Polish,
+  or any file that already has -ová surnames), the suggestions while typing a surname offer a woman only female forms
+  and a man only male forms. Forms that are missing are made from the other sex's surname (a man's *Rybár* becomes
+  *Rybárová* for a woman, *Zelený* becomes *Zelená*, and back), and surnames that are the same for both stay.
+  With an unknown sex, or in other languages, the list is unchanged.
+
 ## 1.32.0 – 2026-10-13
 
 - **Changes panel**: a new icon in the tool bar (shown while there are unsaved changes, with their count) lists what
