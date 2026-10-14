@@ -17,7 +17,7 @@ function rules(lang: Lang | undefined, surnames: string[]): { sk: boolean; pl: b
 function formOf(s: string, r: { sk: boolean; pl: boolean }): Form {
   if (r.sk) {
     if (/(ová|á)$/i.test(s)) return "f";
-    if (/ý$/i.test(s) || !VOWELS.test(s)) return "m";
+    if (s.toLowerCase().endsWith("ý") || !VOWELS.test(s)) return "m";
     return "n";
   }
   if (r.pl) {
@@ -34,7 +34,7 @@ const swap = (s: string, from: RegExp, to: string) => {
 
 function toFemale(s: string, r: { sk: boolean; pl: boolean }): string {
   if (r.sk) {
-    if (/ý$/i.test(s)) return swap(s, /ý$/i, "á");
+    if (s.toLowerCase().endsWith("ý")) return swap(s, /ý$/i, "á");
     return swap(s, /$/, "ová");
   }
   return swap(s, /i$/i, "a");
@@ -62,6 +62,6 @@ export function surnamesFor(surnames: string[], sex: string, lang?: Lang): strin
     else made.push(want === "f" ? toFemale(s, r) : toMale(s, r));
   }
   const have = new Set(own);
-  const sort = (a: string[]) => [...new Set(a)].sort((a, b) => a.localeCompare(b));
+  const sort = (list: string[]) => [...new Set(list)].sort((a, b) => a.localeCompare(b));
   return [...sort(own), ...sort(made.filter((s) => !have.has(s)))];
 }
