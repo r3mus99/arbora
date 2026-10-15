@@ -29,6 +29,8 @@ export interface Person {
   /** xref including the at-signs, e.g. "@I1@" */
   id: string;
   name: string;
+  /** the given name(s) alone: what stands before the surname slashes (or GIVN) */
+  given: string;
   /** other forms of the name (NAME with TYPE aka), cleaned like `name` */
   aka: string[];
   sex: string;
@@ -175,13 +177,15 @@ export function readRecords(records: GedNode[], fallbackEvents = true): GedcomDa
         name = [childOf(nameNode, "GIVN"), childOf(nameNode, "SURN")]
           .filter((n): n is GedNode => n !== null).map((n) => n.value).join(" ");
       }
+      const given = nameNode
+        ? (nameNode.value.split("/")[0].replace(/\s+/g, " ").trim() || childOf(nameNode, "GIVN")?.value.trim() || "") : "";
       const sex = childOf(rec, "SEX");
       const famc = childrenOf(rec, "FAMC").map((n, i) => {
         const pedi = childOf(n, "PEDI");
         return { id: n.value, rank: !pedi || pedi.value.toLowerCase() === "birth" ? 0 : 1, i };
       }).sort((a, b) => a.rank - b.rank || a.i - b.i).map((x) => x.id).filter(Boolean);
       people[rec.xref] = {
-        id: rec.xref, name, sex: sex ? sex.value.toUpperCase() : "",
+        id: rec.xref, name, given, sex: sex ? sex.value.toUpperCase() : "",
         aka: childrenOf(rec, "NAME").filter((n) => n !== nameNode && isAka(n)).map((n) => cleanName(n.value)).filter(Boolean),
         birth: eventOf(rec, birthTags), death: eventOf(rec, deathTags),
         occupation: childrenOf(rec, "OCCU").map((n) => n.value).filter(Boolean).join(", "), famc,
