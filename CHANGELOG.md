@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.37.0 – 2026-10-15
+
+- **Bulk fix also unifies given names.** A new tab "Given names" finds different spellings of one given name
+  (Katarína / Katerína, Jan / Ján) and works like the surname tab: pick the spelling that stays, tick which others are
+  replaced, see the people that change, and apply in one step. Every word of a given name is handled separately
+  ("Katerína Mária" changes only Katerína), initials are ignored, and names that only differ in the ending, like
+  Alexander and Alexandra, are never grouped. The free "from → to" rename works for given names too.
+
 ## 1.36.0 – 2026-10-15
 
 - **The file check also looks at surname endings.** In Slovak and Czech files (a file counts as one when at least
