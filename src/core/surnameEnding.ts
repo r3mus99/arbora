@@ -24,8 +24,8 @@ const VOWEL_END = /[aeiouyáäéíóôúýěůöüő]$/i;
 const slovakCzech: Rule = {
   evidence: /ová$/i,
   forWoman(s) {
-    if (/(ová|á)$/i.test(s) || VOWEL_END.test(s) && !/ý$/i.test(s)) return NONE;
-    if (/ý$/i.test(s)) return { wrong: true, fixes: [s.replace(/ý$/i, "á")] };
+    if (/(ová|á)$/i.test(s) || VOWEL_END.test(s) && !s.toLowerCase().endsWith("ý")) return NONE;
+    if (s.toLowerCase().endsWith("ý")) return { wrong: true, fixes: [s.replace(/ý$/i, "á")] };
     // Hudec → Hudcová, Dudek → Dudková, Kováč → Kováčová
     return { wrong: true, fixes: [s + "ová", s.replace(/e([ck])$/i, "$1ová"), s.replace(/e([lň])$/i, "$1ová")] };
   },
@@ -72,7 +72,7 @@ export function surnameJudge(people: { surname: string; sex: string }[]): (surna
       // a fix is offered only when the file has the form already, spelled that way
       const fix = v.fixes.map((f) => known.get(f.toLowerCase())).find((f) => f && f !== surname) || "";
       // a woman with a plain consonant surname is flagged only when her form is there; the rest could be a foreign name
-      if (sex === "F" && !fix && !/ý$/i.test(surname) && !/(sk|ck|dzk)i$/i.test(surname)) continue;
+      if (sex === "F" && !fix && !surname.toLowerCase().endsWith("ý") && !/(sk|ck|dzk)i$/i.test(surname)) continue;
       return { wrong: true, fix: fix || (sex === "F" && /ý$|(sk|ck|dzk)i$/i.test(surname) ? v.fixes[0] : "") };
     }
     return null;
