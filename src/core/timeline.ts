@@ -40,6 +40,13 @@ export interface TimelineItem {
   family?: string;
 }
 
+/** Given name and whole-year age on the wedding day of each person whose birth and the wedding date tell it. */
+export function weddingAges(wedding: string | undefined, people: { name: string; born: string }[]): { name: string; age: number }[] {
+  if (!wedding) return [];
+  return people.map((x) => ({ name: x.name, age: yearsBetween(x.born, wedding) }))
+    .filter((x): x is { name: string; age: number } => x.age !== null && !!x.name);
+}
+
 export interface EventDetail { key: "age" | "cause" | "agency" | "address"; value: string }
 
 /** Standard events beyond birth, christening, marriage, death and burial, titled by their tag. */
@@ -126,13 +133,9 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     const spouse = fam.husb === id ? fam.wife : fam.husb;
     const other = spouse && spouse in data.people ? spouse : null;
     add("marriage", fam.marriage, fid, other, fam.divorced, true);
-    const wed = fam.marriage?.date;
-    if (wed) {
-      const ages = [{ name: p.given, born: birthDate }, { name: other ? data.people[other].given : "", born: other ? data.people[other].birth?.date || "" : "" }]
-        .map((x) => ({ name: x.name, age: yearsBetween(x.born, wed) }))
-        .filter((x): x is { name: string; age: number } => x.age !== null && !!x.name);
-      if (ages.length) items[items.length - 1].spouseAges = ages;
-    }
+    const ages = weddingAges(fam.marriage?.date, [{ name: p.given, born: birthDate },
+      { name: other ? data.people[other].given : "", born: other ? data.people[other].birth?.date || "" : "" }]);
+    if (ages.length) items[items.length - 1].spouseAges = ages;
     const famRec = family?.(fid);
     if (famRec) {
       const marr = items[items.length - 1];

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.38.1 – 2026-10-15
+
+- **Spouses' ages also at the parents' wedding.** The marriage of the parents in the "Parents" section of the person
+  detail now shows the same "Spouses' ages" line (father and mother on the wedding day).
+
 ## 1.38.0 – 2026-10-15
 
 - **Spouses' ages at the wedding.** A marriage in the person detail now has a line "Spouses' ages" with both

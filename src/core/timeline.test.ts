@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { dateParts, parseGedcom, personAttributes, personFields, readRecords, timeline, yearsBetween } from "./index";
+import { dateParts, parseGedcom, personAttributes, personFields, readRecords, timeline, weddingAges, yearsBetween } from "./index";
 
 describe("ages", () => {
   test.each([
@@ -20,6 +20,12 @@ describe("ages", () => {
     expect(dateParts("BET 1700 AND 1710")).toEqual({ y: 1700, m: 0, d: 0 });
     expect(dateParts("1891-05")).toEqual({ y: 1891, m: 5, d: 0 });
   });
+});
+
+test("wedding ages skip people without a known birth or name", () => {
+  expect(weddingAges("OCT 1922", [{ name: "Adam", born: "7 APR 1900" }, { name: "Berta", born: "" }, { name: "", born: "1900" }]))
+    .toEqual([{ name: "Adam", age: 22 }]);
+  expect(weddingAges(undefined, [{ name: "Adam", born: "1900" }])).toEqual([]);
 });
 
 // a made-up family
