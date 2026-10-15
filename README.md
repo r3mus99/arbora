@@ -133,12 +133,15 @@ click lists them, and the names in the list open the person's details. It checks
 - dates not in GEDCOM form (e.g. `1885-12-12`), and sex against the role in a family;
 - impossible dates: death before birth, a child born before a parent, a parent
   younger than 12, birth after the mother's death or more than a year after the
-  father's. Approximate dates (`ABT`) are compared only when they are years apart.
+  father's. Approximate dates (`ABT`) are compared only when they are years apart;
+- surname endings that do not fit the sex, in languages where they differ:
+  Slovak and Czech (Horváth / Horváthová, Nový / Nová) and Polish (-ski / -ska),
+  only in files that show the habit and only for people with a known sex.
 
 What can be fixed safely has a magic wand on the right; each fix is one step
 that can be undone. A missing header or `TRLR` is added, a link to nothing is
 removed, a missing link back is added and a date like `1885-12-12` is rewritten
-as `12 DEC 1885`. The list closes once everything is fixed.
+as `12 DEC 1885`, and a surname gets the form that fits the sex when that is certain (Nový → Nová, or a form the file already has). The list closes once everything is fixed.
 
 ### Bulk data fix
 

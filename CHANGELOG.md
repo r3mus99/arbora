@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.36.0 – 2026-10-15
+
+- **The file check also looks at surname endings.** In Slovak and Czech files (a file counts as one when at least
+  three women have -ová surnames) a woman with the man's form (Horváth) and a man with a woman's form (Horváthová)
+  are reported as warnings; Polish -ski / -ska works the same way. The wand fixes a case only when the correct form
+  is certain: -ý → -á, -ski → -ska, or a form that already exists in the file. Surnames in other languages, endings
+  that are the same for both sexes, double surnames and people with an unknown sex are never reported. Rules are one
+  small table per language in `src/core/surnameEnding.ts`.
+
 ## 1.35.0 – 2026-10-15
 
 - **Given name suggestions follow the person's sex.** While typing a given name, a woman is offered only the given
