@@ -5,11 +5,15 @@
 
 import { isoToGedcom, monthOf, validDateValue } from "./date";
 import { addLine } from "./edit";
-import { childOf, gedNode, rewritten, type GedNode } from "./gedcom";
+import { childOf, gedNode, mainName, rewritten, type GedNode } from "./gedcom";
+import { surnameJudge } from "./surnameEnding";
+import { surnameOf } from "./stats";
+import { renameSurname } from "./variants";
 
 export type IssueKind =
   | "noHead" | "noTrlr" | "dupId" | "missingRef" | "oneWay" | "badDate"
-  | "deathBeforeBirth" | "beforeParent" | "parentYoung" | "afterMother" | "afterFather" | "spouseSex";
+  | "deathBeforeBirth" | "beforeParent" | "parentYoung" | "afterMother" | "afterFather" | "spouseSex"
+  | "surnameNotFemale" | "surnameNotMale";
 
 export interface Issue {
   kind: IssueKind;
@@ -115,6 +119,18 @@ export function checkGedcom(records: GedNode[]): Issue[] {
     }
   }
 
+  // surnames with an ending that does not fit the sex, in languages where it differs
+  const sexOf = (p: GedNode) => childOf(p, "SEX")?.value.trim().toUpperCase() || "";
+  const surnames = people.map((p) => {
+    const name = mainName(p);
+    return { rec: p, surname: name ? surnameOf(name) : "", sex: sexOf(p) };
+  });
+  const judge = surnameJudge(surnames);
+  for (const { rec, surname, sex } of surnames) {
+    const v = judge(surname, sex);
+    if (v) add(sex === "F" ? "surnameNotFemale" : "surnameNotMale", "warn", rec.xref, { id: rec.xref!, value: surname, to: v.fix });
+  }
+
   // dates that cannot be true
   const birth = (id: string | undefined) => (id && isA(id, "INDI") ? eventDate(byId.get(id)!, "BIRT") : null);
   const death = (id: string | undefined) => (id && isA(id, "INDI") ? eventDate(byId.get(id)!, "DEAT") : null);
@@ -202,6 +218,13 @@ function repair(records: GedNode[], issue: Issue, at: (id: string) => number): R
       if (fixed === a.value || !validDateValue(fixed) || i < 0) return null;
       return { at: i, rec: setDates(records[i], a.tag, a.value, fixed.toUpperCase()) };
     }
+    case "surnameNotFemale":
+    case "surnameNotMale": {
+      const i = at(a.id), name = i < 0 ? null : mainName(records[i]);
+      if (!a.to || !name) return null;
+      const renamed = renameSurname(name, new Set([a.value]), a.to);
+      return { at: i, rec: rewritten(records[i], records[i].children.map((c) => (c === name ? renamed : c))) };
+    }
     default:
       return null;
   }
@@ -213,7 +236,7 @@ const changes = (records: GedNode[], r: Repair | null): r is Repair => !!r && !(
 /**
  * The records with one issue repaired, or the same array when it cannot be done
  * safely: a missing header or trailer is added, a link to nothing removed, a missing
- * link back added, and a date like 1885-12-12 rewritten as 12 DEC 1885.
+ * link back added, and a date like 1885-12-12 rewritten as 12 DEC 1885, and a surname with the wrong ending replaced by the form the file already has.
  */
 export function fixIssue(records: GedNode[], issue: Issue): GedNode[] {
   const r = repair(records, issue, indexOf(records));

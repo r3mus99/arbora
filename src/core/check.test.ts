@@ -88,3 +88,45 @@ describe("checkGedcom", () => {
     expect(isoToGedcom("1922-13-01")).toBe("1922-13-01");
   });
 });
+
+describe("surname endings", () => {
+  const person = (n: number, given: string, surname: string, sex: string) =>
+    `0 @I${n}@ INDI\n1 NAME ${given} /${surname}/\n1 SEX ${sex}\n`;
+  // three women with -ová surnames switch the Slovak and Czech rule on
+  const base = person(1, "Anna", "Horváthová", "F") + person(2, "Eva", "Nováková", "F") + person(3, "Mária", "Svobodová", "F");
+  const run = (extra: string) => checkGedcom(parseGedcom(wrap(base + extra))).filter((i) => i.kind.startsWith("surname"));
+
+  test("a woman with the man's form is flagged and fixed to the form the file has", () => {
+    const records = parseGedcom(wrap(base + person(4, "Zuzana", "Horváth", "F") + person(5, "Jozef", "Horváth", "M")));
+    const issues = checkGedcom(records).filter((i) => i.kind.startsWith("surname"));
+    expect(issues.map((i) => [i.kind, i.person, i.fixable])).toEqual([["surnameNotFemale", "@I4@", true]]);
+    const fixed = writeGedcom(fixIssue(records, issues[0]));
+    expect(fixed).toContain("1 NAME Zuzana /Horváthová/");
+    expect(fixed).toContain("1 NAME Jozef /Horváth/");
+  });
+
+  test("a woman with an -ý surname becomes -á, even if the file has no such form", () => {
+    const records = parseGedcom(wrap(base + person(4, "Jana", "Nový", "F")));
+    const [issue] = checkGedcom(records).filter((i) => i.kind.startsWith("surname"));
+    expect(issue.fixable).toBe(true);
+    expect(writeGedcom(fixIssue(records, issue))).toContain("1 NAME Jana /Nová/");
+  });
+
+  test("foreign or unknown cases are left alone", () => {
+    expect(run(person(4, "Maria", "Schmidt", "F") + person(5, "Anna", "Nagy", "F") + person(6, "Eva", "Hruška", "F") +
+      person(7, "Eva", "Kováčová-Nagy", "F") + person(8, "Eva", "Kovac", "") + person(9, "Eva", "Ito", "F"))).toEqual([]);
+  });
+
+  test("a man with a woman's form is flagged without a guess", () => {
+    const issues = run(person(4, "Peter", "Kováčová", "M"));
+    expect(issues.map((i) => [i.kind, i.fixable])).toEqual([["surnameNotMale", false]]);
+  });
+
+  test("a file without the habit is not checked, and Polish endings are", () => {
+    expect(kinds(wrap(person(1, "Mary", "Smith", "F") + person(2, "Anna", "Nový", "F")))).toEqual([]);
+    const pl = person(1, "Anna", "Kowalska", "F") + person(2, "Ewa", "Nowacka", "F") + person(3, "Maria", "Zielińska", "F");
+    const issues = checkGedcom(parseGedcom(wrap(pl + person(4, "Ola", "Wiśniewski", "F") + person(5, "Jan", "Kowalska", "M"))))
+      .filter((i) => i.kind.startsWith("surname"));
+    expect(issues.map((i) => [i.kind, i.person])).toEqual([["surnameNotFemale", "@I4@"], ["surnameNotMale", "@I5@"]]);
+  });
+});

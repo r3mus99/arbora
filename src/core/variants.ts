@@ -236,7 +236,7 @@ function mapNode(node: GedNode, change: (n: GedNode) => GedNode): GedNode {
 }
 
 /** One NAME with its surname renamed, in the slashes, in SURN, or as the last word. */
-function renameSurname(name: GedNode, from: Set<string>, to: string): GedNode {
+export function renameSurname(name: GedNode, from: Set<string>, to: string): GedNode {
   const old = surnameOf(name);
   if (!from.has(old)) return name;
   let value = name.value;
