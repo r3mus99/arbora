@@ -93,9 +93,11 @@ export function familyFields(rec: GedNode): FamilyFields {
 
 /** Given names, surnames, places and religions used in the file, sorted, for suggestions in the form.
  *  Names come only from each person's main name, never from aka names. */
-export function suggestions(records: GedNode[]):
-    { givens: string[]; surnames: string[]; places: string[]; religions: string[] } {
-  const givens = new Set<string>(), surnames = new Set<string>(), places = new Set<string>(), religions = new Set<string>();
+export type Suggestions = { givens: string[]; givensM: string[]; givensF: string[]; surnames: string[]; places: string[]; religions: string[] };
+
+/** `givensM` and `givensF` hold only the given names already used for men or for women in the file. */
+export function suggestions(records: GedNode[]): Suggestions {
+  const givensM = new Set<string>(), givensF = new Set<string>(), givens = new Set<string>(), surnames = new Set<string>(), places = new Set<string>(), religions = new Set<string>();
   const walk = (n: GedNode) => {
     if (n.tag === "PLAC" && n.value) places.add(n.value);
     if (n.tag === "RELI" && n.value) religions.add(n.value);
@@ -110,11 +112,16 @@ export function suggestions(records: GedNode[]):
     const parts = splitName(name.value);
     const given = parts.given || childOf(name, "GIVN")?.value || "";
     const surname = parts.surname || childOf(name, "SURN")?.value || "";
-    if (given) givens.add(given);
+    if (given) {
+      givens.add(given);
+      const sex = childOf(rec, "SEX")?.value.trim().toUpperCase();
+      if (sex === "M") givensM.add(given);
+      if (sex === "F") givensF.add(given);
+    }
     if (surname) surnames.add(surname);
   });
   const sort = (set: Set<string>) => [...set].sort((a, b) => a.localeCompare(b));
-  return { givens: sort(givens), surnames: sort(surnames), places: sort(places), religions: sort(religions) };
+  return { givens: sort(givens), givensM: sort(givensM), givensF: sort(givensF), surnames: sort(surnames), places: sort(places), religions: sort(religions) };
 }
 
 // ------------------------------------------------------------ changing nodes

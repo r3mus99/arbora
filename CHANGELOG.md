@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.35.0 – 2026-10-15
+
+- **Given name suggestions follow the person's sex.** While typing a given name, a woman is offered only the given
+  names already used for women in the file, and a man only those used for men. With an unknown sex the list is
+  unchanged. It applies in every language, because it only uses names already in the file.
+
 ## 1.34.0 – 2026-10-15
 
 - **Bulk fix is its own tool**: a new icon in the tool bar (Replace, with the number of groups that wait for a decision)

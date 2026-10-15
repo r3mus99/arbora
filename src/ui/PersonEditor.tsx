@@ -2,7 +2,7 @@ import { Check, Copy, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
   PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields,
-  type Alias, type FamilyFields, type Occupation, type PersonFields,
+  type Alias, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
@@ -16,7 +16,7 @@ interface Props {
   families: GedNode[];
   lang: Lang;
   /** surnames and places in the file, offered while typing */
-  suggest: { givens: string[]; surnames: string[]; places: string[]; religions: string[] };
+  suggest: Suggestions;
   /** changed records only; nothing when nothing changed */
   onSave: (changed: GedNode[]) => void;
   onCancel: () => void;
@@ -46,10 +46,12 @@ function DateField({ value, shown, lang, onChange, t }: {
 export const EDITOR_FORM = "person-editor";
 
 // the lists of suggestions, once per page
+/** the list of given names used for the person's sex in the file, all of them when it is not known */
+export const givenList = (sex: string) => (sex === "M" ? GIVENS_M : sex === "F" ? GIVENS_F : GIVENS);
 /** the list of surnames that fits the person's sex (the male or female forms), all of them when it is not known */
 export const surnameList = (sex: string) => (sex === "M" ? SURNAMES_M : sex === "F" ? SURNAMES_F : SURNAMES);
 
-export const GIVENS = "arbora-givens", SURNAMES = "arbora-surnames", SURNAMES_M = "arbora-surnames-m", SURNAMES_F = "arbora-surnames-f", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
+export const GIVENS = "arbora-givens", GIVENS_M = "arbora-givens-m", GIVENS_F = "arbora-givens-f", SURNAMES = "arbora-surnames", SURNAMES_M = "arbora-surnames-m", SURNAMES_F = "arbora-surnames-f", PLACES = "arbora-places", RELIGIONS = "arbora-religions";
 
 type Suggest = Props["suggest"];
 
@@ -59,6 +61,8 @@ export function SuggestLists({ suggest, lang }: { suggest: Suggest; lang: Lang }
   const female = useMemo(() => surnamesFor(suggest.surnames, "F", lang), [suggest.surnames, lang]);
   return <>
     <datalist id={GIVENS}>{suggest.givens.map((s) => <option key={s} value={s} />)}</datalist>
+    <datalist id={GIVENS_M}>{suggest.givensM.map((s) => <option key={s} value={s} />)}</datalist>
+    <datalist id={GIVENS_F}>{suggest.givensF.map((s) => <option key={s} value={s} />)}</datalist>
     <datalist id={SURNAMES}>{suggest.surnames.map((s) => <option key={s} value={s} />)}</datalist>
     <datalist id={SURNAMES_M}>{male.map((s) => <option key={s} value={s} />)}</datalist>
     <datalist id={SURNAMES_F}>{female.map((s) => <option key={s} value={s} />)}</datalist>
@@ -154,7 +158,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
     <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
       <div className="pair">
         <label><span>{t("givenName")}</span>
-          <input ref={firstInput} type="text" value={form.given} list={GIVENS} onChange={(e) => set("given", e.target.value)} /></label>
+          <input ref={firstInput} type="text" value={form.given} list={givenList(form.sex)} onChange={(e) => set("given", e.target.value)} /></label>
         <label><span>{t("surname")}</span>
           <input type="text" value={form.surname} list={surnameList(form.sex)}
                  onChange={(e) => set("surname", e.target.value)} /></label>
@@ -163,7 +167,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
         <legend>{t("aka")}</legend>
         {form.aliases.map((a, i) => (
           <div className="item alias" key={a.origin < 0 ? `new${i}` : a.origin}>
-            <input type="text" value={a.given} list={GIVENS} aria-label={t("givenName")} placeholder={t("givenName")}
+            <input type="text" value={a.given} list={givenList(form.sex)} aria-label={t("givenName")} placeholder={t("givenName")}
                    onChange={(e) => setAlias(i, { given: e.target.value })} />
             <input type="text" value={a.surname} list={surnameList(form.sex)} aria-label={t("surname")} placeholder={t("surname")}
                    onChange={(e) => setAlias(i, { surname: e.target.value })} />

@@ -172,10 +172,17 @@ test("suggestions take names from people only, not from place or repository reco
   expect(suggestions(parseGedcom(ged))).toMatchObject({ givens: ["Anna"], surnames: ["Nova"] });
 });
 
+test("given names are also listed by sex; people of unknown sex only in the full list", () => {
+  const ged = "0 @I1@ INDI\n1 NAME Anna /Nova/\n1 SEX F\n0 @I2@ INDI\n1 NAME Ota /Stary/\n1 SEX M\n" +
+              "0 @I3@ INDI\n1 NAME Alex /Stary/\n1 SEX U\n0 @I4@ INDI\n1 NAME Jana /Nova/\n";
+  expect(suggestions(parseGedcom(ged))).toMatchObject({
+    givens: ["Alex", "Anna", "Jana", "Ota"], givensM: ["Ota"], givensF: ["Anna"] });
+});
+
 test("given names, surnames and places for suggestions", () => {
-  const ged = "0 @I1@ INDI\n1 NAME Ján /Kováč/\n1 BIRT\n2 PLAC Brezno\n0 @I2@ INDI\n1 NAME Eva\n2 SURN Malá\n" +
+  const ged = "0 @I1@ INDI\n1 NAME Ján /Kováč/\n1 SEX M\n1 BIRT\n2 PLAC Brezno\n0 @I2@ INDI\n1 NAME Eva\n2 SURN Malá\n1 SEX F\n" +
               "1 DEAT\n2 PLAC Brezno\n0 @F1@ FAM\n1 MARR\n2 PLAC Ábelová\n";
-  expect(suggestions(parseGedcom(ged))).toEqual({ givens: ["Eva", "Ján"], surnames: ["Kováč", "Malá"], places: ["Ábelová", "Brezno"], religions: [] });
+  expect(suggestions(parseGedcom(ged))).toEqual({ givens: ["Eva", "Ján"], givensM: ["Ján"], givensF: ["Eva"], surnames: ["Kováč", "Malá"], places: ["Ábelová", "Brezno"], religions: [] });
 });
 
 describe("dates typed in the form", () => {

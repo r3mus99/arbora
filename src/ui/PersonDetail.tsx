@@ -3,7 +3,7 @@ import {
   StickyNote, Star, CalendarDays, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
-import { applyAttribute, applyEventLine, applyEventNode, applyFamily, applyPerson, type AttributeFields, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields } from "../core/edit";
+import { applyAttribute, applyEventLine, applyEventNode, applyFamily, applyPerson, type AttributeFields, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields, type Suggestions } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
 import { mapUrl, municipality } from "../core/places";
@@ -16,7 +16,7 @@ import { TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
 import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
-import { EDITOR_FORM, GIVENS, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
+import { EDITOR_FORM, givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
 import { InlineName, InlineNote, InlineText } from "./Inline";
 import { Row, Section } from "./Section";
 import { EventSources, Linked, PersonSources } from "./Sources";
@@ -40,7 +40,7 @@ interface Props {
   /** inline edits: the changed records, one undo step each */
   onChange: (changed: GedNode[]) => void;
   /** surnames and places in the file, offered while typing */
-  suggest: { givens: string[]; surnames: string[]; places: string[]; religions: string[] };
+  suggest: Suggestions;
   onEdit: () => void;
   onCancelEdit: () => void;
   /** the edit form, shown instead of the facts */
@@ -185,7 +185,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
         <div className="detail-name">
         <h3>{prefix && `${prefix} `}
           {live && f ? <InlineName key={`${id}|${f.given}|${f.surname}`} given={f.given} surname={f.surname} label={t("edit")}
-                                   givenLabel={t("givenName")} surnameLabel={t("surname")} givens={GIVENS} surnames={surnameList(f.sex)}
+                                   givenLabel={t("givenName")} surnameLabel={t("surname")} givens={givenList(f.sex)} surnames={surnameList(f.sex)}
                                    onCommit={(given, surname) => change({ given, surname })}>{p.name || "?"}</InlineName>
             : <>{p.name || "?"}</>}
           {live && f ? <SexPick sex={f.sex} label={t("sex")} t={t} onPick={(sex) => change({ sex })} />
@@ -220,7 +220,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
           aka {f.aliases.map((a, i) => {
             const text = [a.given, a.surname].filter(Boolean).join(" ");
             return <span key={a.origin}>{i > 0 && ", "}{live ? <InlineName key={`${id}|${a.given}|${a.surname}`} given={a.given}
-              surname={a.surname} label={t("aka")} givenLabel={t("givenName")} surnameLabel={t("surname")} givens={GIVENS} surnames={surnameList(f.sex)}
+              surname={a.surname} label={t("aka")} givenLabel={t("givenName")} surnameLabel={t("surname")} givens={givenList(f.sex)} surnames={surnameList(f.sex)}
               onCommit={(given, surname) => change({ aliases: f.aliases.map((x) => (x === a ? { ...x, given, surname } : x)) })}>{text}</InlineName>
               : text}</span>;
           })} · </span>}
