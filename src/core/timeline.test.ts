@@ -77,6 +77,9 @@ test("a life in date order, undated events after the one before them", () => {
     ["death", "", null, null],
   ]);
   expect(items[0].place).toBe("Greenfield");
+  // Berta has no birth date, so only Adam's age on the wedding day is told
+  expect(items[1].spouseAges).toEqual([{ name: "Adam", age: 22 }]);
+  expect(items[0].spouseAges).toBeUndefined();
   expect(items[1].divorced).toBe(true);
   expect(timeline(data, "@I3@", null).map((i) => i.kind)).toEqual(["birth"]);
 });

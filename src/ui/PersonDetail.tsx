@@ -279,6 +279,8 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
                 </div>}
                 {e.witnesses && <div className="tl-details"><span>{t("witnesses")}:</span>{" "}
                   {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w)}</span>)}</div>}
+                {e.spouseAges && <div className="tl-details"><span>{t("marriageAges")}:</span>{" "}
+                  {e.spouseAges.map((a, i) => <span key={i}>{i > 0 && ", "}{a.name} ({a.age}{t("yearsShort")})</span>)}</div>}
                 {e.details && <div className="tl-details">{e.details.map((d) => {
                   const line = live && d.key !== "address" ? eventLine(e) : null;
                   const tag = d.key !== "address" ? LINE_TAGS[d.key] : "";

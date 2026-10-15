@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.38.0 – 2026-10-15
+
+- **Spouses' ages at the wedding.** A marriage in the person detail now has a line "Spouses' ages" with both
+  spouses' given names and their age on the wedding day, e.g. "Adam (30y), Anna (25y)". A spouse is left out when
+  their birth date or the wedding date does not tell a whole number of years. The year abbreviation is translated
+  into all 12 languages.
+
 ## 1.37.0 – 2026-10-15
 
 - **Bulk fix also unifies given names.** A new tab "Given names" finds different spellings of one given name
