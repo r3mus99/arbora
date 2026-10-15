@@ -304,19 +304,20 @@ export function App() {
   const [hidden, setHidden] = useState<Set<string>>(() => new Set(readStore().hiddenVariants || []));
   const [keepAka, setKeepAka] = useState(() => readStore().keepAka !== false);
   const variants = useMemo(() => ({
-    surname: doc ? variantGroups(doc.records, "surname") : [], place: doc ? variantGroups(doc.records, "place") : [],
+    surname: doc ? variantGroups(doc.records, "surname") : [], given: doc ? variantGroups(doc.records, "given") : [], place: doc ? variantGroups(doc.records, "place") : [],
   }), [doc]);
   const spelled = useMemo(() => {
     const sorted = (kind: VariantKind) => (doc ? [...spellings(doc.records, kind).keys()].sort((a, b) => a.localeCompare(b)) : []);
-    return { surname: sorted("surname"), place: sorted("place") };
+    return { surname: sorted("surname"), given: sorted("given"), place: sorted("place") };
   }, [doc]);
   const found = {
     issues: issues.length,
     surname: variants.surname.filter((g) => !hidden.has(g.key)).length,
+    given: variants.given.filter((g) => !hidden.has(g.key)).length,
     place: variants.place.filter((g) => !hidden.has(g.key)).length,
   };
   // the file check counts problems, the bulk fix counts groups of spellings that wait for a decision
-  const problems = found.issues, spellingGroups = found.surname + found.place;
+  const problems = found.issues, spellingGroups = found.surname + found.given + found.place;
   // the panel opens also when only hidden groups are left, to show them again
   const hide = (key: string, on: boolean) => {
     const next = new Set(hidden);

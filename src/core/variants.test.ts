@@ -181,3 +181,40 @@ describe("places as a whole", () => {
     expect(writeGedcom(out)).toContain("0 @I4@ INDI\n1 BIRT\n2 PLAC Ostbach 19\n");
   });
 });
+
+describe("given names", () => {
+  const GIVEN = `0 HEAD
+0 @I1@ INDI
+1 NAME Katarína Mária /Horák/
+0 @I2@ INDI
+1 NAME Katerína /Novák/
+2 GIVN Katerína
+0 @I3@ INDI
+1 NAME Alexander /Kolar/
+0 @I4@ INDI
+1 NAME Alexandra /Kolarová/
+0 @I5@ INDI
+1 NAME Jan /Lenz/
+0 @I6@ INDI
+1 NAME Ján /Lenz/
+0 @I7@ INDI
+1 NAME J. /Lenz/
+0 TRLR
+`;
+
+  test("spelling variants are grouped, different names are not", () => {
+    const groups = variantGroups(parseGedcom(GIVEN), "given");
+    expect(groups.map((g) => g.variants.map((v) => v.value).sort())).toEqual([["Jan", "Ján"], ["Katarína", "Katerína"]]);
+    expect(similar("Alexander", "Alexandra", "given")).toBe(false);
+  });
+
+  test("renaming changes the words of the given name only", () => {
+    const records = parseGedcom(GIVEN);
+    const out = writeGedcom(renameVariants(records, "given", ["Katerína"], "Katarína"));
+    expect(out).toContain("1 NAME Katarína /Novák/\n2 GIVN Katarína");
+    expect(out).toContain("1 NAME Katarína Mária /Horák/");
+    const jan = writeGedcom(renameVariants(records, "given", ["Jan"], "Ján"));
+    expect(jan).toContain("1 NAME Ján /Lenz/");
+    expect(jan).toContain("1 NAME J. /Lenz/");
+  });
+});

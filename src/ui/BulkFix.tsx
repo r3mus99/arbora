@@ -1,4 +1,4 @@
-import { ArrowRight, Eye, EyeOff, MapPin, Search, SpellCheck, Tag, TriangleAlert } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, MapPin, Search, SpellCheck, Tag, TriangleAlert, User } from "lucide-react";
 import { useState } from "react";
 import type { GedcomData } from "../core/gedcom";
 import { keptByDefault, type VariantGroup, type VariantKind } from "../core/variants";
@@ -10,7 +10,7 @@ type Tab = VariantKind | "hidden";
 
 interface Props {
   data: GedcomData;
-  /** groups of spellings of one surname or place, and every spelling in the file */
+  /** groups of spellings of one surname, given name or place, and every spelling in the file */
   variants: Record<VariantKind, VariantGroup[]>;
   values: Record<VariantKind, string[]>;
   /** keys of the groups marked "not the same" */
@@ -109,22 +109,22 @@ function Detail({ group, listId, data, onRename, onHide, onFocus, keepAka, onKee
 /** Bulk fix of spellings, a tool panel across the whole width: tabs, groups of one tab, the open group. */
 export function BulkFix({ data, variants, values, hidden, onRename, onHide, onFocus, keepAka, onKeepAka, t }: Props) {
   const shown = (kind: VariantKind) => variants[kind].filter((g) => !hidden.has(g.key));
-  const hiddenGroups = [...variants.surname, ...variants.place].filter((g) => hidden.has(g.key));
-  const counts: Record<Tab, number> = { surname: shown("surname").length, place: shown("place").length, hidden: hiddenGroups.length };
-  const [tab, setTab] = useState<Tab>(() => (["surname", "place", "hidden"] as Tab[]).find((k) => counts[k]) || "surname");
+  const hiddenGroups = [...variants.surname, ...variants.given, ...variants.place].filter((g) => hidden.has(g.key));
+  const counts: Record<Tab, number> = { surname: shown("surname").length, given: shown("given").length, place: shown("place").length, hidden: hiddenGroups.length };
+  const [tab, setTab] = useState<Tab>(() => (["surname", "given", "place", "hidden"] as Tab[]).find((k) => counts[k]) || "surname");
   const [find, setFind] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
-  const kind: VariantKind = tab === "place" ? "place" : "surname";
+  const kind: VariantKind = tab === "place" || tab === "given" ? tab : "surname";
   const list = tab === "hidden" ? hiddenGroups : shown(kind);
   const q = find.trim().toLowerCase();
   const filtered = q ? list.filter((g) => g.variants.some((v) => v.value.toLowerCase().includes(q))) : list;
   const group = tab === "hidden" ? undefined : filtered.find((g) => g.key === open) || filtered[0];
   const listId = `bulk-${kind}`;
   const known = values[kind].includes(from.trim());
-  const tabs: [Tab, StringKey, typeof Tag][] = [["surname", "tabSurnames", Tag], ["place", "tabPlaces", MapPin], ["hidden", "tabHidden", EyeOff]];
+  const tabs: [Tab, StringKey, typeof Tag][] = [["surname", "tabSurnames", Tag], ["given", "tabGivenNames", User], ["place", "tabPlaces", MapPin], ["hidden", "tabHidden", EyeOff]];
 
   return (
     <section className="bulk" aria-label={t("batchRename")}>
@@ -133,7 +133,7 @@ export function BulkFix({ data, variants, values, hidden, onRename, onHide, onFo
         <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? "on" : ""}
                 onClick={() => { setTab(key); setFind(""); }}>
           <Icon className="icon" aria-hidden="true" />{t(label)}<span className={counts[key] ? "n" : "n zero"}>{counts[key]}</span></button>)}
-        <p className="bulk-hint">{t(tab === "place" ? "variantsPlace" : "variantsSurname")}</p>
+        <p className="bulk-hint">{t(tab === "place" ? "variantsPlace" : tab === "given" ? "variantsGiven" : "variantsSurname")}</p>
       </div>
       <div className="bulk-list">
         <div className="finder"><Search className="icon" aria-hidden="true" />

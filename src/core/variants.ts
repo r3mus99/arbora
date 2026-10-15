@@ -1,5 +1,5 @@
 /**
- * Bulk fix: spellings of one surname or place that differ only in accents, doubled
+ * Bulk fix: spellings of one surname, given name or place that differ only in accents, doubled
  * letters or old Hungarian/German spelling (Pavlovský / Pavlovszký, Lieskovice /
  * Lieszkovicz), found as groups and renamed to one chosen spelling.
  * A place is compared by its town and house number but renamed as a whole ("Lieskovice",
@@ -7,10 +7,10 @@
  * and so is every other house number).
  */
 
-import { childrenOf, fold, gedNode, isAka, rewritten, type GedNode } from "./gedcom";
+import { childOf, childrenOf, fold, gedNode, isAka, rewritten, type GedNode } from "./gedcom";
 import { surnameOf } from "./stats";
 
-export type VariantKind = "surname" | "place";
+export type VariantKind = "surname" | "given" | "place";
 
 export interface Variant {
   value: string;
@@ -63,6 +63,7 @@ const stem = (s: string) => s.trim().replace(/ov[áa]$/i, "");
 /** What two spellings are compared by: the spelling key (of the stem for surnames) and, for surnames, the gender. */
 interface Keyed { key: string; fem: boolean; /** places: the house number, "" for the town itself */ num: string }
 const keyed = (value: string, kind: VariantKind): Keyed =>
+  kind === "given" ? { key: spellingKey(value), fem: false, num: "" } :
   kind === "surname" ? { key: spellingKey(stem(value)), fem: feminine(value), num: "" }
     : { key: spellingKey(townOf(value)), fem: false, num: houseNumberOf(value) };
 /** Surnames differ by gender, places by house number: "Town 19" is never "Town 22" nor the town itself. */
@@ -72,6 +73,8 @@ const side = (k: Keyed) => `${k.fem}|${k.num}`;
 function similarKeys(a: Keyed, b: Keyed, kind: VariantKind): boolean {
   if (a.fem !== b.fem || a.num !== b.num || !a.key || !b.key) return false;
   if (a.key === b.key) return true;
+  // given names: Alexander and Alexandra, Daniel and Daniela are two names, Katarína and Katerína are one
+  if (kind === "given" && a.key.at(-1) !== b.key.at(-1)) return false;
   // short names differ in a letter too often to be the same (Novák, Nosák; Lindau, Landau)
   const len = Math.min(a.key.length, b.key.length);
   const max = len >= 11 ? 2 : len >= (kind === "place" ? 7 : 6) ? 1 : 0;
@@ -127,7 +130,15 @@ export function countryOf(place: string): string | undefined {
   return parts.length > 1 ? countryByName.get(fold(parts[parts.length - 1]).trim().replace(/\s+/g, " ")) : undefined;
 }
 
-/** Every surname or whole place in the records, with the records that use it. */
+/** Words of the given name in a NAME ("Ján Pavol /Kováč/" → Ján, Pavol), without initials. */
+export function givenWords(name: GedNode): string[] {
+  const m = /^([^/]*)\//.exec(name.value);
+  const given = m ? m[1] : name.value.trim() ? (surnameOf(name) && !childOf(name, "SURN") ? name.value.replace(/\S+\s*$/, "") : name.value) : "";
+  const text = given.trim() ? given : childOf(name, "GIVN")?.value || "";
+  return text.split(/[\s-]+/).filter((w) => w.length > 1 && !w.endsWith("."));
+}
+
+/** Every surname, given name or whole place in the records, with the records that use it. */
 export function spellings(records: GedNode[], kind: VariantKind): Map<string, string[]> {
   const out = new Map<string, string[]>();
   const count = (value: string, id: string) => {
@@ -138,8 +149,9 @@ export function spellings(records: GedNode[], kind: VariantKind): Map<string, st
   };
   for (const rec of records) {
     if (!rec.xref || (rec.tag !== "INDI" && rec.tag !== "FAM")) continue;
-    if (kind === "surname") {
-      if (rec.tag === "INDI") childrenOf(rec, "NAME").filter((n) => !isAka(n)).forEach((n) => count(surnameOf(n), rec.xref!));
+    if (kind === "surname" || kind === "given") {
+      if (rec.tag === "INDI") childrenOf(rec, "NAME").filter((n) => !isAka(n)).forEach((n) =>
+        kind === "given" ? givenWords(n).forEach((w) => count(w, rec.xref!)) : count(surnameOf(n), rec.xref!));
       continue;
     }
     const walk = (node: GedNode) => {
@@ -246,6 +258,19 @@ export function renameSurname(name: GedNode, from: Set<string>, to: string): Ged
   return { ...name, value, children: kids };
 }
 
+/** One NAME with given name words renamed, in the value before the slashes and in GIVN. */
+export function renameGiven(name: GedNode, from: Set<string>, to: string): GedNode {
+  if (!givenWords(name).some((w) => from.has(w))) return name;
+  const swap = (text: string) => text.replace(/[^\s-]+/g, (w) => (from.has(w) ? to : w));
+  let value = name.value;
+  const slash = value.indexOf("/");
+  if (slash >= 0) value = swap(value.slice(0, slash)) + value.slice(slash);
+  else if (childOf(name, "SURN") || !surnameOf(name)) value = swap(value);
+  else value = value.replace(/^(.*?)(\S+\s*)$/s, (_, g: string, last: string) => swap(g) + last);
+  const kids = name.children.map((c) => (c.tag === "GIVN" ? { ...c, value: swap(c.value) } : c));
+  return { ...name, value, children: kids };
+}
+
 /**
  * The records with every spelling in `from` replaced by `to`: surnames in names,
  * whole places (PLAC values).
@@ -257,6 +282,7 @@ export function renameVariants(records: GedNode[], kind: VariantKind, from: stri
   const set = new Set(from.filter((f) => f && f !== to));
   if (!to || !set.size) return records;
   if (kind === "surname") return renameSurnames(records, set, to, keepOld);
+  if (kind === "given") return renameGivens(records, set, to);
   const change = (n: GedNode): GedNode => {
     if (kind === "place" && n.tag === "PLAC") {
       if (set.has(n.value.trim())) return { ...n, value: to };
@@ -269,6 +295,25 @@ export function renameVariants(records: GedNode[], kind: VariantKind, from: stri
     const next = mapNode(rec, change);
     if (next !== rec) changed = true;
     return next;
+  });
+  return changed ? out : records;
+}
+
+/** Given names renamed in each person's names (not in names marked aka). */
+function renameGivens(records: GedNode[], from: Set<string>, to: string): GedNode[] {
+  let changed = false;
+  const out = records.map((rec) => {
+    if (rec.tag !== "INDI" || !rec.xref) return rec;
+    let touched = false;
+    const kids = rec.children.map((c) => {
+      if (c.tag !== "NAME" || isAka(c)) return c;
+      const next = renameGiven(c, from, to);
+      if (next !== c) touched = true;
+      return next;
+    });
+    if (!touched) return rec;
+    changed = true;
+    return rewritten(rec, kids);
   });
   return changed ? out : records;
 }
