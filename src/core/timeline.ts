@@ -14,8 +14,6 @@ export interface TimelineItem {
   place: string;
   /** the person's age at the event, when both dates tell it */
   age: number | null;
-  /** a marriage: the ages of the person and the spouse on the wedding day, given name first, when both dates tell it */
-  spouseAges?: { name: string; age: number }[];
   /** the spouse of a marriage or the child born */
   other: string | null;
   /** a marriage that ended in divorce */
@@ -38,6 +36,13 @@ export interface TimelineItem {
   node?: GedNode;
   /** a family event (divorce, custom): the xref of the family record whose line `node` is */
   family?: string;
+}
+
+/** Given name and whole-year age on the wedding day of each person whose birth and the wedding date tell it. */
+export function weddingAges(wedding: string | undefined, people: { name: string; born: string }[]): { name: string; age: number }[] {
+  if (!wedding) return [];
+  return people.map((x) => ({ name: x.name, age: yearsBetween(x.born, wedding) }))
+    .filter((x): x is { name: string; age: number } => x.age !== null && !!x.name);
 }
 
 export interface EventDetail { key: "age" | "cause" | "agency" | "address"; value: string }
@@ -126,13 +131,6 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     const spouse = fam.husb === id ? fam.wife : fam.husb;
     const other = spouse && spouse in data.people ? spouse : null;
     add("marriage", fam.marriage, fid, other, fam.divorced, true);
-    const wed = fam.marriage?.date;
-    if (wed) {
-      const ages = [{ name: p.given, born: birthDate }, { name: other ? data.people[other].given : "", born: other ? data.people[other].birth?.date || "" : "" }]
-        .map((x) => ({ name: x.name, age: yearsBetween(x.born, wed) }))
-        .filter((x): x is { name: string; age: number } => x.age !== null && !!x.name);
-      if (ages.length) items[items.length - 1].spouseAges = ages;
-    }
     const famRec = family?.(fid);
     if (famRec) {
       const marr = items[items.length - 1];

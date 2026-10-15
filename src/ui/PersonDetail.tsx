@@ -14,7 +14,7 @@ import { fmt, formatDate } from "../core/format";
 import { childOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
-import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
+import { timeline, weddingAges, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { EDITOR_FORM, givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
 import { InlineName, InlineNote, InlineText } from "./Inline";
@@ -151,6 +151,10 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
   };
 
   const birthFam = p.famc.length ? data.families[p.famc[0]] : null;
+  const parentAges = birthFam ? weddingAges(birthFam.marriage?.date, [birthFam.husb, birthFam.wife].map((x) => {
+    const q = x ? data.people[x] : null;
+    return { name: q?.given || "", born: q?.birth?.date || "" };
+  })) : [];
   const parents = birthFam ? [birthFam.husb, birthFam.wife].filter((x): x is string => !!x) : [];
   const life = timeline(data, id, f, record, lookup);
   // the tag of the person's own line, or the marriage family, that a timeline item shows
@@ -252,6 +256,8 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
             <div className="tl-date">{birthFam.marriage.date && <span>{formatDate(birthFam.marriage.date, true, lang)}</span>}
               <span className="tl-label">{birthFam.marriage.date && " · "}{t("marriage")}</span></div>
             {birthFam.marriage.place && <div className="tl-what muted">{municipality(birthFam.marriage.place)}</div>}
+            {parentAges.length > 0 && <div className="tl-details"><span>{t("marriageAges")}:</span>{" "}
+              {parentAges.map((a, i) => <span key={i}>{i > 0 && ", "}{a.name} ({a.age}{t("yearsShort")})</span>)}</div>}
           </Row>}
         </Section>}
         {life.length > 0 && <Section icon={History} title={t("timeline")} rows className="timeline">
@@ -279,8 +285,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
                 </div>}
                 {e.witnesses && <div className="tl-details"><span>{t("witnesses")}:</span>{" "}
                   {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w)}</span>)}</div>}
-                {e.spouseAges && <div className="tl-details"><span>{t("marriageAges")}:</span>{" "}
-                  {e.spouseAges.map((a, i) => <span key={i}>{i > 0 && ", "}{a.name} ({a.age}{t("yearsShort")})</span>)}</div>}
                 {e.details && <div className="tl-details">{e.details.map((d) => {
                   const line = live && d.key !== "address" ? eventLine(e) : null;
                   const tag = d.key !== "address" ? LINE_TAGS[d.key] : "";
