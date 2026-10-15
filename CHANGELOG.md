@@ -2,8 +2,8 @@
 
 ## 1.38.1 – 2026-10-15
 
-- **Spouses' ages also at the parents' wedding.** The marriage of the parents in the "Parents" section of the person
-  detail now shows the same "Spouses' ages" line (father and mother on the wedding day).
+- **Spouses' ages only at the parents' wedding.** The "Spouses' ages" line from 1.38.0 moves from the person's own
+  marriages in the timeline to the marriage of the parents in the "Parents" section of the person detail.
 
 ## 1.38.0 – 2026-10-15
 
