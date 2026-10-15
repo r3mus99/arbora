@@ -1,13 +1,8 @@
-import { CircleAlert, EyeOff, MapPin, ShieldCheck, Tag, TriangleAlert, WandSparkles } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { CircleAlert, ShieldCheck, TriangleAlert, WandSparkles } from "lucide-react";
 import type { Issue } from "../core/check";
 import type { GedcomData } from "../core/gedcom";
-import type { VariantGroup, VariantKind } from "../core/variants";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
-import { Variants } from "./Variants";
-
-export type CheckTab = "issues" | "surname" | "place" | "hidden";
 
 interface Props {
   issues: Issue[];
@@ -15,15 +10,6 @@ interface Props {
   onFocus: (id: string) => void;
   /** repair one issue (only those marked fixable) */
   onFix: (issue: Issue) => void;
-  /** bulk fix: groups of spellings of one surname or place, and every spelling in the file */
-  variants: Record<VariantKind, VariantGroup[]>;
-  values: Record<VariantKind, string[]>;
-  /** keys of the groups marked "not the same" */
-  hidden: Set<string>;
-  onRename: (kind: VariantKind, from: string[], to: string) => void;
-  onHide: (key: string, hide: boolean) => void;
-  keepAka: boolean;
-  onKeepAka: (on: boolean) => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
@@ -33,18 +19,8 @@ const EVENT: Record<string, StringKey> = {
 };
 const WHO = "\u0000who\u0000", OTHER = "\u0000other\u0000";
 
-/** The file check: problems found (people in them are links) and the bulk fix of spellings. */
-export function CheckPanel({ issues, data, onFocus, onFix, variants, values, hidden, onRename, onHide,
-                            keepAka, onKeepAka, t }: Props) {
-  const shown = (kind: VariantKind) => variants[kind].filter((g) => !hidden.has(g.key));
-  const hiddenGroups = (kind: VariantKind) => variants[kind].filter((g) => hidden.has(g.key));
-  const counts: Record<CheckTab, number> = {
-    issues: issues.length, surname: shown("surname").length, place: shown("place").length,
-    hidden: hiddenGroups("surname").length + hiddenGroups("place").length,
-  };
-  const [tab, setTab] = useState<CheckTab>(() =>
-    (["issues", "surname", "place"] as CheckTab[]).find((k) => counts[k]) || "issues");
-
+/** The file check: problems found; the people in them are links. */
+export function CheckPanel({ issues, data, onFocus, onFix, t }: Props) {
   const person = (id: string | null | undefined, key: string) => {
     const p = id ? data.people[id] : null;
     if (!p) return <span key={key}>{id ? id.replace(/@/g, "") : "?"}</span>;
@@ -71,29 +47,11 @@ export function CheckPanel({ issues, data, onFocus, onFix, variants, values, hid
   // errors first
   const sorted = [...issues].sort((x, y) => (x.level === y.level ? 0 : x.level === "error" ? -1 : 1));
 
-  const tabs: [CheckTab, StringKey, ReactNode][] = [
-    ["issues", "tabIssues", <TriangleAlert key="issues" className="icon" aria-hidden="true" />],
-    ["surname", "tabSurnames", <Tag key="surname" className="icon" aria-hidden="true" />],
-    ["place", "tabPlaces", <MapPin key="place" className="icon" aria-hidden="true" />],
-    ["hidden", "tabHidden", <EyeOff key="hidden" className="icon" aria-hidden="true" />],
-  ];
-  const common = { data, onRename, onHide, onFocus, keepAka, onKeepAka, t };
-
   return (
     <section className="check" aria-label={t("check")}>
       <PanelHead className="check-head" title={t("check")} />
-      <div className="check-tabs" role="tablist" aria-orientation="vertical">{tabs.map(([key, label, icon]) =>
-        <button key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? "on" : ""}
-                onClick={() => setTab(key)}>
-          {icon}{t(label)}<span className={counts[key] ? "n" : "n zero"}>{counts[key]}</span></button>)}
-      </div>
       <div className="check-body">
-      {(tab === "surname" || tab === "place") &&
-        <Variants kind={tab} groups={shown(tab)} values={values[tab]} hidden={false} {...common} />}
-      {tab === "hidden" && (counts.hidden === 0 ? <p className="hint">{t("noVariants")}</p>
-        : (["surname", "place"] as VariantKind[]).filter((k) => hiddenGroups(k).length).map((k) =>
-          <Variants key={k} kind={k} groups={hiddenGroups(k)} values={[]} hidden {...common} />))}
-      {tab === "issues" && (issues.length === 0 ? <p className="check-ok"><ShieldCheck className="icon" aria-hidden="true" />{t("checkOk")}</p> : <>
+      {(issues.length === 0 ? <p className="check-ok"><ShieldCheck className="icon" aria-hidden="true" />{t("checkOk")}</p> : <>
         <ul>{sorted.map((i, k) => <li key={k} className={i.level}>
           {i.level === "error" ? <CircleAlert className="icon" aria-hidden="true" />
                                : <TriangleAlert className="icon" aria-hidden="true" />}

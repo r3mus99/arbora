@@ -2,7 +2,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileUp, LayoutDashboard,
-         Loader2, BookMarked, History, Trash2, Clock, ListChecks, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, BookMarked, History, Trash2, Clock, ListChecks, MapPin, Redo2, Replace, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -20,6 +20,7 @@ import { NO_BROWSING, NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, e
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { storedOptions, toForm, toOptions, withOption, type Form } from "./options";
 import { ChangesPanel } from "./ChangesPanel";
+import { BulkFix } from "./BulkFix";
 import { CheckPanel } from "./CheckPanel";
 import { FileDrop } from "./FileDrop";
 import { NO_MARKS, fileKey, marksOf, toggleFav, visited, withMarks, listing, type Marks } from "./marks";
@@ -106,10 +107,11 @@ export function App() {
   const finderRef = useRef<HTMLInputElement>(null);
   // the list of people starts as a narrow rail with a magnifier; the choice is remembered
   // one tool panel is open at a time: the list of people, the file check, or none
-  const [tool, setTool] = useState<"people" | "check" | "overview" | "sources" | "places" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
-  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
+  const [tool, setTool] = useState<"people" | "check" | "fix" | "overview" | "sources" | "places" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
+  const listOpen = tool === "people", showCheck = tool === "check", showFix = tool === "fix", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
+  const setShowFix = (on: boolean) => setTool(on ? "fix" : listOpen ? "people" : null);
   const setShowOverview = (on: boolean) => setTool(on ? "overview" : listOpen ? "people" : null);
   const setShowSettings = (on: boolean) => setTool(on ? "settings" : listOpen ? "people" : null);
   const setShowSources = (on: boolean) => setTool(on ? "sources" : listOpen ? "people" : null);
@@ -313,7 +315,8 @@ export function App() {
     surname: variants.surname.filter((g) => !hidden.has(g.key)).length,
     place: variants.place.filter((g) => !hidden.has(g.key)).length,
   };
-  const problems = found.issues + found.surname + found.place;
+  // the file check counts problems, the bulk fix counts groups of spellings that wait for a decision
+  const problems = found.issues, spellingGroups = found.surname + found.place;
   // the panel opens also when only hidden groups are left, to show them again
   const hide = (key: string, on: boolean) => {
     const next = new Set(hidden);
@@ -594,7 +597,7 @@ export function App() {
             <button type="button" onClick={loadSample}>{t("sample")}</button>
           </div>
         </div>}
-        {data && chosen && <div className={`viewer${focusId || showCheck ? "" : " no-detail"}`}>
+        {data && chosen && <div className={`viewer${focusId || showCheck || showFix ? "" : " no-detail"}`}>
             {/* one sidebar: a narrow bar of tools and, next to it, the panel of the active tool (second click closes it) */}
             <div className="side">
               <nav className="toolbar" aria-label={t("showList")}>
@@ -612,6 +615,11 @@ export function App() {
                         aria-label={t("check")} onClick={() => setShowCheck(!showCheck)}>
                   {problems ? <ShieldAlert className="icon" aria-hidden="true" /> : <ShieldCheck className="icon" aria-hidden="true" />}
                   {problems > 0 && <span className="badge">{problems}</span>}</button>
+                <button type="button" className={`${showFix ? "on " : ""}${spellingGroups ? "warn" : ""}`.trim() || undefined}
+                        aria-pressed={showFix} title={spellingGroups ? t("bulkCount", { n: spellingGroups }) : t("batchRename")}
+                        aria-label={t("batchRename")} onClick={() => setShowFix(!showFix)}>
+                  <Replace className="icon" aria-hidden="true" />
+                  {spellingGroups > 0 && <span className="badge">{spellingGroups}</span>}</button>
                 <button type="button" className={showSources ? "on" : undefined} aria-pressed={showSources}
                         title={t("srcNotes")} aria-label={t("srcNotes")} onClick={() => setShowSources(!showSources)}>
                   <BookMarked className="icon" aria-hidden="true" /></button>
@@ -627,7 +635,7 @@ export function App() {
               </nav>
               {showOverview && stats && <aside className="rail-wrap ov-wrap" aria-label={t("overview")}>
                 <Overview stats={stats} data={data} problems={found} t={t}
-                          onProblems={() => setShowCheck(true)}
+                          onProblems={() => (found.issues ? setShowCheck(true) : setShowFix(true))}
                           onPerson={(id) => makeRoot(id)}
                           onSurname={(name) => { setQuery(name); showList(true); finderRef.current?.focus(); }} />
               </aside>}
@@ -652,13 +660,13 @@ export function App() {
                             favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} t={t} />
               </aside>}
             </div>
-            {showCheck ? <aside className="check-wide" aria-label={t("check")}>
-              <CheckPanel issues={issues} data={data} t={t}
-                          onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
-                                variants={variants} values={spelled} hidden={hidden} onHide={hide}
-                                onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
-                                keepAka={keepAka} onKeepAka={(on) => { setKeepAka(on); updateStore({ keepAka: on }); }}
-                                onFocus={(id) => focus(id, true)} />
+            {showCheck || showFix ? <aside className="check-wide" aria-label={t(showFix ? "batchRename" : "check")}>
+              {showFix ? <BulkFix data={data} t={t} variants={variants} values={spelled} hidden={hidden} onHide={hide}
+                                  onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
+                                  keepAka={keepAka} onKeepAka={(on) => { setKeepAka(on); updateStore({ keepAka: on }); }}
+                                  onFocus={(id) => focus(id, true)} />
+                : <CheckPanel issues={issues} data={data} t={t} onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
+                              onFocus={(id) => focus(id, true)} />}
             </aside> : <>
             <div className="mid">
               <div className="chart-bar">

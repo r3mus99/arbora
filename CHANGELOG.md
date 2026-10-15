@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.34.0 – 2026-10-15
+
+- **Bulk fix is its own tool**: a new icon in the tool bar (Replace, with the number of groups that wait for a decision)
+  opens a wide panel with three columns: the tabs Surnames / Places / Hidden, the groups of the open tab, and the open
+  group. The group shows the spelling that stays (pick one or type your own), a table of all spellings with the number
+  of people, a tick for each spelling that is replaced (a spelling from another country is left alone until you tick
+  it), a preview of the people that change (old value struck through, new one highlighted) and one button that says
+  exactly what it does. The free "from → to" rename moved to the bottom of the groups column. The file check keeps
+  only the problems list, and its icon now counts only problems.
+
 ## 1.33.0 – 2026-10-14
 
 - **Surname suggestions follow the person's sex.** Where surnames have a male and a female form (Slovak, Czech, Polish,

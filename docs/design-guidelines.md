@@ -24,7 +24,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
   or the app belongs here.
 - **Rail** (left, icon column): one icon per mini-app. Opens and closes the mini-app panel.
 - **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, recent, overview, sources and notes, places, settings: every one exactly
-  `--panel-w` = 320px wide) or a *wide panel* (file check, later: people table, editor) that replaces the tree and
+  `--panel-w` = 320px wide) or a *wide panel* (file check, bulk fix, later: people table, editor) that replaces the tree and
   detail and takes the full width right of the rail. Only one mini-app is open at a time.
 - **Main component** (centre): the tree view. It is the only thing that is always there; it is never
   squeezed below a usable width, so a side panel is hidden before the tree is.
@@ -87,7 +87,7 @@ No other radius, height or padding number is used for a control. Dialogs use `--
   detail rows (`--d-icon-row`). The welcome drop zone icon (36px) is the only large one.
 - Colour: `currentColor`; muted when idle, accent when active, event colour on timeline rows. An icon never
   has its own background circle except in the overview tile.
-- One meaning, one icon: Search = find a person, LayoutDashboard = overview, ShieldCheck / ShieldAlert = file check,
+- One meaning, one icon: Search = find a person, LayoutDashboard = overview, ShieldCheck / ShieldAlert = file check, Replace = bulk fix of spellings,
   SlidersHorizontal = settings (tool bar), FileDown = save GED, FileText = save PDF, Undo2 / Redo2 = history, X = close or remove,
   MapPin = place, Clock = recent people, Star = favourite person (the generic event in the timeline is CalendarDays). Do not reuse an icon for a different meaning (the old file-check wand and the overview's
   shield must not be mixed).
@@ -107,7 +107,7 @@ All controls are `--ctl-h` high, `--radius`, 14px text, 1px `--border`, no shado
 | Checkbox / radio | 16px, `accent-color: var(--accent)`, label 14px. |
 | Chip / count badge | `--ctl-h-sm`, pill, 12px. Picked: accent border + `--accent-soft`. |
 | Notification badge (`.badge`) | iOS-style counter on the corner of an icon or button in the top bar and rail: `--warn` pill, white 12px bold number, 17px high, 2px ring in `--bg`, pinned to the top-right corner (`top -4px, right -6px`) so it never changes the layout. Hidden at 0, "99+" above 99. Used for the number of problems (check) and of unsaved changes (GED save button); its tooltip text describes the number ("unsaved changes: 3"). |
-| Tabs (vertical, in a wide panel) | rail-like rows: `--ctl-h`, `--radius`, active = `--accent-soft` + `--accent`. Count badge on the right. |
+| Tabs (vertical, in a wide panel) | rail-like rows: `--ctl-h`, `--radius`, active = `--accent-soft` + `--accent`. Count badge on the right (`--ctl-h-sm` pill, `--warn-soft`; grey at 0). |
 | Link | `--accent`, underlined on hover only, except inside long free text (sources) where it is always underlined. A link that is a person's name is `--text`, 600, underlined on hover. Links to other sites open in a new tab with `rel="noopener noreferrer"`. A text-looking button (`button.link`) looks exactly like a link. |
 | Inline edit (`.inline-value`) | In the detail, an editable value is plain text with only a faint dashed underline (`--border`, darker on hover) and a text cursor; no fill, no box. While editing, the field keeps the text's own font and size (no border, no padding, a 1px `--accent` underline, width of the text), so the line does not change size. A choice (sex) opens a small segmented-switch popover under the header that overlays instead of pushing content. Enter or leaving the field applies, Esc drops. One undo step per edit. A note is the same idea with a text area of the text's size (`.inline-note`): Ctrl+Enter or leaving applies. |
 
@@ -129,6 +129,7 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 - **Favourite star** (`--star`, always a filled glyph): the toggle is an icon button (`.star-btn`, `--ctl-h`, `aria-pressed`, `title` = `aria-label`, hover `--accent-soft`) right after the person's name in the detail header; in a list row it is the `--ctl-h-sm` `.row-star` at the row's right end; where it only shows the state (the tree, after the name) it is a plain 14px `.star` icon. The star is on-screen only: it never reaches the PDF.
 - **Person rows** (`PersonRow`, `.rail`): every list of people in the tool bar (People, Recent) uses this one row: sex dot, name, years and the row star, `--ctl-h-sm` high, so the lists never differ in spacing. A click on the selected person deselects it and closes the detail; the same click works on a name in the chart. **Recent panel** (`RecentPanel`): favourites first, then the most recent (30 kept), saved per file in the browser, never in the GEDCOM.
 - **Notice strip** (`.notice`): a one-line message about something the app did on its own (e.g. restored unsaved edits) under the frame bar, `--warn-soft` / `--warn-text`, 13px; at the right at most one text button for the way back and a dismiss X (`icon-btn`, `title` = `aria-label`). It stays until dismissed or the situation ends; it is never a dialog.
+- **Bulk fix panel** (`BulkFix`, wide panel, rail icon Replace with a `--warn` badge counting groups, not people): `PanelHead`, then three columns divided by 1px lines: vertical tabs (200px), the groups of the tab (300px, finder on top, `--accent-soft` + 3px accent edge on the open one, the free rename form at the bottom) and the open group. The group is blocks separated by 1px lines with 12px uppercase labels: result spelling (`--ctl-h` input), a table of spellings (radio = target, checkbox = replaced, state text `--muted`; the target row `--accent-soft`; a kept row dimmed; `.chip.warn` marks another country), a preview list (`del` `--muted`, `ins` `--accent` 600) and a fixed footer with a summary on the left, a normal button (hide) and the one primary button, whose text names the result and the count.
 - **Changes panel** (`ChangesPanel`, rail icon with a count badge, only while there are unsaved changes): `.sp-list` rows, one per record; the title is a link for a person, `--muted` 12px label for the changed field, old value struck through (`del`, `--muted`), new value in `--accent` 600 (`ins`) after an arrow.
 - Empty state: one line of `--muted` text, centred in the panel.
 - Dialogs: `--radius-lg`, header row as in a panel with a close X, footer with buttons on the right,
