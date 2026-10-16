@@ -15,7 +15,7 @@ describe("wide edit window", () => {
   });
 
   test("closing asks only when something was changed", () => {
-    const ask = vi.fn(() => false);
+    const ask = vi.fn<() => boolean>(() => false);
     expect(mayClose(false, ask)).toBe(true);
     expect(ask).not.toHaveBeenCalled();
     expect(mayClose(true, ask)).toBe(false);
