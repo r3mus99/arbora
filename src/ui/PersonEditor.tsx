@@ -12,7 +12,7 @@ import { ATTRIBUTE_TAGS } from "../core/facts";
 import { yearOf } from "../core/date";
 import { SECTIONS } from "./editSections";
 import type { StringKey } from "./i18n";
-import { Section } from "./Section";
+import { SectionHead } from "./Section";
 
 interface Props {
   data: GedcomData;
@@ -78,6 +78,8 @@ function PersonPick({ choices, exclude, value, label, placeholder, clearOnPick, 
 }
 
 /** the form's id, so the icon buttons in the detail header can submit it */
+/** the parts that are open when the window opens: the ones edited most often; the others are collapsed */
+const OPEN_AT_START = new Set<string>(["name", "events", "basic"]);
 export const EDITOR_FORM = "person-editor";
 
 // the lists of suggestions, once per page
@@ -271,7 +273,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
 
   const section = (key: keyof typeof SECTIONS, children: ReactNode) => {
     const { icon, title } = SECTIONS[key];
-    return <Section icon={icon} title={t(title)}><div className="sec-fields">{children}</div></Section>;
+    return <details className="section collapsible" open={OPEN_AT_START.has(key) || undefined}>
+      <summary className="sec-head"><SectionHead icon={icon} title={t(title)} /></summary>
+      <div className="sec-fields">{children}</div>
+    </details>;
   };
   return (
     <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
@@ -310,6 +315,40 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         {!moreParts && <button type="button" className="add" onClick={() => setOpenParts(true)}>
           <Plus className="icon" aria-hidden="true" />{t("nameMore")}</button>}
       </div>
+      </>)}
+      {section("events", <>
+      {event("birth")}
+      {event("christening")}
+      {form.deceased && <>{event("death")}{event("burial")}</>}
+      <fieldset className="list">
+        <legend>{t("otherEvents")}</legend>
+        {form.events.map((e, i) => (
+          <div className="item" key={e.origin < 0 ? `new${i}` : e.origin}>
+            <div className="item-head">
+              <select value={e.tag} disabled={e.origin >= 0} aria-label={t("eventKind")}
+                      onChange={(ev) => setEv(i, { tag: ev.target.value })}>
+                {OTHER_EVENT_TAGS.map((tag) => <option key={tag} value={tag}>{t(OTHER_LABEL[tag])}</option>)}
+              </select>
+              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                      onClick={() => set("events", form.events.filter((_, j) => j !== i))}>
+                <X className="icon" aria-hidden="true" /></button>
+            </div>
+            {e.tag === "EVEN" && <label className="full"><span>{t("eventKind")}</span>
+              <input type="text" value={e.title} onChange={(ev) => setEv(i, { title: ev.target.value })} /></label>}
+            {(e.tag === "EVEN" || e.tag === "RESI") && <label className="full"><span>{t(e.tag === "RESI" ? "detAddress" : "eventText")}</span>
+              <input type="text" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
+            <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
+                       t={t} onChange={(v) => setEv(i, { date: v })} />
+            <label><span>{t("place")}</span>
+              <input type="text" value={e.place} list={PLACES}
+                     onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
+            {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
+          </div>
+        ))}
+        <button type="button" className="add" onClick={() => set("events",
+          [...form.events, { origin: -1, tag: OTHER_EVENT_TAGS[0], title: "", value: "", date: "", place: "", age: "", cause: "", agency: "" }])}>
+          <Plus className="icon" aria-hidden="true" />{t("addEvent")}</button>
+      </fieldset>
       </>)}
       {section("basic", <>
       <div className="sex-field">
@@ -379,75 +418,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         <button type="button" className="add" onClick={() => set("attributes",
           [...form.attributes, { origin: -1, tag: ATTRIBUTE_TAGS[0], value: "", date: "", place: "" }])}>
           <Plus className="icon" aria-hidden="true" />{t("addAttribute")}</button>
-      </fieldset>
-      </>)}
-      {section("events", <>
-      {event("birth")}
-      {event("christening")}
-      {form.deceased && <>{event("death")}{event("burial")}</>}
-      <fieldset className="list">
-        <legend>{t("otherEvents")}</legend>
-        {form.events.map((e, i) => (
-          <div className="item" key={e.origin < 0 ? `new${i}` : e.origin}>
-            <div className="item-head">
-              <select value={e.tag} disabled={e.origin >= 0} aria-label={t("eventKind")}
-                      onChange={(ev) => setEv(i, { tag: ev.target.value })}>
-                {OTHER_EVENT_TAGS.map((tag) => <option key={tag} value={tag}>{t(OTHER_LABEL[tag])}</option>)}
-              </select>
-              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                      onClick={() => set("events", form.events.filter((_, j) => j !== i))}>
-                <X className="icon" aria-hidden="true" /></button>
-            </div>
-            {e.tag === "EVEN" && <label className="full"><span>{t("eventKind")}</span>
-              <input type="text" value={e.title} onChange={(ev) => setEv(i, { title: ev.target.value })} /></label>}
-            {(e.tag === "EVEN" || e.tag === "RESI") && <label className="full"><span>{t(e.tag === "RESI" ? "detAddress" : "eventText")}</span>
-              <input type="text" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
-            <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
-                       t={t} onChange={(v) => setEv(i, { date: v })} />
-            <label><span>{t("place")}</span>
-              <input type="text" value={e.place} list={PLACES}
-                     onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
-            {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
-          </div>
-        ))}
-        <button type="button" className="add" onClick={() => set("events",
-          [...form.events, { origin: -1, tag: OTHER_EVENT_TAGS[0], title: "", value: "", date: "", place: "", age: "", cause: "", agency: "" }])}>
-          <Plus className="icon" aria-hidden="true" />{t("addEvent")}</button>
-      </fieldset>
-      </>)}
-      {section("notes", <>
-      <label><span>{t("note")}</span>
-        <textarea rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
-      <fieldset className="list">
-        <legend>{t("sources")}</legend>
-        {form.citations.map((c, i) => (
-          <div className="item" key={c.origin < 0 ? `new${i}` : c.origin}>
-            <div className="item-head">
-              {/* a pointer to a source record is chosen from the list, a citation written as text stays text */}
-              {/^@[^@]+@$/.test(c.source) || (c.origin < 0 && sources.length > 0)
-                ? <select value={c.source} aria-label={t("sources")} onChange={(e) => setCite(i, { source: e.target.value })}>
-                    {!sources.some((s) => s.xref === c.source) && <option value={c.source}>{c.source}</option>}
-                    {sources.map((s) => <option key={s.xref} value={s.xref}>{s.title}</option>)}
-                  </select>
-                : <input type="text" value={c.source} aria-label={t("sources")} onChange={(e) => setCite(i, { source: e.target.value })} />}
-              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                      onClick={() => set("citations", form.citations.filter((_, j) => j !== i))}>
-                <X className="icon" aria-hidden="true" /></button>
-            </div>
-            <div className="pair">
-              <label><span>{t("srcPage")}</span>
-                <input type="text" value={c.page} onChange={(e) => setCite(i, { page: e.target.value })} /></label>
-              <label><span>{t("quality")}</span>
-                <select value={c.quality} onChange={(e) => setCite(i, { quality: e.target.value })}>
-                  <option value="">–</option>
-                  {QUALITY.map((q) => <option key={q} value={q}>{t(`quality${q}` as StringKey)}</option>)}
-                </select></label>
-            </div>
-          </div>
-        ))}
-        <button type="button" className="add" onClick={() => set("citations",
-          [...form.citations, { origin: -1, source: sources[0]?.xref || "", page: "", quality: "" }])}>
-          <Plus className="icon" aria-hidden="true" />{t("addCitation")}</button>
       </fieldset>
       </>)}
       {section("parents", <>
@@ -533,6 +503,41 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         </fieldset>
       ))}
       {families.length === 0 && <span className="muted">{t("noValue")}</span>}
+      </>)}
+      {section("notes", <>
+      <label><span>{t("note")}</span>
+        <textarea rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
+      <fieldset className="list">
+        <legend>{t("sources")}</legend>
+        {form.citations.map((c, i) => (
+          <div className="item" key={c.origin < 0 ? `new${i}` : c.origin}>
+            <div className="item-head">
+              {/* a pointer to a source record is chosen from the list, a citation written as text stays text */}
+              {/^@[^@]+@$/.test(c.source) || (c.origin < 0 && sources.length > 0)
+                ? <select value={c.source} aria-label={t("sources")} onChange={(e) => setCite(i, { source: e.target.value })}>
+                    {!sources.some((s) => s.xref === c.source) && <option value={c.source}>{c.source}</option>}
+                    {sources.map((s) => <option key={s.xref} value={s.xref}>{s.title}</option>)}
+                  </select>
+                : <input type="text" value={c.source} aria-label={t("sources")} onChange={(e) => setCite(i, { source: e.target.value })} />}
+              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                      onClick={() => set("citations", form.citations.filter((_, j) => j !== i))}>
+                <X className="icon" aria-hidden="true" /></button>
+            </div>
+            <div className="pair">
+              <label><span>{t("srcPage")}</span>
+                <input type="text" value={c.page} onChange={(e) => setCite(i, { page: e.target.value })} /></label>
+              <label><span>{t("quality")}</span>
+                <select value={c.quality} onChange={(e) => setCite(i, { quality: e.target.value })}>
+                  <option value="">–</option>
+                  {QUALITY.map((q) => <option key={q} value={q}>{t(`quality${q}` as StringKey)}</option>)}
+                </select></label>
+            </div>
+          </div>
+        ))}
+        <button type="button" className="add" onClick={() => set("citations",
+          [...form.citations, { origin: -1, source: sources[0]?.xref || "", page: "", quality: "" }])}>
+          <Plus className="icon" aria-hidden="true" />{t("addCitation")}</button>
+      </fieldset>
       </>)}
       <SuggestLists suggest={suggest} lang={lang} />
     </form>
