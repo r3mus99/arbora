@@ -692,10 +692,11 @@ section.check { margin: 0 0 14px; }
 .editor .adds { display: flex; flex-wrap: wrap; gap: var(--gap); }
 /* the tag choice of an attribute row sits before its value */
 .editor .item-head select { flex: none; width: auto; max-width: 45%; }
+.editor .item-head select.fill { flex: 1; max-width: none; min-width: 0; }
 /* the parts of the edit window collapse: the title row is the summary, a chevron shows the state */
 .collapsible > summary.sec-head { cursor: pointer; margin: 0; padding: 4px 0; grid-template-columns: var(--d-col) auto 1fr auto; }
-.collapsible > summary.sec-head::after { content: ""; width: 7px; height: 7px; margin-right: 4px; border: solid var(--muted);
-  border-width: 0 1.5px 1.5px 0; transform: rotate(-45deg); transition: transform .12s; }
-.collapsible[open] > summary.sec-head::after { transform: rotate(45deg); }
+.collapsible > summary.sec-head::after { content: ""; width: 7px; height: 7px; margin: 0 0 0 -4px; border: solid var(--muted);
+  border-width: 0 1.5px 1.5px 0; align-self: center; justify-self: start; transform: translateX(-2px) rotate(-45deg); transition: transform .12s; }
+.collapsible[open] > summary.sec-head::after { transform: translateY(-2px) rotate(45deg); }
 .collapsible > summary.sec-head:hover { color: var(--text); }
 .collapsible[open] > summary.sec-head { margin-bottom: 8px; }

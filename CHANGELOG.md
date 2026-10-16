@@ -6,8 +6,8 @@
   is a child of, with the kind of descent (birth, adopted, foster, sealing), which can be changed or cleared. A family
   can be removed or added by typing the names of the parents; the child line of the family changes with it in the same
   undo step. Associations (ASSO, for example godparents or witnesses) can be added, removed and given a role.
-  The parts of the edit window now collapse (a chevron after the title) and are ordered by how often they are edited:
-  Names, Events and Basic facts are open at the start, then Parents and associations, Families, Notes and sources, Other details.
+  The parts of the edit window now collapse (a chevron after the title) and are ordered by how often they are edited; the source chooser fills the row:
+  Names, Basic facts and Events are open at the start, then Parents and associations, Families, Notes and sources, Other details.
   Everything else in these records stays untouched. New families and new people come in a later step.
 
 ## 1.46.0 – 2026-10-16
