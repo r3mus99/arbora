@@ -7,6 +7,7 @@
 import { MONTHS, gedcomDay, validDateValue } from "./date";
 import { formatDate } from "./format";
 import { ATTRIBUTE_TAGS } from "./facts";
+import { EXTRA_EVENT_TAGS } from "./timeline";
 import { childOf, gedNode, isAka, joinedSrc, mainName, rewritten, type GedNode } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
 
@@ -33,9 +34,30 @@ export interface PersonFields {
   aliases: Alias[];
   /** the lines under the main NAME that hold the other parts of the name */
   nameParts: NameParts;
+  /** age, cause and agency of birth, christening, death and burial */
+  details: Record<EventKey, EventDetailFields>;
+  /** the other events of the person (baptism, residence, custom, …) */
+  events: EventRow[];
   /** the attribute lines (education, nationality, …) that have a value, date or place; `origin` is the index among all attribute lines, -1 for a new one */
   attributes: AttributeRow[];
 }
+
+/** AGE, CAUS and AGNC written under an event line */
+export interface EventDetailFields { age: string; cause: string; agency: string }
+const NO_DETAILS: EventDetailFields = { age: "", cause: "", agency: "" };
+
+/** an event of the person beyond birth, christening, death and burial: `origin` is the index among such lines, -1 for a new one */
+export interface EventRow extends EventFields, EventDetailFields {
+  origin: number;
+  tag: string;
+  /** the TYPE of a custom event (EVEN) */
+  title: string;
+  /** the text on the line itself: the address of a residence, what a custom event is about */
+  value: string;
+}
+
+/** the tags of the other events, in the order they are offered */
+export const OTHER_EVENT_TAGS = [...EXTRA_EVENT_TAGS, "RESI", "EVEN"];
 
 export interface AttributeRow extends EventFields { origin: number; tag: string; value: string }
 
@@ -60,6 +82,9 @@ function datePlace(ev: GedNode | null): EventFields {
   const d = ev && childOf(ev, "DATE"), p = ev && childOf(ev, "PLAC");
   return { date: d ? d.value : "", place: p ? p.value : "" };
 }
+const detailFields = (ev: GedNode | null): EventDetailFields => ({
+  age: (ev && childOf(ev, "AGE")?.value) || "", cause: (ev && childOf(ev, "CAUS")?.value) || "", agency: (ev && childOf(ev, "AGNC")?.value) || "",
+});
 const eventFields = (rec: GedNode, tag: string) => datePlace(childOf(rec, tag));
 
 /** "Ján Pavol /Kováč/ ml." → given, surname and what follows the surname */
@@ -102,6 +127,11 @@ export function personFields(rec: GedNode): PersonFields {
     deceased: DEATH_TAGS.some((tag) => childOf(rec, tag)),
     aliases: akaNames(rec).map((n, origin) => ({ origin, ...nameParts(n) })),
     nameParts: namePartFields(mainName(rec)),
+    details: Object.fromEntries(PERSON_EVENTS.map((key) => [key, detailFields(childOf(rec, EVENT_TAGS[key]))])) as Record<EventKey, EventDetailFields>,
+    events: rec.children.filter((c) => OTHER_EVENT_TAGS.includes(c.tag)).map((c, origin) => ({
+      origin, tag: c.tag, title: c.tag === "EVEN" ? childOf(c, "TYPE")?.value || "" : "",
+      value: c.value === "Y" ? "" : c.value, ...datePlace(c), ...detailFields(c),
+    })),
     attributes: rec.children.filter((c) => ATTRIBUTE_TAGS.includes(c.tag))
       .map((c, origin) => ({ origin, tag: c.tag, value: c.value === "Y" ? "" : c.value, ...datePlace(c) }))
       .filter((a) => a.value || a.date || a.place),
@@ -190,15 +220,66 @@ function setDatePlace(ev: GedNode, before: EventFields, after: EventFields): Ged
   return ev;
 }
 
-function setEvent(rec: GedNode, tag: string, before: EventFields, after: EventFields): GedNode {
-  if (before.date === after.date && before.place === after.place) return rec;
+/** the order of the lines under an event; a line the app does not know stays where it is */
+const EVENT_LINE_ORDER = ["TYPE", "DATE", "PLAC", "ADDR", "AGE", "AGNC", "CAUS"];
+
+/** AGE, AGNC and CAUS of an event set to the typed values (an empty one is removed), in the usual place */
+function setDetails(ev: GedNode, before: EventDetailFields, after: EventDetailFields): GedNode {
+  const tags = { age: "AGE", agency: "AGNC", cause: "CAUS" } as const;
+  for (const k of ["age", "agency", "cause"] as const) {
+    const value = after[k].trim();
+    if (value === before[k]) continue;
+    const rank = EVENT_LINE_ORDER.indexOf(tags[k]);
+    const at = ev.children.findIndex((c) => { const r = EVENT_LINE_ORDER.indexOf(c.tag); return r > rank || r < 0; });
+    ev = setChild(ev, tags[k], value, at < 0 ? ev.children.length : at);
+  }
+  return ev;
+}
+
+function setEvent(rec: GedNode, tag: string, before: EventFields, after: EventFields,
+                  beforeD: EventDetailFields = NO_DETAILS, afterD: EventDetailFields = NO_DETAILS): GedNode {
+  const same = (["age", "cause", "agency"] as const).every((k) => beforeD[k] === afterD[k].trim());
+  if (before.date === after.date && before.place === after.place && same) return rec;
   const i = rec.children.findIndex((c) => c.tag === tag);
-  const ev = setDatePlace(i >= 0 ? rec.children[i] : gedNode(tag), before, after);
+  const ev = setDetails(setDatePlace(i >= 0 ? rec.children[i] : gedNode(tag), before, after), beforeD, afterD);
   // an event left without anything in it ("1 DEAT Y" says the person died, so it stays)
   const empty = !ev.children.length && !ev.value;
   if (i < 0) return empty ? rec : { ...rec, children: insert(rec.children, ev) };
   return { ...rec, children: empty ? rec.children.filter((_, j) => j !== i)
                                    : rec.children.map((c, j) => (j === i ? ev : c)) };
+}
+
+const sameEvent = (a: EventRow, b: EventRow) => (["title", "value", "date", "place", "age", "cause", "agency"] as const).every((k) => a[k] === b[k]);
+
+/** The other event lines from the rows: kept ones updated, removed ones deleted, new ones added after the other events. */
+function setEvents(rec: GedNode, before: EventRow[], after: EventRow[]): GedNode {
+  const rows = after.map((e) => ({ ...e, title: e.title.trim(), value: e.value.trim(), date: e.date.trim(), place: e.place.trim(),
+                                   age: e.age.trim(), cause: e.cause.trim(), agency: e.agency.trim() }));
+  if (rows.length === before.length && rows.every((e, i) => e.origin === before[i].origin && sameEvent(e, before[i]))) return rec;
+  let k = -1;
+  const children: GedNode[] = [];
+  for (const c of rec.children) {
+    if (!OTHER_EVENT_TAGS.includes(c.tag)) { children.push(c); continue; }
+    k++;
+    const was = before.find((b) => b.origin === k);
+    const row = rows.find((e) => e.origin === k);
+    if (!row) continue;
+    if (!was || sameEvent(row, was)) { children.push(c); continue; }
+    let ev = setDetails(setDatePlace(row.value === was.value ? c : { ...c, value: row.value }, was, row), was, row);
+    if (row.title !== was.title) ev = setChild(ev, "TYPE", row.title, 0);
+    children.push(ev);
+  }
+  let out = { ...rec, children };
+  for (const row of rows.filter((e) => e.origin < 0)) {
+    let ev = gedNode(row.tag, row.value);
+    ev = setDetails(setDatePlace(ev, { date: "", place: "" }, row), NO_DETAILS, row);
+    if (row.tag === "EVEN" && row.title) ev = setChild(ev, "TYPE", row.title, 0);
+    // after the last event of the person, else before the lines that always come last
+    const last = out.children.map((c) => OTHER_EVENT_TAGS.includes(c.tag) || ["BIRT", "CHR", "DEAT", "BURI"].includes(c.tag)).lastIndexOf(true);
+    const at = last >= 0 ? last + 1 : out.children.findIndex((c) => LATE.has(c.tag));
+    out = { ...out, children: [...out.children.slice(0, at < 0 ? out.children.length : at), ev, ...out.children.slice(at < 0 ? out.children.length : at)] };
+  }
+  return out;
 }
 
 /** a NAME value; the slashes around an empty surname are written only when the old value had them */
@@ -350,7 +431,8 @@ const tidy = (e: EventFields): EventFields => ({ date: e.date.trim(), place: e.p
 export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFields): GedNode {
   let out = setName(rec, before, after);
   if (after.sex !== before.sex) out = setChild(out, "SEX", after.sex);
-  for (const key of PERSON_EVENTS) out = setEvent(out, EVENT_TAGS[key], before[key], tidy(after[key]));
+  for (const key of PERSON_EVENTS) out = setEvent(out, EVENT_TAGS[key], before[key], tidy(after[key]), before.details[key], after.details[key]);
+  out = setEvents(out, before.events, after.events);
   out = setDeceased(out, before.deceased, after.deceased);
   out = setOccupations(out, before.occupations, after.occupations);
   out = setAttributes(out, before.attributes, after.attributes);

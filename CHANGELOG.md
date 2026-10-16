@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.42.0 – 2026-10-16
+
+- **Events part of the edit window.** Birth, christening, death and burial can now carry age, cause and agency
+  (behind a "Details" button, shown automatically when present). A new list of other events (baptism, blessing,
+  cremation, adoption, confirmation, residence, census, emigration, graduation, retirement, will, custom events…)
+  has date, place, address or description, and details of each, with add and remove. New lines go after the other
+  events; lines the form does not list stay as they were.
+
 ## 1.41.0 – 2026-10-16
 
 - **Basic facts part of the edit window: other facts.** Next to sex, deceased, religion and occupation, the edit

@@ -252,3 +252,41 @@ describe("attributes of a person", () => {
     expect(writeGedcom([back])).toBe(writeGedcom([rec]));
   });
 });
+
+describe("events of a person", () => {
+  const ged = (extra: string) => `0 HEAD\n0 @I1@ INDI\n1 NAME Anna /Test/\n1 SEX F\n1 BIRT\n2 DATE 1 JAN 1900\n${extra}1 NOTE n\n0 TRLR\n`;
+  const load = (text: string) => parseGedcom(text).find((c) => c.tag === "INDI")!;
+  const none = { age: "", cause: "", agency: "" };
+
+  test("adds details to a birth in the usual order and removes them again", () => {
+    const rec = load(ged(""));
+    const f = personFields(rec);
+    const withD = applyPerson(rec, f, { ...f, details: { ...f.details, birth: { age: "0", cause: "", agency: "Parish" } } });
+    expect(withD.children[2].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1 JAN 1900", "AGE 0", "AGNC Parish"]);
+    const back = applyPerson(withD, personFields(withD), { ...personFields(withD), details: { ...f.details, birth: none } });
+    expect(rest(back, [])).toEqual(rest(rec, []));
+  });
+
+  test("adds, edits and removes other events", () => {
+    const rec = load(ged("1 RESI Main St\n2 DATE 1920\n"));
+    const f = personFields(rec);
+    expect(f.events).toHaveLength(1);
+    expect(f.events[0]).toMatchObject({ tag: "RESI", value: "Main St", date: "1920" });
+    const added = applyPerson(rec, f, { ...f, events: [...f.events, { origin: -1, tag: "EVEN", title: "Fair", value: "won", date: "", place: "Town", ...none, cause: "x" }] });
+    const ev = added.children.find((c) => c.tag === "EVEN")!;
+    expect(ev.children.map((c) => c.tag)).toEqual(["TYPE", "PLAC", "CAUS"]);
+    expect(added.children.findIndex((c) => c.tag === "EVEN")).toBeLessThan(added.children.findIndex((c) => c.tag === "NOTE"));
+    const g = personFields(added);
+    const edited = applyPerson(added, g, { ...g, events: g.events.map((e) => (e.tag === "RESI" ? { ...e, place: "Elsewhere" } : e)) });
+    expect(edited.children.find((c) => c.tag === "RESI")!.children.map((c) => c.tag)).toEqual(["DATE", "PLAC"]);
+    const h = personFields(edited);
+    const gone = applyPerson(edited, h, { ...h, events: [] });
+    expect(gone.children.some((c) => c.tag === "RESI" || c.tag === "EVEN")).toBe(false);
+  });
+
+  test("leaves the record alone when nothing changed", () => {
+    const rec = load(ged("1 RESI x\n"));
+    const f = personFields(rec);
+    expect(applyPerson(rec, f, { ...f, events: f.events.map((e) => ({ ...e })) })).toBe(rec);
+  });
+});
