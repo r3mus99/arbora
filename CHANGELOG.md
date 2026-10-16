@@ -3,11 +3,13 @@
 ## 1.39.0 – 2026-10-16
 
 - **Edit window (first step of the v2.0 editor).** The pencil in the person detail now opens a window for editing the
-  person, lying over the right half of the browser with the tree still visible and the tool bar in place. The old
-  small form in the detail is gone; small values are still edited inline. The heading is the person's name, the footer
-  has Cancel and Save, Esc closes it, and it asks before dropping changes. For now it only shows the structure of the
-  coming sections (name, basic facts, events, notes and sources, families, parents and associations, other details);
-  the fields arrive in the next versions. Texts in all 12 languages; the pattern is in docs/design-guidelines.md.
+  person, lying over the right half of the browser with the tree still visible and the tool bar in place. It replaces
+  the old small form: the same fields, now sorted into the parts of a person: name (given name, surname, aka), basic
+  facts (sex, deceased, religion, occupation), events (birth, christening, death, burial), notes, and families
+  (marriage date and place, divorced). Parents and other details are shown as placeholders for the next versions.
+  Small values are still edited inline in the detail. The footer has Cancel and Save (disabled until something
+  changes), Esc closes the window and it asks before dropping changes. Texts in all 12 languages; the pattern is in
+  docs/design-guidelines.md.
 
 ## 1.38.2 – 2026-10-16
 

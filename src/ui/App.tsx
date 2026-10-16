@@ -653,9 +653,10 @@ export function App() {
                             favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} t={t} />
               </aside>}
             </div>
-            {windowId && data.people[windowId] && <EditWindow name={data.people[windowId].name || "?"} 
-                                 onClose={() => setWindowId(null)} onSave={() => setWindowId(null)}
-                                 hidden={showCheck || showFix} t={t} />}
+            {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
+                                 record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
+                                 lang={lang} suggest={suggest} onSave={(changed) => { setWindowId(null); commit(changed); }}
+                                 onClose={() => setWindowId(null)} hidden={showCheck || showFix} t={t} />}
             {showCheck || showFix ? <aside className="check-wide" aria-label={t(showFix ? "batchRename" : "check")}>
               {showFix ? <BulkFix data={data} t={t} variants={variants} values={spelled} hidden={hidden} onHide={hide}
                                   onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}

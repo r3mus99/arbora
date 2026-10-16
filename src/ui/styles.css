@@ -668,3 +668,8 @@ section.check { margin: 0 0 14px; }
 .viewer > .mid { grid-column: 2; grid-row: 1; }
 .viewer > .detail { grid-column: 3; grid-row: 1; }
 .viewer > .check-wide { grid-row: 1; }
+/* the form of the edit window: parts are told apart by a thin line, the fields of a part sit in the text column */
+.sec-fields { display: grid; gap: 16px; }
+.edit-body .editor { margin-top: 0; gap: 0; }
+.edit-body .editor > * + * { margin-top: var(--d-section-gap); padding-top: var(--d-section-gap); border-top: 1px solid var(--border); }
+.edit-body .editor > .section:first-child { margin-top: var(--d-section-gap); }
