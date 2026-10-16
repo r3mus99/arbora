@@ -8,6 +8,7 @@
   undo step. Associations (ASSO, for example godparents or witnesses) can be added, removed and given a role.
   The parts of the edit window now collapse (a chevron after the title) and are ordered by how often they are edited; the source chooser fills the row:
   Names, Basic facts and Events are open at the start, then Parents and associations, Families, Notes and sources, Other details.
+  The Name part is called "Name" again and the field of the first name "Given name" (in Slovak "Krstné meno"), so the two titles differ.
   Everything else in these records stays untouched. New families and new people come in a later step.
 
 ## 1.46.0 – 2026-10-16
