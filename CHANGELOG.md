@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.43.0 – 2026-10-16
+
+- **Slimmer, sharper fields and controls.** Inputs, selects, the search box and the fields of the edit window and the
+  settings panel look like the inline edit in the person detail: no box, a faint dashed underline, and an accent
+  underline with a soft fill while editing. Fields, text buttons and switches share one height (30 px, new token
+  `--field-h`, was 36 px) and one text size; only square icon buttons keep 36 px. All corners use one 6 px radius
+  (was 8 and 12 px) and chips are no longer fully round. The focus ring is a tight 2 px line. The rules are in
+  docs/design-guidelines.md.
+
 ## 1.42.0 – 2026-10-16
 
 - **Events part of the edit window.** Birth, christening, death and burial can now carry age, cause and agency
