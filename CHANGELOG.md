@@ -7,7 +7,8 @@
   can be removed or added by typing the names of the parents; the child line of the family changes with it in the same
   undo step. Associations (ASSO, for example godparents or witnesses) can be added, removed and given a role.
   The parts of the edit window now collapse (a chevron after the title) and are ordered by how often they are edited; the source chooser fills the row:
-  Names, Basic facts and Events are open at the start, then Parents and associations, Families, Notes and sources, Other details.
+  Names and Events are open at the start, then Occupation and facts, Family, Parents and associations, Notes and sources, Other details.
+  Sex and Deceased moved into the Name part, the religion to the christening, and the occupations and other facts have a part of their own.
   The Name part is called "Name" again and the field of the first name "Given name" (in Slovak "Krstné meno"), so the two titles differ.
   Each part is a card on the page background and the groups inside have an icon before their title (birth, christening, marriage, sources…).
   The Families part is called "Family", the spouse field is called Husband or Wife by the sex of the chosen person, and

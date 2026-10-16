@@ -14,7 +14,7 @@ describe("edit window", () => {
   });
 
   test("every section has a title in every language", () => {
-    const keys = { name: "esName", basic: "esBasic", events: "esEvents", notes: "esNotes", families: "esFamilies", parents: "esParents", other: "esOther" } as const;
+    const keys = { name: "esName", facts: "esFacts", events: "esEvents", notes: "esNotes", families: "esFamilies", parents: "esParents", other: "esOther" } as const;
     expect(Object.keys(keys).sort()).toEqual([...EDIT_SECTIONS].sort());
     for (const lang of LANGS) for (const key of Object.values(keys)) expect(STRINGS[lang][key], `${lang} ${key}`).toBeTruthy();
   });
