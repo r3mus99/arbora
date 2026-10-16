@@ -1,7 +1,7 @@
 import { Copy, Plus, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
-  OTHER_EVENT_TAGS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields,
+  OTHER_EVENT_TAGS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, type EventFields,
   type Alias, type AttributeRow, type CitationRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
@@ -9,6 +9,7 @@ import type { SourceChoice } from "../core/sources";
 import type { Lang } from "../core/texts";
 import { surnamesFor } from "../core/surnames";
 import { ATTRIBUTE_TAGS } from "../core/facts";
+import { yearOf } from "../core/date";
 import { SECTIONS } from "./editSections";
 import type { StringKey } from "./i18n";
 import { Section } from "./Section";
@@ -21,6 +22,8 @@ interface Props {
   lang: Lang;
   /** surnames and places in the file, offered while typing */
   suggest: Suggestions;
+  /** the record of a person in the file, to change the links of the family members */
+  recordOf: (id: string) => GedNode | undefined;
   /** the source records of the file, offered when citing a source */
   sources: SourceChoice[];
   /** changed records only; nothing when nothing changed */
@@ -53,6 +56,26 @@ function DateField({ value, shown, lang, onChange, t }: {
 type NamePartKey = keyof PersonFields["nameParts"];
 /** the optional parts of a name, in the order they are offered */
 const NAME_PARTS: [NamePartKey, StringKey][] = [["prefix", "namePrefix"], ["suffix", "nameSuffix"], ["nickname", "nickname"], ["surnamePrefix", "surnamePrefix"]];
+
+/** Picking a person of the file by typing a name; `onPick("")` when the field is emptied. */
+function PersonPick({ choices, exclude, value, label, placeholder, clearOnPick, onPick }: {
+  choices: { id: string; label: string }[]; exclude: string[]; value: string; label: string; placeholder: string;
+  clearOnPick?: boolean; onPick: (id: string) => void;
+}) {
+  const list = useId();
+  const shown = choices.find((c) => c.id === value)?.label || "";
+  const [text, setText] = useState(shown);
+  const options = useMemo(() => choices.filter((c) => !exclude.includes(c.id)), [choices, exclude]);
+  const change = (typed: string) => {
+    const hit = options.find((c) => c.label === typed);
+    if (hit) { onPick(hit.id); setText(clearOnPick ? "" : typed); }
+    else { setText(typed); if (!typed.trim() && value) onPick(""); }
+  };
+  return <label><span>{label}</span>
+    <input type="text" value={text} list={list} placeholder={placeholder} autoComplete="off" onChange={(e) => change(e.target.value)} />
+    <datalist id={list}>{text.length >= 2 && options.slice(0, 5000).map((c) => <option key={c.id} value={c.label} />)}</datalist>
+  </label>;
+}
 
 /** the form's id, so the icon buttons in the detail header can submit it */
 export const EDITOR_FORM = "person-editor";
@@ -96,7 +119,7 @@ const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "deat
 };
 
 /** Form for the facts of one person and of their marriages. */
-export function PersonEditor({ data, record, families, lang, suggest, sources, onSave, onCancel, onDirty, t }: Props) {
+export function PersonEditor({ data, record, families, lang, suggest, recordOf, sources, onSave, onCancel, onDirty, t }: Props) {
   const [initial] = useState(() => {
     const f = personFields(record);
     const shown = { ...f };
@@ -144,6 +167,9 @@ export function PersonEditor({ data, record, families, lang, suggest, sources, o
     const changed: GedNode[] = [];
     const rec = applyPerson(record, initial.stored, after);
     if (rec !== record) changed.push(rec);
+    // other people whose links to the families change; one record once, however many families touch it
+    const linked = new Map<string, GedNode>();
+    const latest = (id: string) => linked.get(id) ?? recordOf(id);
     families.forEach((r, i) => {
       const { stored, shown } = initial.fams[i];
       const f = fams[i];
@@ -152,7 +178,9 @@ export function PersonEditor({ data, record, families, lang, suggest, sources, o
         divorce: { ...f.divorce, date: date(f.divorce.date, shown.divorce.date, stored.divorce.date) },
       });
       if (next !== r) changed.push(next);
+      for (const o of relinkFamily(r.xref!, stored, f, latest)) linked.set(o.xref!, o);
     });
+    changed.push(...linked.values());
     onSave(changed);
   };
 
@@ -194,24 +222,36 @@ export function PersonEditor({ data, record, families, lang, suggest, sources, o
     const from = COPY_FROM[key];
     const source = from && form[from[0]];
     return <fieldset key={key}>
-      <legend>{t(EVENT_LABEL[key])}</legend>
+      <legend>{t(EVENT_LABEL[key])}
+        {from && <button type="button" className="copy" title={t(from[1])} aria-label={t(from[1])}
+                         disabled={!source?.date && !source?.place} onClick={() => set(key, { ...source! })}>
+          <Copy className="icon" aria-hidden="true" /></button>}
+      </legend>
       <DateField value={form[key].date} shown={initial.shown[key].date} lang={lang} t={t}
                  onChange={(v) => set(key, { ...form[key], date: v })} />
       <label><span>{t("place")}</span>
         <input type="text" value={form[key].place} list={PLACES}
                onChange={(e) => set(key, { ...form[key], place: e.target.value })} />
       </label>
-      {from && <button type="button" className="copy" disabled={!source?.date && !source?.place}
-                       onClick={() => set(key, { ...source! })}>
-        <Copy className="icon" aria-hidden="true" />{t(from[1])}</button>}
       {details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
     </fieldset>;
   };
-  const spouseName = (r: GedNode) => {
-    const f = data.families[r.xref || ""];
-    const other = f && (f.husb === record.xref ? f.wife : f.husb);
-    return (other && data.people[other]?.name) || "?";
-  };
+  /** which of the two spouse lines of the family is the other person's */
+  const otherKey = (f: FamilyFields) => (f.husb === record.xref ? "wife" : "husb");
+  const spouseName = (f: FamilyFields) => (f[otherKey(f)] && data.people[f[otherKey(f)]]?.name) || "?";
+  /** name and birth year, the ID only where two people would look the same */
+  const personChoices = useMemo(() => {
+    const plain = Object.values(data.people).map((p) => {
+      const year = yearOf(p.birth?.date);
+      return { id: p.id, label: `${p.name || "?"}${year ? ` · ${year}` : ""}` };
+    });
+    const count = new Map<string, number>();
+    plain.forEach((c) => count.set(c.label, (count.get(c.label) || 0) + 1));
+    return plain.map((c) => (count.get(c.label)! > 1 ? { ...c, label: `${c.label} · ${c.id}` } : c))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [data]);
+  const labelOf = (id: string) => personChoices.find((c) => c.id === id)?.label || id;
+  const setChildren = (i: number, children: string[]) => setFam(i, { children });
 
   const section = (key: keyof typeof SECTIONS, children: ReactNode) => {
     const { icon, title } = SECTIONS[key];
@@ -342,9 +382,9 @@ export function PersonEditor({ data, record, families, lang, suggest, sources, o
                       onClick={() => set("events", form.events.filter((_, j) => j !== i))}>
                 <X className="icon" aria-hidden="true" /></button>
             </div>
-            {e.tag === "EVEN" && <label><span>{t("eventKind")}</span>
+            {e.tag === "EVEN" && <label className="full"><span>{t("eventKind")}</span>
               <input type="text" value={e.title} onChange={(ev) => setEv(i, { title: ev.target.value })} /></label>}
-            {(e.tag === "EVEN" || e.tag === "RESI") && <label><span>{t(e.tag === "RESI" ? "detAddress" : "eventText")}</span>
+            {(e.tag === "EVEN" || e.tag === "RESI") && <label className="full"><span>{t(e.tag === "RESI" ? "detAddress" : "eventText")}</span>
               <input type="text" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
             <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
                        t={t} onChange={(v) => setEv(i, { date: v })} />
@@ -397,7 +437,11 @@ export function PersonEditor({ data, record, families, lang, suggest, sources, o
       {section("families", <>
       {families.map((r, i) => (
         <fieldset key={r.xref}>
-          <legend>{t("marriage")} · {spouseName(r)}</legend>
+          <legend>{t("marriage")} · {spouseName(fams[i])}</legend>
+          <div className="wide">
+            <PersonPick choices={personChoices} exclude={[record.xref!, ...fams[i].children]} value={fams[i][otherKey(fams[i])]}
+                        label={t("spouse")} placeholder={t("pickPerson")} onPick={(id) => setFam(i, { [otherKey(fams[i])]: id })} />
+          </div>
           <DateField value={fams[i].marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
                      onChange={(v) => setFam(i, {}, { date: v })} />
           <label><span>{t("place")}</span>
@@ -417,6 +461,19 @@ export function PersonEditor({ data, record, families, lang, suggest, sources, o
                      onChange={(e) => setFam(i, {}, {}, { place: e.target.value })} /></label>
             {details(`d${r.xref}`, fams[i].details.divorce, (patch) => setFamDetails(i, "divorce", patch))}
           </fieldset>}
+          <div className="wide children">
+            <span className="lab">{t("children")}</span>
+            {fams[i].children.map((id) => (
+              <div className="child" key={id}>
+                <span>{labelOf(id)}</span>
+                <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                        onClick={() => setChildren(i, fams[i].children.filter((c) => c !== id))}>
+                  <X className="icon" aria-hidden="true" /></button>
+              </div>
+            ))}
+            <PersonPick choices={personChoices} clearOnPick exclude={[record.xref!, fams[i].husb, fams[i].wife, ...fams[i].children]}
+                        value="" label={t("addChild")} placeholder={t("pickPerson")} onPick={(id) => id && setChildren(i, [...fams[i].children, id])} />
+          </div>
         </fieldset>
       ))}
       {families.length === 0 && <span className="muted">{t("noValue")}</span>}

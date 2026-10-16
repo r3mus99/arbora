@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, decode, familyFields, parseGedcom, personFields, rewritten, sourceChoices, writeGedcom, type FamilyFields, type GedNode,
+  applyFamily, applyPerson, decode, familyFields, parseGedcom, personFields, relinkFamily, rewritten, sourceChoices, writeGedcom, type FamilyFields, type GedNode,
   type PersonFields,
 } from "./index";
 import { RICH_GED } from "./fixtures/rich";
@@ -349,5 +349,56 @@ describe("marriage and divorce details of a family", () => {
     const out = applyFamily(r, f, { ...f, details: { ...f.details, marriage: { age: "", cause: "", agency: "Parish" } } });
     expect(out.children[2].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1900", "AGNC Parish"]);
     expect(applyFamily(r, f, { ...f, divorce: { ...f.divorce } })).toBe(r);
+  });
+});
+
+describe("spouses and children of a family", () => {
+  const text = [
+    "0 @I1@ INDI\n1 NAME A /X/\n1 FAMS @F1@", "0 @I2@ INDI\n1 NAME B /X/\n1 FAMS @F1@",
+    "0 @I3@ INDI\n1 NAME C /X/\n1 FAMC @F1@", "0 @I4@ INDI\n1 NAME D /X/", "0 @I5@ INDI\n1 NAME E /X/",
+    "0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 MARR\n2 DATE 1900\n1 CHIL @I3@\n1 SOUR @S1@", "",
+  ].join("\n");
+  const recs = () => parseGedcom(text);
+  const by = (list: GedNode[], id: string) => list.find((r) => r.xref === id)!;
+  /** the file after the family change, links included */
+  const run = (change: (f: FamilyFields) => Partial<FamilyFields>) => {
+    const all = recs(), fam = by(all, "@F1@"), before = familyFields(fam);
+    const after = { ...before, ...change(before) };
+    const next = applyFamily(fam, before, after);
+    const others = relinkFamily("@F1@", before, after, (id) => by(all, id));
+    return writeGedcom(all.map((r) => (r === fam ? next : others.find((o) => o.xref === r.xref) || r)));
+  };
+
+  test("reads the spouses and the children", () => {
+    expect(familyFields(by(recs(), "@F1@"))).toMatchObject({ husb: "@I1@", wife: "@I2@", children: ["@I3@"] });
+  });
+
+  test("adds a child to the family and gives the child the FAMC link", () => {
+    const out = run((f) => ({ children: [...f.children, "@I4@"] }));
+    expect(out).toContain("1 CHIL @I3@\n1 CHIL @I4@\n1 SOUR @S1@");
+    expect(out).toContain("0 @I4@ INDI\n1 NAME D /X/\n1 FAMC @F1@\n");
+  });
+
+  test("takes a child out and removes its FAMC link", () => {
+    const out = run(() => ({ children: [] }));
+    expect(out).not.toContain("CHIL");
+    expect(out).toContain("0 @I3@ INDI\n1 NAME C /X/\n0 ");
+  });
+
+  test("replaces a spouse and moves the FAMS link", () => {
+    const out = run(() => ({ wife: "@I5@" }));
+    expect(out).toContain("1 HUSB @I1@\n1 WIFE @I5@\n");
+    expect(out).toContain("0 @I2@ INDI\n1 NAME B /X/\n0 ");
+    expect(out).toContain("0 @I5@ INDI\n1 NAME E /X/\n1 FAMS @F1@\n");
+  });
+
+  test("removes a spouse; the same file comes back after changing back", () => {
+    expect(run(() => ({ husb: "" }))).not.toContain("HUSB");
+    const all = recs(), fam = by(all, "@F1@"), before = familyFields(fam);
+    const gone = { ...before, husb: "", children: [] };
+    const next = applyFamily(fam, before, gone);
+    const back = applyFamily(next, gone, before);
+    expect(back.children.map((c) => `${c.tag} ${c.value}`.trim())).toEqual(fam.children.map((c) => `${c.tag} ${c.value}`.trim()));
+    expect(run(() => ({}))).toBe(writeGedcom(recs()));
   });
 });

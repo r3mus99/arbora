@@ -6,7 +6,7 @@
   --c-bapt: #3b82c4; --c-res: #9a7b4f; --c-event: #7b6bb5; --c-child: #17a89c; --c-burial: #8a8f86;
   /* size tokens of the app frame, see docs/design-guidelines.md */
   --head-h: 52px; --ctl-h: 36px; --field-h: 30px; --ctl-h-sm: 28px; --icon: 18px; --icon-sm: 14px;
-  --radius: 6px; --radius-lg: 6px; --radius-pill: 6px; --pad: 14px; --gap: 8px; --panel-w: 320px;
+  --radius: 6px; --radius-lg: 6px; --radius-pill: 6px; --pad: 14px; --gap: 8px; --panel-w: 320px; --edit-w: 560px;
   /* event colours: the tree, the timeline and (darker) the PDF, see src/core/colors.ts */
   --line: color-mix(in srgb, var(--muted) 50%, var(--bg));
   --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --c-src: #5f7f9a; --zebra: #00000005;
@@ -336,9 +336,9 @@ button.link { display: inline; }
   outline: none; border-color: var(--accent); background: var(--accent-soft); }
 .editor textarea:focus { border-style: solid; }
 .editor textarea { resize: vertical; }
-.editor .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.editor .trio { display: grid; grid-template-columns: 80px 1fr 1fr; gap: 12px; }
 .editor .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.editor fieldset { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr;
+.editor fieldset { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 100px 1fr;
                    gap: 6px 12px; min-width: 0; }
 .editor legend { padding: 0; margin-bottom: 8px; color: var(--text); font-size: 12px; }
 .editor .check { border: 0; padding: 0; margin: 0; background: none; grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; color: var(--text);
@@ -350,19 +350,23 @@ button.link { display: inline; }
 .editor .hint.warn { color: var(--danger); }
 .editor .actions { display: flex; gap: 8px; margin-top: 4px; }
 .editor .actions button { padding: 0 18px; }
+.editor .full, .editor .item > .pair { grid-column: 1 / -1; }
+.editor fieldset > .wide { grid-column: 1 / -1; display: grid; gap: 6px; }
+.editor .children .lab { display: block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 0; }
+.editor .child { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--field-h); padding: 0 4px; border-bottom: 1px dashed var(--border); }
 .editor fieldset > .trio, .editor fieldset > .add, .editor fieldset > .sub { grid-column: 1 / -1; }
 .editor fieldset > .add { justify-self: start; }
 .editor fieldset.sub { padding-top: 4px; }
-.editor fieldset.list { grid-template-columns: 1fr; gap: 10px; }
-.editor .item { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; padding: 12px;
-                border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--panel); }
+.editor fieldset.list { grid-template-columns: 1fr; gap: 16px; }
+.editor .item { display: grid; grid-template-columns: 100px 1fr; gap: 8px 12px; padding: 0; }
 .editor .item-head { grid-column: 1 / -1; display: flex; gap: 8px; }
 .editor .item-head input { flex: 1; min-width: 0; }
 .editor .item-head .icon-btn { padding: 0 11px; }
-.editor .add, .editor .copy { min-height: var(--field-h); padding: 0 14px; font-size: 14px; gap: 6px; }
+.editor .add { min-height: var(--field-h); padding: 0 14px; font-size: 14px; gap: 6px; }
 .editor .add { justify-self: start; }
-.editor .copy { grid-column: 1 / -1; justify-self: start; color: var(--accent); background: var(--accent-soft);
-                border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.editor .copy { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; margin-left: 6px;
+                width: 24px; height: 24px; padding: 0; color: var(--accent); background: var(--accent-soft);
+                border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
 .editor .copy:disabled { background: none; color: var(--muted); border-color: var(--border); }
 .editor .copy .icon { width: var(--icon-sm); height: var(--icon-sm); }
 .editor .sex { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: var(--field-h); background: var(--panel); }
@@ -492,7 +496,7 @@ section.check { margin: 0 0 14px; }
 .check-tabs .bulk-hint { padding: 0 10px; margin: var(--pad) 0 0; border-top: 1px solid var(--border); padding-top: var(--pad); }
 .keep-aka { display: flex; gap: 8px; align-items: center; cursor: pointer; }
 .keep-aka input { width: 16px; height: 16px; accent-color: var(--accent); }
-.editor .item.alias { grid-template-columns: 1fr 1fr auto; padding: 8px; }
+.editor .item.alias { grid-template-columns: 1fr 1fr auto; }
 .editor .item.alias .icon-btn { padding: 0 11px; }
 .detail .id .aka { font-style: italic; }
 .detail .tools .save .icon { color: var(--accent); }
@@ -667,7 +671,7 @@ section.check { margin: 0 0 14px; }
 .edit-layer { grid-column: 2 / -1; grid-row: 1; position: relative; pointer-events: none; z-index: 3; }
 .edit-layer[hidden] { display: none; }
 .edit-window { position: absolute; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; background: var(--panel);
-               border-left: 1px solid var(--border); pointer-events: auto; width: min(50vw, 100%); }
+               border-left: 1px solid var(--border); pointer-events: auto; width: min(var(--edit-w), 100%); }
 .edit-body { padding: 0 var(--pad) var(--pad); font-size: 14px; line-height: 1.5; --d-icon: 18px; --d-icon-row: 15px; --d-col: 22px; --d-gap: 10px; --d-section-gap: 14px; }
 .edit-body .icon { width: var(--d-icon); height: var(--d-icon); }
 .edit-body > * + * { margin-top: var(--d-section-gap); padding-top: var(--d-section-gap); border-top: 1px solid var(--border); }

@@ -656,7 +656,7 @@ export function App() {
             </div>
             {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
-                                 lang={lang} suggest={suggest} sources={sourceList} onSave={(changed) => { setWindowId(null); commit(changed); }}
+                                 lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} sources={sourceList} onSave={(changed) => { setWindowId(null); commit(changed); }}
                                  onClose={() => setWindowId(null)} hidden={showCheck || showFix} t={t} />}
             {showCheck || showFix ? <aside className="check-wide" aria-label={t(showFix ? "batchRename" : "check")}>
               {showFix ? <BulkFix data={data} t={t} variants={variants} values={spelled} hidden={hidden} onHide={hide}

@@ -86,6 +86,10 @@ export interface FamilyFields {
   marriage: EventFields;
   divorced: boolean;
   divorce: EventFields;
+  /** the spouses and the children as pointers (@I1@); "" when a spouse is not set */
+  husb: string;
+  wife: string;
+  children: string[];
   /** age, cause and agency written under MARR and DIV */
   details: { marriage: EventDetailFields; divorce: EventDetailFields };
 }
@@ -165,6 +169,8 @@ export function personFields(rec: GedNode): PersonFields {
 export function familyFields(rec: GedNode): FamilyFields {
   return {
     marriage: eventFields(rec, "MARR"), divorced: !!childOf(rec, "DIV"), divorce: eventFields(rec, "DIV"),
+    husb: childOf(rec, "HUSB")?.value.trim() || "", wife: childOf(rec, "WIFE")?.value.trim() || "",
+    children: childrenOf(rec, "CHIL").map((c) => c.value.trim()).filter(Boolean),
     details: { marriage: detailFields(childOf(rec, "MARR")), divorce: detailFields(childOf(rec, "DIV")) },
   };
 }
@@ -208,6 +214,8 @@ export function suggestions(records: GedNode[]): Suggestions {
 /** usual GEDCOM order of a person's or family's lines; new lines go to their place */
 const ORDER = ["NAME", "SEX", "HUSB", "WIFE", "BIRT", "CHR", "BAPM", "DEAT", "BURI", "CREM", "MARR", "DIV",
                "OCCU", "RELI", ...ATTRIBUTE_TAGS, "NOTE"];
+const LINKS = new Set(["FAMC", "FAMS", "CHIL"]);
+const CLOSING = new Set(["SOUR", "OBJE", "CHAN", "RIN", "REFN"]);
 const LATE = new Set(["FAMC", "FAMS", "CHIL", "SOUR", "OBJE", "CHAN", "RIN", "REFN"]);
 
 /** A record with one more line `tag value`, put where GEDCOM usually has it; written anew. */
@@ -219,7 +227,9 @@ function insert(children: GedNode[], added: GedNode): GedNode[] {
   const rank = ORDER.indexOf(added.tag);
   // after the lines with the same tag, else before the first one that comes later
   let at = children.map((c) => c.tag).lastIndexOf(added.tag) + 1;
-  if (!at) at = children.findIndex((c) => LATE.has(c.tag) || ORDER.indexOf(c.tag) > rank);
+  // the links to families come after everything else except the lines that always close a record
+  if (!at && LINKS.has(added.tag)) at = children.findIndex((c) => CLOSING.has(c.tag));
+  else if (!at) at = children.findIndex((c) => LATE.has(c.tag) || ORDER.indexOf(c.tag) > rank);
   if (at < 0) at = children.length;
   return [...children.slice(0, at), added, ...children.slice(at)];
 }
@@ -544,7 +554,57 @@ export function applyFamily(rec: GedNode, before: FamilyFields, after: FamilyFie
     const was = before.divorced ? before : { ...before, divorce: { date: "", place: "" }, details: { ...before.details, divorce: NO_DETAILS } };
     out = setEvent(out, "DIV", was.divorce, tidy(after.divorce), was.details.divorce, after.details.divorce);
   }
+  for (const tag of ["HUSB", "WIFE"] as const) {
+    const key = tag === "HUSB" ? "husb" : "wife";
+    if (after[key] !== before[key]) out = setChild(out, tag, after[key]);
+  }
+  // removed children lose their CHIL line, new ones are added after the others
+  for (const id of before.children) {
+    if (!after.children.includes(id)) out = { ...out, children: withoutFirst(out.children, (c) => c.tag === "CHIL" && c.value.trim() === id) };
+  }
+  for (const id of after.children) {
+    if (!before.children.includes(id) && !out.children.some((c) => c.tag === "CHIL" && c.value.trim() === id)) {
+      out = { ...out, children: insert(out.children, gedNode("CHIL", id)) };
+    }
+  }
   return out === rec ? rec : rewritten(out);
+}
+
+const withoutFirst = (list: GedNode[], is: (c: GedNode) => boolean) => {
+  const i = list.findIndex(is);
+  return i < 0 ? list : list.filter((_, j) => j !== i);
+};
+
+/** a record with the pointer line `tag @fam@` (FAMC, FAMS) added when it has none, or removed when `on` is false */
+function setLink(rec: GedNode, tag: "FAMC" | "FAMS", fam: string, on: boolean): GedNode {
+  const has = rec.children.some((c) => c.tag === tag && c.value.trim() === fam);
+  if (on === has) return rec;
+  const children = on ? insert(rec.children, gedNode(tag, fam)) : withoutFirst(rec.children, (c) => c.tag === tag && c.value.trim() === fam);
+  return rewritten({ ...rec, children });
+}
+
+/**
+ * The other records a family change touches: a child taken out of the family loses its FAMC line, a child put in gets
+ * one, and the same for the FAMS line of a spouse who is replaced or removed. `get` gives the record of a person
+ * (the newest one, when several families change the same person); the changed ones are returned.
+ */
+export function relinkFamily(fam: string, before: FamilyFields, after: FamilyFields, get: (id: string) => GedNode | undefined): GedNode[] {
+  const changed = new Map<string, GedNode>();
+  const touch = (id: string, tag: "FAMC" | "FAMS", on: boolean) => {
+    const rec = changed.get(id) ?? get(id);
+    if (!rec) return;
+    const next = setLink(rec, tag, fam, on);
+    if (next !== rec) changed.set(id, next);
+  };
+  before.children.filter((id) => !after.children.includes(id)).forEach((id) => touch(id, "FAMC", false));
+  after.children.filter((id) => !before.children.includes(id)).forEach((id) => touch(id, "FAMC", true));
+  for (const key of ["husb", "wife"] as const) {
+    if (before[key] === after[key]) continue;
+    // a spouse who is still the other spouse of the family keeps the link
+    if (before[key] && ![after.husb, after.wife].includes(before[key])) touch(before[key], "FAMS", false);
+    if (after[key]) touch(after[key], "FAMS", true);
+  }
+  return [...changed.values()];
 }
 
 // ------------------------------------------------------------ dates
