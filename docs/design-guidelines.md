@@ -104,7 +104,7 @@ Text buttons and text fields are all `--field-h` high, `--radius`, 14px text, 1p
 | Button | `--field-h`, 1px border, `--panel`. Hover: accent border. Disabled: 50% opacity. Padding `0 12px`. |
 | Primary button | accent fill, `--accent-text`, 600. One per view at most (e.g. Apply in a dialog, Save in an editor). |
 | Switch (segmented) | one component for Ancestors/Descendants, generations, sex choice in the editor: border + `--radius`, 1px dividers, chosen segment `--accent-soft` + `--accent` + 600. |
-| Input, select, textarea | `--field-h` (textarea auto, padding `4px 8px`), `--bg` fill, 1px `--border`, `--radius`, padding `0 8px`. Focus: 2px `--focus` outline, offset 0 (hugs the border); the same for every focusable element. The editor must use the same fields (same radius, 14px text). |
+| Input, select, textarea | Same look as the inline edit in the detail: `--field-h`, no box and no fill, 1px dashed `--border` underline (`--muted` on hover), padding `0 2px`; focus = solid `--accent` underline + `--accent-soft` fill, no ring. A multi-line textarea keeps a dashed box (`--radius`). The editor uses the same fields. |
 | Checkbox / radio | 16px, `accent-color: var(--accent)`, label 14px. |
 | Chip / count badge | `--ctl-h-sm`, pill, 12px. Picked: accent border + `--accent-soft`. |
 | Notification badge (`.badge`) | iOS-style counter on the corner of an icon or button in the top bar and rail: `--warn` pill, white 12px bold number, 17px high, 2px ring in `--bg`, pinned to the top-right corner (`top -4px, right -6px`) so it never changes the layout. Hidden at 0, "99+" above 99. Used for the number of problems (check) and of unsaved changes (GED save button); its tooltip text describes the number ("unsaved changes: 3"). |

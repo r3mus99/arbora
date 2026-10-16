@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.41.0 – 2026-10-16
+
+- **Fields in the style of the inline edit (experiment).** Inputs, selects and the search box lose their box and fill: they
+  are plain text with a faint dashed underline, and the focused one gets an accent underline and a soft fill, the same
+  as editing a value in the person detail. Buttons and switches keep their frame.
+
 ## 1.40.0 – 2026-10-16
 
 - **Sharper corners.** Corner radii are smaller and crisper (controls 8 → 4 px, cards and dialogs 12 → 6 px, chips and
