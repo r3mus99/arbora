@@ -133,6 +133,7 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
   };
 
   const set = <K extends keyof PersonFields>(key: K, value: PersonFields[K]) => setForm({ ...form, [key]: value });
+  const setPart = (patch: Partial<PersonFields["nameParts"]>) => set("nameParts", { ...form.nameParts, ...patch });
   const setOcc = (i: number, patch: Partial<Occupation>) =>
     set("occupations", form.occupations.map((o, j) => (j === i ? { ...o, ...patch } : o)));
   const setAlias = (i: number, patch: Partial<Alias>) =>
@@ -174,6 +175,18 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
         <label><span>{t("surname")}</span>
           <input type="text" value={form.surname} list={surnameList(form.sex)}
                  onChange={(e) => set("surname", e.target.value)} /></label>
+      </div>
+      <div className="pair">
+        <label><span>{t("namePrefix")}</span>
+          <input type="text" value={form.nameParts.prefix} onChange={(e) => setPart({ prefix: e.target.value })} /></label>
+        <label><span>{t("nameSuffix")}</span>
+          <input type="text" value={form.nameParts.suffix} onChange={(e) => setPart({ suffix: e.target.value })} /></label>
+      </div>
+      <div className="pair">
+        <label><span>{t("nickname")}</span>
+          <input type="text" value={form.nameParts.nickname} onChange={(e) => setPart({ nickname: e.target.value })} /></label>
+        <label><span>{t("surnamePrefix")}</span>
+          <input type="text" value={form.nameParts.surnamePrefix} onChange={(e) => setPart({ surnamePrefix: e.target.value })} /></label>
       </div>
       <fieldset className="list">
         <legend>{t("aka")}</legend>

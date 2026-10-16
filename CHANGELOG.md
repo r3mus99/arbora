@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.40.0 – 2026-10-16
+
+- **Name part of the edit window.** The Name section now also edits the title before the name (NPFX), the name suffix
+  (NSFX), the nickname (NICK) and the surname prefix (SPFX), next to the given name, surname and aka names. The parts
+  are written as lines under the main name in the usual order; an emptied field removes its line, other lines stay.
+
 ## 1.39.0 – 2026-10-16
 
 - **Edit window (first step of the v2.0 editor).** The pencil in the person detail now opens a window for editing the

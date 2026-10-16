@@ -153,3 +153,50 @@ describe("saving the file", () => {
     expect(writeGedcom(parseGedcom(crlf), "\r\n")).toBe(crlf);
   });
 });
+
+describe("the parts of a name", () => {
+  const GED = `0 HEAD
+0 @I1@ INDI
+1 NAME Jan /Novak/
+2 GIVN Jan
+2 SURN Novak
+2 SOUR @S1@
+1 SEX M
+0 TRLR
+`;
+  const rec = parseGedcom(GED)[1];
+  const before = personFields(rec);
+  const edit = (patch: Partial<PersonFields["nameParts"]>) =>
+    applyPerson(rec, before, { ...before, nameParts: { ...before.nameParts, ...patch } });
+
+  test("are read from the lines under the main name", () => {
+    const rich = personFields(person);
+    expect(rich.nameParts.prefix).toBe("Dr.");
+    expect(rich.nameParts.nickname).toBe("Otty");
+    expect(before.nameParts).toEqual({ prefix: "", nickname: "", surnamePrefix: "", suffix: "" });
+  });
+
+  test("new ones are written in the usual order, before lines such as SOUR", () => {
+    const out = writeGedcom([edit({ prefix: "Ing.", nickname: "Honza", surnamePrefix: "van", suffix: "ml." })]);
+    expect(out).toContain("1 NAME Jan /Novak/\n2 NPFX Ing.\n2 GIVN Jan\n2 NICK Honza\n2 SPFX van\n2 SURN Novak\n2 NSFX ml.\n2 SOUR @S1@\n");
+  });
+
+  test("an emptied one is removed, and changing back gives the record as it was", () => {
+    const changed = edit({ nickname: "Honza" });
+    const personChanged = applyPerson(person, personFields(person), { ...personFields(person), nameParts: { ...personFields(person).nameParts, nickname: "" } });
+    expect(writeGedcom([personChanged])).not.toContain("NICK");
+    const back = applyPerson(changed, personFields(changed), before);
+    expect(writeGedcom([back])).toBe(writeGedcom([rec]));
+  });
+
+  test("a person without a name gets one when a part is set", () => {
+    const bare = parseGedcom("0 @I1@ INDI\n1 SEX F\n")[0];
+    const f = personFields(bare);
+    expect(writeGedcom([applyPerson(bare, f, { ...f, nameParts: { ...f.nameParts, nickname: "Ann" } })])).toContain("1 NAME\n2 NICK Ann\n");
+  });
+
+  test("only the changed line is touched", () => {
+    const changed = edit({ nickname: "Honza" });
+    expect(rest(changed, ["NAME"])).toEqual(rest(rec, ["NAME"]));
+  });
+});
