@@ -6,7 +6,7 @@
   --c-bapt: #3b82c4; --c-res: #9a7b4f; --c-event: #7b6bb5; --c-child: #17a89c; --c-burial: #8a8f86;
   /* size tokens of the app frame, see docs/design-guidelines.md */
   --head-h: 52px; --ctl-h: 36px; --field-h: 26px; --ctl-h-sm: 28px; --icon: 18px; --icon-sm: 14px;
-  --radius: 8px; --radius-lg: 12px; --radius-pill: 999px; --pad: 14px; --gap: 8px; --panel-w: 320px;
+  --radius: 4px; --radius-lg: 6px; --radius-pill: 4px; --pad: 14px; --gap: 8px; --panel-w: 320px;
   /* event colours: the tree, the timeline and (darker) the PDF, see src/core/colors.ts */
   --line: color-mix(in srgb, var(--muted) 50%, var(--bg));
   --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --c-src: #5f7f9a; --zebra: #00000005;
@@ -63,7 +63,7 @@ button.link { border: 0; background: none; color: var(--accent); padding: 0; tex
 input[type=text], input[type=search], input[type=number], select {
   font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 0 8px; min-height: var(--field-h); width: 100%; }
-input:focus, select:focus, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+input:focus, select:focus, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; }
 .chosen { margin-top: 10px; font-size: 14px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px 16px; }
 .grid label { display: block; font-size: 12px; color: var(--muted); }
@@ -86,7 +86,7 @@ input:focus, select:focus, button:focus-visible { outline: 3px solid var(--focus
 .chart-switch span { display: block; padding: 0 14px; line-height: calc(var(--ctl-h) - 2px); font-size: 14px; }
 .chart-switch label + label span { border-left: 1px solid var(--border); }
 .chart-switch input:checked + span { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-.chart-switch input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: -3px; }
+.chart-switch input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: -2px; }
 .status { font-size: 14px; color: var(--muted); }
 .status.err { color: var(--danger); }
 .preview { margin-top: 14px; width: 100%; height: 75vh; border: 1px solid var(--border);
@@ -328,7 +328,7 @@ button.link { display: inline; }
   border-radius: var(--radius); padding: 0 8px; min-height: var(--field-h); width: 100%; }
 .editor textarea { padding: 4px 8px; }
 .editor input[type=text]:focus, .editor textarea:focus {
-  outline: 3px solid var(--focus); outline-offset: 1px; }
+  outline: 2px solid var(--focus); outline-offset: 0; }
 .editor textarea { resize: vertical; }
 .editor .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .editor fieldset { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr;
@@ -363,7 +363,7 @@ button.link { display: inline; }
 .editor .sex input { position: absolute; opacity: 0; pointer-events: none; }
 .editor .sex label:has(input:checked) { background: var(--accent-soft);
                                         color: var(--accent); font-weight: 600; }
-.editor .sex label:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: -3px; }
+.editor .sex label:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: -2px; }
 .editor .check:has(input:disabled) { cursor: default; }
 .editor .check:has(input:disabled) > span { color: var(--muted); }
 /* fields with suggestions: a magnifier instead of the browser's list arrow */
@@ -630,7 +630,7 @@ section.check { margin: 0 0 14px; }
 /* inline edit in the detail: an editable value is plain text with a faint dashed underline; editing keeps the text size */
 .inline-value { all: unset; cursor: text; box-sizing: border-box; max-width: 100%; border-bottom: 1px dashed var(--border); border-radius: 2px; }
 .inline-value:hover { border-bottom-color: var(--muted); }
-.inline-value:focus-visible { outline: 3px solid var(--focus); outline-offset: 1px; }
+.inline-value:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; }
 .inline-fields { display: inline; font: inherit; letter-spacing: inherit; }
 .fit { display: inline-grid; vertical-align: baseline; }
 .fit > * { grid-area: 1 / 1; min-width: 0; white-space: pre; font: inherit; letter-spacing: inherit; }
