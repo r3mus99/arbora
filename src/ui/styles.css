@@ -51,11 +51,11 @@ main { max-width: 980px; margin: 0 auto; padding: 16px 16px 0; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .note { color: var(--muted); font-size: 12px; margin: 10px 0 0; }
 button, .btn { font: inherit; border-radius: var(--radius); border: 1px solid var(--border);
-               background: var(--panel); color: var(--text); padding: 8px 14px; cursor: pointer;
+               background: var(--panel); color: var(--text); padding: 0 12px; cursor: pointer;
                text-decoration: none; display: inline-flex; align-items: center;
                justify-content: center; gap: 8px; }
 button:hover, .btn:hover { border-color: var(--accent); }
-button.primary, .btn.primary, .btn { min-height: var(--ctl-h); }
+button.primary, .btn.primary, .btn { min-height: var(--field-h); }
 button.primary, .btn.primary { background: var(--accent); color: var(--accent-text);
                                border-color: var(--accent); font-weight: 600; }
 button:disabled { opacity: .5; cursor: not-allowed; }
@@ -75,7 +75,7 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--focus
 .chart-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; min-height: var(--head-h); padding: 0 var(--pad);
              border-bottom: 1px solid var(--border); }
 .chart-bar .gens { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
-.chart-switch { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: var(--ctl-h);
+.chart-switch { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: var(--field-h);
                 background: var(--panel); }
 .chart-switch button { border: 0; border-radius: 0; background: none; padding: 0 12px; font-size: 14px; min-width: 38px; }
 .chart-switch button + button { border-left: 1px solid var(--border); }
@@ -83,7 +83,7 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--focus
 .chart-switch button:focus-visible { outline-offset: -3px; }
 .chart-switch label { cursor: pointer; }
 .chart-switch input { position: absolute; opacity: 0; pointer-events: none; }
-.chart-switch span { display: block; padding: 0 14px; line-height: calc(var(--ctl-h) - 2px); font-size: 14px; }
+.chart-switch span { display: block; padding: 0 14px; line-height: calc(var(--field-h) - 2px); font-size: 14px; }
 .chart-switch label + label span { border-left: 1px solid var(--border); }
 .chart-switch input:checked + span { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .chart-switch input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: -2px; }
@@ -96,7 +96,7 @@ footer a { color: var(--accent); }
 .flag { width: 24px; height: 16px; border-radius: 2px; flex: none;
         box-shadow: 0 0 0 1px rgba(0,0,0,.18); display: block; }
 .lang { position: relative; flex: none; }
-.lang > button { display: flex; align-items: center; gap: var(--gap); padding: 0 10px; min-height: var(--ctl-h); border-color: transparent; background: none; }
+.lang > button { display: flex; align-items: center; gap: var(--gap); padding: 0 10px; min-height: var(--field-h); border-color: transparent; background: none; }
 .lang > button:hover { background: var(--accent-soft); }
 .lang > button .caret { font-size: 12px; color: var(--muted); }
 .lang ul { position: absolute; right: 0; top: calc(100% + 6px); z-index: 10; list-style: none;
@@ -349,7 +349,7 @@ button.link { display: inline; }
 .editor .item-head { grid-column: 1 / -1; display: flex; gap: 8px; }
 .editor .item-head input { flex: 1; min-width: 0; }
 .editor .item-head .icon-btn { padding: 0 11px; }
-.editor .add, .editor .copy { min-height: var(--ctl-h); padding: 0 14px; font-size: 14px; gap: 6px; }
+.editor .add, .editor .copy { min-height: var(--field-h); padding: 0 12px; font-size: 14px; gap: 6px; }
 .editor .add { justify-self: start; }
 .editor .copy { grid-column: 1 / -1; justify-self: start; color: var(--accent); background: var(--accent-soft);
                 border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
@@ -413,8 +413,8 @@ button.link { display: inline; }
 /* "Continue with <file>" and the small forget button, above the drop zone */
 .welcome-in .resume { display: flex; gap: 8px; justify-content: center; }
 .welcome-in .resume .primary { min-width: 0; max-width: 100%; }
-.file-chip { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 0 1 auto; padding: 5px 12px;
-             border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; background: var(--panel); min-height: var(--ctl-h); }
+.file-chip { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 0 1 auto; padding: 0 12px;
+             border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; background: var(--panel); min-height: var(--field-h); }
 .file-chip strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; color: var(--text);
                     font-weight: 600; }
 .file-chip > .icon { color: var(--accent); }
@@ -472,7 +472,7 @@ section.check { margin: 0 0 14px; }
 /* vertical tabs of a wide panel (the bulk fix): rail-like rows with a count badge */
 .check-tabs { display: flex; flex-direction: column; gap: 2px; padding: var(--pad); border-right: 1px solid var(--border); min-height: 0; overflow-y: auto; }
 .check-tabs button { display: flex; gap: var(--gap); align-items: center; border: 0; border-radius: var(--radius); background: none;
-                     color: var(--muted); padding: 0 10px; height: var(--ctl-h); text-align: left; }
+                     color: var(--muted); padding: 0 10px; height: var(--field-h); text-align: left; }
 .check-tabs button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .check-tabs button:hover { background: var(--accent-soft); color: var(--text); border-color: transparent; }
 .check-tabs .n { margin-left: auto; font-size: 12px; min-width: 24px; height: var(--ctl-h-sm); line-height: var(--ctl-h-sm); padding: 0 8px;

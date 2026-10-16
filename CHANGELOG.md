@@ -6,7 +6,7 @@
   badges no longer fully round) and the focus ring is a tight 2 px line that hugs the border instead of a fat 3 px halo.
 - **Slimmer fields.** Text fields everywhere (inputs, selects, the search box, the edit window and the settings
   panel) are now 26 px high instead of 36 px, with a little less side padding. One new design token, `--field-h`;
-  buttons, switches and icon buttons keep their size. The rule is in docs/design-guidelines.md.
+  text buttons and switches now have the same height, radius and text size as the fields; only square icon buttons keep 36 px. The rule is in docs/design-guidelines.md.
 
 ## 1.39.0 – 2026-10-16
 
