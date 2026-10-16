@@ -1,5 +1,5 @@
-import { Check, Copy, Plus, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { Copy, Plus, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields,
   type Alias, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
@@ -7,7 +7,9 @@ import {
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
 import { surnamesFor } from "../core/surnames";
+import { SECTIONS } from "./editSections";
 import type { StringKey } from "./i18n";
+import { Section } from "./Section";
 
 interface Props {
   data: GedcomData;
@@ -20,6 +22,8 @@ interface Props {
   /** changed records only; nothing when nothing changed */
   onSave: (changed: GedNode[]) => void;
   onCancel: () => void;
+  /** whether the form differs from the record as it was opened */
+  onDirty?: (dirty: boolean) => void;
   t: (key: StringKey) => string;
 }
 
@@ -77,7 +81,7 @@ const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "deat
 };
 
 /** Form for the facts of one person and of their marriages. */
-export function PersonEditor({ data, record, families, lang, suggest, onSave, onCancel, t }: Props) {
+export function PersonEditor({ data, record, families, lang, suggest, onSave, onCancel, onDirty, t }: Props) {
   const [initial] = useState(() => {
     const f = personFields(record);
     const shown = { ...f };
@@ -93,6 +97,9 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
   const [fams, setFams] = useState<FamilyFields[]>(initial.fams.map((f) => f.shown));
   const firstInput = useRef<HTMLInputElement>(null);
   useEffect(() => firstInput.current?.focus(), []);
+  const [opened] = useState(() => JSON.stringify([initial.shown, initial.fams.map((f) => f.shown)]));
+  const dirty = JSON.stringify([form, fams]) !== opened;
+  useEffect(() => onDirty?.(dirty), [dirty, onDirty]);
 
   /** the typed date as GEDCOM, or the stored one when the field was not touched */
   const date = (typed: string, shown: string, stored: string) => (typed === shown ? stored : parseDate(typed, lang).value);
@@ -154,8 +161,13 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
     return (other && data.people[other]?.name) || "?";
   };
 
+  const section = (key: keyof typeof SECTIONS, children: ReactNode) => {
+    const { icon, title } = SECTIONS[key];
+    return <Section icon={icon} title={t(title)}><div className="sec-fields">{children}</div></Section>;
+  };
   return (
     <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
+      {section("name", <>
       <div className="pair">
         <label><span>{t("givenName")}</span>
           <input ref={firstInput} type="text" value={form.given} list={givenList(form.sex)} onChange={(e) => set("given", e.target.value)} /></label>
@@ -180,6 +192,8 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
           [...form.aliases, { origin: -1, given: form.given, surname: form.surname }])}>
           <Plus className="icon" aria-hidden="true" />{t("addAka")}</button>
       </fieldset>
+      </>)}
+      {section("basic", <>
       <div className="sex-field">
         <span>{t("sex")}</span>
         <div className="sex" role="radiogroup" aria-label={t("sex")}>
@@ -191,25 +205,15 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
           <input type="radio" name="sex" checked readOnly /> {form.sex}</label>}
         </div>
       </div>
-      {event("birth")}
-      {event("christening")}
+      {/* death and burial only for someone who died; unticking hides them and saving clears them,
+          ticking again before saving brings them back */}
+      <label className="check">
+        <input type="checkbox" checked={form.deceased}
+               onChange={(e) => set("deceased", e.target.checked)} />
+        <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
       <label><span>{t("religion")}</span>
         <input type="text" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>
-      {families.map((r, i) => (
-        <fieldset key={r.xref}>
-          <legend>{t("marriage")} · {spouseName(r)}</legend>
-          <DateField value={fams[i].marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
-                     onChange={(v) => setFam(i, {}, { date: v })} />
-          <label><span>{t("place")}</span>
-            <input type="text" value={fams[i].marriage.place} list={PLACES}
-                   onChange={(e) => setFam(i, {}, { place: e.target.value })} />
-          </label>
-          <label className="check"><input type="checkbox" checked={fams[i].divorced}
-                   onChange={(e) => setFam(i, { divorced: e.target.checked })} />
-            <span>{t("divorcedLabel")}</span></label>
-        </fieldset>
-      ))}
       <fieldset className="list">
         <legend>{t("occupation")}</legend>
         {form.occupations.map((o, i) => (
@@ -232,21 +236,34 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
           [...form.occupations, { origin: -1, value: "", date: "", place: "" }])}>
           <Plus className="icon" aria-hidden="true" />{t("addOccupation")}</button>
       </fieldset>
+      </>)}
+      {section("events", <>
+      {event("birth")}
+      {event("christening")}
+      {form.deceased && <>{event("death")}{event("burial")}</>}
+      </>)}
+      {section("notes", <>
       <label><span>{t("note")}</span>
         <textarea rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
-      {/* death and burial only for someone who died; unticking hides them and saving clears them,
-          ticking again before saving brings them back */}
-      <label className="check">
-        <input type="checkbox" checked={form.deceased}
-               onChange={(e) => set("deceased", e.target.checked)} />
-        <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
-      {form.deceased && <>{event("death")}{event("burial")}</>}
+      </>)}
+      {section("families", <>
+      {families.map((r, i) => (
+        <fieldset key={r.xref}>
+          <legend>{t("marriage")} · {spouseName(r)}</legend>
+          <DateField value={fams[i].marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
+                     onChange={(v) => setFam(i, {}, { date: v })} />
+          <label><span>{t("place")}</span>
+            <input type="text" value={fams[i].marriage.place} list={PLACES}
+                   onChange={(e) => setFam(i, {}, { place: e.target.value })} />
+          </label>
+          <label className="check"><input type="checkbox" checked={fams[i].divorced}
+                   onChange={(e) => setFam(i, { divorced: e.target.checked })} />
+            <span>{t("divorcedLabel")}</span></label>
+        </fieldset>
+      ))}
+      {families.length === 0 && <span className="muted">{t("noValue")}</span>}
+      </>)}
       <SuggestLists suggest={suggest} lang={lang} />
-      <div className="actions">
-        <button className="primary" type="submit" title="Ctrl+Enter">
-          <Check className="icon" aria-hidden="true" />{t("save")}</button>
-        <button type="button" onClick={onCancel} title="Esc"><X className="icon" aria-hidden="true" />{t("cancel")}</button>
-      </div>
     </form>
   );
 }

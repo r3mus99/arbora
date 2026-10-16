@@ -30,7 +30,7 @@ import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
 import { PlacesPanel } from "./PlacesPanel";
 import { PersonDetail } from "./PersonDetail";
-import { PersonEditor } from "./PersonEditor";
+import { EditWindow } from "./EditWindow";
 import { PersonRail } from "./PersonRail";
 import { SettingsPanel } from "./SettingsPanel";
 import { clearLog, fingerprint, forgetFile, recallFile, recallLog, rememberFile, saveLog, type EditLog } from "./lastFile";
@@ -82,7 +82,8 @@ export function App() {
   const [restored, setRestored] = useState(0);
   const data = useMemo(() => (doc ? readRecords(doc.records) : null), [doc]);
   // person whose facts are being edited in the detail panel
-  const [editId, setEditId] = useState<string | null>(null);
+  // the edit window: the person it edits (it stays on that person while others are shown)
+  const [windowId, setWindowId] = useState<string | null>(null);
   // file name, or null for the sample
   const [loadedName, setLoadedName] = useState<string | null>("");
   // the file kept in this browser (name, null for the sample), and whether it is still being read at start
@@ -215,7 +216,6 @@ export function App() {
     setEdits(history);
     setOrigin(fingerprint(bytes));
     setRestored(isDirty(history) ? changeCount(history) : 0);
-    setEditId(null);
     setTool("people");
     setLoadedName(name);
     setQuery("");
@@ -268,7 +268,6 @@ export function App() {
     setDoc(null);
     setEdits(NO_EDITS);
     setRestored(0);
-    setEditId(null);
     setFocusId(null);
     setSelectedId(null);
     setQuery("");
@@ -297,9 +296,6 @@ export function App() {
   // ------------------------------------------------------------ editing
   const inbound = useMemo(() => inboundAssociations(doc?.records || []), [doc]);
   const recordOf = useMemo(() => new Map((doc?.records || []).filter((r) => r.xref).map((r) => [r.xref!, r])), [doc]);
-  // the form closes when another person is shown (set while rendering, so there is no extra render with the old form)
-  const [editedFor, setEditedFor] = useState(focusId);
-  if (editedFor !== focusId) { setEditedFor(focusId); setEditId(null); }
   const suggest = useMemo(() => suggestions(doc?.records || []), [doc]);
   const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
   // bulk fix: spellings of one surname or place
@@ -334,7 +330,6 @@ export function App() {
 
   /** a new version of the file with the changed records; one step of undo */
   const commit = (changed: GedNode[]) => {
-    setEditId(null);
     if (!doc || !changed.length) return;
     const next = withRecords(doc, changed);
     setEdits(edited(edits, doc, next));
@@ -354,7 +349,6 @@ export function App() {
     if (!stepped) return;
     setEdits(stepped.edits);
     setDoc(stepped.doc);
-    setEditId(null);
     resetResult();
   };
 
@@ -378,7 +372,6 @@ export function App() {
     const back = discardUnsaved(edits);
     setDoc(back.doc);
     setEdits(back.edits);
-    setEditId(null);
     setRestored(0);
     resetResult();
   };
@@ -660,6 +653,10 @@ export function App() {
                             favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} t={t} />
               </aside>}
             </div>
+            {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
+                                 record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
+                                 lang={lang} suggest={suggest} onSave={(changed) => { setWindowId(null); commit(changed); }}
+                                 onClose={() => setWindowId(null)} hidden={showCheck || showFix} t={t} />}
             {showCheck || showFix ? <aside className="check-wide" aria-label={t(showFix ? "batchRename" : "check")}>
               {showFix ? <BulkFix data={data} t={t} variants={variants} values={spelled} hidden={hidden} onHide={hide}
                                   onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
@@ -697,13 +694,7 @@ export function App() {
             {focusId && <PersonDetail data={data} id={focusId} starred={favourites.has(focusId)}
                                       onStar={() => star(focusId)} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} onChange={commit} suggest={suggest}
-                                      onEdit={() => setEditId(focusId)} onCancelEdit={() => setEditId(null)} t={t}
-                                      editor={editId === focusId && recordOf.has(focusId) &&
-                                        <PersonEditor key={focusId} data={data} record={recordOf.get(focusId)!}
-                                                      families={data.people[focusId].fams
-                                                        .map((f) => recordOf.get(f)).filter((r) => !!r)}
-                                                      lang={lang} suggest={suggest} onSave={commit} onCancel={() => setEditId(null)}
-                                                      t={t} />} />}
+                                      onEdit={() => setWindowId(focusId)} t={t} />}
             </>}
         </div>}
       </section>
