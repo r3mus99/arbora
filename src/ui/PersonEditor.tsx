@@ -106,7 +106,7 @@ export function PersonEditor({ data, record, families, lang, suggest, sources, o
     shown.attributes = f.attributes.map((a) => ({ ...a, ...shownEvent(a, lang) }));
     const fams = families.map((r) => {
       const ff = familyFields(r);
-      return { stored: ff, shown: { ...ff, marriage: shownEvent(ff.marriage, lang) } };
+      return { stored: ff, shown: { ...ff, marriage: shownEvent(ff.marriage, lang), divorce: shownEvent(ff.divorce, lang) } };
     });
     return { stored: f, shown, fams };
   });
@@ -149,6 +149,7 @@ export function PersonEditor({ data, record, families, lang, suggest, sources, o
       const f = fams[i];
       const next = applyFamily(r, stored, {
         ...f, marriage: { ...f.marriage, date: date(f.marriage.date, shown.marriage.date, stored.marriage.date) },
+        divorce: { ...f.divorce, date: date(f.divorce.date, shown.divorce.date, stored.divorce.date) },
       });
       if (next !== r) changed.push(next);
     });
@@ -185,8 +186,10 @@ export function PersonEditor({ data, record, families, lang, suggest, sources, o
     set("citations", form.citations.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   const setAlias = (i: number, patch: Partial<Alias>) =>
     set("aliases", form.aliases.map((a, j) => (j === i ? { ...a, ...patch } : a)));
-  const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}) =>
-    setFams(fams.map((f, j) => (j === i ? { ...f, ...patch, marriage: { ...f.marriage, ...marriage } } : f)));
+  const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}, divorce: Partial<EventFields> = {}) =>
+    setFams(fams.map((f, j) => (j === i ? { ...f, ...patch, marriage: { ...f.marriage, ...marriage }, divorce: { ...f.divorce, ...divorce } } : f)));
+  const setFamDetails = (i: number, key: "marriage" | "divorce", patch: Partial<EventDetailFields>) =>
+    setFam(i, { details: { ...fams[i].details, [key]: { ...fams[i].details[key], ...patch } } });
   const event = (key: (typeof PERSON_EVENTS)[number]) => {
     const from = COPY_FROM[key];
     const source = from && form[from[0]];
@@ -401,9 +404,19 @@ export function PersonEditor({ data, record, families, lang, suggest, sources, o
             <input type="text" value={fams[i].marriage.place} list={PLACES}
                    onChange={(e) => setFam(i, {}, { place: e.target.value })} />
           </label>
+          {details(`m${r.xref}`, fams[i].details.marriage, (patch) => setFamDetails(i, "marriage", patch))}
           <label className="check"><input type="checkbox" checked={fams[i].divorced}
                    onChange={(e) => setFam(i, { divorced: e.target.checked })} />
             <span>{t("divorcedLabel")}</span></label>
+          {fams[i].divorced && <fieldset className="sub">
+            <legend>{t("divorce")}</legend>
+            <DateField value={fams[i].divorce.date} shown={initial.fams[i].shown.divorce.date} lang={lang} t={t}
+                       onChange={(v) => setFam(i, {}, {}, { date: v })} />
+            <label><span>{t("place")}</span>
+              <input type="text" value={fams[i].divorce.place} list={PLACES}
+                     onChange={(e) => setFam(i, {}, {}, { place: e.target.value })} /></label>
+            {details(`d${r.xref}`, fams[i].details.divorce, (patch) => setFamDetails(i, "divorce", patch))}
+          </fieldset>}
         </fieldset>
       ))}
       {families.length === 0 && <span className="muted">{t("noValue")}</span>}

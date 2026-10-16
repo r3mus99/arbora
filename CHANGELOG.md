@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.45.0 – 2026-10-16
+
+- **Families part of the edit window: divorce and details.** A marriage that is marked as divorced now also has the
+  date, place and details of the divorce, and the marriage and the divorce can carry age, cause and agency (behind a
+  "Details" button, shown automatically when present). The divorce is written under the `DIV Y` line; everything
+  else in the family record stays as it was. Adding and removing spouses and children comes in the next step.
+
 ## 1.44.0 – 2026-10-16
 
 - **Notes and sources part of the edit window.** Under the note, the Notes section lists the source citations written
