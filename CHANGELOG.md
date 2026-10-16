@@ -1,18 +1,36 @@
 # Changelog
 
+## 1.43.0 – 2026-10-16
+
+- **Slimmer, sharper fields and controls.** Inputs, selects, the search box and the fields of the edit window and the
+  settings panel look like the inline edit in the person detail: no box, a faint dashed underline, and an accent
+  underline with a soft fill while editing. Fields, text buttons and switches share one height (30 px, new token
+  `--field-h`, was 36 px) and one text size; only square icon buttons keep 36 px. All corners use one 6 px radius
+  (was 8 and 12 px) and chips are no longer fully round. The focus ring is a tight 2 px line. The rules are in
+  docs/design-guidelines.md.
+
+## 1.42.0 – 2026-10-16
+
+- **Events part of the edit window.** Birth, christening, death and burial can now carry age, cause and agency
+  (behind a "Details" button, shown automatically when present). A new list of other events (baptism, blessing,
+  cremation, adoption, confirmation, residence, census, emigration, graduation, retirement, will, custom events…)
+  has date, place, address or description, and details of each, with add and remove. New lines go after the other
+  events; lines the form does not list stay as they were.
+
 ## 1.41.0 – 2026-10-16
 
-- **Fields in the style of the inline edit (experiment).** Inputs, selects and the search box lose their box and fill: they
-  are plain text with a faint dashed underline, and the focused one gets an accent underline and a soft fill, the same
-  as editing a value in the person detail. Buttons and switches keep their frame.
+- **Basic facts part of the edit window: other facts.** Next to sex, deceased, religion and occupation, the edit
+  window now edits the other facts of a person (education, nationality, title, property, caste, description, number
+  of children, ID number, other fact): value, date and place of each, add and remove. Only the changed lines are
+  written, in the usual place among the other lines; lines the form does not list stay as they were.
 
 ## 1.40.0 – 2026-10-16
 
-- **Sharper corners.** Corner radii are smaller and crisper (one 6 px radius for controls, fields, cards and dialogs, was 8 and 12 px; chips and
-  badges no longer fully round) and the focus ring is a tight 2 px line that hugs the border instead of a fat 3 px halo.
-- **Slimmer fields.** Text fields everywhere (inputs, selects, the search box, the edit window and the settings
-  panel) are now 30 px high instead of 36 px. One new design token, `--field-h`;
-  text buttons and switches now have the same height, radius and text size as the fields; only square icon buttons keep 36 px. The rule is in docs/design-guidelines.md.
+- **Name part of the edit window.** The Name section now also edits the title before the name (NPFX), the name suffix
+  (NSFX), the nickname (NICK) and the surname prefix (SPFX), next to the given name, surname and aka names. The parts
+  are written as lines under the main name in the usual order; an emptied field removes its line, other lines stay.
+  Only given name and surname are shown by default; two buttons below add another form of the name (aka) and
+  show the four other fields at once (they are shown automatically when the person already has one).
 
 ## 1.39.0 – 2026-10-16
 

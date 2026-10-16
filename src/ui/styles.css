@@ -336,6 +336,7 @@ button.link { display: inline; }
   outline: none; border-color: var(--accent); background: var(--accent-soft); }
 .editor textarea:focus { border-style: solid; }
 .editor textarea { resize: vertical; }
+.editor .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .editor .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .editor fieldset { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr;
                    gap: 6px 12px; min-width: 0; }
@@ -679,3 +680,7 @@ section.check { margin: 0 0 14px; }
 .edit-body .editor { margin-top: 0; gap: 0; }
 .edit-body .editor > * + * { margin-top: var(--d-section-gap); padding-top: var(--d-section-gap); border-top: 1px solid var(--border); }
 .edit-body .editor > .section:first-child { margin-top: var(--d-section-gap); }
+/* "+" buttons that add an optional field of a part (the name parts): a row of the same buttons as "add" */
+.editor .adds { display: flex; flex-wrap: wrap; gap: var(--gap); }
+/* the tag choice of an attribute row sits before its value */
+.editor .item-head select { flex: none; width: auto; max-width: 45%; }
