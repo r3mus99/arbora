@@ -40,7 +40,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 | `--panel-w` | 320px | width of every side panel of the tool bar (list of people, overview, sources and notes, places, settings); one value, never a width per panel |
 | `--head-h` | 52px | header row of every panel (rail first icon, search box, chart switch, person name, wide panel title); one continuous line under them across the frame |
 | `--ctl-h` | 36px | square icon buttons and rail icons only |
-| `--field-h` | 26px | height of every text control: inputs, selects, textareas (minimum), text buttons, switches (same height, radius and 14px text for field, button and switch) |
+| `--field-h` | 30px | height of every text control: inputs, selects, textareas (minimum), text buttons, switches (same height, radius and 14px text for field, button and switch) |
 | `--ctl-h-sm` | 28px (new) | the one smaller control height, only for controls inside a list row or a card (chips, inline inputs, row buttons) |
 | `--icon` | 18px | icons in controls, headers, rail and top bar |
 | `--icon-sm` | 14px (new) | icons inside text lines, chips, badges, links |
@@ -101,10 +101,10 @@ Text buttons and text fields are all `--field-h` high, `--radius`, 14px text, 1p
 | Control | Rule |
 | --- | --- |
 | Icon button | `--ctl-h` square, no border and no fill at rest, `--muted` icon. Hover: `--accent-soft` background, `inherit` colour. On/active: `--accent-soft` + `--accent`. Disabled: 50% opacity, no hover. Used in top bar, rail, detail header. |
-| Button | `--field-h`, 1px border, `--panel`. Hover: accent border. Disabled: 50% opacity. Padding `0 12px`. |
+| Button | `--field-h`, 1px border, `--panel`. Hover: accent border. Disabled: 50% opacity. Padding `0 14px`. |
 | Primary button | accent fill, `--accent-text`, 600. One per view at most (e.g. Apply in a dialog, Save in an editor). |
 | Switch (segmented) | one component for Ancestors/Descendants, generations, sex choice in the editor: border + `--radius`, 1px dividers, chosen segment `--accent-soft` + `--accent` + 600. |
-| Input, select, textarea | Same look as the inline edit in the detail: `--field-h`, no box and no fill, 1px dashed `--border` underline (`--muted` on hover), padding `0 2px`; focus = solid `--accent` underline + `--accent-soft` fill, no ring. A multi-line textarea keeps a dashed box (`--radius`). The editor uses the same fields. |
+| Input, select, textarea | Same look as the inline edit in the detail: `--field-h`, no box and no fill, 1px dashed `--border` underline (`--muted` on hover), padding `0 4px`; focus = solid `--accent` underline + `--accent-soft` fill, no ring. A multi-line textarea keeps a dashed box (`--radius`). The editor uses the same fields. |
 | Checkbox / radio | 16px, `accent-color: var(--accent)`, label 14px. |
 | Chip / count badge | `--ctl-h-sm`, pill, 12px. Picked: accent border + `--accent-soft`. |
 | Notification badge (`.badge`) | iOS-style counter on the corner of an icon or button in the top bar and rail: `--warn` pill, white 12px bold number, 17px high, 2px ring in `--bg`, pinned to the top-right corner (`top -4px, right -6px`) so it never changes the layout. Hidden at 0, "99+" above 99. Used for the number of problems (check) and of unsaved changes (GED save button); its tooltip text describes the number ("unsaved changes: 3"). |

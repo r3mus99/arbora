@@ -11,7 +11,7 @@
 - **Sharper corners.** Corner radii are smaller and crisper (controls 8 → 4 px, cards and dialogs 12 → 6 px, chips and
   badges no longer fully round) and the focus ring is a tight 2 px line that hugs the border instead of a fat 3 px halo.
 - **Slimmer fields.** Text fields everywhere (inputs, selects, the search box, the edit window and the settings
-  panel) are now 26 px high instead of 36 px, with a little less side padding. One new design token, `--field-h`;
+  panel) are now 30 px high instead of 36 px. One new design token, `--field-h`;
   text buttons and switches now have the same height, radius and text size as the fields; only square icon buttons keep 36 px. The rule is in docs/design-guidelines.md.
 
 ## 1.39.0 – 2026-10-16

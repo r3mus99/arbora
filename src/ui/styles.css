@@ -5,7 +5,7 @@
   --sex-M: #3f6fa8; --sex-F: #b0507a; --star: #c58a12;
   --c-bapt: #3b82c4; --c-res: #9a7b4f; --c-event: #7b6bb5; --c-child: #17a89c; --c-burial: #8a8f86;
   /* size tokens of the app frame, see docs/design-guidelines.md */
-  --head-h: 52px; --ctl-h: 36px; --field-h: 26px; --ctl-h-sm: 28px; --icon: 18px; --icon-sm: 14px;
+  --head-h: 52px; --ctl-h: 36px; --field-h: 30px; --ctl-h-sm: 28px; --icon: 18px; --icon-sm: 14px;
   --radius: 4px; --radius-lg: 6px; --radius-pill: 4px; --pad: 14px; --gap: 8px; --panel-w: 320px;
   /* event colours: the tree, the timeline and (darker) the PDF, see src/core/colors.ts */
   --line: color-mix(in srgb, var(--muted) 50%, var(--bg));
@@ -51,7 +51,7 @@ main { max-width: 980px; margin: 0 auto; padding: 16px 16px 0; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .note { color: var(--muted); font-size: 12px; margin: 10px 0 0; }
 button, .btn { font: inherit; border-radius: var(--radius); border: 1px solid var(--border);
-               background: var(--panel); color: var(--text); padding: 0 12px; cursor: pointer;
+               background: var(--panel); color: var(--text); padding: 0 14px; cursor: pointer;
                text-decoration: none; display: inline-flex; align-items: center;
                justify-content: center; gap: 8px; }
 button:hover, .btn:hover { border-color: var(--accent); }
@@ -63,7 +63,7 @@ button.link { border: 0; background: none; color: var(--accent); padding: 0; tex
 /* fields look like the inline edit in the detail: plain text on the page, a faint dashed underline, accent underline when editing */
 input[type=text], input[type=search], input[type=number], select {
   font: inherit; color: var(--text); background: none; border: 0; border-bottom: 1px dashed var(--border);
-  border-radius: 0; padding: 0 2px; min-height: var(--field-h); width: 100%; }
+  border-radius: 0; padding: 0 4px; min-height: var(--field-h); width: 100%; }
 input[type=text]:hover, input[type=search]:hover, input[type=number]:hover, select:hover { border-bottom-color: var(--muted); }
 input[type=text]:focus, input[type=search]:focus, input[type=number]:focus, select:focus {
   outline: none; border-bottom: 1px solid var(--accent); background: var(--accent-soft); }
@@ -329,8 +329,8 @@ button.link { display: inline; }
   color: var(--muted); margin-bottom: 6px; }
 .editor input[type=text], .editor textarea {
   font: inherit; color: var(--text); background: none; border: 0; border-bottom: 1px dashed var(--border);
-  border-radius: 0; padding: 0 2px; min-height: var(--field-h); width: 100%; }
-.editor textarea { padding: 4px 2px; border: 1px dashed var(--border); border-radius: var(--radius); padding: 4px 6px; }
+  border-radius: 0; padding: 0 4px; min-height: var(--field-h); width: 100%; }
+.editor textarea { border: 1px dashed var(--border); border-radius: var(--radius); padding: 6px 8px; }
 .editor input[type=text]:hover, .editor textarea:hover { border-color: var(--muted); }
 .editor input[type=text]:focus, .editor textarea:focus {
   outline: none; border-color: var(--accent); background: var(--accent-soft); }
@@ -355,7 +355,7 @@ button.link { display: inline; }
 .editor .item-head { grid-column: 1 / -1; display: flex; gap: 8px; }
 .editor .item-head input { flex: 1; min-width: 0; }
 .editor .item-head .icon-btn { padding: 0 11px; }
-.editor .add, .editor .copy { min-height: var(--field-h); padding: 0 12px; font-size: 14px; gap: 6px; }
+.editor .add, .editor .copy { min-height: var(--field-h); padding: 0 14px; font-size: 14px; gap: 6px; }
 .editor .add { justify-self: start; }
 .editor .copy { grid-column: 1 / -1; justify-self: start; color: var(--accent); background: var(--accent-soft);
                 border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
@@ -478,10 +478,10 @@ section.check { margin: 0 0 14px; }
 /* vertical tabs of a wide panel (the bulk fix): rail-like rows with a count badge */
 .check-tabs { display: flex; flex-direction: column; gap: 2px; padding: var(--pad); border-right: 1px solid var(--border); min-height: 0; overflow-y: auto; }
 .check-tabs button { display: flex; gap: var(--gap); align-items: center; border: 0; border-radius: var(--radius); background: none;
-                     color: var(--muted); padding: 0 10px; height: var(--field-h); text-align: left; }
+                     color: var(--muted); padding: 0 10px; height: var(--field-h); text-align: left; white-space: nowrap; }
 .check-tabs button.on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .check-tabs button:hover { background: var(--accent-soft); color: var(--text); border-color: transparent; }
-.check-tabs .n { margin-left: auto; font-size: 12px; min-width: 24px; height: var(--ctl-h-sm); line-height: var(--ctl-h-sm); padding: 0 8px;
+.check-tabs .n { margin-left: auto; font-size: 12px; min-width: 22px; height: 20px; line-height: 20px; padding: 0 6px;
                  border-radius: var(--radius-pill); text-align: center; background: var(--warn-soft); color: var(--warn-text);
                  font-weight: 600; font-variant-numeric: tabular-nums; }
 .check-tabs .n.zero { background: var(--border); color: var(--muted); }
@@ -523,7 +523,7 @@ section.check { margin: 0 0 14px; }
 .bulk-group { display: flex; align-items: center; border-left: 3px solid transparent; }
 .bulk-group:hover { background: var(--accent-soft); }
 .bulk-group.sel { background: var(--accent-soft); border-left-color: var(--accent); }
-.bulk-pick { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 6px calc(var(--pad) - 3px); border: 0; border-radius: 0; background: none; text-align: left; }
+.bulk-pick { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 2px; padding: 6px calc(var(--pad) - 3px); border: 0; border-radius: 0; background: none; text-align: left; }
 .bulk-pick:hover:not(:disabled) { border-color: transparent; }
 .bulk-pick:disabled { opacity: 1; cursor: default; }
 .bulk-name { display: flex; align-items: baseline; gap: var(--gap); font-weight: 600; }
