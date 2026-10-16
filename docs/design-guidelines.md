@@ -44,9 +44,9 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 | `--ctl-h-sm` | 28px (new) | the one smaller control height, only for controls inside a list row or a card (chips, inline inputs, row buttons) |
 | `--icon` | 18px | icons in controls, headers, rail and top bar |
 | `--icon-sm` | 14px (new) | icons inside text lines, chips, badges, links |
-| `--radius` | 4px | corners of controls, inputs, switches, tree selection |
-| `--radius-lg` | 6px | corners of the frame, dialogs' inner cards, tiles |
-| `--radius-pill` | 4px | chips, count badges only (square-ish like everything else, no full pills) |
+| `--radius` | 6px | corners of controls, inputs, switches, tree selection |
+| `--radius-lg` | 6px (same as `--radius`) | corners of the frame, dialogs' inner cards, tiles |
+| `--radius-pill` | 6px | chips, count badges only (square-ish like everything else, no full pills) |
 | `--pad` | 14px | side padding of a panel and gap between blocks inside it |
 | `--star` | #c58a12 / #e0b04a dark | the favourite star, nothing else |
 | `--gap` | 8px (new) | gap between controls in a row; 4px between icon buttons in a tool group |
