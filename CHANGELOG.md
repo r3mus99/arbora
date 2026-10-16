@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.40.0 – 2026-10-16
+
+- **Slimmer fields.** Text fields everywhere (inputs, selects, the search box, the edit window and the settings
+  panel) are now 26 px high instead of 36 px, with a little less side padding. One new design token, `--field-h`;
+  buttons, switches and icon buttons keep their size. The rule is in docs/design-guidelines.md.
+
 ## 1.39.0 – 2026-10-16
 
 - **Edit window (first step of the v2.0 editor).** The pencil in the person detail now opens a window for editing the

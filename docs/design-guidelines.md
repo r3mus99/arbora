@@ -39,7 +39,8 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 | --- | --- | --- |
 | `--panel-w` | 320px | width of every side panel of the tool bar (list of people, overview, sources and notes, places, settings); one value, never a width per panel |
 | `--head-h` | 52px | header row of every panel (rail first icon, search box, chart switch, person name, wide panel title); one continuous line under them across the frame |
-| `--ctl-h` | 36px | height of every control: inputs, selects, switch, buttons, icon buttons, rail icons |
+| `--ctl-h` | 36px | height of buttons, icon buttons, switches and rail icons |
+| `--field-h` | 26px | height of every text field: inputs, selects, textareas (minimum), the sex switch in the editor |
 | `--ctl-h-sm` | 28px (new) | the one smaller control height, only for controls inside a list row or a card (chips, inline inputs, row buttons) |
 | `--icon` | 18px | icons in controls, headers, rail and top bar |
 | `--icon-sm` | 14px (new) | icons inside text lines, chips, badges, links |
@@ -95,7 +96,7 @@ No other radius, height or padding number is used for a control. Dialogs use `--
 
 ## 6. Controls
 
-All controls are `--ctl-h` high, `--radius`, 14px text, 1px `--border`, no shadows.
+Buttons are `--ctl-h` high and text fields `--field-h`, `--radius`, 14px text, 1px `--border`, no shadows.
 
 | Control | Rule |
 | --- | --- |
@@ -103,7 +104,7 @@ All controls are `--ctl-h` high, `--radius`, 14px text, 1px `--border`, no shado
 | Button | `--ctl-h`, 1px border, `--panel`. Hover: accent border. Disabled: 50% opacity. Padding `0 14px`. |
 | Primary button | accent fill, `--accent-text`, 600. One per view at most (e.g. Apply in a dialog, Save in an editor). |
 | Switch (segmented) | one component for Ancestors/Descendants, generations, sex choice in the editor: border + `--radius`, 1px dividers, chosen segment `--accent-soft` + `--accent` + 600. |
-| Input, select, textarea | `--ctl-h` (textarea auto), `--bg` fill, 1px `--border`, `--radius`, padding `0 10px`. Focus: 3px `--focus` outline offset 1px; the same for every focusable element. The editor must use the same fields (no 12px radius, 15px text). |
+| Input, select, textarea | `--field-h` (textarea auto, padding `4px 8px`), `--bg` fill, 1px `--border`, `--radius`, padding `0 8px`. Focus: 3px `--focus` outline offset 1px; the same for every focusable element. The editor must use the same fields (no 12px radius, 15px text). |
 | Checkbox / radio | 16px, `accent-color: var(--accent)`, label 14px. |
 | Chip / count badge | `--ctl-h-sm`, pill, 12px. Picked: accent border + `--accent-soft`. |
 | Notification badge (`.badge`) | iOS-style counter on the corner of an icon or button in the top bar and rail: `--warn` pill, white 12px bold number, 17px high, 2px ring in `--bg`, pinned to the top-right corner (`top -4px, right -6px`) so it never changes the layout. Hidden at 0, "99+" above 99. Used for the number of problems (check) and of unsaved changes (GED save button); its tooltip text describes the number ("unsaved changes: 3"). |
