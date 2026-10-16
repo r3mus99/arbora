@@ -5,8 +5,8 @@
 - **Name part of the edit window.** The Name section now also edits the title before the name (NPFX), the name suffix
   (NSFX), the nickname (NICK) and the surname prefix (SPFX), next to the given name, surname and aka names. The parts
   are written as lines under the main name in the usual order; an emptied field removes its line, other lines stay.
-  Only given name and surname are shown by default; the other parts have a "+" button each and are shown
-  automatically when the person already has them.
+  Only given name and surname are shown by default; two buttons below add another form of the name (aka) and
+  show the four other fields at once (they are shown automatically when the person already has one).
 
 ## 1.39.0 – 2026-10-16
 

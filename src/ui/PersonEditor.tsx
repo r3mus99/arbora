@@ -137,11 +137,10 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
   };
 
   const set = <K extends keyof PersonFields>(key: K, value: PersonFields[K]) => setForm({ ...form, [key]: value });
-  const initialParts = useMemo(() => new Set(NAME_PARTS.map(([k]) => k).filter((k) => initial.stored.nameParts[k])), [initial]);
-  const [openParts, setOpenParts] = useState<NamePartKey[]>([]);
-  const isShown = (k: NamePartKey) => initialParts.has(k) || openParts.includes(k) || !!form.nameParts[k];
-  const shownParts = NAME_PARTS.filter(([k]) => isShown(k));
-  const hiddenParts = NAME_PARTS.filter(([k]) => !isShown(k));
+  // the optional parts of the name are shown when the name has one, or after the "more fields" button
+  const initialParts = useMemo(() => NAME_PARTS.some(([k]) => initial.stored.nameParts[k]), [initial]);
+  const [openParts, setOpenParts] = useState(false);
+  const moreParts = initialParts || openParts || NAME_PARTS.some(([k]) => form.nameParts[k]);
   const setPart = (patch: Partial<PersonFields["nameParts"]>) => set("nameParts", { ...form.nameParts, ...patch });
   const setOcc = (i: number, patch: Partial<Occupation>) =>
     set("occupations", form.occupations.map((o, j) => (j === i ? { ...o, ...patch } : o)));
@@ -185,17 +184,13 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
           <input type="text" value={form.surname} list={surnameList(form.sex)}
                  onChange={(e) => set("surname", e.target.value)} /></label>
       </div>
-      {/* the other parts of the name: shown when the name has them, or when added with a + button */}
-      {shownParts.length > 0 && <div className="pair">
-        {shownParts.map(([key, label]) => <label key={key}><span>{t(label)}</span>
-          <input type="text" value={form.nameParts[key]} autoFocus={!initialParts.has(key)}
+      {/* the other parts of the name: shown when the name has them, or after the "more fields" button */}
+      {moreParts && <div className="pair">
+        {NAME_PARTS.map(([key, label]) => <label key={key}><span>{t(label)}</span>
+          <input type="text" value={form.nameParts[key]} autoFocus={!initialParts && key === NAME_PARTS[0][0]}
                  onChange={(e) => setPart({ [key]: e.target.value })} /></label>)}
       </div>}
-      {hiddenParts.length > 0 && <div className="adds">
-        {hiddenParts.map(([key, label]) => <button key={key} type="button" className="add" onClick={() => setOpenParts([...openParts, key])}>
-          <Plus className="icon" aria-hidden="true" />{t(label)}</button>)}
-      </div>}
-      <fieldset className="list">
+      {form.aliases.length > 0 && <fieldset className="list">
         <legend>{t("aka")}</legend>
         {form.aliases.map((a, i) => (
           <div className="item alias" key={a.origin < 0 ? `new${i}` : a.origin}>
@@ -208,10 +203,14 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
               <X className="icon" aria-hidden="true" /></button>
           </div>
         ))}
+      </fieldset>}
+      <div className="adds">
         <button type="button" className="add" onClick={() => set("aliases",
           [...form.aliases, { origin: -1, given: form.given, surname: form.surname }])}>
           <Plus className="icon" aria-hidden="true" />{t("addAka")}</button>
-      </fieldset>
+        {!moreParts && <button type="button" className="add" onClick={() => setOpenParts(true)}>
+          <Plus className="icon" aria-hidden="true" />{t("nameMore")}</button>}
+      </div>
       </>)}
       {section("basic", <>
       <div className="sex-field">
