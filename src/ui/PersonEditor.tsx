@@ -75,8 +75,8 @@ function PersonPick({ choices, exclude, value, label, placeholder, clearOnPick, 
     if (hit) { onPick(hit.id); setText(clearOnPick ? "" : typed); }
     else { setText(typed); if (!typed.trim() && value) onPick(""); }
   };
-  return <label><span>{label}</span>
-    <input type="text" value={text} list={list} placeholder={placeholder} autoComplete="off" autoFocus={focus} onChange={(e) => change(e.target.value)} />
+  return <label>{label && <span>{label}</span>}
+    <input type="text" value={text} list={list} aria-label={label || placeholder} placeholder={placeholder} autoComplete="off" autoFocus={focus} onChange={(e) => change(e.target.value)} />
     <datalist id={list}>{text.length >= 2 && options.slice(0, 5000).map((c) => <option key={c.id} value={c.label} />)}</datalist>
   </label>;
 }
@@ -510,7 +510,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
               </div>
             ))}
             {adding === i && <PersonPick choices={personChoices} clearOnPick focus exclude={[record.xref!, fams[i].husb, fams[i].wife, ...fams[i].children]}
-                        value="" label={t("addChild")} placeholder={t("pickPerson")}
+                        value="" label="" placeholder={t("pickPerson")}
                         onPick={(id) => { if (id) { setChildren(i, [...fams[i].children, id]); setAdding(null); } }} />}
           </div>
         </fieldset>
