@@ -1,6 +1,6 @@
-import { BookOpen, CalendarDays, Check, Ellipsis, Link2, Maximize2, Minimize2, Tags, UserRound, Users, X, type LucideIcon } from "lucide-react";
+import { BookOpen, CalendarDays, Check, Ellipsis, Link2, Tags, UserRound, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent } from "react";
-import { EDIT_SECTIONS, mayClose, otherWidth, type EditSection, type EditWidth } from "./editWindow";
+import { EDIT_SECTIONS, mayClose, type EditSection } from "./editWindow";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
 import { Section } from "./Section";
@@ -19,8 +19,6 @@ const SECTIONS: Record<EditSection, { title: StringKey; icon: LucideIcon }> = {
 interface Props {
   /** the person's name for the heading */
   name: string;
-  width: EditWidth;
-  onWidth: (w: EditWidth) => void;
   /** the window closes; nothing is changed in the file */
   onClose: () => void;
   /** Save: the changes of the sections, as one undo step (the sections come with the next versions) */
@@ -31,11 +29,11 @@ interface Props {
 }
 
 /**
- * The wide edit window of a person (docs/design-guidelines.md, section 7). It lies over the right part of the
- * viewer: half of the browser width with the tree still visible, or the whole width right of the tool bar.
+ * The edit window of a person (docs/design-guidelines.md, section 7). It lies over the right half of the
+ * viewer, so the tree stays visible on the left; the pencil in the person detail opens it.
  * It knows whether anything was changed (`dirty`); Esc, the X and Cancel ask before they drop changes.
  */
-export function EditWindow({ name, width, onWidth, onClose, onSave, t, hidden }: Props) {
+export function EditWindow({ name, onClose, onSave, t, hidden }: Props) {
   // the sections will set this when their fields change; nothing is editable here yet
   const dirty: boolean = false;
   const close = () => { if (mayClose(dirty, () => window.confirm(t("discard")))) onClose(); };
@@ -45,13 +43,10 @@ export function EditWindow({ name, width, onWidth, onClose, onSave, t, hidden }:
     window.addEventListener("keydown", handle);
     return () => window.removeEventListener("keydown", handle);
   }, []);
-  const widthLabel = t(width === "half" ? "editFull" : "editHalf");
   return <div className="edit-layer" hidden={hidden}>
-    <section className={`edit-window ${width}`} aria-label={name}>
+    <section className="edit-window" aria-label={name}>
       <PanelHead title={name}>
         <div className="tools">
-          <button type="button" className="icon-btn" onClick={() => onWidth(otherWidth(width))} title={widthLabel} aria-label={widthLabel}>
-            {width === "half" ? <Maximize2 className="icon" aria-hidden="true" /> : <Minimize2 className="icon" aria-hidden="true" />}</button>
           <button type="button" className="icon-btn" onClick={close} title={`${t("editClose")} (Esc)`} aria-label={t("editClose")}>
             <X className="icon" aria-hidden="true" /></button>
         </div>

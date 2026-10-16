@@ -1,19 +1,9 @@
 import { describe, expect, test, vi } from "vitest";
 import { LANGS } from "../core/texts";
-import { EDIT_SECTIONS, editWidthOf, mayClose, otherWidth } from "./editWindow";
+import { EDIT_SECTIONS, mayClose } from "./editWindow";
 import { STRINGS } from "./i18n";
 
-describe("wide edit window", () => {
-  test("the width toggles between half and full", () => {
-    expect(otherWidth("half")).toBe("full");
-    expect(otherWidth("full")).toBe("half");
-  });
-
-  test("a stored width that is not known means half", () => {
-    expect(editWidthOf("full")).toBe("full");
-    for (const v of ["half", "wide", 50, null, undefined]) expect(editWidthOf(v)).toBe("half");
-  });
-
+describe("edit window", () => {
   test("closing asks only when something was changed", () => {
     const ask = vi.fn<() => boolean>(() => false);
     expect(mayClose(false, ask)).toBe(true);

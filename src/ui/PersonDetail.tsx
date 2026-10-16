@@ -1,5 +1,5 @@
 import {
-  Award, Baby, Briefcase, Check, CircleHelp, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, PanelRightOpen, Pencil,
+  Award, Baby, Briefcase, CircleHelp, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
   StickyNote, Star, CalendarDays, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
@@ -16,7 +16,7 @@ import { TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
 import { timeline, weddingAges, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
-import { EDITOR_FORM, givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
+import { givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
 import { InlineName, InlineNote, InlineText } from "./Inline";
 import { Row, Section } from "./Section";
 import { EventSources, Linked, PersonSources } from "./Sources";
@@ -41,12 +41,8 @@ interface Props {
   onChange: (changed: GedNode[]) => void;
   /** surnames and places in the file, offered while typing */
   suggest: Suggestions;
+  /** opens the edit window */
   onEdit: () => void;
-  /** opens the wide edit window */
-  onEditWide: () => void;
-  onCancelEdit: () => void;
-  /** the edit form, shown instead of the facts */
-  editor: ReactNode;
   t: (key: StringKey) => string;
 }
 
@@ -66,7 +62,7 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, lookup, inbound, rootId, starred, onStar, lang, onFocus, onMakeRoot, onChange, suggest, onEdit, onEditWide, onCancelEdit, editor, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, inbound, rootId, starred, onStar, lang, onFocus, onMakeRoot, onChange, suggest, onEdit, t }: Props) {
   const p = data.people[id];
   if (!p) return null;
   const f = record ? personFields(record) : null;
@@ -76,7 +72,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
     const next = applyPerson(record, f, { ...f, ...patch });
     if (next !== record) onChange([next]);
   };
-  const live = !editor && !!record;
+  const live = !!record;
   /** a changed date or place of a timeline event, written to the record that holds the event */
   const changeEvent = (e: TimelineItem, patch: Partial<EventFields>) => {
     const before = { date: e.date, place: e.place };
@@ -203,22 +199,13 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
             <Star className="icon" aria-hidden="true" /></button>
         </div>
         </div>
-        {/* while editing: save and cancel as icons, the same as the buttons below the form */}
-        {editor && <div className="tools">
-          <button type="submit" form={EDITOR_FORM} className="icon-btn save" title={`${t("save")} (Ctrl+Enter)`}
-                  aria-label={t("save")}><Check className="icon" aria-hidden="true" /></button>
-          <button type="button" className="icon-btn" onClick={onCancelEdit} title={`${t("cancel")} (Esc)`}
-                  aria-label={t("cancel")}><X className="icon" aria-hidden="true" /></button>
-        </div>}
-        {!editor && <div className="tools">
+        <div className="tools">
           <button type="button" className="icon-btn" onClick={onEdit} title={t("edit")} aria-label={t("edit")}>
             <Pencil className="icon" aria-hidden="true" /></button>
-          <button type="button" className="icon-btn" onClick={onEditWide} title={t("editWide")} aria-label={t("editWide")}>
-            <PanelRightOpen className="icon" aria-hidden="true" /></button>
           {id !== rootId && <button type="button" className="icon-btn" onClick={() => onMakeRoot(id)}
                                     title={t("makeRoot")} aria-label={t("makeRoot")}>
             <Crosshair className="icon" aria-hidden="true" /></button>}
-        </div>}
+        </div>
       </div>
       {live && <SuggestLists suggest={suggest} lang={lang} />}
       <p className="id">
@@ -233,7 +220,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
               : text}</span>;
           })} · </span>}
         {p.id.replace(/@/g, "")}</p>
-      {editor || <div className="facts">
+      <div className="facts">
         {(() => {
           const names = record ? nameDetails(record) : null;
           const NAME_LABELS: Record<string, StringKey> = { nickname: "nickname", called: "calledName",
@@ -347,7 +334,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
             {info.map((l, i) => <div key={i}><span>{t(KEYS[l.key])}:</span> {l.value}</div>)}
           </details>;
         })()}
-      </div>}
+      </div>
     </aside>
   );
 }

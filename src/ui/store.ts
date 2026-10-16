@@ -18,8 +18,6 @@ export interface Stored {
   keepAka?: boolean;
   /** the list of people is expanded (default: a narrow rail with a magnifier) */
   listOpen?: boolean;
-  /** the wide edit window: half of the browser width (default) or the full width */
-  editWidth?: "half" | "full";
   /** recently visited and favourite people, per file (see marks.ts) */
   marks?: Record<string, Marks>;
 }

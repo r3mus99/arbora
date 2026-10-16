@@ -651,15 +651,13 @@ section.check { margin: 0 0 14px; }
 .inline-note-field { box-sizing: border-box; width: 100%; font: inherit; color: inherit; line-height: inherit; padding: 0; margin: 0; resize: none; display: block;
                      background: none; border: 0; border-bottom: 1px solid var(--accent); border-radius: 0; outline: none; }
 
-/* wide edit window (EditWindow): lies over the tree and the detail, right of the tool bar. "half" = half of the browser
-   width (the tree stays visible), "full" = the whole width right of the tool bar. A 1px line, no shadow. */
+/* edit window (EditWindow): lies over the tree and the detail, right of the tool bar, half of the browser width so the
+   tree stays visible. A 1px line, no shadow. */
 .viewer { position: relative; }
 .edit-layer { grid-column: 2 / -1; grid-row: 1; position: relative; pointer-events: none; z-index: 3; }
 .edit-layer[hidden] { display: none; }
 .edit-window { position: absolute; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; background: var(--panel);
-               border-left: 1px solid var(--border); pointer-events: auto; }
-.edit-window.half { width: min(50vw, 100%); }
-.edit-window.full { width: 100%; border-left: 0; }
+               border-left: 1px solid var(--border); pointer-events: auto; width: min(50vw, 100%); }
 .edit-body { padding: 0 var(--pad) var(--pad); font-size: 14px; line-height: 1.5; --d-icon: 18px; --d-icon-row: 15px; --d-col: 22px; --d-gap: 10px; --d-section-gap: 14px; }
 .edit-body .icon { width: var(--d-icon); height: var(--d-icon); }
 .edit-body > * + * { margin-top: var(--d-section-gap); padding-top: var(--d-section-gap); border-top: 1px solid var(--border); }
