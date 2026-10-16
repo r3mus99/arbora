@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, decode, familyFields, parseGedcom, personFields, writeGedcom, type FamilyFields, type GedNode,
+  applyFamily, applyPerson, decode, familyFields, parseGedcom, personFields, sourceChoices, writeGedcom, type FamilyFields, type GedNode,
   type PersonFields,
 } from "./index";
 import { RICH_GED } from "./fixtures/rich";
@@ -288,5 +288,40 @@ describe("events of a person", () => {
     const rec = load(ged("1 RESI x\n"));
     const f = personFields(rec);
     expect(applyPerson(rec, f, { ...f, events: f.events.map((e) => ({ ...e })) })).toBe(rec);
+  });
+});
+
+describe("source citations of a person", () => {
+  const text = "0 HEAD\n0 @S1@ SOUR\n1 TITL Parish book\n0 @I1@ INDI\n1 NAME Anna /Test/\n1 NOTE n\n1 SOUR @S1@\n2 PAGE 12\n2 QUAY 2\n2 NOTE c\n1 FAMS @F1@\n0 TRLR\n";
+  const rec = () => parseGedcom(text).find((c) => c.tag === "INDI")!;
+  const tags = (r: GedNode) => r.children.map((c) => `${c.tag} ${c.value}`.trim());
+
+  test("reads the citations and sourceChoices lists the source records", () => {
+    expect(personFields(rec()).citations).toEqual([{ origin: 0, source: "@S1@", page: "12", quality: "2" }]);
+    expect(sourceChoices(parseGedcom(text))).toEqual([{ xref: "@S1@", title: "Parish book" }]);
+  });
+
+  test("changes page and quality, keeping the lines the form does not show", () => {
+    const r = rec(), f = personFields(r);
+    const out = applyPerson(r, f, { ...f, citations: [{ ...f.citations[0], page: "13", quality: "" }] });
+    expect(out.children[2].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["PAGE 13", "NOTE c"]);
+  });
+
+  test("adds a citation before the family links, and removes one", () => {
+    const r = rec(), f = personFields(r);
+    const added = applyPerson(r, f, { ...f, citations: [...f.citations, { origin: -1, source: "@S1@", page: "7", quality: "3" }, { origin: -1, source: "", page: "x", quality: "" }] });
+    expect(tags(added)).toEqual(["NAME Anna /Test/", "NOTE n", "SOUR @S1@", "SOUR @S1@", "FAMS @F1@"]);
+    expect(added.children[3].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["PAGE 7", "QUAY 3"]);
+    const g = personFields(added);
+    const back = applyPerson(added, g, { ...g, citations: g.citations.slice(0, 1) });
+    expect(tags(back)).toEqual(tags(r));
+    expect(applyPerson(r, f, { ...f, citations: [] }).children.some((c) => c.tag === "SOUR")).toBe(false);
+  });
+
+  test("a changed pointer or a text citation is written as typed", () => {
+    const r = rec(), f = personFields(r);
+    const out = applyPerson(r, f, { ...f, citations: [{ ...f.citations[0], source: "Family Bible" }] });
+    expect(out.children[2].value).toBe("Family Bible");
+    expect(applyPerson(r, f, { ...f, citations: f.citations.map((c) => ({ ...c })) })).toBe(r);
   });
 });

@@ -8,7 +8,7 @@ import { MONTHS, gedcomDay, validDateValue } from "./date";
 import { formatDate } from "./format";
 import { ATTRIBUTE_TAGS } from "./facts";
 import { EXTRA_EVENT_TAGS } from "./timeline";
-import { childOf, gedNode, isAka, joinedSrc, mainName, rewritten, type GedNode } from "./gedcom";
+import { childOf, childrenOf, gedNode, isAka, joinedSrc, mainName, rewritten, type GedNode } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
 
 export interface EventFields { date: string; place: string }
@@ -38,6 +38,8 @@ export interface PersonFields {
   details: Record<EventKey, EventDetailFields>;
   /** the other events of the person (baptism, residence, custom, …) */
   events: EventRow[];
+  /** the source citations written directly under the person */
+  citations: CitationRow[];
   /** the attribute lines (education, nationality, …) that have a value, date or place; `origin` is the index among all attribute lines, -1 for a new one */
   attributes: AttributeRow[];
 }
@@ -58,6 +60,17 @@ export interface EventRow extends EventFields, EventDetailFields {
 
 /** the tags of the other events, in the order they are offered */
 export const OTHER_EVENT_TAGS = [...EXTRA_EVENT_TAGS, "RESI", "EVEN"];
+
+/** a source citation directly under the person: `source` is the pointer to a source record (@S1@) or the text of the citation */
+export interface CitationRow {
+  /** the index among the person's SOUR lines, -1 for a new one */
+  origin: number;
+  source: string;
+  /** PAGE: where in the source */
+  page: string;
+  /** QUAY: how reliable, "0" to "3", or "" */
+  quality: string;
+}
 
 export interface AttributeRow extends EventFields { origin: number; tag: string; value: string }
 
@@ -131,6 +144,9 @@ export function personFields(rec: GedNode): PersonFields {
     events: rec.children.filter((c) => OTHER_EVENT_TAGS.includes(c.tag)).map((c, origin) => ({
       origin, tag: c.tag, title: c.tag === "EVEN" ? childOf(c, "TYPE")?.value || "" : "",
       value: c.value === "Y" ? "" : c.value, ...datePlace(c), ...detailFields(c),
+    })),
+    citations: childrenOf(rec, "SOUR").map((c, origin) => ({
+      origin, source: c.value, page: childOf(c, "PAGE")?.value || "", quality: childOf(c, "QUAY")?.value.trim() || "",
     })),
     attributes: rec.children.filter((c) => ATTRIBUTE_TAGS.includes(c.tag))
       .map((c, origin) => ({ origin, tag: c.tag, value: c.value === "Y" ? "" : c.value, ...datePlace(c) }))
@@ -403,6 +419,42 @@ function setAttributes(rec: GedNode, before: AttributeRow[], after: AttributeRow
   return out;
 }
 
+/** The citation line with the typed page and quality; PAGE comes first, QUAY before the notes. */
+function setCitation(cite: GedNode, before: CitationRow, after: CitationRow): GedNode {
+  let out = cite;
+  if (after.source !== before.source) out = { ...out, value: after.source };
+  if (after.page !== before.page) out = setChild(out, "PAGE", after.page, 0);
+  if (after.quality !== before.quality) {
+    const note = out.children.findIndex((c) => c.tag === "NOTE");
+    out = setChild(out, "QUAY", after.quality, note < 0 ? out.children.length : note);
+  }
+  return out;
+}
+
+/** The citations from the rows: kept ones updated, removed ones deleted, new ones added with the other SOURs. */
+function setCitations(rec: GedNode, before: CitationRow[], after: CitationRow[]): GedNode {
+  const rows = after.map((r) => ({ ...r, source: r.source.trim(), page: r.page.trim(), quality: r.quality.trim() }));
+  const same = (a: CitationRow, b: CitationRow) => a.source === b.source && a.page === b.page && a.quality === b.quality;
+  if (rows.length === before.length && rows.every((r, i) => r.origin === before[i].origin && same(r, before[i]))) return rec;
+  let k = -1;
+  const children: GedNode[] = [];
+  for (const c of rec.children) {
+    if (c.tag !== "SOUR") { children.push(c); continue; }
+    k++;
+    const was = before.find((b) => b.origin === k);
+    const row = rows.find((r) => r.origin === k);
+    if (!was) { children.push(c); continue; }
+    if (!row || !row.source) continue;
+    children.push(same(row, was) ? c : setCitation(c, was, row));
+  }
+  let out = { ...rec, children };
+  const empty: CitationRow = { origin: -1, source: "", page: "", quality: "" };
+  for (const row of rows.filter((r) => r.origin < 0 && r.source)) {
+    out = { ...out, children: insert(out.children, setCitation(gedNode("SOUR", row.source), empty, { ...row, source: "" })) };
+  }
+  return out;
+}
+
 function setNote(rec: GedNode, text: string): GedNode {
   const note = inlineNote(rec);
   const value = text.replace(/\r\n?/g, "\n").trim();
@@ -436,6 +488,7 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   out = setDeceased(out, before.deceased, after.deceased);
   out = setOccupations(out, before.occupations, after.occupations);
   out = setAttributes(out, before.attributes, after.attributes);
+  out = setCitations(out, before.citations, after.citations);
   out = setNameParts(out, before.nameParts, after.nameParts);
   out = setAliases(out, before.aliases, after.aliases, after);
   if (after.religion.trim() !== before.religion) out = setChild(out, "RELI", after.religion.trim());

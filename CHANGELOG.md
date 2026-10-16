@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.44.0 – 2026-10-16
+
+- **Notes and sources part of the edit window.** Under the note, the Notes section lists the source citations written
+  directly under the person: the source (chosen from the source records of the file, or a text citation), the page and
+  the reliability (QUAY 0 to 3), with add and remove. Only the changed lines are written; lines under a citation that
+  the form does not show (notes, quoted text) stay as they were.
+
 ## 1.43.0 – 2026-10-16
 
 - **Slimmer, sharper fields and controls.** Inputs, selects, the search box and the fields of the edit window and the
