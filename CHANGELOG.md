@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.41.0 – 2026-10-16
+
+- **Basic facts part of the edit window: other facts.** Next to sex, deceased, religion and occupation, the edit
+  window now edits the other facts of a person (education, nationality, title, property, caste, description, number
+  of children, ID number, other fact): value, date and place of each, add and remove. Only the changed lines are
+  written, in the usual place among the other lines; lines the form does not list stay as they were.
+
 ## 1.40.0 – 2026-10-16
 
 - **Name part of the edit window.** The Name section now also edits the title before the name (NPFX), the name suffix

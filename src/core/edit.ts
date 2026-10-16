@@ -6,6 +6,7 @@
 
 import { MONTHS, gedcomDay, validDateValue } from "./date";
 import { formatDate } from "./format";
+import { ATTRIBUTE_TAGS } from "./facts";
 import { childOf, gedNode, isAka, joinedSrc, mainName, rewritten, type GedNode } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
 
@@ -32,7 +33,11 @@ export interface PersonFields {
   aliases: Alias[];
   /** the lines under the main NAME that hold the other parts of the name */
   nameParts: NameParts;
+  /** the attribute lines (education, nationality, …) that have a value, date or place; `origin` is the index among all attribute lines, -1 for a new one */
+  attributes: AttributeRow[];
 }
+
+export interface AttributeRow extends EventFields { origin: number; tag: string; value: string }
 
 /** NPFX title before the name, NICK nickname, SPFX surname prefix (van, de), NSFX what follows the name; the first line of each */
 export interface NameParts { prefix: string; nickname: string; surnamePrefix: string; suffix: string }
@@ -97,6 +102,9 @@ export function personFields(rec: GedNode): PersonFields {
     deceased: DEATH_TAGS.some((tag) => childOf(rec, tag)),
     aliases: akaNames(rec).map((n, origin) => ({ origin, ...nameParts(n) })),
     nameParts: namePartFields(mainName(rec)),
+    attributes: rec.children.filter((c) => ATTRIBUTE_TAGS.includes(c.tag))
+      .map((c, origin) => ({ origin, tag: c.tag, value: c.value === "Y" ? "" : c.value, ...datePlace(c) }))
+      .filter((a) => a.value || a.date || a.place),
   };
   return fields;
 }
@@ -143,7 +151,7 @@ export function suggestions(records: GedNode[]): Suggestions {
 
 /** usual GEDCOM order of a person's or family's lines; new lines go to their place */
 const ORDER = ["NAME", "SEX", "HUSB", "WIFE", "BIRT", "CHR", "BAPM", "DEAT", "BURI", "CREM", "MARR", "DIV",
-               "OCCU", "RELI", "NOTE"];
+               "OCCU", "RELI", ...ATTRIBUTE_TAGS, "NOTE"];
 const LATE = new Set(["FAMC", "FAMS", "CHIL", "SOUR", "OBJE", "CHAN", "RIN", "REFN"]);
 
 /** A record with one more line `tag value`, put where GEDCOM usually has it; written anew. */
@@ -289,6 +297,31 @@ function setOccupations(rec: GedNode, before: Occupation[], after: Occupation[])
   return out;
 }
 
+const sameAttribute = (a: AttributeRow, b: AttributeRow) => a.value === b.value && a.date === b.date && a.place === b.place;
+
+/** Attribute lines from the rows: kept ones updated, removed ones deleted, new ones added after the others; lines the form did not list stay. */
+function setAttributes(rec: GedNode, before: AttributeRow[], after: AttributeRow[]): GedNode {
+  const rows = after.map((a) => ({ ...a, value: a.value.trim(), date: a.date.trim(), place: a.place.trim() }))
+    .filter((a) => a.value || a.date || a.place);
+  if (rows.length === before.length && rows.every((a, i) => a.origin === before[i].origin && sameAttribute(a, before[i]))) return rec;
+  let k = -1;
+  const children: GedNode[] = [];
+  for (const c of rec.children) {
+    if (!ATTRIBUTE_TAGS.includes(c.tag)) { children.push(c); continue; }
+    k++;
+    const was = before.find((b) => b.origin === k);
+    const row = rows.find((a) => a.origin === k);
+    if (!was) { children.push(c); continue; }
+    if (!row) continue;
+    children.push(setDatePlace(row.value === was.value ? c : { ...c, value: row.value }, was, row));
+  }
+  let out = { ...rec, children };
+  for (const row of rows.filter((a) => a.origin < 0)) {
+    out = { ...out, children: insert(out.children, setDatePlace(gedNode(row.tag, row.value), { date: "", place: "" }, row)) };
+  }
+  return out;
+}
+
 function setNote(rec: GedNode, text: string): GedNode {
   const note = inlineNote(rec);
   const value = text.replace(/\r\n?/g, "\n").trim();
@@ -320,6 +353,7 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   for (const key of PERSON_EVENTS) out = setEvent(out, EVENT_TAGS[key], before[key], tidy(after[key]));
   out = setDeceased(out, before.deceased, after.deceased);
   out = setOccupations(out, before.occupations, after.occupations);
+  out = setAttributes(out, before.attributes, after.attributes);
   out = setNameParts(out, before.nameParts, after.nameParts);
   out = setAliases(out, before.aliases, after.aliases, after);
   if (after.religion.trim() !== before.religion) out = setChild(out, "RELI", after.religion.trim());

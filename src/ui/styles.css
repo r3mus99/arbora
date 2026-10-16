@@ -675,3 +675,5 @@ section.check { margin: 0 0 14px; }
 .edit-body .editor > .section:first-child { margin-top: var(--d-section-gap); }
 /* "+" buttons that add an optional field of a part (the name parts): a row of the same buttons as "add" */
 .editor .adds { display: flex; flex-wrap: wrap; gap: var(--gap); }
+/* the tag choice of an attribute row sits before its value */
+.editor .item-head select { flex: none; width: auto; max-width: 45%; }

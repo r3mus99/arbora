@@ -200,3 +200,55 @@ describe("the parts of a name", () => {
     expect(rest(changed, ["NAME"])).toEqual(rest(rec, ["NAME"]));
   });
 });
+
+describe("attributes of a person", () => {
+  const GED = `0 HEAD
+0 @I1@ INDI
+1 NAME Jan /Novak/
+1 SEX M
+1 OCCU smith
+1 EDUC primary school
+2 DATE 1890
+1 NATI
+2 PLAC Brno
+1 FACT Y
+1 RELI Catholic
+1 NOTE x
+0 TRLR
+`;
+  const rec = parseGedcom(GED)[1];
+  const before = personFields(rec);
+  const change = (fn: (f: PersonFields) => Partial<PersonFields>) => applyPerson(rec, before, { ...before, ...fn(before) });
+
+  test("are listed with the index of their line, empty ones left out", () => {
+    expect(before.attributes.map((a) => [a.origin, a.tag, a.value, a.date, a.place])).toEqual([
+      [0, "EDUC", "primary school", "1890", ""], [1, "NATI", "", "", "Brno"],
+    ]);
+  });
+
+  test("a changed value touches only its line", () => {
+    const changed = change((f) => ({ attributes: f.attributes.map((a) => (a.origin === 0 ? { ...a, value: "grammar school" } : a)) }));
+    const out = writeGedcom([changed]);
+    expect(out).toContain("1 EDUC grammar school\n2 DATE 1890\n1 NATI\n2 PLAC Brno\n1 FACT Y\n");
+    expect(rest(changed, ["EDUC"])).toEqual(rest(rec, ["EDUC"]));
+  });
+
+  test("a removed one is deleted and the unlisted empty line stays", () => {
+    const out = writeGedcom([change((f) => ({ attributes: f.attributes.filter((a) => a.origin !== 0) }))]);
+    expect(out).not.toContain("EDUC");
+    expect(out).toContain("1 NATI\n2 PLAC Brno\n1 FACT Y\n");
+  });
+
+  test("a new one is written with its date and place, among the other attributes", () => {
+    const out = writeGedcom([change((f) => ({ attributes: [...f.attributes,
+      { origin: -1, tag: "PROP", value: "a mill", date: "1900", place: "Brno" }] }))]);
+    expect(out).toContain("1 NATI\n2 PLAC Brno\n1 PROP a mill\n2 DATE 1900\n2 PLAC Brno\n1 FACT Y\n");
+  });
+
+  test("changing back gives the record as it was", () => {
+    const changed = change((f) => ({ attributes: [...f.attributes.map((a) => ({ ...a, place: "Prague" })),
+      { origin: -1, tag: "PROP", value: "a mill", date: "", place: "" }] }));
+    const back = applyPerson(changed, personFields(changed), before);
+    expect(writeGedcom([back])).toBe(writeGedcom([rec]));
+  });
+});
