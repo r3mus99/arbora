@@ -336,9 +336,9 @@ button.link { display: inline; }
   outline: none; border-color: var(--accent); background: var(--accent-soft); }
 .editor textarea:focus { border-style: solid; }
 .editor textarea { resize: vertical; }
-.editor .trio { display: grid; grid-template-columns: minmax(80px, 0.5fr) 1fr 1fr; gap: 12px; }
+.editor .trio { display: grid; grid-template-columns: 80px 1fr 1fr; gap: 12px; }
 .editor .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.editor fieldset { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: minmax(150px, 0.4fr) 1fr;
+.editor fieldset { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 130px 1fr;
                    gap: 6px 12px; min-width: 0; }
 .editor legend { padding: 0; margin-bottom: 8px; color: var(--text); font-size: 12px; }
 .editor .check { border: 0; padding: 0; margin: 0; background: none; grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; color: var(--text);
@@ -358,7 +358,7 @@ button.link { display: inline; }
 .editor fieldset > .add { justify-self: start; }
 .editor fieldset.sub { padding-top: 4px; }
 .editor fieldset.list { grid-template-columns: 1fr; gap: 16px; }
-.editor .item { display: grid; grid-template-columns: minmax(150px, 0.4fr) 1fr; gap: 8px 12px; padding: 0; }
+.editor .item { display: grid; grid-template-columns: 130px 1fr; gap: 8px 12px; padding: 0; }
 .editor .item-head { grid-column: 1 / -1; display: flex; gap: 8px; }
 .editor .item-head input { flex: 1; min-width: 0; }
 .editor .item-head .icon-btn { padding: 0 11px; }
