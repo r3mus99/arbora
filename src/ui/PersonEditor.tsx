@@ -245,7 +245,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   };
   /** which of the two spouse lines of the family is the other person's */
   const otherKey = (f: FamilyFields) => (f.husb === record.xref ? "wife" : "husb");
-  const spouseName = (f: FamilyFields) => (f[otherKey(f)] && data.people[f[otherKey(f)]]?.name) || "?";
   /** name and birth year, the ID only where two people would look the same */
   const personChoices = useMemo(() => {
     const plain = Object.values(data.people).map((p) => {
@@ -467,7 +466,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {section("families", <>
       {families.map((r, i) => (
         <fieldset key={r.xref}>
-          <legend>{ico(Heart)}{t("marriage")} · {spouseName(fams[i])}</legend>
+          <legend>{ico(Heart)}{t("marriage")}</legend>
           <div className="wide">
             <PersonPick choices={personChoices} exclude={[record.xref!, ...fams[i].children]} value={fams[i][otherKey(fams[i])]}
                         label={t("spouse")} placeholder={t("pickPerson")} onPick={(id) => setFam(i, { [otherKey(fams[i])]: id })} />
