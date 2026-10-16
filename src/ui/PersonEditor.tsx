@@ -1,4 +1,4 @@
-import { Copy, Plus, X } from "lucide-react";
+import { Baby, BookMarked, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, Plus, Tag, Tags, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   OTHER_EVENT_TAGS, PEDIGREES, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
@@ -33,6 +33,10 @@ interface Props {
   onDirty?: (dirty: boolean) => void;
   t: (key: StringKey) => string;
 }
+
+/** the icons the detail uses for the same events */
+const EVENT_ICON: Record<(typeof PERSON_EVENTS)[number], LucideIcon> = { birth: Baby, christening: Droplets, death: Cross, burial: Flower2 };
+const ico = (Icon: LucideIcon) => <Icon className="icon" aria-hidden="true" />;
 
 const EVENT_LABEL: Record<(typeof PERSON_EVENTS)[number], StringKey> = {
   birth: "thBirth", christening: "christening", death: "thDeath", burial: "burial",
@@ -225,7 +229,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     const from = COPY_FROM[key];
     const source = from && form[from[0]];
     return <fieldset key={key}>
-      <legend>{t(EVENT_LABEL[key])}
+      <legend>{ico(EVENT_ICON[key])}{t(EVENT_LABEL[key])}
         {from && <button type="button" className="copy" title={t(from[1])} aria-label={t(from[1])}
                          disabled={!source?.date && !source?.place} onClick={() => set(key, { ...source! })}>
           <Copy className="icon" aria-hidden="true" /></button>}
@@ -295,7 +299,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                  onChange={(e) => setPart({ [key]: e.target.value })} /></label>)}
       </div>}
       {form.aliases.length > 0 && <fieldset className="list">
-        <legend>{t("aka")}</legend>
+        <legend>{ico(Tag)}{t("aka")}</legend>
         {form.aliases.map((a, i) => (
           <div className="item alias" key={a.origin < 0 ? `new${i}` : a.origin}>
             <input type="text" value={a.given} list={givenList(form.sex)} aria-label={t("givenName")} placeholder={t("givenName")}
@@ -338,7 +342,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         <input type="text" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>
       <fieldset className="list">
-        <legend>{t("occupation")}</legend>
+        <legend>{ico(Briefcase)}{t("occupation")}</legend>
         {form.occupations.map((o, i) => (
           <div className="item" key={o.origin < 0 ? `new${i}` : o.origin}>
             <div className="item-head">
@@ -360,7 +364,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           <Plus className="icon" aria-hidden="true" />{t("addOccupation")}</button>
       </fieldset>
       <fieldset className="list">
-        <legend>{t("attributes")}</legend>
+        <legend>{ico(Tags)}{t("attributes")}</legend>
         {form.attributes.map((a, i) => (
           <div className="item" key={a.origin < 0 ? `new${i}` : a.origin}>
             <div className="item-head">
@@ -391,7 +395,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {event("christening")}
       {form.deceased && <>{event("death")}{event("burial")}</>}
       <fieldset className="list">
-        <legend>{t("otherEvents")}</legend>
+        <legend>{ico(CalendarDays)}{t("otherEvents")}</legend>
         {form.events.map((e, i) => (
           <div className="item" key={e.origin < 0 ? `new${i}` : e.origin}>
             <div className="item-head">
@@ -422,7 +426,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </>)}
       {section("parents", <>
       <fieldset className="list">
-        <legend>{t("parents")}</legend>
+        <legend>{ico(Users)}{t("parents")}</legend>
         {form.parents.map((p, i) => (
           <div className="item" key={p.origin < 0 ? `new${i}` : p.origin}>
             <div className="item-head">
@@ -443,7 +447,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                     placeholder={t("pickFamily")} onPick={(id) => id && set("parents", [...form.parents, { origin: -1, fam: id, pedigree: "" }])} />
       </fieldset>
       <fieldset className="list">
-        <legend>{t("associations")}</legend>
+        <legend>{ico(Handshake)}{t("associations")}</legend>
         {form.associations.map((a, i) => (
           <div className="item" key={a.origin < 0 ? `new${i}` : a.origin}>
             <div className="item-head">
@@ -463,7 +467,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {section("families", <>
       {families.map((r, i) => (
         <fieldset key={r.xref}>
-          <legend>{t("marriage")} · {spouseName(fams[i])}</legend>
+          <legend>{ico(Heart)}{t("marriage")} · {spouseName(fams[i])}</legend>
           <div className="wide">
             <PersonPick choices={personChoices} exclude={[record.xref!, ...fams[i].children]} value={fams[i][otherKey(fams[i])]}
                         label={t("spouse")} placeholder={t("pickPerson")} onPick={(id) => setFam(i, { [otherKey(fams[i])]: id })} />
@@ -479,7 +483,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                    onChange={(e) => setFam(i, { divorced: e.target.checked })} />
             <span>{t("divorcedLabel")}</span></label>
           {fams[i].divorced && <fieldset className="sub">
-            <legend>{t("divorce")}</legend>
+            <legend>{ico(HeartCrack)}{t("divorce")}</legend>
             <DateField value={fams[i].divorce.date} shown={initial.fams[i].shown.divorce.date} lang={lang} t={t}
                        onChange={(v) => setFam(i, {}, {}, { date: v })} />
             <label><span>{t("place")}</span>
@@ -488,7 +492,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             {details(`d${r.xref}`, fams[i].details.divorce, (patch) => setFamDetails(i, "divorce", patch))}
           </fieldset>}
           <div className="wide children">
-            <span className="lab">{t("children")}</span>
+            <span className="lab">{ico(Baby)}{t("children")}</span>
             {fams[i].children.map((id) => (
               <div className="child" key={id}>
                 <span>{labelOf(id)}</span>
@@ -508,7 +512,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       <label><span>{t("note")}</span>
         <textarea rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
       <fieldset className="list">
-        <legend>{t("sources")}</legend>
+        <legend>{ico(BookMarked)}{t("sources")}</legend>
         {form.citations.map((c, i) => (
           <div className="item" key={c.origin < 0 ? `new${i}` : c.origin}>
             <div className="item-head">

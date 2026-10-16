@@ -673,30 +673,31 @@ section.check { margin: 0 0 14px; }
 .edit-layer[hidden] { display: none; }
 .edit-window { position: absolute; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; background: var(--panel);
                border-left: 1px solid var(--border); pointer-events: auto; width: min(var(--edit-w), 100%); }
-.edit-body { padding: 0 var(--pad) var(--pad); font-size: 14px; line-height: 1.5; --d-icon: 18px; --d-icon-row: 15px; --d-col: 22px; --d-gap: 10px; --d-section-gap: 14px; }
+.edit-body { display: grid; gap: 10px; align-content: start; background: var(--bg); padding: var(--pad); font-size: 14px; line-height: 1.5; --d-icon: 18px; --d-icon-row: 15px; --d-col: 22px; --d-gap: 10px; --d-section-gap: 14px; }
 .edit-body .icon { width: var(--d-icon); height: var(--d-icon); }
-.edit-body > * + * { margin-top: var(--d-section-gap); padding-top: var(--d-section-gap); border-top: 1px solid var(--border); }
-.edit-body > .section:first-child { margin-top: var(--d-section-gap); }
 .edit-body .muted { margin: 0; color: var(--muted); }
 /* the edit window shares the cells of the tree and the detail, so every column is placed by hand */
 .viewer > .side { grid-column: 1; grid-row: 1; }
 .viewer > .mid { grid-column: 2; grid-row: 1; }
 .viewer > .detail { grid-column: 3; grid-row: 1; }
 .viewer > .check-wide { grid-row: 1; }
-/* the form of the edit window: parts are told apart by a thin line, the fields of a part sit in the text column */
+/* the form of the edit window: every part is a card on the page background, the fields of a part sit in the text column */
 .sec-fields { display: grid; gap: 16px; }
-.edit-body .editor { margin-top: 0; gap: 0; }
-.edit-body .editor > * + * { margin-top: var(--d-section-gap); padding-top: var(--d-section-gap); border-top: 1px solid var(--border); }
-.edit-body .editor > .section:first-child { margin-top: var(--d-section-gap); }
+.edit-body .editor { margin-top: 0; gap: 10px; }
 /* "+" buttons that add an optional field of a part (the name parts): a row of the same buttons as "add" */
 .editor .adds { display: flex; flex-wrap: wrap; gap: var(--gap); }
 /* the tag choice of an attribute row sits before its value */
 .editor .item-head select { flex: none; width: auto; max-width: 45%; }
 .editor .item-head select.fill { flex: 1; max-width: none; min-width: 0; }
 /* the parts of the edit window collapse: the title row is the summary, a chevron shows the state */
-.collapsible > summary.sec-head { cursor: pointer; margin: 0; padding: 4px 0; grid-template-columns: var(--d-col) auto 1fr auto; }
+.edit-body .collapsible { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 0 14px; }
+.edit-body .collapsible[open] { padding-bottom: 14px; }
+.collapsible > summary.sec-head { cursor: pointer; margin: 0; padding: 10px 0; grid-template-columns: var(--d-col) auto 1fr auto; }
 .collapsible > summary.sec-head::after { content: ""; width: 7px; height: 7px; margin: 0 0 0 -4px; border: solid var(--muted);
   border-width: 0 1.5px 1.5px 0; align-self: center; justify-self: start; transform: translateX(-2px) rotate(-45deg); transition: transform .12s; }
 .collapsible[open] > summary.sec-head::after { transform: translateY(-2px) rotate(45deg); }
 .collapsible > summary.sec-head:hover { color: var(--text); }
-.collapsible[open] > summary.sec-head { margin-bottom: 8px; }
+.collapsible[open] > summary.sec-head { margin-bottom: 10px; border-bottom: 1px solid var(--border); }
+/* an icon before the title of a group inside a part */
+.editor legend .icon { width: var(--icon-sm); height: var(--icon-sm); margin-right: 6px; vertical-align: -2px; color: var(--c-src); }
+.editor .lab .icon { width: var(--icon-sm); height: var(--icon-sm); margin-right: 6px; vertical-align: -2px; color: var(--c-src); }
