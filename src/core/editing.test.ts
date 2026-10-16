@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, decode, familyFields, parseGedcom, personFields, sourceChoices, writeGedcom, type FamilyFields, type GedNode,
+  applyFamily, applyPerson, decode, familyFields, parseGedcom, personFields, rewritten, sourceChoices, writeGedcom, type FamilyFields, type GedNode,
   type PersonFields,
 } from "./index";
 import { RICH_GED } from "./fixtures/rich";
@@ -83,7 +83,7 @@ describe("the sample", () => {
     const all = sample.map((r) => {
       if (r.tag !== "FAM") return r;
       const before = familyFields(r);
-      const changed = applyFamily(r, before, { marriage: { date: "1999", place: "Nowhere" }, divorced: !before.divorced });
+      const changed = applyFamily(r, before, { ...before, marriage: { date: "1999", place: "Nowhere" }, divorced: !before.divorced });
       return applyFamily(changed, familyFields(changed), before);
     });
     expect(writeGedcom(all)).toBe(text);
@@ -323,5 +323,31 @@ describe("source citations of a person", () => {
     const out = applyPerson(r, f, { ...f, citations: [{ ...f.citations[0], source: "Family Bible" }] });
     expect(out.children[2].value).toBe("Family Bible");
     expect(applyPerson(r, f, { ...f, citations: f.citations.map((c) => ({ ...c })) })).toBe(r);
+  });
+});
+
+describe("marriage and divorce details of a family", () => {
+  const text = "0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 MARR\n2 DATE 1900\n1 DIV Y\n1 CHIL @I3@\n";
+  const rec = () => parseGedcom(text)[0];
+
+  test("sets the date, place and details of the divorce under DIV Y", () => {
+    const r = rec(), f = familyFields(r);
+    const out = applyFamily(r, f, { ...f, divorce: { date: "1910", place: "Town" }, details: { ...f.details, divorce: { age: "", cause: "x", agency: "" } } });
+    expect(writeGedcom([out])).toBe("0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 MARR\n2 DATE 1900\n1 DIV Y\n2 DATE 1910\n2 PLAC Town\n2 CAUS x\n1 CHIL @I3@\n");
+    expect(writeGedcom([applyFamily(out, familyFields(out), f)])).toBe(text);
+  });
+
+  test("marking a marriage as divorced adds DIV Y with the typed date; unticking removes it all", () => {
+    const r = parseGedcom("0 @F1@ FAM\n1 HUSB @I1@\n1 MARR\n2 DATE 1900\n")[0], f = familyFields(r);
+    const out = applyFamily(r, f, { ...f, divorced: true, divorce: { date: "1920", place: "" } });
+    expect(writeGedcom([out])).toBe("0 @F1@ FAM\n1 HUSB @I1@\n1 MARR\n2 DATE 1900\n1 DIV Y\n2 DATE 1920\n");
+    expect(writeGedcom([applyFamily(out, familyFields(out), f)])).toBe(writeGedcom([rewritten(r)]));
+  });
+
+  test("age, cause and agency of the marriage", () => {
+    const r = rec(), f = familyFields(r);
+    const out = applyFamily(r, f, { ...f, details: { ...f.details, marriage: { age: "", cause: "", agency: "Parish" } } });
+    expect(out.children[2].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1900", "AGNC Parish"]);
+    expect(applyFamily(r, f, { ...f, divorce: { ...f.divorce } })).toBe(r);
   });
 });

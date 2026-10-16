@@ -81,7 +81,14 @@ export interface Alias { origin: number; given: string; surname: string }
 
 export interface Occupation extends EventFields { origin: number; value: string }
 
-export interface FamilyFields { marriage: EventFields; divorced: boolean }
+/** the marriage and the divorce of a family; `divorce` and its details only count while `divorced` is set */
+export interface FamilyFields {
+  marriage: EventFields;
+  divorced: boolean;
+  divorce: EventFields;
+  /** age, cause and agency written under MARR and DIV */
+  details: { marriage: EventDetailFields; divorce: EventDetailFields };
+}
 
 const EVENT_TAGS = { birth: "BIRT", christening: "CHR", death: "DEAT", burial: "BURI" } as const;
 type EventKey = keyof typeof EVENT_TAGS;
@@ -156,7 +163,10 @@ export function personFields(rec: GedNode): PersonFields {
 }
 
 export function familyFields(rec: GedNode): FamilyFields {
-  return { marriage: eventFields(rec, "MARR"), divorced: !!childOf(rec, "DIV") };
+  return {
+    marriage: eventFields(rec, "MARR"), divorced: !!childOf(rec, "DIV"), divorce: eventFields(rec, "DIV"),
+    details: { marriage: detailFields(childOf(rec, "MARR")), divorce: detailFields(childOf(rec, "DIV")) },
+  };
 }
 
 /** Given names, surnames, places and religions used in the file, sorted, for suggestions in the form.
@@ -525,10 +535,14 @@ export function applyEventLine(rec: GedNode, node: GedNode, tag: string, before:
 }
 
 export function applyFamily(rec: GedNode, before: FamilyFields, after: FamilyFields): GedNode {
-  let out = setEvent(rec, "MARR", before.marriage, tidy(after.marriage));
-  if (after.divorced !== before.divorced) {
-    out = after.divorced ? { ...out, children: insert(out.children, gedNode("DIV", "Y")) }
-                         : { ...out, children: out.children.filter((c) => c.tag !== "DIV") };
+  let out = setEvent(rec, "MARR", before.marriage, tidy(after.marriage), before.details.marriage, after.details.marriage);
+  if (!after.divorced) {
+    if (before.divorced) out = { ...out, children: out.children.filter((c) => c.tag !== "DIV") };
+  } else {
+    // "1 DIV Y" says the marriage ended; the date, place and details go under it
+    if (!before.divorced) out = { ...out, children: insert(out.children, gedNode("DIV", "Y")) };
+    const was = before.divorced ? before : { ...before, divorce: { date: "", place: "" }, details: { ...before.details, divorce: NO_DETAILS } };
+    out = setEvent(out, "DIV", was.divorce, tidy(after.divorce), was.details.divorce, after.details.divorce);
   }
   return out === rec ? rec : rewritten(out);
 }

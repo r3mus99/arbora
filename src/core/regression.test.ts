@@ -150,7 +150,7 @@ describe("editing and going back", () => {
   test("marriage and divorce", () => {
     const original = rec("@F1@");
     const before = familyFields(original);
-    const changed = applyFamily(original, before, { marriage: { date: "1829", place: "Ostbach" }, divorced: false });
+    const changed = applyFamily(original, before, { ...before, marriage: { date: "1829", place: "Ostbach" }, divorced: false });
     const back = applyFamily(changed, familyFields(changed), before);
     expect(writeGedcom(records.map((r) => (r === original ? back : r)))).toBe(FAMILY);
   });

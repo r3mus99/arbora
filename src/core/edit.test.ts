@@ -144,7 +144,7 @@ describe("writing GEDCOM", () => {
   test("marriage and divorce of a family", () => {
     const rec = parseGedcom("0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 CHIL @I3@\n")[0];
     const before = familyFields(rec);
-    const after = applyFamily(rec, before, { marriage: { date: "12 MAY 1990", place: "Brezno" }, divorced: true });
+    const after = applyFamily(rec, before, { ...before, marriage: { date: "12 MAY 1990", place: "Brezno" }, divorced: true });
     expect(writeGedcom([after])).toBe(
       "0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 MARR\n2 DATE 12 MAY 1990\n2 PLAC Brezno\n1 DIV Y\n1 CHIL @I3@\n");
     expect(readRecords([after]).families["@F1@"]).toMatchObject({ divorced: true });

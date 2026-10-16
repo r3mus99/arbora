@@ -350,6 +350,9 @@ button.link { display: inline; }
 .editor .hint.warn { color: var(--danger); }
 .editor .actions { display: flex; gap: 8px; margin-top: 4px; }
 .editor .actions button { padding: 0 18px; }
+.editor fieldset > .trio, .editor fieldset > .add, .editor fieldset > .sub { grid-column: 1 / -1; }
+.editor fieldset > .add { justify-self: start; }
+.editor fieldset.sub { padding-top: 4px; }
 .editor fieldset.list { grid-template-columns: 1fr; gap: 10px; }
 .editor .item { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; padding: 12px;
                 border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--panel); }
