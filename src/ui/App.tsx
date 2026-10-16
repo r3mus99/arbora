@@ -30,6 +30,8 @@ import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
 import { PlacesPanel } from "./PlacesPanel";
 import { PersonDetail } from "./PersonDetail";
+import { EditWindow } from "./EditWindow";
+import { editWidthOf, type EditWidth } from "./editWindow";
 import { PersonEditor } from "./PersonEditor";
 import { PersonRail } from "./PersonRail";
 import { SettingsPanel } from "./SettingsPanel";
@@ -83,6 +85,10 @@ export function App() {
   const data = useMemo(() => (doc ? readRecords(doc.records) : null), [doc]);
   // person whose facts are being edited in the detail panel
   const [editId, setEditId] = useState<string | null>(null);
+  // the wide edit window: the person it edits (it stays on that person while others are shown) and its width
+  const [windowId, setWindowId] = useState<string | null>(null);
+  const [editWidth, setEditWidth] = useState<EditWidth>(() => editWidthOf(readStore().editWidth));
+  const widenEdit = (w: EditWidth) => { setEditWidth(w); updateStore({ editWidth: w }); };
   // file name, or null for the sample
   const [loadedName, setLoadedName] = useState<string | null>("");
   // the file kept in this browser (name, null for the sample), and whether it is still being read at start
@@ -660,6 +666,9 @@ export function App() {
                             favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} t={t} />
               </aside>}
             </div>
+            {windowId && data.people[windowId] && <EditWindow name={data.people[windowId].name || "?"} width={editWidth}
+                                 onWidth={widenEdit} onClose={() => setWindowId(null)} onSave={() => setWindowId(null)}
+                                 hidden={showCheck || showFix} t={t} />}
             {showCheck || showFix ? <aside className="check-wide" aria-label={t(showFix ? "batchRename" : "check")}>
               {showFix ? <BulkFix data={data} t={t} variants={variants} values={spelled} hidden={hidden} onHide={hide}
                                   onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
@@ -697,7 +706,7 @@ export function App() {
             {focusId && <PersonDetail data={data} id={focusId} starred={favourites.has(focusId)}
                                       onStar={() => star(focusId)} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} onChange={commit} suggest={suggest}
-                                      onEdit={() => setEditId(focusId)} onCancelEdit={() => setEditId(null)} t={t}
+                                      onEdit={() => setEditId(focusId)} onEditWide={() => { setEditId(null); setWindowId(focusId); }} onCancelEdit={() => setEditId(null)} t={t}
                                       editor={editId === focusId && recordOf.has(focusId) &&
                                         <PersonEditor key={focusId} data={data} record={recordOf.get(focusId)!}
                                                       families={data.people[focusId].fams

@@ -555,10 +555,10 @@ section.check { margin: 0 0 14px; }
 .bulk ins { color: var(--accent); font-weight: 600; text-decoration: none; }
 .bulk .link.person { color: var(--text); font-weight: 600; text-decoration: none; }
 .bulk .link.person:hover { text-decoration: underline; }
-.bulk-foot { flex: none; display: flex; align-items: center; gap: var(--gap); padding: 10px var(--pad); border-top: 1px solid var(--border); }
+.bulk-foot, .edit-foot { flex: none; display: flex; align-items: center; gap: var(--gap); padding: 10px var(--pad); border-top: 1px solid var(--border); }
 .bulk-sum { margin-right: auto; color: var(--muted); }
-.bulk-foot .icon, .bulk-batch .icon { width: var(--icon-sm); height: var(--icon-sm); }
-.bulk-foot button, .bulk-batch button { display: inline-flex; align-items: center; justify-content: center; gap: var(--gap); }
+.bulk-foot .icon, .bulk-batch .icon, .edit-foot .icon { width: var(--icon-sm); height: var(--icon-sm); }
+.bulk-foot button, .bulk-batch button, .edit-foot button { display: inline-flex; align-items: center; justify-content: center; gap: var(--gap); }
 
 /* the file overview as a tool panel: a bit wider than the list, tiles two by two, rankings one under another */
 .ov-wrap .ov-tiles { grid-template-columns: 1fr 1fr; }
@@ -650,3 +650,23 @@ section.check { margin: 0 0 14px; }
 .inline-note:hover { border-bottom-color: var(--muted); }
 .inline-note-field { box-sizing: border-box; width: 100%; font: inherit; color: inherit; line-height: inherit; padding: 0; margin: 0; resize: none; display: block;
                      background: none; border: 0; border-bottom: 1px solid var(--accent); border-radius: 0; outline: none; }
+
+/* wide edit window (EditWindow): lies over the tree and the detail, right of the tool bar. "half" = half of the browser
+   width (the tree stays visible), "full" = the whole width right of the tool bar. A 1px line, no shadow. */
+.viewer { position: relative; }
+.edit-layer { grid-column: 2 / -1; grid-row: 1; position: relative; pointer-events: none; z-index: 3; }
+.edit-layer[hidden] { display: none; }
+.edit-window { position: absolute; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; background: var(--panel);
+               border-left: 1px solid var(--border); pointer-events: auto; }
+.edit-window.half { width: min(50vw, 100%); }
+.edit-window.full { width: 100%; border-left: 0; }
+.edit-body { padding: 0 var(--pad) var(--pad); font-size: 14px; line-height: 1.5; --d-icon: 18px; --d-icon-row: 15px; --d-col: 22px; --d-gap: 10px; --d-section-gap: 14px; }
+.edit-body .icon { width: var(--d-icon); height: var(--d-icon); }
+.edit-body > * + * { margin-top: var(--d-section-gap); padding-top: var(--d-section-gap); border-top: 1px solid var(--border); }
+.edit-body > .section:first-child { margin-top: var(--d-section-gap); }
+.edit-body .muted { margin: 0; color: var(--muted); }
+/* the edit window shares the cells of the tree and the detail, so every column is placed by hand */
+.viewer > .side { grid-column: 1; grid-row: 1; }
+.viewer > .mid { grid-column: 2; grid-row: 1; }
+.viewer > .detail { grid-column: 3; grid-row: 1; }
+.viewer > .check-wide { grid-row: 1; }

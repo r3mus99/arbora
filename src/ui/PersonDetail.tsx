@@ -1,5 +1,5 @@
 import {
-  Award, Baby, Briefcase, Check, CircleHelp, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
+  Award, Baby, Briefcase, Check, CircleHelp, X, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, PanelRightOpen, Pencil,
   StickyNote, Star, CalendarDays, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
@@ -42,6 +42,8 @@ interface Props {
   /** surnames and places in the file, offered while typing */
   suggest: Suggestions;
   onEdit: () => void;
+  /** opens the wide edit window */
+  onEditWide: () => void;
   onCancelEdit: () => void;
   /** the edit form, shown instead of the facts */
   editor: ReactNode;
@@ -64,7 +66,7 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, lookup, inbound, rootId, starred, onStar, lang, onFocus, onMakeRoot, onChange, suggest, onEdit, onCancelEdit, editor, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, inbound, rootId, starred, onStar, lang, onFocus, onMakeRoot, onChange, suggest, onEdit, onEditWide, onCancelEdit, editor, t }: Props) {
   const p = data.people[id];
   if (!p) return null;
   const f = record ? personFields(record) : null;
@@ -211,6 +213,8 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
         {!editor && <div className="tools">
           <button type="button" className="icon-btn" onClick={onEdit} title={t("edit")} aria-label={t("edit")}>
             <Pencil className="icon" aria-hidden="true" /></button>
+          <button type="button" className="icon-btn" onClick={onEditWide} title={t("editWide")} aria-label={t("editWide")}>
+            <PanelRightOpen className="icon" aria-hidden="true" /></button>
           {id !== rootId && <button type="button" className="icon-btn" onClick={() => onMakeRoot(id)}
                                     title={t("makeRoot")} aria-label={t("makeRoot")}>
             <Crosshair className="icon" aria-hidden="true" /></button>}

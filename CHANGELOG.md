@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.39.0 – 2026-10-16
+
+- **Wide edit window (first step of the v2.0 editor).** A new icon button next to the pencil in the person detail
+  opens a window for editing the person, lying over the tree and the detail, with the tool bar still visible. It is
+  half of the browser width (the tree stays visible on the left) or, with the arrows button, the whole width right of
+  the tool bar; the choice is remembered. The heading is the person's name, the footer has Cancel and Save, Esc closes
+  it, and it asks before dropping changes. For now it only shows the structure of the coming sections (name, basic
+  facts, events, notes and sources, families, parents and associations, other details); the fields arrive in the next
+  versions. Texts in all 12 languages; the pattern is described in docs/design-guidelines.md.
 ## 1.38.2 – 2026-10-16
 
 - **Reverted changes are no longer counted.** The unsaved-changes count (badge above the GED export and the Changes
