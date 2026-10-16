@@ -336,9 +336,9 @@ button.link { display: inline; }
   outline: none; border-color: var(--accent); background: var(--accent-soft); }
 .editor textarea:focus { border-style: solid; }
 .editor textarea { resize: vertical; }
-.editor .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.editor .trio { display: grid; grid-template-columns: minmax(80px, 0.5fr) 1fr 1fr; gap: 12px; }
 .editor .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.editor fieldset { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr;
+.editor fieldset { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: minmax(150px, 0.4fr) 1fr;
                    gap: 6px 12px; min-width: 0; }
 .editor legend { padding: 0; margin-bottom: 8px; color: var(--text); font-size: 12px; }
 .editor .check { border: 0; padding: 0; margin: 0; background: none; grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; color: var(--text);
@@ -350,6 +350,7 @@ button.link { display: inline; }
 .editor .hint.warn { color: var(--danger); }
 .editor .actions { display: flex; gap: 8px; margin-top: 4px; }
 .editor .actions button { padding: 0 18px; }
+.editor .full, .editor .item > .pair { grid-column: 1 / -1; }
 .editor fieldset > .wide { grid-column: 1 / -1; display: grid; gap: 6px; }
 .editor .children .lab { display: block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 0; }
 .editor .child { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--field-h);
@@ -358,7 +359,7 @@ button.link { display: inline; }
 .editor fieldset > .add { justify-self: start; }
 .editor fieldset.sub { padding-top: 4px; }
 .editor fieldset.list { grid-template-columns: 1fr; gap: 10px; }
-.editor .item { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; padding: 12px;
+.editor .item { display: grid; grid-template-columns: minmax(150px, 0.4fr) 1fr; gap: 8px 12px; padding: 12px;
                 border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--panel); }
 .editor .item-head { grid-column: 1 / -1; display: flex; gap: 8px; }
 .editor .item-head input { flex: 1; min-width: 0; }

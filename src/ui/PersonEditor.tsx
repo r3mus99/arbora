@@ -382,9 +382,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onClick={() => set("events", form.events.filter((_, j) => j !== i))}>
                 <X className="icon" aria-hidden="true" /></button>
             </div>
-            {e.tag === "EVEN" && <label><span>{t("eventKind")}</span>
+            {e.tag === "EVEN" && <label className="full"><span>{t("eventKind")}</span>
               <input type="text" value={e.title} onChange={(ev) => setEv(i, { title: ev.target.value })} /></label>}
-            {(e.tag === "EVEN" || e.tag === "RESI") && <label><span>{t(e.tag === "RESI" ? "detAddress" : "eventText")}</span>
+            {(e.tag === "EVEN" || e.tag === "RESI") && <label className="full"><span>{t(e.tag === "RESI" ? "detAddress" : "eventText")}</span>
               <input type="text" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
             <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
                        t={t} onChange={(v) => setEv(i, { date: v })} />
