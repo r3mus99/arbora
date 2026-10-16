@@ -9,7 +9,7 @@
   The "take from birth / death" button is now a small icon next to the title of the christening or burial, with the text in its tooltip.
   The Name part of the window is called "Names" in the languages where its title read the same as the field below it.
   The edit window is a fixed 560 px wide instead of half of the browser.
-  Date fields are a fixed 96 px and the place gets the rest of the row; age (80 px) is the narrow one of age, cause and agency.
+  Date fields are a fixed 100 px and the place gets the rest of the row; age (80 px) is the narrow one of age, cause and agency.
   The rows of lists (other events, facts, sources, children) have no box around them.
   People are listed by name and birth year (the ID only when two people look the same). New families and new people
   come with the add and delete step.
