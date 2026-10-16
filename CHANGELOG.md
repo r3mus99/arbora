@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.38.2 – 2026-10-16
+
+- **Reverted changes are no longer counted.** The unsaved-changes count (badge above the GED export and the Changes
+  panel) now compares the current records with the saved version instead of counting edit steps, so changing a value
+  and changing it back shows 0 changes and the file is no longer treated as modified.
+
 ## 1.38.1 – 2026-10-15
 
 - **Spouses' ages only at the parents' wedding.** The "Spouses' ages" line from 1.38.0 moves from the person's own

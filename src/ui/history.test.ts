@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { parseGedcom } from "../core/gedcom";
 import {
-  NO_BROWSING, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move, replay, startEdits, stepEdits, visit, withRecords,
+  NO_BROWSING, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move, replay, startEdits, stepEdits, unsavedChanges, visit, withRecords,
   applyOp, diffRecords, type Doc,
 } from "./history";
 import { NUMBERING, storedOptions, toForm, toOptions, withOption } from "./options";
@@ -192,5 +192,18 @@ describe("chart options", () => {
     expect(changeCount(saved)).toBe(1);
     const undone = stepEdits(stepEdits(saved, c, -1)!.edits, b, -1)!;
     expect(changeCount(undone.edits)).toBe(1);
+  });
+});
+
+describe("unsaved changes", () => {
+  test("a change reverted by hand is no change, even though it took two edit steps", () => {
+    const a = doc("A"), b = next(a, "B"), a2 = next(b, "A");
+    let edits = startEdits(a);
+    expect(unsavedChanges(edits, a.records)).toEqual([]);
+    edits = edited(edits, a, b);
+    expect(unsavedChanges(edits, b.records)).toHaveLength(1);
+    edits = edited(edits, b, a2);
+    expect(changeCount(edits)).toBe(2);
+    expect(unsavedChanges(edits, a2.records)).toEqual([]);
   });
 });

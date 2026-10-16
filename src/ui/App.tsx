@@ -11,12 +11,11 @@ import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceOverview } from "../core/sources";
-import { recordChanges } from "../core/changes";
 import { placeOverview } from "../core/placelist";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
 import { renameVariants, spellings, variantGroups, type VariantKind } from "../core/variants";
-import { NO_BROWSING, NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move as moveIn, replay, startEdits, stepEdits, visit, withRecords, type Browsing, type Doc, type Edits, type Op, type Place } from "./history";
+import { NO_BROWSING, NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move as moveIn, replay, startEdits, stepEdits, unsavedChanges, visit, withRecords, type Browsing, type Doc, type Edits, type Op, type Place } from "./history";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { storedOptions, toForm, toOptions, withOption, type Form } from "./options";
 import { ChangesPanel } from "./ChangesPanel";
@@ -236,8 +235,11 @@ export function App() {
     import("../core/pdf").catch(() => { /* retried when the PDF is made */ });
   }
 
-  const dirty = isDirty(edits);
-  const changes = changeCount(edits);
+  // unsaved changes: this version against the one last downloaded (or the file as opened when that is gone);
+  // counted by comparing records, so a change reverted by hand is no change
+  const unsaved = useMemo(() => (doc ? unsavedChanges(edits, doc.records) : []), [doc, edits]);
+  const changes = unsaved.length;
+  const dirty = changes > 0;
   const unsavedText = `${t("unsaved")}: ${changes}`;
   const keepEdits = () => !dirty || confirm(t("discard"));
 
@@ -325,9 +327,6 @@ export function App() {
     setHidden(next);
     updateStore({ hiddenVariants: [...next] });
   };
-  // unsaved changes: this version against the one last downloaded (or the file as opened when that is gone)
-  const unsaved = useMemo(() => (doc && showChanges && edits.base ? recordChanges(replay(edits, edits.saved ?? 0).records, doc.records) : []),
-                          [doc, edits, showChanges]);
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
   const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);
