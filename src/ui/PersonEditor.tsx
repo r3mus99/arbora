@@ -1,8 +1,8 @@
 import { Copy, Plus, X } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
-  OTHER_EVENT_TAGS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, type EventFields,
-  type Alias, type AttributeRow, type CitationRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
+  OTHER_EVENT_TAGS, PEDIGREES, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
+  type Alias, type AssocRow, type AttributeRow, type CitationRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { SourceChoice } from "../core/sources";
@@ -180,6 +180,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       if (next !== r) changed.push(next);
       for (const o of relinkFamily(r.xref!, stored, f, latest)) linked.set(o.xref!, o);
     });
+    for (const o of relinkParents(record.xref!, initial.stored.parents, form.parents, latest)) linked.set(o.xref!, o);
     changed.push(...linked.values());
     onSave(changed);
   };
@@ -252,6 +253,21 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   }, [data]);
   const labelOf = (id: string) => personChoices.find((c) => c.id === id)?.label || id;
   const setChildren = (i: number, children: string[]) => setFam(i, { children });
+  /** the families a person can be put into as a child: not the ones they already belong to or have themselves */
+  const familyChoices = useMemo(() => {
+    const plain = Object.values(data.families).map((f) => {
+      const names = [f.husb, f.wife].map((p) => (p && data.people[p]?.name) || "").filter(Boolean).join(" & ") || "?";
+      const year = yearOf(f.marriage?.date);
+      return { id: f.id, label: `${names}${year ? ` · ${year}` : ""}` };
+    });
+    const count = new Map<string, number>();
+    plain.forEach((c) => count.set(c.label, (count.get(c.label) || 0) + 1));
+    return plain.map((c) => (count.get(c.label)! > 1 ? { ...c, label: `${c.label} · ${c.id}` } : c))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [data]);
+  const familyLabel = (id: string) => familyChoices.find((c) => c.id === id)?.label || id;
+  const setAssoc = (i: number, patch: Partial<AssocRow>) =>
+    set("associations", form.associations.map((a, j) => (j === i ? { ...a, ...patch } : a)));
 
   const section = (key: keyof typeof SECTIONS, children: ReactNode) => {
     const { icon, title } = SECTIONS[key];
@@ -432,6 +448,46 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         <button type="button" className="add" onClick={() => set("citations",
           [...form.citations, { origin: -1, source: sources[0]?.xref || "", page: "", quality: "" }])}>
           <Plus className="icon" aria-hidden="true" />{t("addCitation")}</button>
+      </fieldset>
+      </>)}
+      {section("parents", <>
+      <fieldset className="list">
+        <legend>{t("parents")}</legend>
+        {form.parents.map((p, i) => (
+          <div className="item" key={p.origin < 0 ? `new${i}` : p.origin}>
+            <div className="item-head">
+              <span className="grow">{familyLabel(p.fam)}</span>
+              <select value={p.pedigree} aria-label={t("pedigree")}
+                      onChange={(e) => set("parents", form.parents.map((q, j) => (j === i ? { ...q, pedigree: e.target.value } : q)))}>
+                <option value="">{t("pedigree")}</option>
+                {PEDIGREES.map((k) => <option key={k} value={k}>{t(`pedi_${k}` as StringKey)}</option>)}
+              </select>
+              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                      onClick={() => set("parents", form.parents.filter((_, j) => j !== i))}>
+                <X className="icon" aria-hidden="true" /></button>
+            </div>
+          </div>
+        ))}
+        <PersonPick choices={familyChoices} clearOnPick
+                    exclude={[...form.parents.map((p) => p.fam), ...families.map((f) => f.xref!)]} value="" label={t("addParents")}
+                    placeholder={t("pickFamily")} onPick={(id) => id && set("parents", [...form.parents, { origin: -1, fam: id, pedigree: "" }])} />
+      </fieldset>
+      <fieldset className="list">
+        <legend>{t("associations")}</legend>
+        {form.associations.map((a, i) => (
+          <div className="item" key={a.origin < 0 ? `new${i}` : a.origin}>
+            <div className="item-head">
+              <span className="grow">{labelOf(a.id)}</span>
+              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                      onClick={() => set("associations", form.associations.filter((_, j) => j !== i))}>
+                <X className="icon" aria-hidden="true" /></button>
+            </div>
+            <label className="full"><span>{t("assocRole")}</span>
+              <input type="text" value={a.role} onChange={(e) => setAssoc(i, { role: e.target.value })} /></label>
+          </div>
+        ))}
+        <PersonPick choices={personChoices} clearOnPick exclude={[record.xref!]} value="" label={t("addAssoc")}
+                    placeholder={t("pickPerson")} onPick={(id) => id && set("associations", [...form.associations, { origin: -1, id, role: "" }])} />
       </fieldset>
       </>)}
       {section("families", <>

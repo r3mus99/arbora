@@ -361,6 +361,7 @@ button.link { display: inline; }
 .editor .item { display: grid; grid-template-columns: 100px 1fr; gap: 8px 12px; padding: 0; }
 .editor .item-head { grid-column: 1 / -1; display: flex; gap: 8px; }
 .editor .item-head input { flex: 1; min-width: 0; }
+.editor .item-head .grow { flex: 1; min-width: 0; align-self: center; overflow-wrap: anywhere; }
 .editor .item-head .icon-btn { padding: 0 11px; }
 .editor .add { min-height: var(--field-h); padding: 0 14px; font-size: 14px; gap: 6px; }
 .editor .add { justify-self: start; }

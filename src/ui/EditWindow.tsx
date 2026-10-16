@@ -57,7 +57,7 @@ export function EditWindow({ data, name, record, families, lang, suggest, record
         <PersonEditor data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf} sources={sources}
                       onSave={onSave} onCancel={close} onDirty={setDirty} t={t} />
         {/* parts that come with the next versions */}
-        {(["parents", "other"] as const).map((key) => <Section key={key} icon={SECTIONS[key].icon} title={t(SECTIONS[key].title)}>
+        {(["other"] as const).map((key) => <Section key={key} icon={SECTIONS[key].icon} title={t(SECTIONS[key].title)}>
           <p className="muted">{t("esSoon")}</p>
         </Section>)}
       </div>

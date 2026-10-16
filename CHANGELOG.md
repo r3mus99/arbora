@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.47.0 – 2026-10-16
+
+- **Parents and associations in the edit window.** The "Parents and associations" part lists the families the person
+  is a child of, with the kind of descent (birth, adopted, foster, sealing), which can be changed or cleared. A family
+  can be removed or added by typing the names of the parents; the child line of the family changes with it in the same
+  undo step. Associations (ASSO, for example godparents or witnesses) can be added, removed and given a role.
+  Everything else in these records stays untouched. New families and new people come in a later step.
+
 ## 1.46.0 – 2026-10-16
 
 - **Families part of the edit window: spouses and children.** Each family of the person now shows the other spouse
