@@ -46,6 +46,10 @@ function DateField({ value, shown, lang, onChange, t }: {
   </label>;
 }
 
+type NamePartKey = keyof PersonFields["nameParts"];
+/** the optional parts of a name, in the order they are offered */
+const NAME_PARTS: [NamePartKey, StringKey][] = [["prefix", "namePrefix"], ["suffix", "nameSuffix"], ["nickname", "nickname"], ["surnamePrefix", "surnamePrefix"]];
+
 /** the form's id, so the icon buttons in the detail header can submit it */
 export const EDITOR_FORM = "person-editor";
 
@@ -133,6 +137,11 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
   };
 
   const set = <K extends keyof PersonFields>(key: K, value: PersonFields[K]) => setForm({ ...form, [key]: value });
+  const initialParts = useMemo(() => new Set(NAME_PARTS.map(([k]) => k).filter((k) => initial.stored.nameParts[k])), [initial]);
+  const [openParts, setOpenParts] = useState<NamePartKey[]>([]);
+  const isShown = (k: NamePartKey) => initialParts.has(k) || openParts.includes(k) || !!form.nameParts[k];
+  const shownParts = NAME_PARTS.filter(([k]) => isShown(k));
+  const hiddenParts = NAME_PARTS.filter(([k]) => !isShown(k));
   const setPart = (patch: Partial<PersonFields["nameParts"]>) => set("nameParts", { ...form.nameParts, ...patch });
   const setOcc = (i: number, patch: Partial<Occupation>) =>
     set("occupations", form.occupations.map((o, j) => (j === i ? { ...o, ...patch } : o)));
@@ -176,18 +185,16 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
           <input type="text" value={form.surname} list={surnameList(form.sex)}
                  onChange={(e) => set("surname", e.target.value)} /></label>
       </div>
-      <div className="pair">
-        <label><span>{t("namePrefix")}</span>
-          <input type="text" value={form.nameParts.prefix} onChange={(e) => setPart({ prefix: e.target.value })} /></label>
-        <label><span>{t("nameSuffix")}</span>
-          <input type="text" value={form.nameParts.suffix} onChange={(e) => setPart({ suffix: e.target.value })} /></label>
-      </div>
-      <div className="pair">
-        <label><span>{t("nickname")}</span>
-          <input type="text" value={form.nameParts.nickname} onChange={(e) => setPart({ nickname: e.target.value })} /></label>
-        <label><span>{t("surnamePrefix")}</span>
-          <input type="text" value={form.nameParts.surnamePrefix} onChange={(e) => setPart({ surnamePrefix: e.target.value })} /></label>
-      </div>
+      {/* the other parts of the name: shown when the name has them, or when added with a + button */}
+      {shownParts.length > 0 && <div className="pair">
+        {shownParts.map(([key, label]) => <label key={key}><span>{t(label)}</span>
+          <input type="text" value={form.nameParts[key]} autoFocus={!initialParts.has(key)}
+                 onChange={(e) => setPart({ [key]: e.target.value })} /></label>)}
+      </div>}
+      {hiddenParts.length > 0 && <div className="adds">
+        {hiddenParts.map(([key, label]) => <button key={key} type="button" className="add" onClick={() => setOpenParts([...openParts, key])}>
+          <Plus className="icon" aria-hidden="true" />{t(label)}</button>)}
+      </div>}
       <fieldset className="list">
         <legend>{t("aka")}</legend>
         {form.aliases.map((a, i) => (
