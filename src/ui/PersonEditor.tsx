@@ -62,9 +62,9 @@ type NamePartKey = keyof PersonFields["nameParts"];
 const NAME_PARTS: [NamePartKey, StringKey][] = [["prefix", "namePrefix"], ["suffix", "nameSuffix"], ["nickname", "nickname"], ["surnamePrefix", "surnamePrefix"]];
 
 /** Picking a person of the file by typing a name; `onPick("")` when the field is emptied. */
-function PersonPick({ choices, exclude, value, label, placeholder, clearOnPick, onPick }: {
+function PersonPick({ choices, exclude, value, label, placeholder, clearOnPick, focus, onPick }: {
   choices: { id: string; label: string }[]; exclude: string[]; value: string; label: string; placeholder: string;
-  clearOnPick?: boolean; onPick: (id: string) => void;
+  clearOnPick?: boolean; focus?: boolean; onPick: (id: string) => void;
 }) {
   const list = useId();
   const shown = choices.find((c) => c.id === value)?.label || "";
@@ -76,7 +76,7 @@ function PersonPick({ choices, exclude, value, label, placeholder, clearOnPick, 
     else { setText(typed); if (!typed.trim() && value) onPick(""); }
   };
   return <label><span>{label}</span>
-    <input type="text" value={text} list={list} placeholder={placeholder} autoComplete="off" onChange={(e) => change(e.target.value)} />
+    <input type="text" value={text} list={list} placeholder={placeholder} autoComplete="off" autoFocus={focus} onChange={(e) => change(e.target.value)} />
     <datalist id={list}>{text.length >= 2 && options.slice(0, 5000).map((c) => <option key={c.id} value={c.label} />)}</datalist>
   </label>;
 }
@@ -140,6 +140,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     return { stored: f, shown, fams };
   });
   const [form, setForm] = useState<PersonFields>(initial.shown);
+  /** the family whose "add a child" field is open */
+  const [adding, setAdding] = useState<number | null>(null);
   const [fams, setFams] = useState<FamilyFields[]>(initial.fams.map((f) => f.shown));
   const firstInput = useRef<HTMLInputElement>(null);
   useEffect(() => firstInput.current?.focus(), []);
@@ -245,6 +247,11 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   };
   /** which of the two spouse lines of the family is the other person's */
   const otherKey = (f: FamilyFields) => (f.husb === record.xref ? "wife" : "husb");
+  /** "Husband" or "Wife" by the sex of the chosen spouse, else by the place in the family */
+  const spouseLabel = (f: FamilyFields) => {
+    const sex = data.people[f[otherKey(f)]]?.sex || (otherKey(f) === "husb" ? "M" : "F");
+    return t(sex === "F" ? "spouseF" : sex === "M" ? "spouseM" : "spouse");
+  };
   /** name and birth year, the ID only where two people would look the same */
   const personChoices = useMemo(() => {
     const plain = Object.values(data.people).map((p) => {
@@ -469,7 +476,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           <legend>{ico(Heart)}{t("marriage")}</legend>
           <div className="wide">
             <PersonPick choices={personChoices} exclude={[record.xref!, ...fams[i].children]} value={fams[i][otherKey(fams[i])]}
-                        label={t("spouse")} placeholder={t("pickPerson")} onPick={(id) => setFam(i, { [otherKey(fams[i])]: id })} />
+                        label={spouseLabel(fams[i])} placeholder={t("pickPerson")} onPick={(id) => setFam(i, { [otherKey(fams[i])]: id })} />
           </div>
           <DateField value={fams[i].marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
                      onChange={(v) => setFam(i, {}, { date: v })} />
@@ -491,7 +498,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             {details(`d${r.xref}`, fams[i].details.divorce, (patch) => setFamDetails(i, "divorce", patch))}
           </fieldset>}
           <div className="wide children">
-            <span className="lab">{ico(Baby)}{t("children")}</span>
+            <span className="lab">{ico(Baby)}{t("children")}
+              <button type="button" className="copy" title={t("addChild")} aria-label={t("addChild")} onClick={() => setAdding(i)}>
+                <Plus className="icon" aria-hidden="true" /></button></span>
             {fams[i].children.map((id) => (
               <div className="child" key={id}>
                 <span>{labelOf(id)}</span>
@@ -500,8 +509,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                   <X className="icon" aria-hidden="true" /></button>
               </div>
             ))}
-            <PersonPick choices={personChoices} clearOnPick exclude={[record.xref!, fams[i].husb, fams[i].wife, ...fams[i].children]}
-                        value="" label={t("addChild")} placeholder={t("pickPerson")} onPick={(id) => id && setChildren(i, [...fams[i].children, id])} />
+            {adding === i && <PersonPick choices={personChoices} clearOnPick focus exclude={[record.xref!, fams[i].husb, fams[i].wife, ...fams[i].children]}
+                        value="" label={t("addChild")} placeholder={t("pickPerson")}
+                        onPick={(id) => { if (id) { setChildren(i, [...fams[i].children, id]); setAdding(null); } }} />}
           </div>
         </fieldset>
       ))}

@@ -10,6 +10,8 @@
   Names, Basic facts and Events are open at the start, then Parents and associations, Families, Notes and sources, Other details.
   The Name part is called "Name" again and the field of the first name "Given name" (in Slovak "Krstné meno"), so the two titles differ.
   Each part is a card on the page background and the groups inside have an icon before their title (birth, christening, marriage, sources…).
+  The Families part is called "Family", the spouse field is called Husband or Wife by the sex of the chosen person, and
+  a child is added with a small "+" button after the title Children, which opens the search field.
   Everything else in these records stays untouched. New families and new people come in a later step.
 
 ## 1.46.0 – 2026-10-16
