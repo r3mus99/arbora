@@ -8,6 +8,7 @@
   FAMS of a spouse) change with it in the same undo step, and a new link goes after the other lines of the record.
   The "take from birth / death" button is now a small icon next to the title of the christening or burial, with the text in its tooltip.
   The Name part of the window is called "Names" in the languages where its title read the same as the field below it.
+  The edit window is a fixed 560 px wide instead of half of the browser.
   People are listed by name and birth year (the ID only when two people look the same). New families and new people
   come with the add and delete step.
 

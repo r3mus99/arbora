@@ -6,7 +6,7 @@
   --c-bapt: #3b82c4; --c-res: #9a7b4f; --c-event: #7b6bb5; --c-child: #17a89c; --c-burial: #8a8f86;
   /* size tokens of the app frame, see docs/design-guidelines.md */
   --head-h: 52px; --ctl-h: 36px; --field-h: 30px; --ctl-h-sm: 28px; --icon: 18px; --icon-sm: 14px;
-  --radius: 6px; --radius-lg: 6px; --radius-pill: 6px; --pad: 14px; --gap: 8px; --panel-w: 320px;
+  --radius: 6px; --radius-lg: 6px; --radius-pill: 6px; --pad: 14px; --gap: 8px; --panel-w: 320px; --edit-w: 560px;
   /* event colours: the tree, the timeline and (darker) the PDF, see src/core/colors.ts */
   --line: color-mix(in srgb, var(--muted) 50%, var(--bg));
   --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --c-src: #5f7f9a; --zebra: #00000005;
@@ -672,7 +672,7 @@ section.check { margin: 0 0 14px; }
 .edit-layer { grid-column: 2 / -1; grid-row: 1; position: relative; pointer-events: none; z-index: 3; }
 .edit-layer[hidden] { display: none; }
 .edit-window { position: absolute; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; background: var(--panel);
-               border-left: 1px solid var(--border); pointer-events: auto; width: min(50vw, 100%); }
+               border-left: 1px solid var(--border); pointer-events: auto; width: min(var(--edit-w), 100%); }
 .edit-body { padding: 0 var(--pad) var(--pad); font-size: 14px; line-height: 1.5; --d-icon: 18px; --d-icon-row: 15px; --d-col: 22px; --d-gap: 10px; --d-section-gap: 14px; }
 .edit-body .icon { width: var(--d-icon); height: var(--d-icon); }
 .edit-body > * + * { margin-top: var(--d-section-gap); padding-top: var(--d-section-gap); border-top: 1px solid var(--border); }
