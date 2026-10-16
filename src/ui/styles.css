@@ -353,14 +353,12 @@ button.link { display: inline; }
 .editor .full, .editor .item > .pair { grid-column: 1 / -1; }
 .editor fieldset > .wide { grid-column: 1 / -1; display: grid; gap: 6px; }
 .editor .children .lab { display: block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 0; }
-.editor .child { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--field-h);
-                 padding: 0 4px 0 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); }
+.editor .child { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--field-h); padding: 0 4px; border-bottom: 1px dashed var(--border); }
 .editor fieldset > .trio, .editor fieldset > .add, .editor fieldset > .sub { grid-column: 1 / -1; }
 .editor fieldset > .add { justify-self: start; }
 .editor fieldset.sub { padding-top: 4px; }
-.editor fieldset.list { grid-template-columns: 1fr; gap: 10px; }
-.editor .item { display: grid; grid-template-columns: minmax(150px, 0.4fr) 1fr; gap: 8px 12px; padding: 12px;
-                border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--panel); }
+.editor fieldset.list { grid-template-columns: 1fr; gap: 16px; }
+.editor .item { display: grid; grid-template-columns: minmax(150px, 0.4fr) 1fr; gap: 8px 12px; padding: 0; }
 .editor .item-head { grid-column: 1 / -1; display: flex; gap: 8px; }
 .editor .item-head input { flex: 1; min-width: 0; }
 .editor .item-head .icon-btn { padding: 0 11px; }
@@ -498,7 +496,7 @@ section.check { margin: 0 0 14px; }
 .check-tabs .bulk-hint { padding: 0 10px; margin: var(--pad) 0 0; border-top: 1px solid var(--border); padding-top: var(--pad); }
 .keep-aka { display: flex; gap: 8px; align-items: center; cursor: pointer; }
 .keep-aka input { width: 16px; height: 16px; accent-color: var(--accent); }
-.editor .item.alias { grid-template-columns: 1fr 1fr auto; padding: 8px; }
+.editor .item.alias { grid-template-columns: 1fr 1fr auto; }
 .editor .item.alias .icon-btn { padding: 0 11px; }
 .detail .id .aka { font-style: italic; }
 .detail .tools .save .icon { color: var(--accent); }
