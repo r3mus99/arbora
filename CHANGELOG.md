@@ -6,7 +6,8 @@
   and the children. The spouse can be replaced or removed, a child can be taken out of the family, and any person of
   the file can be added as a child, chosen by typing the name. The links in the other records (FAMC of a child,
   FAMS of a spouse) change with it in the same undo step, and a new link goes after the other lines of the record.
-  New families and new people come with the add and delete step.
+  People are listed by name and birth year (the ID only when two people look the same). New families and new people
+  come with the add and delete step.
 
 ## 1.45.0 – 2026-10-16
 

@@ -9,6 +9,7 @@ import type { SourceChoice } from "../core/sources";
 import type { Lang } from "../core/texts";
 import { surnamesFor } from "../core/surnames";
 import { ATTRIBUTE_TAGS } from "../core/facts";
+import { yearOf } from "../core/date";
 import { SECTIONS } from "./editSections";
 import type { StringKey } from "./i18n";
 import { Section } from "./Section";
@@ -237,9 +238,18 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   /** which of the two spouse lines of the family is the other person's */
   const otherKey = (f: FamilyFields) => (f.husb === record.xref ? "wife" : "husb");
   const spouseName = (f: FamilyFields) => (f[otherKey(f)] && data.people[f[otherKey(f)]]?.name) || "?";
-  const personChoices = useMemo(() => Object.values(data.people)
-    .map((p) => ({ id: p.id, label: `${p.name || "?"} (${p.id})` }))
-    .sort((a, b) => a.label.localeCompare(b.label)), [data]);
+  /** name and birth year, the ID only where two people would look the same */
+  const personChoices = useMemo(() => {
+    const plain = Object.values(data.people).map((p) => {
+      const year = yearOf(p.birth?.date);
+      return { id: p.id, label: `${p.name || "?"}${year ? ` · ${year}` : ""}` };
+    });
+    const count = new Map<string, number>();
+    plain.forEach((c) => count.set(c.label, (count.get(c.label) || 0) + 1));
+    return plain.map((c) => (count.get(c.label)! > 1 ? { ...c, label: `${c.label} · ${c.id}` } : c))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [data]);
+  const labelOf = (id: string) => personChoices.find((c) => c.id === id)?.label || id;
   const setChildren = (i: number, children: string[]) => setFam(i, { children });
 
   const section = (key: keyof typeof SECTIONS, children: ReactNode) => {
@@ -454,7 +464,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             <span className="lab">{t("children")}</span>
             {fams[i].children.map((id) => (
               <div className="child" key={id}>
-                <span>{data.people[id]?.name || id}</span>
+                <span>{labelOf(id)}</span>
                 <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                         onClick={() => setChildren(i, fams[i].children.filter((c) => c !== id))}>
                   <X className="icon" aria-hidden="true" /></button>
