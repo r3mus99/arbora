@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.46.0 – 2026-10-16
+
+- **Families part of the edit window: spouses and children.** Each family of the person now shows the other spouse
+  and the children. The spouse can be replaced or removed, a child can be taken out of the family, and any person of
+  the file can be added as a child, chosen by typing the name. The links in the other records (FAMC of a child,
+  FAMS of a spouse) change with it in the same undo step, and a new link goes after the other lines of the record.
+  New families and new people come with the add and delete step.
+
 ## 1.45.0 – 2026-10-16
 
 - **Families part of the edit window: divorce and details.** A marriage that is marked as divorced now also has the

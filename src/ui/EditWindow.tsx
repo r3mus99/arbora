@@ -20,6 +20,7 @@ interface Props {
   families: GedNode[];
   lang: Lang;
   suggest: Suggestions;
+  recordOf: (id: string) => GedNode | undefined;
   sources: SourceChoice[];
   /** the changed records (one undo step); the window closes after it */
   onSave: (changed: GedNode[]) => void;
@@ -35,7 +36,7 @@ interface Props {
  * the tree stays visible on the left; the pencil in the person detail opens it. The form is split into the parts of
  * a person (name, basic facts, events, …); Esc, the X and Cancel ask before they drop changes.
  */
-export function EditWindow({ data, name, record, families, lang, suggest, sources, onSave, onClose, t, hidden }: Props) {
+export function EditWindow({ data, name, record, families, lang, suggest, recordOf, sources, onSave, onClose, t, hidden }: Props) {
   const [dirty, setDirty] = useState(false);
   const close = () => { if (mayClose(dirty, () => window.confirm(t("discard")))) onClose(); };
   const onKey = useEffectEvent((e: KeyboardEvent) => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); close(); } });
@@ -53,7 +54,7 @@ export function EditWindow({ data, name, record, families, lang, suggest, source
         </div>
       </PanelHead>
       <div className="panel-body edit-body">
-        <PersonEditor data={data} record={record} families={families} lang={lang} suggest={suggest} sources={sources}
+        <PersonEditor data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf} sources={sources}
                       onSave={onSave} onCancel={close} onDirty={setDirty} t={t} />
         {/* parts that come with the next versions */}
         {(["parents", "other"] as const).map((key) => <Section key={key} icon={SECTIONS[key].icon} title={t(SECTIONS[key].title)}>
