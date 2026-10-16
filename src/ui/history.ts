@@ -1,4 +1,5 @@
 /** The two histories of the page, as plain functions: edits (undo, redo) and browsing (back, forward). */
+import { recordChanges, type RecordChange } from "../core/changes";
 import type { GedNode } from "../core/gedcom";
 
 const LIMIT = 200;
@@ -31,6 +32,13 @@ export const isDirty = (edits: Edits) => !!edits.base && edits.at !== edits.save
 /** How many edit steps separate the file from the version last opened or downloaded (0 when clean). Undo past the saved version counts too. */
 export const changeCount = (edits: Edits) =>
   !isDirty(edits) ? 0 : edits.saved === null ? Math.max(1, edits.at) : Math.abs(edits.at - edits.saved);
+
+/**
+ * What really differs from the version last opened or downloaded, by comparing records (not by counting edit steps),
+ * so a change made and then reverted by hand counts as nothing. Cheap when clean, and unedited records are skipped by identity.
+ */
+export const unsavedChanges = (edits: Edits, records: GedNode[]): RecordChange[] =>
+  edits.base && isDirty(edits) ? recordChanges(replay(edits, edits.saved ?? 0).records, records) : [];
 
 export const canUndo = (edits: Edits) => edits.at > 0;
 export const canRedo = (edits: Edits) => edits.at < edits.ops.length;
