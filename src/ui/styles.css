@@ -673,3 +673,5 @@ section.check { margin: 0 0 14px; }
 .edit-body .editor { margin-top: 0; gap: 0; }
 .edit-body .editor > * + * { margin-top: var(--d-section-gap); padding-top: var(--d-section-gap); border-top: 1px solid var(--border); }
 .edit-body .editor > .section:first-child { margin-top: var(--d-section-gap); }
+/* "+" buttons that add an optional field of a part (the name parts): a row of the same buttons as "add" */
+.editor .adds { display: flex; flex-wrap: wrap; gap: var(--gap); }
