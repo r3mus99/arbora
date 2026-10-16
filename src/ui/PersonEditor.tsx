@@ -2,9 +2,10 @@ import { Copy, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   OTHER_EVENT_TAGS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields,
-  type Alias, type AttributeRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
+  type Alias, type AttributeRow, type CitationRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
+import type { SourceChoice } from "../core/sources";
 import type { Lang } from "../core/texts";
 import { surnamesFor } from "../core/surnames";
 import { ATTRIBUTE_TAGS } from "../core/facts";
@@ -20,6 +21,8 @@ interface Props {
   lang: Lang;
   /** surnames and places in the file, offered while typing */
   suggest: Suggestions;
+  /** the source records of the file, offered when citing a source */
+  sources: SourceChoice[];
   /** changed records only; nothing when nothing changed */
   onSave: (changed: GedNode[]) => void;
   onCancel: () => void;
@@ -80,6 +83,7 @@ export function SuggestLists({ suggest, lang }: { suggest: Suggest; lang: Lang }
   </>;
 }
 
+const QUALITY = ["3", "2", "1", "0"];
 const NO_DETAILS: EventDetailFields = { age: "", cause: "", agency: "" };
 const DETAILS: [keyof EventDetailFields, StringKey][] = [["age", "detAge"], ["cause", "detCause"], ["agency", "detAgency"]];
 /** the names of the other events, as in the timeline */
@@ -92,7 +96,7 @@ const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "deat
 };
 
 /** Form for the facts of one person and of their marriages. */
-export function PersonEditor({ data, record, families, lang, suggest, onSave, onCancel, onDirty, t }: Props) {
+export function PersonEditor({ data, record, families, lang, suggest, sources, onSave, onCancel, onDirty, t }: Props) {
   const [initial] = useState(() => {
     const f = personFields(record);
     const shown = { ...f };
@@ -177,6 +181,8 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
         <input type="text" value={d[k]} onChange={(e) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); onChange({ [k]: e.target.value }); }} /></label>)}
     </div> : <button type="button" className="add" onClick={() => setOpenDetails([...openDetails, id])}>
       <Plus className="icon" aria-hidden="true" />{t("eventDetails")}</button>;
+  const setCite = (i: number, patch: Partial<CitationRow>) =>
+    set("citations", form.citations.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   const setAlias = (i: number, patch: Partial<Alias>) =>
     set("aliases", form.aliases.map((a, j) => (j === i ? { ...a, ...patch } : a)));
   const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}) =>
@@ -353,6 +359,37 @@ export function PersonEditor({ data, record, families, lang, suggest, onSave, on
       {section("notes", <>
       <label><span>{t("note")}</span>
         <textarea rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
+      <fieldset className="list">
+        <legend>{t("sources")}</legend>
+        {form.citations.map((c, i) => (
+          <div className="item" key={c.origin < 0 ? `new${i}` : c.origin}>
+            <div className="item-head">
+              {/* a pointer to a source record is chosen from the list, a citation written as text stays text */}
+              {/^@[^@]+@$/.test(c.source) || (c.origin < 0 && sources.length > 0)
+                ? <select value={c.source} aria-label={t("sources")} onChange={(e) => setCite(i, { source: e.target.value })}>
+                    {!sources.some((s) => s.xref === c.source) && <option value={c.source}>{c.source}</option>}
+                    {sources.map((s) => <option key={s.xref} value={s.xref}>{s.title}</option>)}
+                  </select>
+                : <input type="text" value={c.source} aria-label={t("sources")} onChange={(e) => setCite(i, { source: e.target.value })} />}
+              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                      onClick={() => set("citations", form.citations.filter((_, j) => j !== i))}>
+                <X className="icon" aria-hidden="true" /></button>
+            </div>
+            <div className="pair">
+              <label><span>{t("srcPage")}</span>
+                <input type="text" value={c.page} onChange={(e) => setCite(i, { page: e.target.value })} /></label>
+              <label><span>{t("quality")}</span>
+                <select value={c.quality} onChange={(e) => setCite(i, { quality: e.target.value })}>
+                  <option value="">–</option>
+                  {QUALITY.map((q) => <option key={q} value={q}>{t(`quality${q}` as StringKey)}</option>)}
+                </select></label>
+            </div>
+          </div>
+        ))}
+        <button type="button" className="add" onClick={() => set("citations",
+          [...form.citations, { origin: -1, source: sources[0]?.xref || "", page: "", quality: "" }])}>
+          <Plus className="icon" aria-hidden="true" />{t("addCitation")}</button>
+      </fieldset>
       </>)}
       {section("families", <>
       {families.map((r, i) => (

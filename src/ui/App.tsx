@@ -10,7 +10,7 @@ import { checkGedcom, fixIssue } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
-import { sourceOverview } from "../core/sources";
+import { sourceChoices, sourceOverview } from "../core/sources";
 import { placeOverview } from "../core/placelist";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
@@ -325,6 +325,7 @@ export function App() {
   };
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
+  const sourceList = useMemo(() => (windowId && doc ? sourceChoices(doc.records) : []), [windowId, doc]);
   const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);
   // the list closes once everything is fixed
 
@@ -655,7 +656,7 @@ export function App() {
             </div>
             {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
-                                 lang={lang} suggest={suggest} onSave={(changed) => { setWindowId(null); commit(changed); }}
+                                 lang={lang} suggest={suggest} sources={sourceList} onSave={(changed) => { setWindowId(null); commit(changed); }}
                                  onClose={() => setWindowId(null)} hidden={showCheck || showFix} t={t} />}
             {showCheck || showFix ? <aside className="check-wide" aria-label={t(showFix ? "batchRename" : "check")}>
               {showFix ? <BulkFix data={data} t={t} variants={variants} values={spelled} hidden={hidden} onHide={hide}

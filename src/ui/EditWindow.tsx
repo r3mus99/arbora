@@ -3,6 +3,7 @@ import { useEffect, useEffectEvent, useState } from "react";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
 import type { Suggestions } from "../core/edit";
+import type { SourceChoice } from "../core/sources";
 import { SECTIONS } from "./editSections";
 import { mayClose } from "./editWindow";
 import type { StringKey } from "./i18n";
@@ -19,6 +20,7 @@ interface Props {
   families: GedNode[];
   lang: Lang;
   suggest: Suggestions;
+  sources: SourceChoice[];
   /** the changed records (one undo step); the window closes after it */
   onSave: (changed: GedNode[]) => void;
   /** the window closes; nothing is changed in the file */
@@ -33,7 +35,7 @@ interface Props {
  * the tree stays visible on the left; the pencil in the person detail opens it. The form is split into the parts of
  * a person (name, basic facts, events, …); Esc, the X and Cancel ask before they drop changes.
  */
-export function EditWindow({ data, name, record, families, lang, suggest, onSave, onClose, t, hidden }: Props) {
+export function EditWindow({ data, name, record, families, lang, suggest, sources, onSave, onClose, t, hidden }: Props) {
   const [dirty, setDirty] = useState(false);
   const close = () => { if (mayClose(dirty, () => window.confirm(t("discard")))) onClose(); };
   const onKey = useEffectEvent((e: KeyboardEvent) => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); close(); } });
@@ -51,7 +53,7 @@ export function EditWindow({ data, name, record, families, lang, suggest, onSave
         </div>
       </PanelHead>
       <div className="panel-body edit-body">
-        <PersonEditor data={data} record={record} families={families} lang={lang} suggest={suggest}
+        <PersonEditor data={data} record={record} families={families} lang={lang} suggest={suggest} sources={sources}
                       onSave={onSave} onCancel={close} onDirty={setDirty} t={t} />
         {/* parts that come with the next versions */}
         {(["parents", "other"] as const).map((key) => <Section key={key} icon={SECTIONS[key].icon} title={t(SECTIONS[key].title)}>
