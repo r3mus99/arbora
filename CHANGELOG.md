@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.51.0 – 2026-10-17
+
+- **Duplicate people can be merged.** The edit window has a merge button (two joined arrows) next to the trash. Pick the
+  other person (name, years and ID are listed) and the window shows both side by side: name, sex, birth, christening,
+  death, burial, religion, note and access restriction. Where both have a value and the values differ you pick one
+  (the open person's by default); a value only one of them has is kept. The name that is not picked stays as another form
+  of the name. Occupations, events, facts, sources, contacts, references, parents and associations of both are joined,
+  the families of the removed person (as a spouse or a child) and every association that named them point to the kept
+  person, and the removed record is deleted, all as one undo step. People who are spouses, or a parent and a child, of
+  one family cannot be merged. Two children of one family can: that is how a child entered twice looks.
+
 ## 1.50.1 – 2026-10-17
 
 - **The new-child form is laid out properly.** Its fields no longer overlap or squeeze into the narrow label column: the
