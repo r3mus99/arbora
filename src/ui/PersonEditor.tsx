@@ -559,8 +559,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </>)}
       {section("families", <>
       {families.map((r, i) => (
-        <fieldset key={r.xref}>
-          <legend>{ico(Heart)}{t("marriage")}
+        <div key={r.xref} className={families.length > 1 ? "fam-card" : undefined}>
+        <fieldset>
+          <legend>{ico(Heart)}{t("marriage")}{families.length > 1 && ` ${i + 1}`}
             {onDeleteFamily && acts(<button type="button" className="head-act" disabled={dirty} title={dirty ? t("saveFirst") : undefined}
                                        onClick={() => { if (window.confirm(t("confirmDeleteFamily"))) onDeleteFamily(r.xref!); }}>
               <Trash2 className="icon" aria-hidden="true" />{t("deleteFamily")}</button>)}
@@ -615,6 +616,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             {newPersonForm("child", i)}
           </div>
         </fieldset>
+        </div>
       ))}
       {families.length === 0 && <span className="muted">{t("noValue")}</span>}
       </>, onAddFamily && <button type="button" className="head-act" disabled={dirty} title={dirty ? t("saveFirst") : undefined}

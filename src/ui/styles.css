@@ -756,3 +756,7 @@ section.check { margin: 0 0 14px; }
 /* delete buttons in the form: a plain trash can without a border, like the delete of a person */
 .editor .icon-btn { border-color: transparent; background: none; color: var(--muted); }
 .editor .icon-btn:hover:not(:disabled) { background: var(--accent-soft); color: var(--text); }
+
+/* several families of one person: each is its own inset card, so the marriages do not run together */
+.editor .fam-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
+.editor .fam-card .new-child { background: var(--panel); }
