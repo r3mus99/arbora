@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.48.2 – 2026-10-17
+
+- The first part of the edit window is called "Person" (it holds the name, titles, other forms of the name, sex and whether the person is deceased), so it no longer sounds like the Given name field.
+
 ## 1.48.1 – 2026-10-17
 
 - **Bulk fix leaves other names alone.** Only the main name of a person (the first name that is not marked aka) takes
