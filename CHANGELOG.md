@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.48.3 – 2026-10-17
+
+- **A residence in the edit window is easier to fill in.** The address (street and house number) and the place (town and
+  region) now have a short hint each. When the address is the same text as the place, which is how many files have it,
+  it is not shown twice: a small "+ Address" button opens the field and a line says that they are the same. Nothing in the
+  file changes unless it is edited.
+
 ## 1.48.2 – 2026-10-17
 
 - The first part of the edit window is called "Person" (it holds the name, titles, other forms of the name, sex and whether the person is deceased), so it no longer sounds like the Given name field.
