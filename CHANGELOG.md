@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.52.2 – 2026-10-17
+
+- **The edit window opens the parts that already hold something.** Family, Parents and associations, Occupation and facts, Notes and sources and Other details start expanded when they contain data and collapsed when they are empty; Person and Events are always open. Parts you open or close yourself stay as you left them.
+
 ## 1.52.1 – 2026-10-17
 
 - **Adding things in the edit window is done the same way everywhere.** Every "add" action (event, occupation, detail, source, contact, reference, aka name, association) is now a text action at the right end of its group's title row instead of a separate button below the list. Children, spouse and parents have the same pair, "Add" and "Find", and delete family and the copy from birth or death are text actions too, all with a small icon before the text. "Add family" sits in the header of the Family section. The buttons that only show hidden fields ("Details", "Address", "More fields") end with a chevron instead of a "+", stay after the fields are shown and hide them again when pressed. The inline form for a new child, spouse or parent is an inset card with its own background and border. It has given name, surname and birth in one row, "deceased" with the death date in one row, and "Find" opens its search field right under the header and closes it on a second press. Every delete button is a trash can instead of an X. Birth and death are the fixed events; "Add christening" in the birth title row and "Add burial" in the death title row add those two as rows under them, with a trash can to remove them. "Deceased" sits in the Events part and the death appears once it is ticked. The parts are ordered Person, Events, Family, Parents, Occupation and facts, Notes and sources, Other details, and the footer shows how many values are unsaved. "More fields" of the name is now "Details" and keeps its place when opened.

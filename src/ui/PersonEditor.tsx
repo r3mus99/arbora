@@ -34,7 +34,8 @@ interface Props {
   onCancel: () => void;
   /** the parts that are open (keys of SECTIONS); the usual ones when not given, e.g. when the form is rebuilt after a family changed */
   open?: Set<string>;
-  onToggleSection?: (key: string, open: boolean) => void;
+  /** the parts that are open now, after one was opened or closed */
+  onToggleSection?: (open: Set<string>) => void;
   /** adds an empty family of this person; the editor is closed or reopened by the caller */
   onAddFamily?: () => void;
   /** removes the family (its ID) with the links to it */
@@ -447,12 +448,25 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const setAssoc = (i: number, patch: Partial<AssocRow>) =>
     set("associations", form.associations.map((a, j) => (j === i ? { ...a, ...patch } : a)));
 
+  /** the parts open at the start: the usual ones, and every part that already holds something */
+  const [openNow, setOpenNow] = useState<Set<string>>(() => {
+    if (open) return open;
+    const f = initial.shown, start = new Set(OPEN_AT_START);
+    if (families.length) start.add("families");
+    if (f.parents.length || f.associations.length) start.add("parents");
+    if (f.occupations.length || f.attributes.length) start.add("facts");
+    if (f.note || f.citations.length) start.add("notes");
+    if (f.restriction || f.address || f.contacts.length || f.references.length || f.afn || f.rfn) start.add("other");
+    return start;
+  });
   /** text actions at the right end of a group's title row */
   const acts = (...buttons: ReactNode[]) => <span className="head-acts">{buttons}</span>;
   const section = (key: keyof typeof SECTIONS, children: ReactNode, extra?: ReactNode) => {
     const { icon, title } = SECTIONS[key];
-    return <details className="section collapsible" open={(open ?? OPEN_AT_START).has(key) || undefined}
-                    onToggle={(e) => onToggleSection?.(key, e.currentTarget.open)}>
+    return <details className="section collapsible" open={openNow.has(key) || undefined}
+                    onToggle={(e) => { const on = e.currentTarget.open; if (openNow.has(key) === on) return;
+                      const next = new Set(openNow); if (on) next.add(key); else next.delete(key);
+                      setOpenNow(next); onToggleSection?.(next); }}>
       <summary className="sec-head"><SectionHead icon={icon} title={t(title)} extra={extra} /></summary>
       <div className="sec-fields">{children}</div>
     </details>;
