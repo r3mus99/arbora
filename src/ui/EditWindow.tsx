@@ -1,5 +1,5 @@
 import { Check, Trash2, X } from "lucide-react";
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "react";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
 import type { Suggestions } from "../core/edit";
@@ -7,7 +7,7 @@ import type { SourceChoice } from "../core/sources";
 import { mayClose } from "./editWindow";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
-import { EDITOR_FORM, PersonEditor } from "./PersonEditor";
+import { EDITOR_FORM, OPEN_AT_START, PersonEditor } from "./PersonEditor";
 
 interface Props {
   data: GedcomData;
@@ -40,6 +40,13 @@ interface Props {
  */
 export function EditWindow({ data, name, record, families, lang, suggest, recordOf, sources, onSave, onClose, onDeletePerson, onAddFamily, onDeleteFamily, t, hidden }: Props) {
   const [dirty, setDirty] = useState(false);
+  // the form is rebuilt when the families change; the open parts and the place in the window stay
+  const [open, setOpen] = useState<Set<string> | undefined>();
+  const body = useRef<HTMLDivElement>(null);
+  const scrolled = useRef(0);
+  const formKey = families.map((f) => f.xref).join(" ");
+  const first = useRef(formKey);
+  useLayoutEffect(() => { if (first.current !== formKey && body.current) body.current.scrollTop = scrolled.current; }, [formKey]);
   const close = () => { if (mayClose(dirty, () => window.confirm(t("discard")))) onClose(); };
   const onKey = useEffectEvent((e: KeyboardEvent) => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); close(); } });
   useEffect(() => {
@@ -58,8 +65,8 @@ export function EditWindow({ data, name, record, families, lang, suggest, record
             <X className="icon" aria-hidden="true" /></button>
         </div>
       </PanelHead>
-      <div className="panel-body edit-body">
-        <PersonEditor data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf} sources={sources}
+      <div className="panel-body edit-body" ref={body} onScroll={(e) => { scrolled.current = e.currentTarget.scrollTop; }}>
+        <PersonEditor key={formKey} open={open} onToggleSection={(k, on) => setOpen((o) => { const s = new Set(o ?? OPEN_AT_START); if (on) s.add(k); else s.delete(k); return s; })} data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf} sources={sources}
                       onSave={onSave} onCancel={close} onAddFamily={onAddFamily} onDeleteFamily={onDeleteFamily} onDirty={setDirty} t={t} />
       </div>
       <div className="edit-foot">

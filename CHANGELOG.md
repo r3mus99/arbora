@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.49.1 – 2026-10-17
+
+- **The edit window stays where you were.** Adding or deleting a family no longer collapses the parts of the window or
+  scrolls it back to the top: the open parts and the scroll position are kept, and the first field is not focused again.
+
 ## 1.49.0 – 2026-10-17
 
 - **Add and delete people and families.** A "+" button above the list of people adds a nameless person and opens the
