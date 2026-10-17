@@ -354,13 +354,16 @@ button.link { display: inline; }
 .editor fieldset > .wide { grid-column: 1 / -1; display: grid; gap: 6px; }
 .editor .children .lab { display: block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 0; }
 .editor .child { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--field-h); padding: 0 4px; border-bottom: 1px dashed var(--border); }
-.editor fieldset > .trio, .editor fieldset > .add, .editor fieldset > .sub { grid-column: 1 / -1; }
-.editor fieldset > .add { justify-self: start; }
+.editor fieldset > .trio, .editor fieldset > .add, .editor fieldset > .reveal, .editor fieldset > .sub { grid-column: 1 / -1; }
+.editor fieldset > .add, .editor fieldset > .reveal { justify-self: start; }
 .editor fieldset.sub { padding-top: 4px; }
-.editor fieldset.new-child { grid-template-columns: 1fr; gap: 12px; margin-top: 6px; }
-.editor fieldset.new-child > label.check, .editor fieldset.new-child > .sex-field { margin: 0; }
-.editor fieldset.new-child > label:not(.check) { max-width: 160px; }
-.editor fieldset.new-child > .pair { max-width: none; }
+/* the inline form for a new child, spouse or parent: an inset card (--bg on the --panel of the part, 1px border) so it reads as a separate step */
+.editor .new-child { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 6px 0; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); }
+.editor .new-child > label.check, .editor .new-child > .sex-field { margin: 0; }
+.editor .new-child > label:not(.check) { max-width: 160px; }
+.editor .new-child > .pair { max-width: none; }
+.editor .card-head { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text); }
+.editor .card-head .icon { width: var(--icon-sm); height: var(--icon-sm); color: var(--c-src); flex: none; }
 .editor .kid-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .editor .kid-actions button { white-space: nowrap; }
 .editor fieldset.list { grid-template-columns: 1fr; gap: 16px; }
@@ -724,3 +727,32 @@ section.check { margin: 0 0 14px; }
 .merge .warn-text { margin: 0; color: var(--warn); }
 .merge .kid-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .merge .kid-actions button { display: inline-flex; align-items: center; gap: var(--gap); white-space: nowrap; }
+
+/* text actions at the right end of a group's title row ("Add event", "New", "Find"), and the chevron button that only reveals hidden fields */
+.editor legend, .editor .children .lab, .editor .spouse .lab { width: 100%; }
+.editor .spouse .lab { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.editor .head-acts { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.editor .head-act, .editor .reveal { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; }
+.editor .head-act { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; min-height: 24px; }
+.editor .head-act .icon, .collapsible .sec-extra .icon { width: var(--icon-sm); height: var(--icon-sm); }
+.editor .head-act:disabled { color: var(--muted); opacity: .5; cursor: default; }
+/* the action of a whole part ("Add family") sits at the right end of its title row, the chevron stays after the title */
+.collapsible > summary.sec-head::after { grid-column: 3; grid-row: 1; }
+.collapsible > summary.sec-head > .sec-extra { grid-column: 4; grid-row: 1; margin: 0; justify-self: end; }
+.collapsible .sec-extra .head-act { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; display: inline-flex; align-items: center; gap: 4px; }
+.collapsible .sec-extra .head-act:disabled { color: var(--muted); opacity: .5; cursor: default; }
+.editor .reveal { display: inline-flex; align-items: center; gap: 4px; min-height: var(--field-h); font-size: 14px; justify-self: start; }
+.editor .reveal .icon { width: var(--icon-sm); height: var(--icon-sm); transition: transform .12s; }
+.editor .reveal.open .icon { transform: rotate(180deg); }
+.editor .head-act:hover:not(:disabled), .editor .reveal:hover:not(:disabled) { color: var(--text); }
+
+/* the inline form for a new person: given name, surname and birth in one row; "deceased" and the death date in one row */
+.editor .kid-row { display: grid; grid-template-columns: 1fr 1fr 100px; gap: 12px; }
+.editor .kid-death { display: grid; grid-template-columns: 1fr 100px; gap: 12px; align-items: center; }
+.editor .kid-death > .check { grid-column: auto; }
+.editor .item-head .kind { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text); }
+.editor .item-head .kind .icon { width: var(--icon-sm); height: var(--icon-sm); color: var(--c-src); flex: none; }
+
+/* delete buttons in the form: a plain trash can without a border, like the delete of a person */
+.editor .icon-btn { border-color: transparent; background: none; color: var(--muted); }
+.editor .icon-btn:hover:not(:disabled) { background: var(--accent-soft); color: var(--text); }

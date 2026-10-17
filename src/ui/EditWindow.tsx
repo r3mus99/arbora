@@ -47,7 +47,8 @@ interface Props {
  * a person (name, basic facts, events, …); Esc, the X and Cancel ask before they drop changes.
  */
 export function EditWindow({ data, name, record, families, lang, suggest, recordOf, sources, onSave, allocate, onClose, onDeletePerson, records, onMerge, onAddFamily, onDeleteFamily, t, hidden }: Props) {
-  const [dirty, setDirty] = useState(false);
+  const [changes, setChanges] = useState(0);
+  const dirty = changes > 0;
   const [merging, setMerging] = useState(false);
   // the form is rebuilt when the families change; the open parts and the place in the window stay
   const [open, setOpen] = useState<Set<string> | undefined>();
@@ -68,7 +69,7 @@ export function EditWindow({ data, name, record, families, lang, suggest, record
       <PanelHead title={name}>
         <div className="tools">
           <button type="button" className="icon-btn" title={t("mergeWith")} aria-label={t("mergeWith")} aria-pressed={merging}
-                  onClick={() => { if (!merging && dirty && !window.confirm(t("discard"))) return; setDirty(false); setMerging(!merging); }}>
+                  onClick={() => { if (!merging && dirty && !window.confirm(t("discard"))) return; setChanges(0); setMerging(!merging); }}>
             <GitMerge className="icon" aria-hidden="true" /></button>
           <button type="button" className="icon-btn" title={t("deletePerson")} aria-label={t("deletePerson")}
                   onClick={() => { if (window.confirm(t("confirmDeletePerson", { name }))) onDeletePerson(); }}>
@@ -79,10 +80,10 @@ export function EditWindow({ data, name, record, families, lang, suggest, record
       </PanelHead>
       <div className="panel-body edit-body" ref={body} onScroll={(e) => { scrolled.current = e.currentTarget.scrollTop; }}>
         {merging ? <MergePanel data={data} records={records} keepId={record.xref!} lang={lang} onMerge={onMerge} onCancel={() => setMerging(false)} t={t} /> : <PersonEditor key={formKey} open={open} onToggleSection={(k, on) => setOpen((o) => { const s = new Set(o ?? OPEN_AT_START); if (on) s.add(k); else s.delete(k); return s; })} data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf} sources={sources}
-                      onSave={onSave} allocate={allocate} onCancel={close} onAddFamily={onAddFamily} onDeleteFamily={onDeleteFamily} onDirty={setDirty} t={t} />}
+                      onSave={onSave} allocate={allocate} onCancel={close} onAddFamily={onAddFamily} onDeleteFamily={onDeleteFamily} onDirty={setChanges} t={t} />}
       </div>
       {!merging && <div className="edit-foot">
-        <span className="bulk-sum" role="status">{dirty ? t("unsaved") : ""}</span>
+        <span className="bulk-sum" role="status">{dirty ? `${t("unsaved")} (${changes})` : ""}</span>
         <button type="button" onClick={close}>{t("cancel")}</button>
         <button type="submit" form={EDITOR_FORM} className="primary" disabled={!dirty} title="Ctrl+Enter">
           <Check className="icon" aria-hidden="true" />{t("save")}</button>
