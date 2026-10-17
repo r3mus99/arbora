@@ -1,8 +1,13 @@
 # Changelog
 
-## 1.51.3 – 2026-10-17
+## 1.51.4 – 2026-10-17
 
 - **The edit window has a fixed layout.** The age, cause and agency row now lines up with the date and place columns above it, and the trash and add-child icons sit on the same line as their headings. "Divorced" moved into the marriage's "+ Details" (it opens by itself when the family is divorced). The structure (section, subsection, fields, hidden fields) is written down in the design guidelines.
+
+## 1.51.3 – 2026-10-17
+
+- **The parents and associations section is quieter.** It lists only the existing parents and associations; the search
+  fields for adding a further family of parents or an association appear after pressing the add button.
 
 ## 1.51.2 – 2026-10-17
 
