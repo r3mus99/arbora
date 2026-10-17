@@ -1,5 +1,7 @@
 /** GEDCOM reading: bytes → text → record tree → people and families. */
 
+import { yearOf } from "./date";
+
 export interface GedNode {
   tag: string;
   value: string;
@@ -36,6 +38,8 @@ export interface Person {
   sex: string;
   birth: GedEvent | null;
   death: GedEvent | null;
+  /** the latest RESI with a place (by year; undated ones count as oldest, later lines win a tie) */
+  residence: GedEvent | null;
   /** OCCU values joined with ", " */
   occupation: string;
   /** RELI */
@@ -156,6 +160,19 @@ function eventOf(rec: GedNode, tags: string[]): GedEvent | null {
   return null;
 }
 
+/** The RESI with a place and the latest year; undated ones are the oldest, a later line wins a tie. */
+function latestResidence(rec: GedNode): GedEvent | null {
+  let best: GedEvent | null = null, bestYear = -Infinity;
+  for (const ev of childrenOf(rec, "RESI")) {
+    const d = childOf(ev, "DATE"), p = childOf(ev, "PLAC");
+    if (!p || !p.value.trim()) continue;
+    const e = { date: d ? d.value : "", place: p.value };
+    const y = yearOf(e.date) ?? -Infinity;
+    if (y >= bestYear) { best = e; bestYear = y; }
+  }
+  return best;
+}
+
 /**
  * Parse GEDCOM bytes or text into people and families keyed by xref ("@I1@").
  * With fallbackEvents a missing birth uses CHR/BAPM and a missing death BURI/CREM.
@@ -187,7 +204,7 @@ export function readRecords(records: GedNode[], fallbackEvents = true): GedcomDa
       people[rec.xref] = {
         id: rec.xref, name, given, sex: sex ? sex.value.toUpperCase() : "",
         aka: childrenOf(rec, "NAME").filter((n) => n !== nameNode && isAka(n)).map((n) => cleanName(n.value)).filter(Boolean),
-        birth: eventOf(rec, birthTags), death: eventOf(rec, deathTags),
+        birth: eventOf(rec, birthTags), death: eventOf(rec, deathTags), residence: latestResidence(rec),
         occupation: childrenOf(rec, "OCCU").map((n) => n.value).filter(Boolean).join(", "), famc,
         religion: childOf(rec, "RELI")?.value || "",
         fams: childrenOf(rec, "FAMS").map((n) => n.value).filter(Boolean),
