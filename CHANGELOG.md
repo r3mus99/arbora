@@ -8,6 +8,15 @@
   starts without one. The people and the family of new parents (the mother joins the family of the father made before
   her, and the other way round) are written when the window is saved, as one undo step, with all pointers in place.
 
+## 1.51.4 – 2026-10-17
+
+- **The edit window has a fixed layout.** The age, cause and agency row now lines up with the date and place columns above it, and the trash and add-child icons sit on the same line as their headings. "Divorced" moved into the marriage's "+ Details" (it opens by itself when the family is divorced). The structure (section, subsection, fields, hidden fields) is written down in the design guidelines.
+
+## 1.51.3 – 2026-10-17
+
+- **The parents and associations section is quieter.** It lists only the existing parents and associations; the search
+  fields for adding a further family of parents or an association appear after pressing the add button.
+
 ## 1.51.2 – 2026-10-17
 
 - **The edit window is shorter.** The name of a text field is now its placeholder instead of a line of small print above it, so every field takes one row less. The name is still the field's accessible name and the hover tooltip stays; a filled field shows only its value. Choice lists (access restriction, source quality) keep their label above.

@@ -336,7 +336,7 @@ button.link { display: inline; }
   outline: none; border-color: var(--accent); background: var(--accent-soft); }
 .editor textarea:focus { border-style: solid; }
 .editor textarea { resize: vertical; }
-.editor .trio { display: grid; grid-template-columns: 80px 1fr 1fr; gap: 12px; }
+.editor .trio { display: grid; grid-template-columns: 100px 1fr 1fr; gap: 12px; }
 .editor .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .editor fieldset { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: 100px 1fr;
                    gap: 6px 12px; min-width: 0; }
@@ -708,8 +708,10 @@ section.check { margin: 0 0 14px; }
 .collapsible > summary.sec-head:hover { color: var(--text); }
 .collapsible[open] > summary.sec-head { margin-bottom: 10px; border-bottom: 1px solid var(--border); }
 /* an icon before the title of a group inside a part */
-.editor legend .icon { width: var(--icon-sm); height: var(--icon-sm); margin-right: 6px; vertical-align: -2px; color: var(--c-src); }
-.editor .lab .icon { width: var(--icon-sm); height: var(--icon-sm); margin-right: 6px; vertical-align: -2px; color: var(--c-src); }
+.editor legend .icon, .editor .lab .icon { width: var(--icon-sm); height: var(--icon-sm); color: var(--c-src); flex: none; }
+/* a group title with icon buttons after it: one centred row, so the title, its icon and its buttons share a middle line */
+.editor legend, .editor .children .lab { display: flex; align-items: center; gap: 6px; }
+.editor legend .copy, .editor .lab .copy { margin-left: 0; }
 /* a short explanation under a field: plain text, not a small-caps label */
 .editor label > span.hint, .editor .addr-same .hint { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); }
 .editor .merge, .edit-body .merge { display: grid; gap: 12px; }
