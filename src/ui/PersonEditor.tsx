@@ -229,10 +229,13 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const rowId = (e: EventRow, i: number) => (e.origin < 0 ? `new${i}` : `o${e.origin}`);
   const hasDetails = (d: EventDetailFields) => !!(d.age || d.cause || d.agency);
   /** age, cause and agency of an event: shown when it has any, or after the "details" button */
-  const details = (id: string, d: EventDetailFields, onChange: (patch: Partial<EventDetailFields>) => void) =>
-    hasDetails(d) || openDetails.includes(id) ? <div className="trio">
-      {DETAILS.map(([k, label, tip]) => <label key={k} title={t(tip)}><input placeholder={t(label)} aria-label={t(label)} type="text" value={d[k]} onChange={(e) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); onChange({ [k]: e.target.value }); }} /></label>)}
-    </div> : <button type="button" className="add" title={t("tipDetails")} onClick={() => setOpenDetails([...openDetails, id])}>
+  const details = (id: string, d: EventDetailFields, onChange: (patch: Partial<EventDetailFields>) => void, extra?: ReactNode, extraSet?: boolean) =>
+    hasDetails(d) || extraSet || openDetails.includes(id) ? <>
+      <div className="trio">
+        {DETAILS.map(([k, label, tip]) => <label key={k} title={t(tip)}><input placeholder={t(label)} aria-label={t(label)} type="text" value={d[k]} onChange={(e) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); onChange({ [k]: e.target.value }); }} /></label>)}
+      </div>
+      {extra}
+    </> : <button type="button" className="add" title={t("tipDetails")} onClick={() => setOpenDetails([...openDetails, id])}>
       <Plus className="icon" aria-hidden="true" />{t("eventDetails")}</button>;
   const setContact = (i: number, patch: Partial<ContactRow>) =>
     set("contacts", form.contacts.map((c, j) => (j === i ? { ...c, ...patch } : c)));
@@ -482,10 +485,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={fams[i].marriage.place} list={PLACES}
                    onChange={(e) => setFam(i, {}, { place: e.target.value })} />
           </label>
-          {details(`m${r.xref}`, fams[i].details.marriage, (patch) => setFamDetails(i, "marriage", patch))}
-          <label className="check" title={t("tipDivorced")}><input type="checkbox" checked={fams[i].divorced}
-                   onChange={(e) => setFam(i, { divorced: e.target.checked })} />
-            <span>{t("divorcedLabel")}</span></label>
+          {details(`m${r.xref}`, fams[i].details.marriage, (patch) => setFamDetails(i, "marriage", patch),
+            <label className="check" title={t("tipDivorced")}><input type="checkbox" checked={fams[i].divorced}
+                     onChange={(e) => setFam(i, { divorced: e.target.checked })} />
+              <span>{t("divorcedLabel")}</span></label>, fams[i].divorced)}
           {fams[i].divorced && <fieldset className="sub">
             <legend>{ico(HeartCrack)}{t("divorce")}</legend>
             <DateField value={fams[i].divorce.date} shown={initial.fams[i].shown.divorce.date} lang={lang} t={t}

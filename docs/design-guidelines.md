@@ -114,6 +114,17 @@ Text buttons and text fields are all `--field-h` high, `--radius`, 14px text, 1p
 
 States, in order of precedence: disabled > active/on > hover > rest. Focus ring is separate and always visible on keyboard focus.
 
+## 6b. Structure and grid of the edit window
+
+Every part of the edit window is built from the same four levels:
+
+1. **Section** – a collapsible card (Name, Events, Occupation and facts, Family, Parents and associations, Notes and sources, Other details).
+2. **Subsection** – a group inside a section with an icon title (`legend`, e.g. Birth, Marriage, Children, Sources). A title row is one centred flex row: icon, title, then small icon buttons, all on the same middle line.
+3. **Fields** – the values that are always shown.
+4. **Hidden fields** – optional or rarely used fields (age, cause, agency, divorce, address, more name parts). They appear after a "+" text button (`.add`) and stay shown when they hold a value. A checkbox that only matters sometimes (divorced) is a hidden field too, not a free-standing control.
+
+Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexible second column (place, cause); the three-field row (`.trio`) is `100px 1fr 1fr`, so Age sits under Date and Cause under Place. Name-like pairs (given name and surname, page and quality) are two equal columns. Do not position fields with margins; put them in a grid cell.
+
 ## 7. Panels, headers, lists
 
 - Every panel starts with a header row: `--head-h`, `0 var(--pad)`, bottom border, title in the same font as the person's name in the detail (Spectral 19px 600; the chart bar has its "Family tree" title the same way) (or the control

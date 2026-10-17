@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.51.3 – 2026-10-17
+
+- **The edit window has a fixed layout.** The age, cause and agency row now lines up with the date and place columns above it, and the trash and add-child icons sit on the same line as their headings. "Divorced" moved into the marriage's "+ Details" (it opens by itself when the family is divorced). The structure (section, subsection, fields, hidden fields) is written down in the design guidelines.
+
 ## 1.51.2 – 2026-10-17
 
 - **The edit window is shorter.** The name of a text field is now its placeholder instead of a line of small print above it, so every field takes one row less. The name is still the field's accessible name and the hover tooltip stays; a filled field shows only its value. Choice lists (access restriction, source quality) keep their label above.
