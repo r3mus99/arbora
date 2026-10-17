@@ -4,12 +4,10 @@ import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
 import type { Suggestions } from "../core/edit";
 import type { SourceChoice } from "../core/sources";
-import { SECTIONS } from "./editSections";
 import { mayClose } from "./editWindow";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
 import { EDITOR_FORM, PersonEditor } from "./PersonEditor";
-import { SectionHead } from "./Section";
 
 interface Props {
   data: GedcomData;
@@ -56,11 +54,6 @@ export function EditWindow({ data, name, record, families, lang, suggest, record
       <div className="panel-body edit-body">
         <PersonEditor data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf} sources={sources}
                       onSave={onSave} onCancel={close} onDirty={setDirty} t={t} />
-        {/* parts that come with the next versions */}
-        {(["other"] as const).map((key) => <details key={key} className="section collapsible">
-          <summary className="sec-head"><SectionHead icon={SECTIONS[key].icon} title={t(SECTIONS[key].title)} /></summary>
-          <p className="muted">{t("esSoon")}</p>
-        </details>)}
       </div>
       <div className="edit-foot">
         <span className="bulk-sum" role="status">{dirty ? t("unsaved") : ""}</span>

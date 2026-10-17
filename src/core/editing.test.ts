@@ -450,3 +450,52 @@ describe("parents and associations of a person", () => {
     expect(relinkParents("@I1@", f.parents, f.parents, (id) => by(all, id))).toEqual([]);
   });
 });
+
+describe("restriction, contacts and reference numbers of a person", () => {
+  const text = [
+    "0 @I1@ INDI\n1 NAME A /X/\n1 SEX M\n1 ADDR 1 Main St\n2 CITY Testville\n1 PHON 111\n1 EMAIL a@example.org\n1 FAMS @F1@\n1 REFN 7\n2 TYPE old\n1 CHAN\n2 DATE 1 JAN 2000",
+    "0 @F1@ FAM\n1 HUSB @I1@", "",
+  ].join("\n");
+  const rec = () => parseGedcom(text)[0];
+  const lines = (r: GedNode) => r.children.map((c) => `${c.tag} ${c.value}`.trim());
+
+  test("reads the lines", () => {
+    const f = personFields(rec());
+    expect(f.address).toBe("1 Main St");
+    expect(f.contacts).toEqual([{ origin: 0, tag: "PHON", value: "111" }, { origin: 1, tag: "EMAIL", value: "a@example.org" }]);
+    expect(f.references).toEqual([{ origin: 0, value: "7", type: "old" }]);
+    expect([f.restriction, f.afn, f.rfn]).toEqual(["", "", ""]);
+  });
+
+  test("changing and removing keeps the lines under ADDR and the rest", () => {
+    const r = rec(), f = personFields(r);
+    const out = applyPerson(r, f, {
+      ...f, address: "2 Side St", contacts: [{ ...f.contacts[0], value: "222" }], references: [{ ...f.references[0], type: "new" }],
+    });
+    expect(lines(out)).toEqual(["NAME A /X/", "SEX M", "ADDR 2 Side St", "PHON 222", "FAMS @F1@", "REFN 7", "CHAN"]);
+    expect(out.children[2].children.map((c) => c.tag)).toEqual(["CITY"]);
+    expect(out.children[5].children.map((c) => c.value)).toEqual(["new"]);
+    expect(applyPerson(r, f, { ...f, contacts: f.contacts.map((c) => ({ ...c })) })).toBe(r);
+  });
+
+  test("an emptied ADDR with parts under it stays, a plain one goes", () => {
+    const r = rec(), f = personFields(r);
+    expect(lines(applyPerson(r, f, { ...f, address: "" }))).toContain("ADDR");
+    const plain = parseGedcom("0 @I1@ INDI\n1 NAME A /X/\n1 ADDR x\n")[0], g = personFields(plain);
+    expect(lines(applyPerson(plain, g, { ...g, address: "" }))).toEqual(["NAME A /X/"]);
+  });
+
+  test("new lines go where GEDCOM has them, and adding then removing gives the record back", () => {
+    const r = rec(), f = personFields(r);
+    const out = applyPerson(r, f, {
+      ...f, restriction: "Privacy", afn: "AF1", rfn: "RF1",
+      contacts: [...f.contacts, { origin: -1, tag: "WWW", value: "https://example.org" }],
+      references: [...f.references, { origin: -1, value: "8", type: "" }],
+    });
+    expect(lines(out)).toEqual(["RESN privacy", "NAME A /X/", "SEX M", "ADDR 1 Main St", "PHON 111", "EMAIL a@example.org", "WWW https://example.org",
+                                "FAMS @F1@", "RFN RF1", "AFN AF1", "REFN 7", "REFN 8", "CHAN"]);
+    const g = personFields(out);
+    const back = applyPerson(out, g, { ...g, restriction: "", afn: "", rfn: "", contacts: g.contacts.slice(0, 2), references: g.references.slice(0, 1) });
+    expect(lines(back)).toEqual(lines(r));
+  });
+});
