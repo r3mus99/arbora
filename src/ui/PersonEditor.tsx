@@ -1,8 +1,8 @@
-import { Baby, BookMarked, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, Plus, Tag, Tags, Users, X, type LucideIcon } from "lucide-react";
+import { Hash, Phone, Baby, BookMarked, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, Plus, Tag, Tags, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
-  OTHER_EVENT_TAGS, PEDIGREES, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
-  type Alias, type AssocRow, type AttributeRow, type CitationRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
+  CONTACT_TAGS, OTHER_EVENT_TAGS, PEDIGREES, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
+  type Alias, type AssocRow, type AttributeRow, type CitationRow, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { SourceChoice } from "../core/sources";
@@ -219,6 +219,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         <input type="text" value={d[k]} onChange={(e) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); onChange({ [k]: e.target.value }); }} /></label>)}
     </div> : <button type="button" className="add" onClick={() => setOpenDetails([...openDetails, id])}>
       <Plus className="icon" aria-hidden="true" />{t("eventDetails")}</button>;
+  const setContact = (i: number, patch: Partial<ContactRow>) =>
+    set("contacts", form.contacts.map((c, j) => (j === i ? { ...c, ...patch } : c)));
+  const setRef = (i: number, patch: Partial<ReferenceRow>) =>
+    set("references", form.references.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   const setCite = (i: number, patch: Partial<CitationRow>) =>
     set("citations", form.citations.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   const setAlias = (i: number, patch: Partial<Alias>) =>
@@ -551,6 +555,57 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           [...form.citations, { origin: -1, source: sources[0]?.xref || "", page: "", quality: "" }])}>
           <Plus className="icon" aria-hidden="true" />{t("addCitation")}</button>
       </fieldset>
+      </>)}
+      {section("other", <>
+      <label><span>{t("restriction")}</span>
+        <select value={form.restriction} onChange={(e) => set("restriction", e.target.value)}>
+          <option value="">–</option>
+          {!RESTRICTIONS.includes(form.restriction) && form.restriction && <option value={form.restriction}>{form.restriction}</option>}
+          {RESTRICTIONS.map((r) => <option key={r} value={r}>{t(`resn_${r}` as StringKey)}</option>)}
+        </select></label>
+      <label><span>{t("address")}</span>
+        <textarea rows={2} value={form.address} onChange={(e) => set("address", e.target.value)} /></label>
+      <fieldset className="list">
+        <legend>{ico(Phone)}{t("contacts")}</legend>
+        {form.contacts.map((c, i) => (
+          <div className="item" key={c.origin < 0 ? `new${i}` : c.origin}>
+            <div className="item-head">
+              <select value={c.tag} disabled={c.origin >= 0} aria-label={t("contacts")} onChange={(e) => setContact(i, { tag: e.target.value })}>
+                {CONTACT_TAGS.map((tag) => <option key={tag} value={tag}>{t(`contact_${tag}` as StringKey)}</option>)}
+              </select>
+              <input type="text" value={c.value} aria-label={t(`contact_${c.tag}` as StringKey)} onChange={(e) => setContact(i, { value: e.target.value })} />
+              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                      onClick={() => set("contacts", form.contacts.filter((_, j) => j !== i))}>
+                <X className="icon" aria-hidden="true" /></button>
+            </div>
+          </div>
+        ))}
+        <button type="button" className="add" onClick={() => set("contacts", [...form.contacts, { origin: -1, tag: CONTACT_TAGS[0], value: "" }])}>
+          <Plus className="icon" aria-hidden="true" />{t("addContact")}</button>
+      </fieldset>
+      <fieldset className="list">
+        <legend>{ico(Hash)}{t("references")}</legend>
+        {form.references.map((r, i) => (
+          <div className="item" key={r.origin < 0 ? `new${i}` : r.origin}>
+            <div className="item-head">
+              <input type="text" value={r.value} aria-label={t("references")} onChange={(e) => setRef(i, { value: e.target.value })} />
+              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                      onClick={() => set("references", form.references.filter((_, j) => j !== i))}>
+                <X className="icon" aria-hidden="true" /></button>
+            </div>
+            <label className="full"><span>{t("refType")}</span>
+              <input type="text" value={r.type} onChange={(e) => setRef(i, { type: e.target.value })} /></label>
+          </div>
+        ))}
+        <button type="button" className="add" onClick={() => set("references", [...form.references, { origin: -1, value: "", type: "" }])}>
+          <Plus className="icon" aria-hidden="true" />{t("addReference")}</button>
+      </fieldset>
+      <div className="pair">
+        <label><span>{t("afn")}</span>
+          <input type="text" value={form.afn} onChange={(e) => set("afn", e.target.value)} /></label>
+        <label><span>{t("rfn")}</span>
+          <input type="text" value={form.rfn} onChange={(e) => set("rfn", e.target.value)} /></label>
+      </div>
       </>)}
       <SuggestLists suggest={suggest} lang={lang} />
     </form>

@@ -46,7 +46,26 @@ export interface PersonFields {
   citations: CitationRow[];
   /** the attribute lines (education, nationality, …) that have a value, date or place; `origin` is the index among all attribute lines, -1 for a new one */
   attributes: AttributeRow[];
+  /** RESN: "confidential", "locked", "privacy" (lower case) or what the file says */
+  restriction: string;
+  /** the text of the person's own ADDR line (its CITY, POST, … lines stay as they are) */
+  address: string;
+  /** the PHON, EMAIL, FAX and WWW lines of the person; `origin` is the index among them, -1 for a new one */
+  contacts: ContactRow[];
+  /** the REFN lines (a reference number with its TYPE) */
+  references: ReferenceRow[];
+  /** AFN (ancestral file number) and RFN (record file number) */
+  afn: string;
+  rfn: string;
 }
+
+/** the kinds of contact line a person can have, in the order they are offered */
+export const CONTACT_TAGS = ["PHON", "EMAIL", "FAX", "WWW"];
+/** the values GEDCOM 5.5.1 gives RESN */
+export const RESTRICTIONS = ["confidential", "locked", "privacy"];
+
+export interface ContactRow { origin: number; tag: string; value: string }
+export interface ReferenceRow { origin: number; value: string; type: string }
 
 /** AGE, CAUS and AGNC written under an event line */
 export interface EventDetailFields { age: string; cause: string; agency: string }
@@ -192,6 +211,12 @@ export function personFields(rec: GedNode): PersonFields {
     attributes: rec.children.filter((c) => ATTRIBUTE_TAGS.includes(c.tag))
       .map((c, origin) => ({ origin, tag: c.tag, value: c.value === "Y" ? "" : c.value, ...datePlace(c) }))
       .filter((a) => a.value || a.date || a.place),
+    restriction: childOf(rec, "RESN")?.value.trim().toLowerCase() || "",
+    address: childOf(rec, "ADDR")?.value || "",
+    contacts: rec.children.filter((c) => CONTACT_TAGS.includes(c.tag)).map((c, origin) => ({ origin, tag: c.tag, value: c.value.trim() })),
+    references: childrenOf(rec, "REFN").map((c, origin) => ({ origin, value: c.value.trim(), type: childOf(c, "TYPE")?.value.trim() || "" })),
+    afn: childOf(rec, "AFN")?.value.trim() || "",
+    rfn: childOf(rec, "RFN")?.value.trim() || "",
   };
   return fields;
 }
@@ -242,11 +267,13 @@ export function suggestions(records: GedNode[]): Suggestions {
 
 
 /** usual GEDCOM order of a person's or family's lines; new lines go to their place */
-const ORDER = ["NAME", "SEX", "HUSB", "WIFE", "BIRT", "CHR", "BAPM", "DEAT", "BURI", "CREM", "MARR", "DIV",
-               "OCCU", "RELI", ...ATTRIBUTE_TAGS, "NOTE"];
+const ORDER = ["RESN", "NAME", "SEX", "HUSB", "WIFE", "BIRT", "CHR", "BAPM", "DEAT", "BURI", "CREM", "MARR", "DIV",
+               "OCCU", "RELI", ...ATTRIBUTE_TAGS, "ADDR", ...CONTACT_TAGS, "NOTE"];
+/** the numbers at the end of a person's record, in their usual order */
+const TAIL = ["RFN", "AFN", "REFN"];
 const LINKS = new Set(["FAMC", "FAMS", "CHIL", "ASSO"]);
-const CLOSING = new Set(["SOUR", "OBJE", "CHAN", "RIN", "REFN"]);
-const LATE = new Set(["FAMC", "FAMS", "CHIL", "SOUR", "OBJE", "CHAN", "RIN", "REFN"]);
+const CLOSING = new Set(["SOUR", "OBJE", "CHAN", "RIN", ...TAIL]);
+const LATE = new Set(["FAMC", "FAMS", "CHIL", "SOUR", "OBJE", "CHAN", "RIN", ...TAIL]);
 
 /** A record with one more line `tag value`, put where GEDCOM usually has it; written anew. */
 export function addLine(rec: GedNode, tag: string, value: string): GedNode {
@@ -258,7 +285,8 @@ function insert(children: GedNode[], added: GedNode): GedNode[] {
   // after the lines with the same tag, else before the first one that comes later
   let at = children.map((c) => c.tag).lastIndexOf(added.tag) + 1;
   // the links to families come after everything else except the lines that always close a record
-  if (!at && LINKS.has(added.tag)) at = children.findIndex((c) => CLOSING.has(c.tag));
+  if (!at && TAIL.includes(added.tag)) at = children.findIndex((c) => ["SOUR", "OBJE", "CHAN", "RIN"].includes(c.tag) || TAIL.indexOf(c.tag) > TAIL.indexOf(added.tag));
+  else if (!at && LINKS.has(added.tag)) at = children.findIndex((c) => CLOSING.has(c.tag));
   else if (!at) at = children.findIndex((c) => LATE.has(c.tag) || ORDER.indexOf(c.tag) > rank);
   if (at < 0) at = children.length;
   return [...children.slice(0, at), added, ...children.slice(at)];
@@ -557,6 +585,63 @@ function setAssociations(rec: GedNode, before: AssocRow[], after: AssocRow[]): G
   return out;
 }
 
+/** The ADDR line's text; a line that has CITY, POST, … under it is never removed, only emptied. */
+function setAddress(rec: GedNode, before: string, after: string): GedNode {
+  const value = after.replace(/\r\n?/g, "\n").trim();
+  if (value === before.trim()) return rec;
+  const line = childOf(rec, "ADDR");
+  if (!line) return value ? { ...rec, children: insert(rec.children, gedNode("ADDR", value)) } : rec;
+  if (!value && !line.children.length) return { ...rec, children: rec.children.filter((c) => c !== line) };
+  return { ...rec, children: rec.children.map((c) => (c === line ? { ...c, value } : c)) };
+}
+
+/** The PHON, EMAIL, FAX and WWW lines from the rows: a changed value is written into its line, an empty one removes it. */
+function setContacts(rec: GedNode, before: ContactRow[], after: ContactRow[]): GedNode {
+  const rows = after.map((r) => ({ ...r, value: r.value.trim() }));
+  if (rows.length === before.length && rows.every((r, i) => r.origin === before[i].origin && r.value === before[i].value)) return rec;
+  let k = -1;
+  const children: GedNode[] = [];
+  for (const c of rec.children) {
+    if (!CONTACT_TAGS.includes(c.tag)) { children.push(c); continue; }
+    k++;
+    const was = before.find((b) => b.origin === k);
+    const row = rows.find((r) => r.origin === k);
+    if (!was) { children.push(c); continue; }
+    if (!row || !row.value) continue;
+    children.push(row.value === was.value ? c : { ...c, value: row.value });
+  }
+  let out = { ...rec, children };
+  for (const row of rows.filter((r) => r.origin < 0 && r.value)) out = { ...out, children: insert(out.children, gedNode(row.tag, row.value)) };
+  return out;
+}
+
+/** The REFN lines from the rows: the type is the TYPE line under the number. */
+function setReferences(rec: GedNode, before: ReferenceRow[], after: ReferenceRow[]): GedNode {
+  const rows = after.map((r) => ({ ...r, value: r.value.trim(), type: r.type.trim() }));
+  const same = (a: ReferenceRow, b: ReferenceRow) => a.value === b.value && a.type === b.type;
+  if (rows.length === before.length && rows.every((r, i) => r.origin === before[i].origin && same(r, before[i]))) return rec;
+  let k = -1;
+  const children: GedNode[] = [];
+  for (const c of rec.children) {
+    if (c.tag !== "REFN") { children.push(c); continue; }
+    k++;
+    const was = before.find((b) => b.origin === k);
+    const row = rows.find((r) => r.origin === k);
+    if (!was) { children.push(c); continue; }
+    if (!row || !row.value) continue;
+    if (same(row, was)) { children.push(c); continue; }
+    let line = row.value === was.value ? c : { ...c, value: row.value };
+    if (row.type !== was.type) line = setChild(line, "TYPE", row.type, line.children.length);
+    children.push(line);
+  }
+  let out = { ...rec, children };
+  for (const row of rows.filter((r) => r.origin < 0 && r.value)) {
+    const line = row.type ? gedNode("REFN", row.value, [gedNode("TYPE", row.type)]) : gedNode("REFN", row.value);
+    out = { ...out, children: insert(out.children, line) };
+  }
+  return out;
+}
+
 function setNote(rec: GedNode, text: string): GedNode {
   const note = inlineNote(rec);
   const value = text.replace(/\r\n?/g, "\n").trim();
@@ -596,6 +681,12 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   out = setNameParts(out, before.nameParts, after.nameParts);
   out = setAliases(out, before.aliases, after.aliases, after);
   if (after.religion.trim() !== before.religion) out = setChild(out, "RELI", after.religion.trim());
+  if (after.restriction.trim().toLowerCase() !== before.restriction) out = setChild(out, "RESN", after.restriction.trim().toLowerCase());
+  out = setAddress(out, before.address, after.address);
+  out = setContacts(out, before.contacts, after.contacts);
+  out = setReferences(out, before.references, after.references);
+  if (after.afn.trim() !== before.afn) out = setChild(out, "AFN", after.afn.trim());
+  if (after.rfn.trim() !== before.rfn) out = setChild(out, "RFN", after.rfn.trim());
   if (after.note.trim() !== before.note.trim()) out = setNote(out, after.note);
   return out === rec ? rec : rewritten(out);
 }
