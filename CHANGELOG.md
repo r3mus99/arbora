@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.52.0 – 2026-10-17
+
+- **A new spouse or a new parent can be made right in the edit window.** Under the spouse field of a family there is a
+  "New spouse" button, and under Parents a "New parent" button. Both open the same small form as the new child (given
+  name, surname, sex, birth, deceased with a death date). A new father keeps the surname of the person, a new mother
+  starts without one. The people and the family of new parents (the mother joins the family of the father made before
+  her, and the other way round) are written when the window is saved, as one undo step, with all pointers in place.
+
 ## 1.51.2 – 2026-10-17
 
 - **The edit window is shorter.** The name of a text field is now its placeholder instead of a line of small print above it, so every field takes one row less. The name is still the field's accessible name and the hover tooltip stays; a filled field shows only its value. Choice lists (access restriction, source quality) keep their label above.

@@ -24,8 +24,8 @@ export function freeXref(records: GedNode[], tag: string, fallback: string, take
 /** what the form of a new child asks for; the dates are GEDCOM dates ("" when not known) */
 export interface NewPerson { given: string; surname: string; sex: string; birth: string; deceased: boolean; death: string }
 
-/** The record of a new person (not yet in any list) with the name, sex, birth and, when deceased, death; `famc` is the family they are a child of. */
-export function personRecord(xref: string, p: NewPerson, famc = ""): GedNode {
+/** The record of a new person (not yet in any list) with the name, sex, birth and, when deceased, death; `famc` is the family they are a child of (`famc`) and the one they are a spouse in (`fams`). */
+export function personRecord(xref: string, p: NewPerson, links: { famc?: string; fams?: string } = {}): GedNode {
   const blank: GedNode = { ...gedNode("INDI", "", [gedNode("NAME", "//")]), xref };
   const before = personFields(blank);
   const dated = (date: string) => ({ date, place: "" });
@@ -33,7 +33,14 @@ export function personRecord(xref: string, p: NewPerson, famc = ""): GedNode {
     ...before, given: p.given.trim(), surname: p.surname.trim(), sex: p.sex,
     birth: dated(p.birth), deceased: p.deceased, death: dated(p.deceased ? p.death : ""),
   });
-  return famc ? addLine(rec, "FAMC", famc) : rec;
+  const withFamc = links.famc ? addLine(rec, "FAMC", links.famc) : rec;
+  return links.fams ? addLine(withFamc, "FAMS", links.fams) : withFamc;
+}
+
+/** The record of a new family (not yet in any list) of the given spouses ("" for none) and children; the pointers in their records are the caller's. */
+export function familyRecord(xref: string, husb: string, wife: string, children: string[] = []): GedNode {
+  const lines = [husb && gedNode("HUSB", husb), wife && gedNode("WIFE", wife), ...children.map((c) => gedNode("CHIL", c))].filter((n): n is GedNode => !!n);
+  return { ...gedNode("FAM", "", lines), xref };
 }
 
 /** the record list with `record` put before the trailer (or last, when the file has none) */

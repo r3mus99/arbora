@@ -73,9 +73,14 @@ describe("adding and removing people and families", () => {
 describe("a new person from a form", () => {
   test("is written with name, sex, birth and death, and the family they are a child of", async () => {
     const { personRecord } = await import("./index");
-    const rec = personRecord("@I9@", { given: "Eva", surname: "Test", sex: "F", birth: "5 MAY 1900", deceased: true, death: "" }, "@F1@");
-    expect(writeGedcom([rec])).toBe("0 @I9@ INDI\n1 NAME Eva /Test/\n1 SEX F\n1 BIRT\n2 DATE 5 MAY 1900\n1 DEAT Y\n1 FAMC @F1@\n");
+    const rec = personRecord("@I9@", { given: "Eva", surname: "Test", sex: "F", birth: "5 MAY 1900", deceased: true, death: "" }, { famc: "@F1@", fams: "@F2@" });
+    expect(writeGedcom([rec])).toBe("0 @I9@ INDI\n1 NAME Eva /Test/\n1 SEX F\n1 BIRT\n2 DATE 5 MAY 1900\n1 DEAT Y\n1 FAMC @F1@\n1 FAMS @F2@\n");
     const alive = personRecord("@I10@", { given: "Adam", surname: "", sex: "", birth: "", deceased: false, death: "1 JAN 1950" });
     expect(writeGedcom([alive])).toBe("0 @I10@ INDI\n1 NAME Adam //\n");
   });
+});
+
+test("a new family record lists its members", async () => {
+  const { familyRecord } = await import("./index");
+  expect(writeGedcom([familyRecord("@F9@", "@I1@", "", ["@I2@"])])).toBe("0 @F9@ FAM\n1 HUSB @I1@\n1 CHIL @I2@\n");
 });

@@ -684,7 +684,7 @@ export function App() {
             {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
                                  lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} sources={sourceList} onSave={(changed, added) => { setWindowId(null); commit(changed, added); }}
-                                 allocate={(pending) => freeXref(doc!.records, "INDI", "I", pending)}
+                                 allocate={(tag, pending) => (tag === "FAM" ? freeXref(doc!.records, "FAM", "F", pending) : freeXref(doc!.records, "INDI", "I", pending))}
                                  onClose={() => setWindowId(null)} onDeletePerson={() => removePerson(windowId)}
                                  records={doc!.records} onMerge={(drop, pick) => mergeInto(windowId, drop, pick)}
                                  onAddFamily={() => newFamily(windowId)} onDeleteFamily={removeFamily} hidden={showCheck || showFix} t={t} />}
