@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.52.3 – 2026-10-17
+
+- **Several marriages are easy to tell apart in the edit window.** When a person has more than one family, each is its own card with a numbered title (Marriage 1, Marriage 2, …); a single family looks as before.
+
 ## 1.52.2 – 2026-10-17
 
 - **The edit window opens the parts that already hold something.** Family, Parents and associations, Occupation and facts, Notes and sources and Other details start expanded when they contain data and collapsed when they are empty; Person and Events are always open. Parts you open or close yourself stay as you left them.

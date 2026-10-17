@@ -123,6 +123,8 @@ Every part of the edit window is built from the same four levels:
 
 **Delete** is always the trash can icon (`Trash2`), never an X; the X is only for closing windows. A **search field opened by "Find"** appears directly under the title row of its group and "Find" toggles it.
 
+**Several families:** when a person has more than one family, each one is an inset card (`.fam-card`: `--bg` on the `--panel` of the part, 1px `--border`, `--radius`, 12px padding) with a numbered title ("Marriage 1", "Marriage 2"); a single family stays without a card.
+
 **Inline form for a new person** (child, spouse, parent): an inset card (`.new-child`: `--bg` on the `--panel` of the part, 1px `--border`, `--radius`, 12px padding) with an icon title row, the fields and a Cancel / Add footer.
 3. **Fields** – the values that are always shown.
 4. **Hidden fields** – optional or rarely used fields (age, cause, agency, divorce, address, more name parts). They appear after a text button with a chevron-down after the text (`.reveal`, never a "+": it only shows or hides what is there). The button never disappears: pressing it again hides the fields (the chevron turns up while they are shown; hidden fields keep their value). They start shown when they hold a value. A checkbox that only matters sometimes (divorced) is a hidden field too, not a free-standing control.
