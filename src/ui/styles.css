@@ -750,5 +750,9 @@ section.check { margin: 0 0 14px; }
 .editor .kid-row { display: grid; grid-template-columns: 1fr 1fr 100px; gap: 12px; }
 .editor .kid-death { display: grid; grid-template-columns: 1fr 100px; gap: 12px; align-items: center; }
 .editor .kid-death > .check { grid-column: auto; }
-.editor .item-head .kind { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+.editor .item-head .kind { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text); }
 .editor .item-head .kind .icon { width: var(--icon-sm); height: var(--icon-sm); color: var(--c-src); flex: none; }
+
+/* delete buttons in the form: a plain trash can without a border, like the delete of a person */
+.editor .icon-btn { border-color: transparent; background: none; color: var(--muted); }
+.editor .icon-btn:hover:not(:disabled) { background: var(--accent-soft); color: var(--text); }

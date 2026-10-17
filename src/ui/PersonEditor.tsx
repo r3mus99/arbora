@@ -40,7 +40,8 @@ interface Props {
   /** removes the family (its ID) with the links to it */
   onDeleteFamily?: (id: string) => void;
   /** whether the form differs from the record as it was opened */
-  onDirty?: (dirty: boolean) => void;
+  /** the number of changed values in the form, 0 when nothing changed */
+  onDirty?: (changes: number) => void;
   t: (key: StringKey) => string;
 }
 
@@ -133,6 +134,17 @@ const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "deat
   christening: ["birth", "copyBirth"], burial: ["death", "copyDeath"],
 };
 
+/** how many values differ between two form states (arrays and objects compared value by value) */
+export function diffCount(a: unknown, b: unknown): number {
+  if (a && b && typeof a === "object" && typeof b === "object") {
+    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+    let n = 0;
+    for (const k of keys) n += diffCount((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]);
+    return n;
+  }
+  return a === b ? 0 : 1;
+}
+
 /** Form for the facts of one person and of their marriages. */
 export function PersonEditor({ data, record, families, lang, suggest, recordOf, sources, onSave, allocate, onCancel, open, onToggleSection, onAddFamily, onDeleteFamily, onDirty, t }: Props) {
   const [initial] = useState(() => {
@@ -165,8 +177,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const firstInput = useRef<HTMLInputElement>(null);
   useEffect(() => { if (!open) firstInput.current?.focus({ preventScroll: true }); }, []);
   const [opened] = useState(() => JSON.stringify([initial.shown, initial.fams.map((f) => f.shown)]));
-  const dirty = JSON.stringify([form, fams]) !== opened;
-  useEffect(() => onDirty?.(dirty), [dirty, onDirty]);
+  const changes = useMemo(() => diffCount(JSON.parse(opened), JSON.parse(JSON.stringify([form, fams]))), [opened, form, fams]);
+  const dirty = changes > 0;
+  useEffect(() => onDirty?.(changes), [changes, onDirty]);
 
   const shownEv = (origin: number) => initial.shown.events.find((x) => x.origin === origin)!.date;
   const shownAttr = (origin: number) => initial.shown.attributes.find((x) => x.origin === origin)!.date;
@@ -286,6 +299,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     const source = from && form[from[0]];
     return <fieldset key={key}>
       <legend>{ico(EVENT_ICON[key])}{t(EVENT_LABEL[key])}
+        {(key === "birth" || key === "death") && !fixedKeys.includes(key === "birth" ? "christening" : "burial") && acts(
+          <button type="button" className="head-act" onClick={() => setFixedOn([...fixedOn, key === "birth" ? "christening" : "burial"])}>
+            <Plus className="icon" aria-hidden="true" />{t(key === "birth" ? "addChristening" : "addBurial")}</button>)}
         {from && acts(<button type="button" className="head-act" title={t(from[1])}
                          disabled={!source?.date && !source?.place} onClick={() => set(key, { ...source! })}>
           <Copy className="icon" aria-hidden="true" />{t(from[1])}</button>)}
@@ -304,11 +320,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const [fixedOn, setFixedOn] = useState<string[]>([]);
   const hasEv = (k: "christening" | "burial") => !!(form[k].date || form[k].place || hasDetails(form.details[k]) || (k === "christening" && form.religion));
   const fixedKeys = (["christening", "burial"] as const).filter((k) => (k !== "burial" || form.deceased) && (fixedOn.includes(k) || hasEv(k)));
-  const freeFixed = (["christening", "burial"] as const).filter((k) => (k !== "burial" || form.deceased) && !fixedKeys.includes(k));
   const fixedRow = (key: "christening" | "burial") => {
     const from = COPY_FROM[key]!;
     const source = form[from[0]];
-    return <div className="item" key={key}>
+    return <fieldset className="list" key={key}><div className="item">
       <div className="item-head">
         <span className="grow kind">{ico(EVENT_ICON[key])}{t(EVENT_LABEL[key])}</span>
         <button type="button" className="head-act" title={t(from[1])} disabled={!source.date && !source.place} onClick={() => set(key, { ...source })}>
@@ -325,7 +340,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {key === "christening" && <label className="full" title={t("tipReligion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
       {details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
-    </div>;
+    </div></fieldset>;
   };
   /** which of the two spouse lines of the family is the other person's */
   const otherKey = (f: FamilyFields) => (f.husb === record.xref ? "wife" : "husb");
@@ -461,12 +476,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           <input type="radio" name="sex" checked readOnly /> {form.sex}</label>}
         </div>
       </div>
-      {/* death and burial only for someone who died; unticking hides them and saving clears them,
-          ticking again before saving brings them back */}
-      <label className="check" title={t("tipDeceased")}>
-        <input type="checkbox" checked={form.deceased}
-               onChange={(e) => set("deceased", e.target.checked)} />
-        <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
       <fieldset className="list">
         <legend title={t("tipAka")}>{ico(Tag)}{t("aka")}{acts(<button type="button" className="head-act" onClick={() => set("aliases",
           [...form.aliases, { origin: -1, given: form.given, surname: form.surname }])}><Plus className="icon" aria-hidden="true" />{t("addAka")}</button>)}</legend>
@@ -492,19 +501,23 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </>)}
       {section("events", <>
       {event("birth")}
+      {fixedKeys.includes("christening") && fixedRow("christening")}
+      {/* the death (and burial) only for someone who died; unticking hides them and saving clears them,
+          ticking again before saving brings them back */}
+      <label className="check" title={t("tipDeceased")}>
+        <input type="checkbox" checked={form.deceased}
+               onChange={(e) => set("deceased", e.target.checked)} />
+        <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
       {form.deceased && event("death")}
+      {form.deceased && fixedKeys.includes("burial") && fixedRow("burial")}
       <fieldset className="list">
         <legend>{ico(CalendarDays)}{t("otherEvents")}{acts(<button type="button" className="head-act" onClick={() => set("events",
           [...form.events, { origin: -1, tag: OTHER_EVENT_TAGS[0], title: "", value: "", date: "", place: "", age: "", cause: "", agency: "" }])}><Plus className="icon" aria-hidden="true" />{t("addEvent")}</button>)}</legend>
-        {fixedKeys.map(fixedRow)}
         {form.events.map((e, i) => (
           <div className="item" key={e.origin < 0 ? `new${i}` : e.origin}>
             <div className="item-head">
               <select value={e.tag} disabled={e.origin >= 0} aria-label={t("eventKind")} title={t("tipEventKind")}
-                      onChange={(ev) => { const v = ev.target.value;
-                        if (v === "christening" || v === "burial") { setFixedOn([...fixedOn, v]); set("events", form.events.filter((_, j) => j !== i)); }
-                        else setEv(i, { tag: v }); }}>
-                {e.origin < 0 && freeFixed.map((k) => <option key={k} value={k}>{t(EVENT_LABEL[k])}</option>)}
+                      onChange={(ev) => setEv(i, { tag: ev.target.value })}>
                 {OTHER_EVENT_TAGS.map((tag) => <option key={tag} value={tag}>{t(OTHER_LABEL[tag])}</option>)}
               </select>
               <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
@@ -526,50 +539,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             <label title={t(e.tag === "RESI" ? "resiPlaceHint" : "tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={e.place} list={PLACES}
                      onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
             {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
-          </div>
-        ))}
-      </fieldset>
-      </>)}
-      {section("facts", <>
-      <fieldset className="list">
-        <legend>{ico(Briefcase)}{t("occupation")}{acts(<button type="button" className="head-act" onClick={() => set("occupations",
-          [...form.occupations, { origin: -1, value: "", date: "", place: "" }])}><Plus className="icon" aria-hidden="true" />{t("addOccupation")}</button>)}</legend>
-        {form.occupations.map((o, i) => (
-          <div className="item" key={o.origin < 0 ? `new${i}` : o.origin}>
-            <div className="item-head">
-              <input type="text" value={o.value} aria-label={t("occupation")} title={t("tipOccupation")}
-                     onChange={(e) => setOcc(i, { value: e.target.value })} />
-              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                      onClick={() => set("occupations", form.occupations.filter((_, j) => j !== i))}>
-                <Trash2 className="icon" aria-hidden="true" /></button>
-            </div>
-            <DateField value={o.date} shown={o.origin < 0 ? "" : initial.shown.occupations[o.origin].date} lang={lang}
-                       t={t} onChange={(v) => setOcc(i, { date: v })} />
-            <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={o.place} list={PLACES}
-                     onChange={(e) => setOcc(i, { place: e.target.value })} /></label>
-          </div>
-        ))}
-      </fieldset>
-      <fieldset className="list">
-        <legend>{ico(Tags)}{t("attributes")}{acts(<button type="button" className="head-act" onClick={() => set("attributes",
-          [...form.attributes, { origin: -1, tag: ATTRIBUTE_TAGS[0], value: "", date: "", place: "" }])}><Plus className="icon" aria-hidden="true" />{t("addAttribute")}</button>)}</legend>
-        {form.attributes.map((a, i) => (
-          <div className="item" key={a.origin < 0 ? `new${i}` : a.origin}>
-            <div className="item-head">
-              <select value={a.tag} disabled={a.origin >= 0} aria-label={t("attributes")} title={t("tipAttrKind")}
-                      onChange={(e) => setAttr(i, { tag: e.target.value })}>
-                {ATTRIBUTE_TAGS.map((tag) => <option key={tag} value={tag}>{t(`attr${tag}` as StringKey)}</option>)}
-              </select>
-              <input type="text" value={a.value} aria-label={t("attributes")} title={t("tipAttrValue")}
-                     onChange={(e) => setAttr(i, { value: e.target.value })} />
-              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                      onClick={() => set("attributes", form.attributes.filter((_, j) => j !== i))}>
-                <Trash2 className="icon" aria-hidden="true" /></button>
-            </div>
-            <DateField value={a.date} shown={a.origin < 0 ? "" : shownAttr(a.origin)} lang={lang}
-                       t={t} onChange={(v) => setAttr(i, { date: v })} />
-            <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={a.place} list={PLACES}
-                     onChange={(e) => setAttr(i, { place: e.target.value })} /></label>
           </div>
         ))}
       </fieldset>
@@ -675,6 +644,50 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
             <label className="full" title={t("tipAssocRole")}><input placeholder={t("assocRole")} aria-label={t("assocRole")} type="text" value={a.role} onChange={(e) => setAssoc(i, { role: e.target.value })} /></label>
+          </div>
+        ))}
+      </fieldset>
+      </>)}
+      {section("facts", <>
+      <fieldset className="list">
+        <legend>{ico(Briefcase)}{t("occupation")}{acts(<button type="button" className="head-act" onClick={() => set("occupations",
+          [...form.occupations, { origin: -1, value: "", date: "", place: "" }])}><Plus className="icon" aria-hidden="true" />{t("addOccupation")}</button>)}</legend>
+        {form.occupations.map((o, i) => (
+          <div className="item" key={o.origin < 0 ? `new${i}` : o.origin}>
+            <div className="item-head">
+              <input type="text" value={o.value} aria-label={t("occupation")} title={t("tipOccupation")}
+                     onChange={(e) => setOcc(i, { value: e.target.value })} />
+              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                      onClick={() => set("occupations", form.occupations.filter((_, j) => j !== i))}>
+                <Trash2 className="icon" aria-hidden="true" /></button>
+            </div>
+            <DateField value={o.date} shown={o.origin < 0 ? "" : initial.shown.occupations[o.origin].date} lang={lang}
+                       t={t} onChange={(v) => setOcc(i, { date: v })} />
+            <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={o.place} list={PLACES}
+                     onChange={(e) => setOcc(i, { place: e.target.value })} /></label>
+          </div>
+        ))}
+      </fieldset>
+      <fieldset className="list">
+        <legend>{ico(Tags)}{t("attributes")}{acts(<button type="button" className="head-act" onClick={() => set("attributes",
+          [...form.attributes, { origin: -1, tag: ATTRIBUTE_TAGS[0], value: "", date: "", place: "" }])}><Plus className="icon" aria-hidden="true" />{t("addAttribute")}</button>)}</legend>
+        {form.attributes.map((a, i) => (
+          <div className="item" key={a.origin < 0 ? `new${i}` : a.origin}>
+            <div className="item-head">
+              <select value={a.tag} disabled={a.origin >= 0} aria-label={t("attributes")} title={t("tipAttrKind")}
+                      onChange={(e) => setAttr(i, { tag: e.target.value })}>
+                {ATTRIBUTE_TAGS.map((tag) => <option key={tag} value={tag}>{t(`attr${tag}` as StringKey)}</option>)}
+              </select>
+              <input type="text" value={a.value} aria-label={t("attributes")} title={t("tipAttrValue")}
+                     onChange={(e) => setAttr(i, { value: e.target.value })} />
+              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                      onClick={() => set("attributes", form.attributes.filter((_, j) => j !== i))}>
+                <Trash2 className="icon" aria-hidden="true" /></button>
+            </div>
+            <DateField value={a.date} shown={a.origin < 0 ? "" : shownAttr(a.origin)} lang={lang}
+                       t={t} onChange={(v) => setAttr(i, { date: v })} />
+            <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={a.place} list={PLACES}
+                     onChange={(e) => setAttr(i, { place: e.target.value })} /></label>
           </div>
         ))}
       </fieldset>
