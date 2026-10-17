@@ -2,15 +2,22 @@
 import { gedNode, rewritten, type GedNode } from "./gedcom";
 import { addLine } from "./edit";
 
-/** the next free number for xrefs with the prefix: "I" gives @I8@ when @I7@ is the highest one */
-function freeXref(records: GedNode[], prefix: string): string {
-  const used = new Set(records.map((r) => r.xref));
-  let n = records.reduce((m, r) => {
-    const found = r.xref && new RegExp(`^@${prefix}(\\d+)@$`).exec(r.xref);
-    return found ? Math.max(m, +found[1]) : m;
-  }, 0);
-  while (used.has(`@${prefix}${++n}@`));
-  return `@${prefix}${n}@`;
+/**
+ * The xref of a new record of type `tag` (INDI, FAM): the prefix most used by records of that type in the file (`fallback`
+ * when none has a numbered xref), and a number above every number in any xref of the file, so a number is never reused,
+ * not even one left free by a deleted record. Existing xrefs are never changed.
+ */
+function freeXref(records: GedNode[], tag: string, fallback: string): string {
+  const uses = new Map<string, number>();
+  let top = 0;
+  for (const r of records) {
+    const found = r.xref && /^@(\D*)(\d+)@$/.exec(r.xref);
+    if (!found) continue;
+    top = Math.max(top, +found[2]);
+    if (r.tag === tag) uses.set(found[1], (uses.get(found[1]) ?? 0) + 1);
+  }
+  const prefix = [...uses].sort((x, y) => y[1] - x[1])[0]?.[0] ?? fallback;
+  return `@${prefix}${top + 1}@`;
 }
 
 /** the record list with `record` put before the trailer (or last, when the file has none) */
@@ -28,7 +35,7 @@ const pointsTo = (rec: GedNode, tag: string, xref: string) => rec.children.some(
 
 /** A new person without a name: `sex` is "M", "F" or "" (unknown). */
 export function addPerson(records: GedNode[], sex = ""): { records: GedNode[]; id: string } {
-  const id = freeXref(records, "I");
+  const id = freeXref(records, "INDI", "I");
   const children = [gedNode("NAME", "//")];
   if (sex) children.push(gedNode("SEX", sex));
   return { records: appended(records, { ...gedNode("INDI", "", children), xref: id }), id };
@@ -39,7 +46,7 @@ export function addPerson(records: GedNode[], sex = ""): { records: GedNode[]; i
  * the FAMS line, the family the HUSB or WIFE line; `spouse` and `children` are put in the same way when given.
  */
 export function addFamily(records: GedNode[], person: string, extra: { spouse?: string; children?: string[] } = {}): { records: GedNode[]; id: string } {
-  const id = freeXref(records, "F");
+  const id = freeXref(records, "FAM", "F");
   const sexOf = (x: string) => records.find((r) => r.xref === x)?.children.find((c) => c.tag === "SEX")?.value.trim().toUpperCase();
   const wife = sexOf(person) === "F";
   const members: Array<[string, string]> = [];

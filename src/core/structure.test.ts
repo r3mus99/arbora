@@ -21,11 +21,11 @@ describe("adding and removing people and families", () => {
   test("a new family links the husband, wife and children in both directions", () => {
     const base = addPerson(addPerson(parseGedcom(FILE), "F").records, "M");
     const { records, id } = addFamily(base.records, "@I4@", { spouse: "@I5@", children: ["@I3@"] });
-    expect(id).toBe("@F2@");
+    expect(id).toBe("@F6@");
     const out = text(records);
-    expect(out).toContain("0 @F2@ FAM\n1 HUSB @I5@\n1 WIFE @I4@\n1 CHIL @I3@\n");
-    expect(out).toMatch(/0 @I4@ INDI\n1 NAME \/\/\n1 SEX F\n1 FAMS @F2@\n/);
-    expect(out).toMatch(/0 @I3@ INDI[\s\S]*1 FAMC @F1@\n1 FAMC @F2@\n/);
+    expect(out).toContain("0 @F6@ FAM\n1 HUSB @I5@\n1 WIFE @I4@\n1 CHIL @I3@\n");
+    expect(out).toMatch(/0 @I4@ INDI\n1 NAME \/\/\n1 SEX F\n1 FAMS @F6@\n/);
+    expect(out).toMatch(/0 @I3@ INDI[\s\S]*1 FAMC @F1@\n1 FAMC @F6@\n/);
     // unrelated records are written back unchanged
     expect(out.startsWith(FILE.split("0 @I1@")[0])).toBe(true);
   });
@@ -60,5 +60,12 @@ describe("adding and removing people and families", () => {
     const added = addPerson(records).records;
     expect(added).not.toBe(records);
     expect(records.length).toBe(6);
+  });
+
+  test("the new ID takes the most used prefix of its record type and a number above every number in the file", () => {
+    const mixed = parseGedcom("0 HEAD\n0 @P3@ INDI\n0 @P9@ INDI\n0 @X20@ INDI\n0 @R7@ FAM\n0 @S40@ SOUR\n0 TRLR\n");
+    expect(addPerson(mixed).id).toBe("@P41@");
+    expect(addFamily(mixed, "@P3@").id).toBe("@R41@");
+    expect(addPerson(parseGedcom("0 HEAD\n0 TRLR\n")).id).toBe("@I1@");
   });
 });
