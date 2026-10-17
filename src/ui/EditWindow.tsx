@@ -9,7 +9,7 @@ import type { StringKey } from "./i18n";
 import { MergePanel } from "./MergePanel";
 import type { MergePick } from "../core/merge";
 import { PanelHead } from "./PanelHead";
-import { EDITOR_FORM, OPEN_AT_START, PersonEditor } from "./PersonEditor";
+import { EDITOR_FORM, PersonEditor } from "./PersonEditor";
 
 interface Props {
   data: GedcomData;
@@ -79,7 +79,7 @@ export function EditWindow({ data, name, record, families, lang, suggest, record
         </div>
       </PanelHead>
       <div className="panel-body edit-body" ref={body} onScroll={(e) => { scrolled.current = e.currentTarget.scrollTop; }}>
-        {merging ? <MergePanel data={data} records={records} keepId={record.xref!} lang={lang} onMerge={onMerge} onCancel={() => setMerging(false)} t={t} /> : <PersonEditor key={formKey} open={open} onToggleSection={(k, on) => setOpen((o) => { const s = new Set(o ?? OPEN_AT_START); if (on) s.add(k); else s.delete(k); return s; })} data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf} sources={sources}
+        {merging ? <MergePanel data={data} records={records} keepId={record.xref!} lang={lang} onMerge={onMerge} onCancel={() => setMerging(false)} t={t} /> : <PersonEditor key={formKey} open={open} onToggleSection={setOpen} data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf} sources={sources}
                       onSave={onSave} allocate={allocate} onCancel={close} onAddFamily={onAddFamily} onDeleteFamily={onDeleteFamily} onDirty={setChanges} t={t} />}
       </div>
       {!merging && <div className="edit-foot">
