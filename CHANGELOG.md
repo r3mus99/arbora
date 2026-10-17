@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.50.0 – 2026-10-17
+
+- **A new child can be made right in the Family part of the edit window.** Next to "Children" there are two buttons: a
+  person with a plus opens a small form (given name, surname filled in from the father, sex, birth date, deceased with a
+  death date), and the magnifier finds an existing person as before. The new person is written when the window is saved,
+  in the same undo step as the family change, with the FAMC link to the family and the CHIL line in it. Its ID follows
+  the same rule as other new people.
+
 ## 1.49.1 – 2026-10-17
 
 - **The edit window stays where you were.** Adding or deleting a family no longer collapses the parts of the window or
