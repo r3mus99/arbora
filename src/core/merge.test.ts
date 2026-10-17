@@ -46,6 +46,6 @@ describe("merging two people", () => {
     expect(mergeBlocker(recs(), "@I1@", "@I1@")).toBe("same");
     expect(mergeBlocker(recs(), "@I5@", "@I4@")).toBe("related");
     expect(mergeBlocker(recs(), "@I1@", "@I4@")).toBeNull();
-    expect(() => mergePeople(recs(), "@I1@", "@I3@")).toThrow();
+    expect(() => mergePeople(recs(), "@I1@", "@I3@")).toThrow("cannot be merged");
   });
 });
