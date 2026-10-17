@@ -7,7 +7,7 @@
  * and so is every other house number).
  */
 
-import { childOf, childrenOf, fold, gedNode, isAka, rewritten, type GedNode } from "./gedcom";
+import { childOf, childrenOf, fold, gedNode, isAka, mainName, rewritten, type GedNode } from "./gedcom";
 import { surnameOf } from "./stats";
 
 export type VariantKind = "surname" | "given" | "place";
@@ -150,8 +150,8 @@ export function spellings(records: GedNode[], kind: VariantKind): Map<string, st
   for (const rec of records) {
     if (!rec.xref || (rec.tag !== "INDI" && rec.tag !== "FAM")) continue;
     if (kind === "surname" || kind === "given") {
-      if (rec.tag === "INDI") childrenOf(rec, "NAME").filter((n) => !isAka(n)).forEach((n) =>
-        kind === "given" ? givenWords(n).forEach((w) => count(w, rec.xref!)) : count(surnameOf(n), rec.xref!));
+      const n = rec.tag === "INDI" ? mainName(rec) : null;
+      if (n) kind === "given" ? givenWords(n).forEach((w) => count(w, rec.xref!)) : count(surnameOf(n), rec.xref!);
       continue;
     }
     const walk = (node: GedNode) => {
@@ -299,14 +299,15 @@ export function renameVariants(records: GedNode[], kind: VariantKind, from: stri
   return changed ? out : records;
 }
 
-/** Given names renamed in each person's names (not in names marked aka). */
+/** Given names renamed in each person's main name (other names, marked aka or not, are left alone). */
 function renameGivens(records: GedNode[], from: Set<string>, to: string): GedNode[] {
   let changed = false;
   const out = records.map((rec) => {
     if (rec.tag !== "INDI" || !rec.xref) return rec;
     let touched = false;
+    const main = mainName(rec);
     const kids = rec.children.map((c) => {
-      if (c.tag !== "NAME" || isAka(c)) return c;
+      if (c !== main) return c;
       const next = renameGiven(c, from, to);
       if (next !== c) touched = true;
       return next;
@@ -319,7 +320,7 @@ function renameGivens(records: GedNode[], from: Set<string>, to: string): GedNod
 }
 
 /**
- * Surnames renamed in each person's names (not in names marked aka). With `keepOld` the
+ * Surnames renamed in each person's main name (other names, marked aka or not, are left alone). With `keepOld` the
  * old spelling stays as one more name, `1 NAME … 2 TYPE aka`, right after the renamed one,
  * unless the person already has it; an aka equal to the new name is dropped.
  */
@@ -329,8 +330,9 @@ function renameSurnames(records: GedNode[], from: Set<string>, to: string, keepO
     if (rec.tag !== "INDI" || !rec.xref) return rec;
     const known = new Set(childrenOf(rec, "NAME").filter(isAka).map((n) => n.value.replace(/\s+/g, " ").trim()));
     let touched = false;
+    const mainNode = mainName(rec);
     const kids = rec.children.flatMap((c) => {
-      if (c.tag !== "NAME" || isAka(c)) return [c];
+      if (c !== mainNode) return [c];
       const next = renameSurname(c, from, to);
       if (next === c) return [c];
       touched = true;

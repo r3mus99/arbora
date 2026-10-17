@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.47.1 – 2026-10-17
+
+- **Bulk fix leaves other names alone.** Only the main name of a person (the first name that is not marked aka) takes
+  part in finding and renaming variants of surnames and given names. Other names of the person, shown as "Other name"
+  in the detail, with or without `TYPE aka`, are no longer offered as spellings and are not changed by a fix.
+
 ## 1.47.0 – 2026-10-16
 
 - **Parents and associations in the edit window.** The "Parents and associations" part lists the families the person
