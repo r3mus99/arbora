@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useMemo, useRef } from "react";
-import { Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { findPeople, fold, matchedAka, type Person } from "../core/gedcom";
 import type { Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
@@ -19,12 +19,14 @@ interface Props {
   query: string;
   onQuery: (query: string) => void;
   onSelect: (id: string) => void;
+  /** adds a new person and opens the edit window for them */
+  onAdd: () => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
 /** Compact always-visible list of everybody: sex, name, years; the search box above it filters the list. */
 export const PersonRail = forwardRef<HTMLInputElement, Props>(function PersonRail(
-  { people, lang, selectedId, favourites, onStar, scrollKey, query, onQuery, onSelect, t }, finderRef) {
+  { people, lang, selectedId, favourites, onStar, scrollKey, query, onQuery, onSelect, onAdd, t }, finderRef) {
   const list = useRef<HTMLUListElement>(null);
   const sorted = useMemo(() => {
     const q = query.trim();
@@ -38,7 +40,12 @@ export const PersonRail = forwardRef<HTMLInputElement, Props>(function PersonRai
 
   return (
     <>
-      <PanelHead title={t("ovPeople")} />
+      <PanelHead title={t("ovPeople")}>
+        <div className="tools">
+          <button type="button" className="icon-btn" onClick={onAdd} title={t("addPerson")} aria-label={t("addPerson")}>
+            <Plus className="icon" aria-hidden="true" /></button>
+        </div>
+      </PanelHead>
       <div className="finder">
         <Search className="icon" aria-hidden="true" />
         <input ref={finderRef} type="search" placeholder={t("search")} autoComplete="off" value={query}

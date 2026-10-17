@@ -8,6 +8,7 @@ import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
 import { checkGedcom, fixIssue } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
+import { addFamily, addPerson, deleteFamily, deletePerson } from "../core/structure";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceChoices, sourceOverview } from "../core/sources";
@@ -345,6 +346,23 @@ export function App() {
     setDoc(next);
     resetResult();
   };
+  /** a new nameless person, selected, with the edit window open for them; one undo step */
+  const newPerson = () => {
+    if (!doc) return;
+    const { records, id } = addPerson(doc.records);
+    replaceRecords(records);
+    pick(id);
+    setWindowId(id);
+  };
+  const removePerson = (id: string) => {
+    if (!doc) return;
+    setWindowId(null);
+    replaceRecords(deletePerson(doc.records, id));
+    if (focusId === id) deselect();
+    if (selectedId === id) setSelectedId(null);
+  };
+  const newFamily = (person: string) => doc && replaceRecords(addFamily(doc.records, person).records);
+  const removeFamily = (id: string) => doc && replaceRecords(deleteFamily(doc.records, id));
   const undoRedo = (step: -1 | 1) => {
     const stepped = doc && stepEdits(edits, doc, step);
     if (!stepped) return;
@@ -651,13 +669,14 @@ export function App() {
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={focusId} scrollKey={scrollKey}
-                            favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} t={t} />
+                            favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} onAdd={newPerson} t={t} />
               </aside>}
             </div>
-            {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
+            {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={`${windowId} ${data.people[windowId].fams.join(" ")}`} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
                                  lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} sources={sourceList} onSave={(changed) => { setWindowId(null); commit(changed); }}
-                                 onClose={() => setWindowId(null)} hidden={showCheck || showFix} t={t} />}
+                                 onClose={() => setWindowId(null)} onDeletePerson={() => removePerson(windowId)}
+                                 onAddFamily={() => newFamily(windowId)} onDeleteFamily={removeFamily} hidden={showCheck || showFix} t={t} />}
             {showCheck || showFix ? <aside className="check-wide" aria-label={t(showFix ? "batchRename" : "check")}>
               {showFix ? <BulkFix data={data} t={t} variants={variants} values={spelled} hidden={hidden} onHide={hide}
                                   onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
