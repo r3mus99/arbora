@@ -9,6 +9,7 @@ import { version } from "../../package.json";
 import { checkGedcom, fixIssue } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { addFamily, addPerson, appended, deleteFamily, deletePerson, freeXref } from "../core/structure";
+import { mergePeople, type MergePick } from "../core/merge";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceChoices, sourceOverview } from "../core/sources";
@@ -362,6 +363,13 @@ export function App() {
     if (focusId === id) deselect();
     if (selectedId === id) setSelectedId(null);
   };
+  const mergeInto = (keep: string, drop: string, pick: MergePick) => {
+    if (!doc) return;
+    setWindowId(null);
+    replaceRecords(mergePeople(doc.records, keep, drop, pick));
+    if (focusId === drop) setFocusId(keep);
+    if (selectedId === drop) select(keep);
+  };
   const newFamily = (person: string) => doc && replaceRecords(addFamily(doc.records, person).records);
   const removeFamily = (id: string) => doc && replaceRecords(deleteFamily(doc.records, id));
   const undoRedo = (step: -1 | 1) => {
@@ -678,6 +686,7 @@ export function App() {
                                  lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} sources={sourceList} onSave={(changed, added) => { setWindowId(null); commit(changed, added); }}
                                  allocate={(pending) => freeXref(doc!.records, "INDI", "I", pending)}
                                  onClose={() => setWindowId(null)} onDeletePerson={() => removePerson(windowId)}
+                                 records={doc!.records} onMerge={(drop, pick) => mergeInto(windowId, drop, pick)}
                                  onAddFamily={() => newFamily(windowId)} onDeleteFamily={removeFamily} hidden={showCheck || showFix} t={t} />}
             {showCheck || showFix ? <aside className="check-wide" aria-label={t(showFix ? "batchRename" : "check")}>
               {showFix ? <BulkFix data={data} t={t} variants={variants} values={spelled} hidden={hidden} onHide={hide}

@@ -7,6 +7,7 @@ export * from "./date";
 export * from "./gedcom";
 export * from "./edit";
 export * from "./structure";
+export * from "./merge";
 export * from "./format";
 export * from "./chart";
 export * from "./collapse";
