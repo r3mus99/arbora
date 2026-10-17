@@ -119,9 +119,11 @@ States, in order of precedence: disabled > active/on > hover > rest. Focus ring 
 Every part of the edit window is built from the same four levels:
 
 1. **Section** – a collapsible card (Name, Events, Occupation and facts, Family, Parents and associations, Notes and sources, Other details).
-2. **Subsection** – a group inside a section with an icon title (`legend`, e.g. Birth, Marriage, Children, Sources). A title row is one centred flex row: icon, title, then small icon buttons, all on the same middle line.
+2. **Subsection** – a group inside a section with an icon title (`legend`, e.g. Birth, Marriage, Children, Sources). A title row is one centred flex row: icon, title, and at the right end text actions (`.head-act`, 12px accent, inside `.head-acts`). **Adding an item to the list of a subsection is always such a text action in the title row** ("Add event"; a pair "New" and "Find" where a person can be made or looked up: children, spouse, parents), never a button below the list and never an icon after the title. Only helper icons that do not add anything (copy from birth, delete the family) stay small icon buttons.
+
+**Inline form for a new person** (child, spouse, parent): an inset card (`.new-child`: `--bg` on the `--panel` of the part, 1px `--border`, `--radius`, 12px padding) with an icon title row, the fields and a Cancel / Add footer.
 3. **Fields** – the values that are always shown.
-4. **Hidden fields** – optional or rarely used fields (age, cause, agency, divorce, address, more name parts). They appear after a "+" text button (`.add`) and stay shown when they hold a value. A checkbox that only matters sometimes (divorced) is a hidden field too, not a free-standing control.
+4. **Hidden fields** – optional or rarely used fields (age, cause, agency, divorce, address, more name parts). They appear after a text button with a chevron-down after the text (`.reveal`, never a "+": it only shows what is there) and stay shown when they hold a value. A checkbox that only matters sometimes (divorced) is a hidden field too, not a free-standing control.
 
 Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexible second column (place, cause); the three-field row (`.trio`) is `100px 1fr 1fr`, so Age sits under Date and Cause under Place. Name-like pairs (given name and surname, page and quality) are two equal columns. Do not position fields with margins; put them in a grid cell.
 

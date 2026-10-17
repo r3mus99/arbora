@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.52.1 – 2026-10-17
+
+- **Adding things in the edit window is done the same way everywhere.** Every "add" action (event, occupation, detail, source, contact, reference, aka name, association) is now a text action at the right end of its group's title row instead of a separate button below the list. Children, spouse and parents have the same pair, "New" and "Find". The buttons that only show hidden fields ("Details", "Address", "More fields") end with a chevron instead of a "+". The inline form for a new child, spouse or parent is an inset card with its own background and border.
+
 ## 1.52.0 – 2026-10-17
 
 - **A new spouse or a new parent can be made right in the edit window.** Under the spouse field of a family there is a
