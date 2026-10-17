@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.48.0 – 2026-10-17
+
+- **Other details in the edit window.** The last part of the window is no longer a placeholder: it edits the restriction
+  of the person (RESN: confidential, locked, private), the text of the address (ADDR; its CITY, POST and other parts
+  stay as they are), contacts (phone, e-mail, fax, web), reference numbers with their kind (REFN and TYPE) and the AFN and RFN numbers.
+  Lines are written where GEDCOM has them (RESN first, contacts after the facts, the numbers at the end of the record)
+  and everything else in the record stays untouched. Contacts and an address under the person itself are what most
+  programs write, although GEDCOM 5.5.1 defines them only under events and facts.
+
 ## 1.47.0 – 2026-10-16
 
 - **Parents and associations in the edit window.** The "Parents and associations" part lists the families the person
