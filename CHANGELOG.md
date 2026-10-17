@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.48.1 – 2026-10-17
+
+- The first part of the edit window is called "Person" (it holds the name, titles, other forms of the name, sex and whether the person is deceased), so it no longer sounds like the Given name field.
+
 ## 1.48.0 – 2026-10-17
 
 - **Other details in the edit window.** The last part of the window is no longer a placeholder: it edits the restriction
