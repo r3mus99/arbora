@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { countryOf, keptByDefault, parseGedcom, renameVariants, similar, spellingKey, variantGroups, writeGedcom } from "./index";
+import { countryOf, keptByDefault, parseGedcom, renameVariants, similar, spellings, spellingKey, variantGroups, writeGedcom } from "./index";
 
 const GED = `0 HEAD
 0 @I1@ INDI
@@ -93,6 +93,36 @@ describe("bulk fix of spellings", () => {
     expect(names.filter((n) => n.includes("Pavlov"))).toEqual([
       "1 NAME Ján /Pavlovský/", "1 NAME Ján /Pavlovszký/",
       "1 NAME Michal /Pavlovský/", "1 NAME Michal /Pavlovszký/", "1 NAME Anna /Pavlovská/"]);
+  });
+});
+
+describe("other names of a person", () => {
+  const OTHER = `0 HEAD
+0 @I1@ INDI
+1 NAME Alberta /Mondová/
+1 NAME Albertina /Mondova/
+1 NAME Berta /Mondová/
+2 TYPE aka
+1 SEX F
+0 @I2@ INDI
+1 NAME Karol /Tester/
+0 TRLR
+`;
+
+  test("only the main name takes part in the variants, other names are not offered", () => {
+    const records = parseGedcom(OTHER);
+    expect([...spellings(records, "given").keys()].sort()).toEqual(["Alberta", "Karol"]);
+    expect([...spellings(records, "surname").keys()]).toEqual(["Mondová", "Tester"]);
+    expect(variantGroups(records, "given")).toEqual([]);
+    expect(variantGroups(records, "surname")).toEqual([]);
+  });
+
+  test("renaming leaves the other names of the person alone", () => {
+    const records = parseGedcom(OTHER);
+    const text = writeGedcom(renameVariants(records, "surname", ["Mondová"], "Mondova"));
+    expect(text).toContain("1 NAME Alberta /Mondova/\n1 NAME Albertina /Mondova/\n1 NAME Berta /Mondová/\n2 TYPE aka\n");
+    const given = writeGedcom(renameVariants(records, "given", ["Alberta"], "Albertína"));
+    expect(given).toContain("1 NAME Albertína /Mondová/\n1 NAME Albertina /Mondova/\n1 NAME Berta /Mondová/");
   });
 });
 
