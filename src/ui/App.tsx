@@ -672,7 +672,7 @@ export function App() {
                             favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} onAdd={newPerson} t={t} />
               </aside>}
             </div>
-            {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={`${windowId} ${data.people[windowId].fams.join(" ")}`} data={data} name={data.people[windowId].name || "?"}
+            {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
                                  lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} sources={sourceList} onSave={(changed) => { setWindowId(null); commit(changed); }}
                                  onClose={() => setWindowId(null)} onDeletePerson={() => removePerson(windowId)}

@@ -29,6 +29,9 @@ interface Props {
   /** changed records only; nothing when nothing changed */
   onSave: (changed: GedNode[]) => void;
   onCancel: () => void;
+  /** the parts that are open (keys of SECTIONS); the usual ones when not given, e.g. when the form is rebuilt after a family changed */
+  open?: Set<string>;
+  onToggleSection?: (key: string, open: boolean) => void;
   /** adds an empty family of this person; the editor is closed or reopened by the caller */
   onAddFamily?: () => void;
   /** removes the family (its ID) with the links to it */
@@ -87,7 +90,7 @@ function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnP
 
 /** the form's id, so the icon buttons in the detail header can submit it */
 /** the parts that are open when the window opens: the ones edited most often; the others are collapsed */
-const OPEN_AT_START = new Set<string>(["name", "events"]);
+export const OPEN_AT_START = new Set<string>(["name", "events"]);
 export const EDITOR_FORM = "person-editor";
 
 // the lists of suggestions, once per page
@@ -129,7 +132,7 @@ const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "deat
 };
 
 /** Form for the facts of one person and of their marriages. */
-export function PersonEditor({ data, record, families, lang, suggest, recordOf, sources, onSave, onCancel, onAddFamily, onDeleteFamily, onDirty, t }: Props) {
+export function PersonEditor({ data, record, families, lang, suggest, recordOf, sources, onSave, onCancel, open, onToggleSection, onAddFamily, onDeleteFamily, onDirty, t }: Props) {
   const [initial] = useState(() => {
     const f = personFields(record);
     const shown = { ...f };
@@ -148,7 +151,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const [adding, setAdding] = useState<number | null>(null);
   const [fams, setFams] = useState<FamilyFields[]>(initial.fams.map((f) => f.shown));
   const firstInput = useRef<HTMLInputElement>(null);
-  useEffect(() => firstInput.current?.focus(), []);
+  useEffect(() => { if (!open) firstInput.current?.focus({ preventScroll: true }); }, []);
   const [opened] = useState(() => JSON.stringify([initial.shown, initial.fams.map((f) => f.shown)]));
   const dirty = JSON.stringify([form, fams]) !== opened;
   useEffect(() => onDirty?.(dirty), [dirty, onDirty]);
@@ -297,7 +300,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
 
   const section = (key: keyof typeof SECTIONS, children: ReactNode) => {
     const { icon, title } = SECTIONS[key];
-    return <details className="section collapsible" open={OPEN_AT_START.has(key) || undefined}>
+    return <details className="section collapsible" open={(open ?? OPEN_AT_START).has(key) || undefined}
+                    onToggle={(e) => onToggleSection?.(key, e.currentTarget.open)}>
       <summary className="sec-head"><SectionHead icon={icon} title={t(title)} /></summary>
       <div className="sec-fields">{children}</div>
     </details>;
