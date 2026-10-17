@@ -1,4 +1,4 @@
-import { Hash, Phone, Baby, BookMarked, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, Plus, Tag, Tags, Users, X, type LucideIcon } from "lucide-react";
+import { Hash, Phone, Baby, BookMarked, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, Plus, Tag, Tags, Trash2, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   CONTACT_TAGS, OTHER_EVENT_TAGS, PEDIGREES, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
@@ -29,6 +29,10 @@ interface Props {
   /** changed records only; nothing when nothing changed */
   onSave: (changed: GedNode[]) => void;
   onCancel: () => void;
+  /** adds an empty family of this person; the editor is closed or reopened by the caller */
+  onAddFamily?: () => void;
+  /** removes the family (its ID) with the links to it */
+  onDeleteFamily?: (id: string) => void;
   /** whether the form differs from the record as it was opened */
   onDirty?: (dirty: boolean) => void;
   t: (key: StringKey) => string;
@@ -125,7 +129,7 @@ const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "deat
 };
 
 /** Form for the facts of one person and of their marriages. */
-export function PersonEditor({ data, record, families, lang, suggest, recordOf, sources, onSave, onCancel, onDirty, t }: Props) {
+export function PersonEditor({ data, record, families, lang, suggest, recordOf, sources, onSave, onCancel, onAddFamily, onDeleteFamily, onDirty, t }: Props) {
   const [initial] = useState(() => {
     const f = personFields(record);
     const shown = { ...f };
@@ -448,7 +452,11 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {section("families", <>
       {families.map((r, i) => (
         <fieldset key={r.xref}>
-          <legend>{ico(Heart)}{t("marriage")}</legend>
+          <legend>{ico(Heart)}{t("marriage")}
+            {onDeleteFamily && <button type="button" className="copy" disabled={dirty} title={dirty ? t("saveFirst") : t("deleteFamily")}
+                                       aria-label={t("deleteFamily")} onClick={() => { if (window.confirm(t("confirmDeleteFamily"))) onDeleteFamily(r.xref!); }}>
+              <Trash2 className="icon" aria-hidden="true" /></button>}
+          </legend>
           <div className="wide">
             <PersonPick choices={personChoices} exclude={[record.xref!, ...fams[i].children]} value={fams[i][otherKey(fams[i])]}
                         label={spouseLabel(fams[i])} placeholder={t("pickPerson")} tip={t("tipSpouse")} onPick={(id) => setFam(i, { [otherKey(fams[i])]: id })} />
@@ -491,6 +499,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         </fieldset>
       ))}
       {families.length === 0 && <span className="muted">{t("noValue")}</span>}
+      {onAddFamily && <button type="button" className="add" disabled={dirty} title={dirty ? t("saveFirst") : undefined} onClick={onAddFamily}>
+        <Plus className="icon" aria-hidden="true" />{t("addFamily")}</button>}
       </>)}
       {section("parents", <>
       <fieldset className="list">

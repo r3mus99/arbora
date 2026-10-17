@@ -1,4 +1,4 @@
-import { Check, X } from "lucide-react";
+import { Check, Trash2, X } from "lucide-react";
 import { useEffect, useEffectEvent, useState } from "react";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
@@ -24,6 +24,10 @@ interface Props {
   onSave: (changed: GedNode[]) => void;
   /** the window closes; nothing is changed in the file */
   onClose: () => void;
+  /** the person is deleted with their links (the caller closes the window) */
+  onDeletePerson: () => void;
+  onAddFamily: () => void;
+  onDeleteFamily: (id: string) => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
   /** a part of the window the user may not reach now, e.g. a wide tool panel is open */
   hidden?: boolean;
@@ -34,7 +38,7 @@ interface Props {
  * the tree stays visible on the left; the pencil in the person detail opens it. The form is split into the parts of
  * a person (name, basic facts, events, …); Esc, the X and Cancel ask before they drop changes.
  */
-export function EditWindow({ data, name, record, families, lang, suggest, recordOf, sources, onSave, onClose, t, hidden }: Props) {
+export function EditWindow({ data, name, record, families, lang, suggest, recordOf, sources, onSave, onClose, onDeletePerson, onAddFamily, onDeleteFamily, t, hidden }: Props) {
   const [dirty, setDirty] = useState(false);
   const close = () => { if (mayClose(dirty, () => window.confirm(t("discard")))) onClose(); };
   const onKey = useEffectEvent((e: KeyboardEvent) => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); close(); } });
@@ -47,13 +51,16 @@ export function EditWindow({ data, name, record, families, lang, suggest, record
     <section className="edit-window" aria-label={name}>
       <PanelHead title={name}>
         <div className="tools">
+          <button type="button" className="icon-btn" title={t("deletePerson")} aria-label={t("deletePerson")}
+                  onClick={() => { if (window.confirm(t("confirmDeletePerson", { name }))) onDeletePerson(); }}>
+            <Trash2 className="icon" aria-hidden="true" /></button>
           <button type="button" className="icon-btn" onClick={close} title={`${t("editClose")} (Esc)`} aria-label={t("editClose")}>
             <X className="icon" aria-hidden="true" /></button>
         </div>
       </PanelHead>
       <div className="panel-body edit-body">
         <PersonEditor data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf} sources={sources}
-                      onSave={onSave} onCancel={close} onDirty={setDirty} t={t} />
+                      onSave={onSave} onCancel={close} onAddFamily={onAddFamily} onDeleteFamily={onDeleteFamily} onDirty={setDirty} t={t} />
       </div>
       <div className="edit-foot">
         <span className="bulk-sum" role="status">{dirty ? t("unsaved") : ""}</span>

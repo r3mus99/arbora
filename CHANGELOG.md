@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.49.0 – 2026-10-17
+
+- **Add and delete people and families.** A "+" button above the list of people adds a nameless person and opens the
+  edit window for them. In the edit window a trash button deletes the person, the Family part has "Add a family" and a
+  trash button per family. Every pointer is kept consistent in one undo step: a new family gets the HUSB or WIFE line and
+  the people get FAMS lines; deleting a family removes the FAMS and FAMC lines that point to it (the people stay);
+  deleting a person removes their HUSB, WIFE, CHIL, ASSO and ALIA lines in other records, and a family left with nobody
+  in it is removed. Add and delete family are offered only when the form has no unsaved changes.
+  A new record gets the prefix most used by its type in the file (I and F if none) and a number above every number in
+  any ID of the file, so a number is never reused; existing IDs are never changed.
+
 ## 1.48.4 – 2026-10-17
 
 - **Every field of the edit window now explains itself in a tooltip.** Hold the mouse over a field (or focus it) to see
