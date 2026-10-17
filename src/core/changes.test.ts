@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { recordChanges } from "./changes";
+import { readableFields, recordChanges } from "./changes";
 import { parseGedcom } from "./gedcom";
 
 const recs = (s: string) => parseGedcom(s);
@@ -39,5 +39,10 @@ describe("record changes", () => {
   test("repeated lines are compared in order", () => {
     const x = recs("0 @I1@ INDI\n1 NAME A\n1 NAME B\n"), y = recs("0 @I1@ INDI\n1 NAME A\n1 NAME C\n");
     expect(recordChanges(x, y)[0].fields).toEqual([{ path: "NAME", before: "B", after: "C" }]);
+  });
+
+  test("readable lines leave out the name of an added person and empty lines whose sub-lines changed", () => {
+    const [c] = recordChanges(A, [...A.slice(0, 3), recs("0 @I9@ INDI\n1 NAME New /One/\n1 BIRT\n2 DATE 1997\n")[0], A[3]]);
+    expect(readableFields(c).map((f) => f.path)).toEqual(["BIRT/DATE"]);
   });
 });
