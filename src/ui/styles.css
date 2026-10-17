@@ -357,8 +357,12 @@ button.link { display: inline; }
 .editor fieldset > .trio, .editor fieldset > .add, .editor fieldset > .sub { grid-column: 1 / -1; }
 .editor fieldset > .add { justify-self: start; }
 .editor fieldset.sub { padding-top: 4px; }
-.editor fieldset.new-child { margin-top: 6px; }
+.editor fieldset.new-child { grid-template-columns: 1fr; gap: 12px; margin-top: 6px; }
+.editor fieldset.new-child > label.check, .editor fieldset.new-child > .sex-field { margin: 0; }
+.editor fieldset.new-child > label:not(.check) { max-width: 160px; }
+.editor fieldset.new-child > .pair { max-width: none; }
 .editor .kid-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.editor .kid-actions button { white-space: nowrap; }
 .editor fieldset.list { grid-template-columns: 1fr; gap: 16px; }
 .editor .item { display: grid; grid-template-columns: 100px 1fr; gap: 8px 12px; padding: 0; }
 .editor .item-head { grid-column: 1 / -1; display: flex; gap: 8px; }

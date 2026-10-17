@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.50.1 – 2026-10-17
+
+- **The new-child form is laid out properly.** Its fields no longer overlap or squeeze into the narrow label column: the
+  given name and surname share a row, sex and the dates sit below them, and the buttons keep their text on one line.
+
 ## 1.50.0 – 2026-10-17
 
 - **A new child can be made right in the Family part of the edit window.** Next to "Children" there are two buttons: a
