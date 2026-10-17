@@ -211,6 +211,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const setEv = (i: number, patch: Partial<EventRow>) =>
     set("events", form.events.map((e, j) => (j === i ? { ...e, ...patch } : e)));
   const [openDetails, setOpenDetails] = useState<string[]>([]);
+  /** the residences whose address field is open although it is empty or the same as the place */
+  const [openAddr, setOpenAddr] = useState<string[]>([]);
+  const rowId = (e: EventRow, i: number) => (e.origin < 0 ? `new${i}` : `o${e.origin}`);
   const hasDetails = (d: EventDetailFields) => !!(d.age || d.cause || d.agency);
   /** age, cause and agency of an event: shown when it has any, or after the "details" button */
   const details = (id: string, d: EventDetailFields, onChange: (patch: Partial<EventDetailFields>) => void) =>
@@ -369,13 +372,24 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             </div>
             {e.tag === "EVEN" && <label className="full"><span>{t("eventKind")}</span>
               <input type="text" value={e.title} onChange={(ev) => setEv(i, { title: ev.target.value })} /></label>}
-            {(e.tag === "EVEN" || e.tag === "RESI") && <label className="full"><span>{t(e.tag === "RESI" ? "detAddress" : "eventText")}</span>
+            {e.tag === "EVEN" && <label className="full"><span>{t("eventText")}</span>
               <input type="text" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
+            {/* a residence: the address (street and number) is separate from the place (town), and is not shown twice when it is the same text */}
+            {e.tag === "RESI" && (e.value && e.value !== e.place || openAddr.includes(rowId(e, i))
+              ? <label className="full"><span>{t("detAddress")}</span>
+                  <input type="text" value={e.value} onChange={(ev) => { if (!openAddr.includes(rowId(e, i))) setOpenAddr([...openAddr, rowId(e, i)]); setEv(i, { value: ev.target.value }); }} />
+                  <span className="hint">{t("addrHint")}</span></label>
+              : <div className="full addr-same">
+                  <button type="button" className="add" onClick={() => setOpenAddr([...openAddr, rowId(e, i)])}>
+                    <Plus className="icon" aria-hidden="true" />{t("detAddress")}</button>
+                  {e.value && <span className="hint">{t("sameAsPlace")}</span>}
+                </div>)}
             <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
                        t={t} onChange={(v) => setEv(i, { date: v })} />
             <label><span>{t("place")}</span>
               <input type="text" value={e.place} list={PLACES}
-                     onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
+                     onChange={(ev) => setEv(i, { place: ev.target.value })} />
+              {e.tag === "RESI" && <span className="hint">{t("resiPlaceHint")}</span>}</label>
             {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
           </div>
         ))}
