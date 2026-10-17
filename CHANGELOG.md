@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.51.1 – 2026-10-17
+
+- **The parents and associations section is quieter.** It lists only the existing parents and associations; the search
+  fields for adding a further family of parents or an association appear after pressing the add button.
+
 ## 1.51.0 – 2026-10-17
 
 - **Duplicate people can be merged.** The edit window has a merge button (two joined arrows) next to the trash. Pick the
