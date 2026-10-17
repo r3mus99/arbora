@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.51.2 – 2026-10-17
+
+- **The edit window is shorter.** The name of a text field is now its placeholder instead of a line of small print above it, so every field takes one row less. The name is still the field's accessible name and the hover tooltip stays; a filled field shows only its value. Choice lists (access restriction, source quality) keep their label above.
+
 ## 1.51.1 – 2026-10-17
 
 - **The Changes panel is easier to read.** A family is named after its parents and people appear by name instead of
