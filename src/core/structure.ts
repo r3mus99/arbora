@@ -1,15 +1,16 @@
 /** Adding and removing whole people and families, with the pointers between the records kept consistent. */
 import { gedNode, rewritten, type GedNode } from "./gedcom";
-import { addLine } from "./edit";
+import { addLine, applyPerson, personFields } from "./edit";
 
 /**
  * The xref of a new record of type `tag` (INDI, FAM): the prefix most used by records of that type in the file (`fallback`
  * when none has a numbered xref), and a number above every number in any xref of the file, so a number is never reused,
  * not even one left free by a deleted record. Existing xrefs are never changed.
  */
-function freeXref(records: GedNode[], tag: string, fallback: string): string {
+export function freeXref(records: GedNode[], tag: string, fallback: string, taken: string[] = []): string {
   const uses = new Map<string, number>();
   let top = 0;
+  for (const x of taken) top = Math.max(top, +(/(\d+)@$/.exec(x)?.[1] ?? 0));
   for (const r of records) {
     const found = r.xref && /^@(\D*)(\d+)@$/.exec(r.xref);
     if (!found) continue;
@@ -20,8 +21,23 @@ function freeXref(records: GedNode[], tag: string, fallback: string): string {
   return `@${prefix}${top + 1}@`;
 }
 
+/** what the form of a new child asks for; the dates are GEDCOM dates ("" when not known) */
+export interface NewPerson { given: string; surname: string; sex: string; birth: string; deceased: boolean; death: string }
+
+/** The record of a new person (not yet in any list) with the name, sex, birth and, when deceased, death; `famc` is the family they are a child of. */
+export function personRecord(xref: string, p: NewPerson, famc = ""): GedNode {
+  const blank: GedNode = { ...gedNode("INDI", "", [gedNode("NAME", "//")]), xref };
+  const before = personFields(blank);
+  const dated = (date: string) => ({ date, place: "" });
+  const rec = applyPerson(blank, before, {
+    ...before, given: p.given.trim(), surname: p.surname.trim(), sex: p.sex,
+    birth: dated(p.birth), deceased: p.deceased, death: dated(p.deceased ? p.death : ""),
+  });
+  return famc ? addLine(rec, "FAMC", famc) : rec;
+}
+
 /** the record list with `record` put before the trailer (or last, when the file has none) */
-function appended(records: GedNode[], record: GedNode): GedNode[] {
+export function appended(records: GedNode[], record: GedNode): GedNode[] {
   const at = records.findIndex((r) => r.tag === "TRLR");
   return at < 0 ? [...records, record] : [...records.slice(0, at), record, ...records.slice(at)];
 }

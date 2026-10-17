@@ -1,4 +1,5 @@
-import { Hash, Phone, Baby, BookMarked, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, Plus, Tag, Tags, Trash2, Users, X, type LucideIcon } from "lucide-react";
+import { Hash, Phone, Baby, BookMarked, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, Plus, Search, Tag, Tags, Trash2, UserPlus, Users, X, type LucideIcon } from "lucide-react";
+import { personRecord, type NewPerson } from "../core/structure";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   CONTACT_TAGS, OTHER_EVENT_TAGS, PEDIGREES, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
@@ -26,8 +27,10 @@ interface Props {
   recordOf: (id: string) => GedNode | undefined;
   /** the source records of the file, offered when citing a source */
   sources: SourceChoice[];
-  /** changed records only; nothing when nothing changed */
-  onSave: (changed: GedNode[]) => void;
+  /** changed records only; nothing when nothing changed. `added` are the new people made in the form (new children) */
+  onSave: (changed: GedNode[], added?: GedNode[]) => void;
+  /** a free ID for a new person; `pending` are the IDs given out in this form and not saved yet */
+  allocate: (pending: string[]) => string;
   onCancel: () => void;
   /** the parts that are open (keys of SECTIONS); the usual ones when not given, e.g. when the form is rebuilt after a family changed */
   open?: Set<string>;
@@ -52,11 +55,11 @@ const EVENT_LABEL: Record<(typeof PERSON_EVENTS)[number], StringKey> = {
 /** dates as shown in the form, the stored GEDCOM date otherwise */
 const shownEvent = (e: EventFields, lang: Lang): EventFields => ({ ...e, date: dateInput(e.date, lang) });
 
-function DateField({ value, shown, lang, onChange, t }: {
-  value: string; shown: string; lang: Lang; onChange: (v: string) => void; t: (key: StringKey) => string;
+function DateField({ value, shown, lang, onChange, t, label }: {
+  value: string; shown: string; lang: Lang; onChange: (v: string) => void; t: (key: StringKey) => string; label?: string;
 }) {
   const parsed = value !== shown && value.trim() ? parseDate(value, lang) : null;
-  return <label title={t("dateHint")}><span>{t("date")}</span>
+  return <label title={t("dateHint")}><span>{label ?? t("date")}</span>
     <input type="text" value={value} onChange={(e) => onChange(e.target.value)} />
     {/* how the typed date is understood, as it will be stored */}
     {parsed && <small className={parsed.ok ? "hint" : "hint warn"}>
@@ -132,7 +135,7 @@ const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "deat
 };
 
 /** Form for the facts of one person and of their marriages. */
-export function PersonEditor({ data, record, families, lang, suggest, recordOf, sources, onSave, onCancel, open, onToggleSection, onAddFamily, onDeleteFamily, onDirty, t }: Props) {
+export function PersonEditor({ data, record, families, lang, suggest, recordOf, sources, onSave, allocate, onCancel, open, onToggleSection, onAddFamily, onDeleteFamily, onDirty, t }: Props) {
   const [initial] = useState(() => {
     const f = personFields(record);
     const shown = { ...f };
@@ -149,6 +152,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const [form, setForm] = useState<PersonFields>(initial.shown);
   /** the family whose "add a child" field is open */
   const [adding, setAdding] = useState<number | null>(null);
+  /** the people made in this form (new children), by the ID they will get, and the child form being filled in */
+  const [fresh, setFresh] = useState<Record<string, NewPerson & { year: string }>>({});
+  const [kid, setKid] = useState<{ fam: number; given: string; surname: string; sex: string; birth: string; deceased: boolean; death: string } | null>(null);
   const [fams, setFams] = useState<FamilyFields[]>(initial.fams.map((f) => f.shown));
   const firstInput = useRef<HTMLInputElement>(null);
   useEffect(() => { if (!open) firstInput.current?.focus({ preventScroll: true }); }, []);
@@ -197,7 +203,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     });
     for (const o of relinkParents(record.xref!, initial.stored.parents, form.parents, latest)) linked.set(o.xref!, o);
     changed.push(...linked.values());
-    onSave(changed);
+    const added = fams.flatMap((f, i) => f.children.filter((c) => fresh[c]).map((c) => personRecord(c, fresh[c], families[i].xref!)));
+    onSave(changed, added);
   };
 
   const onKey = (e: KeyboardEvent) => {
@@ -280,7 +287,25 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     return plain.map((c) => (count.get(c.label)! > 1 ? { ...c, label: `${c.label} · ${c.id}` } : c))
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [data]);
-  const labelOf = (id: string) => personChoices.find((c) => c.id === id)?.label || id;
+  const labelOf = (id: string) => (fresh[id] ? `${[fresh[id].given, fresh[id].surname].filter(Boolean).join(" ") || "?"}${fresh[id].year ? ` · ${fresh[id].year}` : ""}` : personChoices.find((c) => c.id === id)?.label || id);
+  /** the surname a new child starts with: the father's, else the other parent's */
+  const familySurname = (f: FamilyFields) => {
+    for (const id of [f.husb, f.wife]) {
+      const rec = id === record.xref ? record : id ? recordOf(id) : undefined;
+      const surname = rec && (id === record.xref ? form.surname : personFields(rec).surname);
+      if (surname) return surname;
+    }
+    return "";
+  };
+  const startKid = (i: number) => setKid({ fam: i, given: "", surname: familySurname(fams[i]), sex: "", birth: "", deceased: false, death: "" });
+  const addKid = () => {
+    if (!kid || !kid.given.trim()) return;
+    const id = allocate(Object.keys(fresh));
+    const birth = kid.birth.trim() ? parseDate(kid.birth, lang).value : "";
+    setFresh({ ...fresh, [id]: { given: kid.given, surname: kid.surname, sex: kid.sex, birth, deceased: kid.deceased, death: kid.deceased && kid.death.trim() ? parseDate(kid.death, lang).value : "", year: String(yearOf(birth) ?? "") } });
+    setChildren(kid.fam, [...fams[kid.fam].children, id]);
+    setKid(null);
+  };
   const setChildren = (i: number, children: string[]) => setFam(i, { children });
   /** the families a person can be put into as a child: not the ones they already belong to or have themselves */
   const familyChoices = useMemo(() => {
@@ -486,8 +511,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           </fieldset>}
           <div className="wide children">
             <span className="lab">{ico(Baby)}{t("children")}
-              <button type="button" className="copy" title={t("addChild")} aria-label={t("addChild")} onClick={() => setAdding(i)}>
-                <Plus className="icon" aria-hidden="true" /></button></span>
+              <button type="button" className="copy" title={t("newChild")} aria-label={t("newChild")} onClick={() => startKid(i)}>
+                <UserPlus className="icon" aria-hidden="true" /></button>
+              <button type="button" className="copy" title={t("findChild")} aria-label={t("findChild")} onClick={() => setAdding(i)}>
+                <Search className="icon" aria-hidden="true" /></button></span>
             {fams[i].children.map((id) => (
               <div className="child" key={id}>
                 <span>{labelOf(id)}</span>
@@ -496,6 +523,34 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                   <X className="icon" aria-hidden="true" /></button>
               </div>
             ))}
+            {kid?.fam === i && <fieldset className="sub new-child">
+              <legend>{ico(UserPlus)}{t("newChild")}</legend>
+              <div className="pair">
+                <label title={t("tipGiven")}><span>{t("givenName")}</span>
+                  <input type="text" autoFocus value={kid.given} list={givenList(kid.sex)} onChange={(e) => setKid({ ...kid, given: e.target.value })}
+                         onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addKid(); } }} /></label>
+                <label title={t("tipSurname")}><span>{t("surname")}</span>
+                  <input type="text" value={kid.surname} list={surnameList(kid.sex)} onChange={(e) => setKid({ ...kid, surname: e.target.value })}
+                         onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addKid(); } }} /></label>
+              </div>
+              <div className="sex-field" title={t("tipSex")}>
+                <span>{t("sex")}</span>
+                <div className="sex" role="radiogroup" aria-label={t("sex")}>
+                  {([["M", "male"], ["F", "female"], ["", "sexUnknown"]] as [string, StringKey][]).map(([value, key]) => <label key={key}>
+                    <input type="radio" name={`kid-sex-${i}`} value={value} checked={kid.sex === value} onChange={() => setKid({ ...kid, sex: value })} /> {t(key)}</label>)}
+                </div>
+              </div>
+              <DateField value={kid.birth} shown="" lang={lang} t={t} onChange={(v) => setKid({ ...kid, birth: v })} label={t(EVENT_LABEL.birth)} />
+              <label className="check" title={t("tipDeceased")}>
+                <input type="checkbox" checked={kid.deceased} onChange={(e) => setKid({ ...kid, deceased: e.target.checked })} />
+                <span>{t(kid.sex === "M" ? "deceasedM" : kid.sex === "F" ? "deceasedF" : "deceased")}</span></label>
+              {kid.deceased && <DateField value={kid.death} shown="" lang={lang} t={t} onChange={(v) => setKid({ ...kid, death: v })} label={t(EVENT_LABEL.death)} />}
+              <div className="kid-actions">
+                <button type="button" onClick={() => setKid(null)}>{t("cancel")}</button>
+                <button type="button" className="primary" disabled={!kid.given.trim()} onClick={addKid}>
+                  <Plus className="icon" aria-hidden="true" />{t("addChild")}</button>
+              </div>
+            </fieldset>}
             {adding === i && <PersonPick choices={personChoices} clearOnPick focus exclude={[record.xref!, fams[i].husb, fams[i].wife, ...fams[i].children]}
                         value="" label="" placeholder={t("pickPerson")} tip={t("addChild")}
                         onPick={(id) => { if (id) { setChildren(i, [...fams[i].children, id]); setAdding(null); } }} />}

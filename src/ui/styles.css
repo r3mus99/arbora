@@ -357,6 +357,8 @@ button.link { display: inline; }
 .editor fieldset > .trio, .editor fieldset > .add, .editor fieldset > .sub { grid-column: 1 / -1; }
 .editor fieldset > .add { justify-self: start; }
 .editor fieldset.sub { padding-top: 4px; }
+.editor fieldset.new-child { margin-top: 6px; }
+.editor .kid-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .editor fieldset.list { grid-template-columns: 1fr; gap: 16px; }
 .editor .item { display: grid; grid-template-columns: 100px 1fr; gap: 8px 12px; padding: 0; }
 .editor .item-head { grid-column: 1 / -1; display: flex; gap: 8px; }

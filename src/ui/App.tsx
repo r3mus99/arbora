@@ -8,7 +8,7 @@ import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
 import { checkGedcom, fixIssue } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
-import { addFamily, addPerson, deleteFamily, deletePerson } from "../core/structure";
+import { addFamily, addPerson, appended, deleteFamily, deletePerson, freeXref } from "../core/structure";
 import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceChoices, sourceOverview } from "../core/sources";
@@ -331,9 +331,10 @@ export function App() {
   // the list closes once everything is fixed
 
   /** a new version of the file with the changed records; one step of undo */
-  const commit = (changed: GedNode[]) => {
-    if (!doc || !changed.length) return;
+  const commit = (changed: GedNode[], added: GedNode[] = []) => {
+    if (!doc || !(changed.length || added.length)) return;
     const next = withRecords(doc, changed);
+    for (const rec of added) next.records = appended(next.records, rec);
     setEdits(edited(edits, doc, next));
     setDoc(next);
     resetResult();
@@ -674,7 +675,8 @@ export function App() {
             </div>
             {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
-                                 lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} sources={sourceList} onSave={(changed) => { setWindowId(null); commit(changed); }}
+                                 lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} sources={sourceList} onSave={(changed, added) => { setWindowId(null); commit(changed, added); }}
+                                 allocate={(pending) => freeXref(doc!.records, "INDI", "I", pending)}
                                  onClose={() => setWindowId(null)} onDeletePerson={() => removePerson(windowId)}
                                  onAddFamily={() => newFamily(windowId)} onDeleteFamily={removeFamily} hidden={showCheck || showFix} t={t} />}
             {showCheck || showFix ? <aside className="check-wide" aria-label={t(showFix ? "batchRename" : "check")}>

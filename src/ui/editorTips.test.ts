@@ -109,7 +109,7 @@ describe("tooltips of the edit window", () => {
   const t = (key: StringKey) => STRINGS.en[key] ?? key;
   const html = renderToStaticMarkup(createElement(PersonEditor, {
     data, record: find("@I1@"), families: [find("@F1@")], lang: "en", suggest: suggestions(records),
-    recordOf: find, sources: sourceChoices(records), onSave: () => {}, onCancel: () => {}, onDirty: () => {}, t,
+    recordOf: find, sources: sourceChoices(records), onSave: () => {}, allocate: () => "@I1@", onCancel: () => {}, onDirty: () => {}, t,
   }));
 
   test("the fixture shows the whole form", () => {

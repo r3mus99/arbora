@@ -21,7 +21,9 @@ interface Props {
   recordOf: (id: string) => GedNode | undefined;
   sources: SourceChoice[];
   /** the changed records (one undo step); the window closes after it */
-  onSave: (changed: GedNode[]) => void;
+  onSave: (changed: GedNode[], added?: GedNode[]) => void;
+  /** a free ID for a new person, given the IDs already given out in the form */
+  allocate: (pending: string[]) => string;
   /** the window closes; nothing is changed in the file */
   onClose: () => void;
   /** the person is deleted with their links (the caller closes the window) */
@@ -38,7 +40,7 @@ interface Props {
  * the tree stays visible on the left; the pencil in the person detail opens it. The form is split into the parts of
  * a person (name, basic facts, events, …); Esc, the X and Cancel ask before they drop changes.
  */
-export function EditWindow({ data, name, record, families, lang, suggest, recordOf, sources, onSave, onClose, onDeletePerson, onAddFamily, onDeleteFamily, t, hidden }: Props) {
+export function EditWindow({ data, name, record, families, lang, suggest, recordOf, sources, onSave, allocate, onClose, onDeletePerson, onAddFamily, onDeleteFamily, t, hidden }: Props) {
   const [dirty, setDirty] = useState(false);
   // the form is rebuilt when the families change; the open parts and the place in the window stay
   const [open, setOpen] = useState<Set<string> | undefined>();
@@ -67,7 +69,7 @@ export function EditWindow({ data, name, record, families, lang, suggest, record
       </PanelHead>
       <div className="panel-body edit-body" ref={body} onScroll={(e) => { scrolled.current = e.currentTarget.scrollTop; }}>
         <PersonEditor key={formKey} open={open} onToggleSection={(k, on) => setOpen((o) => { const s = new Set(o ?? OPEN_AT_START); if (on) s.add(k); else s.delete(k); return s; })} data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf} sources={sources}
-                      onSave={onSave} onCancel={close} onAddFamily={onAddFamily} onDeleteFamily={onDeleteFamily} onDirty={setDirty} t={t} />
+                      onSave={onSave} allocate={allocate} onCancel={close} onAddFamily={onAddFamily} onDeleteFamily={onDeleteFamily} onDirty={setDirty} t={t} />
       </div>
       <div className="edit-foot">
         <span className="bulk-sum" role="status">{dirty ? t("unsaved") : ""}</span>
