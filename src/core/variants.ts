@@ -151,7 +151,8 @@ export function spellings(records: GedNode[], kind: VariantKind): Map<string, st
     if (!rec.xref || (rec.tag !== "INDI" && rec.tag !== "FAM")) continue;
     if (kind === "surname" || kind === "given") {
       const n = rec.tag === "INDI" ? mainName(rec) : null;
-      if (n) kind === "given" ? givenWords(n).forEach((w) => count(w, rec.xref!)) : count(surnameOf(n), rec.xref!);
+      if (n && kind === "given") givenWords(n).forEach((w) => count(w, rec.xref!));
+      else if (n) count(surnameOf(n), rec.xref!);
       continue;
     }
     const walk = (node: GedNode) => {
