@@ -151,6 +151,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const [form, setForm] = useState<PersonFields>(initial.shown);
   /** the family whose "add a child" field is open */
   const [adding, setAdding] = useState<number | null>(null);
+  /** the "add parents" and "add association" search fields are behind a button */
+  const [addingParents, setAddingParents] = useState(false);
+  const [addingAssoc, setAddingAssoc] = useState(false);
   /** the people made in this form (new children), by the ID they will get, and the child form being filled in */
   const [fresh, setFresh] = useState<Record<string, NewPerson & { year: string }>>({});
   const [kid, setKid] = useState<{ fam: number; given: string; surname: string; sex: string; birth: string; deceased: boolean; death: string } | null>(null);
@@ -562,9 +565,11 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             </div>
           </div>
         ))}
-        <PersonPick choices={familyChoices} clearOnPick
-                    exclude={[...form.parents.map((p) => p.fam), ...families.map((f) => f.xref!)]} value="" label={t("addParents")} tip={t("tipAddParents")}
-                    placeholder={t("pickFamily")} onPick={(id) => id && set("parents", [...form.parents, { origin: -1, fam: id, pedigree: "" }])} />
+        <button type="button" className="add" title={t("tipAddParents")} aria-expanded={addingParents} onClick={() => setAddingParents(!addingParents)}>
+          <Plus className="icon" aria-hidden="true" />{t("addParents")}</button>
+        {addingParents && <PersonPick choices={familyChoices} clearOnPick focus
+                    exclude={[...form.parents.map((p) => p.fam), ...families.map((f) => f.xref!)]} value="" label="" tip={t("tipAddParents")}
+                    placeholder={t("pickFamily")} onPick={(id) => { if (id) { set("parents", [...form.parents, { origin: -1, fam: id, pedigree: "" }]); setAddingParents(false); } }} />}
       </fieldset>
       <fieldset className="list">
         <legend>{ico(Handshake)}{t("associations")}</legend>
@@ -579,8 +584,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             <label className="full" title={t("tipAssocRole")}><input placeholder={t("assocRole")} aria-label={t("assocRole")} type="text" value={a.role} onChange={(e) => setAssoc(i, { role: e.target.value })} /></label>
           </div>
         ))}
-        <PersonPick choices={personChoices} clearOnPick exclude={[record.xref!]} value="" label={t("addAssoc")} tip={t("tipAddAssoc")}
-                    placeholder={t("pickPerson")} onPick={(id) => id && set("associations", [...form.associations, { origin: -1, id, role: "" }])} />
+        <button type="button" className="add" title={t("tipAddAssoc")} aria-expanded={addingAssoc} onClick={() => setAddingAssoc(!addingAssoc)}>
+          <Plus className="icon" aria-hidden="true" />{t("addAssoc")}</button>
+        {addingAssoc && <PersonPick choices={personChoices} clearOnPick focus exclude={[record.xref!]} value="" label="" tip={t("tipAddAssoc")}
+                    placeholder={t("pickPerson")} onPick={(id) => { if (id) { set("associations", [...form.associations, { origin: -1, id, role: "" }]); setAddingAssoc(false); } }} />}
       </fieldset>
       </>)}
       {section("notes", <>
