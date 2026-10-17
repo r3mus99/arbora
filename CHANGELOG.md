@@ -1,9 +1,20 @@
 # Changelog
 
-## 1.51.1 – 2026-10-17
+## 1.51.3 – 2026-10-17
 
 - **The parents and associations section is quieter.** It lists only the existing parents and associations; the search
   fields for adding a further family of parents or an association appear after pressing the add button.
+
+## 1.51.2 – 2026-10-17
+
+- **The edit window is shorter.** The name of a text field is now its placeholder instead of a line of small print above it, so every field takes one row less. The name is still the field's accessible name and the hover tooltip stays; a filled field shows only its value. Choice lists (access restriction, source quality) keep their label above.
+
+## 1.51.1 – 2026-10-17
+
+- **The Changes panel is easier to read.** A family is named after its parents and people appear by name instead of
+  `@ID`; a label and its value share one line; an added person no longer repeats the name, shows "male/female" instead
+  of M/F, and shows the birth date as one line ("Birth 1997") without an empty parent line. The exact GEDCOM lines are
+  still there under a "GEDCOM" toggle on each record.
 
 ## 1.51.0 – 2026-10-17
 
