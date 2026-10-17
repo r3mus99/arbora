@@ -665,7 +665,7 @@ export function App() {
                              onPerson={pickListed} onStar={star} t={t} />
               </aside>}
               {showChanges && <aside className="rail-wrap sp-wrap" aria-label={t("changes")}>
-                <ChangesPanel changes={unsaved} lang={lang} onPerson={(id) => pick(id)} t={t} />
+                <ChangesPanel changes={unsaved} data={data} lang={lang} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {showSettings && <aside className="rail-wrap" aria-label={t("settings")}>
                 <SettingsPanel form={form} lang={lang} onChange={setOpt} t={t} />

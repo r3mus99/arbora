@@ -42,6 +42,18 @@ function fieldChanges(a: GedNode | null, b: GedNode | null): FieldChange[] {
   return out;
 }
 
+/**
+ * The lines worth showing: an empty line whose own sub-lines also changed is left out (BIRT with BIRT/DATE
+ * says nothing the date does not), as is the name line of an added or removed person (it is the heading).
+ */
+export function readableFields(change: RecordChange): FieldChange[] {
+  const paths = change.fields.map((f) => f.path);
+  return change.fields.filter((f) => {
+    if (change.tag === "INDI" && f.path === "NAME" && change.kind !== "changed") return false;
+    return !((f.before ?? "") === "" && (f.after ?? "") === "" && paths.some((p) => p.startsWith(`${f.path}/`)));
+  });
+}
+
 const titleOf = (r: GedNode) => (r.tag === "INDI" ? (mainName(r)?.value || "").replace(/\//g, " ").replace(/\s+/g, " ").trim() : "");
 const keyOf = (r: GedNode) => r.xref || r.tag;
 

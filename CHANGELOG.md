@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.51.1 – 2026-10-17
+
+- **The Changes panel is easier to read.** A family is named after its parents and people appear by name instead of
+  `@ID`; a label and its value share one line; an added person no longer repeats the name, shows "male/female" instead
+  of M/F, and shows the birth date as one line ("Birth 1997") without an empty parent line. The exact GEDCOM lines are
+  still there under a "GEDCOM" toggle on each record.
+
 ## 1.51.0 – 2026-10-17
 
 - **Duplicate people can be merged.** The edit window has a merge button (two joined arrows) next to the trash. Pick the
