@@ -6,6 +6,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "types": ["node"],
+    "jsx": "react-jsx",
     "strict": true,
     "isolatedModules": true,
     "moduleDetection": "force",
