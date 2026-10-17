@@ -703,4 +703,3 @@ section.check { margin: 0 0 14px; }
 .editor .lab .icon { width: var(--icon-sm); height: var(--icon-sm); margin-right: 6px; vertical-align: -2px; color: var(--c-src); }
 /* a short explanation under a field: plain text, not a small-caps label */
 .editor label > span.hint, .editor .addr-same .hint { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); }
-.editor .addr-same { display: grid; gap: 4px; justify-items: start; }

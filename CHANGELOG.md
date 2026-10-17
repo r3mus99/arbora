@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.48.4 – 2026-10-17
+
+- **Every field of the edit window now explains itself in a tooltip.** Hold the mouse over a field (or focus it) to see
+  what to write there, with examples. The hints that were always visible under the residence address and place are now
+  tooltips too, so the form is calmer. All the texts exist in all 12 languages. A test now fails when a field is added
+  without a tooltip, so this holds for new fields as well.
+
 ## 1.48.3 – 2026-10-17
 
 - **A residence in the edit window is easier to fill in.** The address (street and house number) and the place (town and
