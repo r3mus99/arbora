@@ -134,7 +134,7 @@ describe("formatting", () => {
 
   test("every language has all PDF texts", () => {
     for (const lang of LANGS) {
-      expect(Object.keys(TEXTS[lang].abbr)).toEqual(["birt", "marr", "deat"]);
+      expect(Object.keys(TEXTS[lang].abbr)).toEqual(["birt", "marr", "deat", "resi"]);
       expect(TEXTS[lang].page).toMatch(/\{n\}.*\{total\}/);
     }
   });
