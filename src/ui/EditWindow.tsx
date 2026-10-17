@@ -25,7 +25,7 @@ interface Props {
   /** the changed records (one undo step); the window closes after it */
   onSave: (changed: GedNode[], added?: GedNode[]) => void;
   /** a free ID for a new person, given the IDs already given out in the form */
-  allocate: (pending: string[]) => string;
+  allocate: (tag: "INDI" | "FAM", pending: string[]) => string;
   /** the window closes; nothing is changed in the file */
   onClose: () => void;
   /** the person is deleted with their links (the caller closes the window) */

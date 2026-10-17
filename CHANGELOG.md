@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.52.0 – 2026-10-17
+
+- **A new spouse or a new parent can be made right in the edit window.** Under the spouse field of a family there is a
+  "New spouse" button, and under Parents a "New parent" button. Both open the same small form as the new child (given
+  name, surname, sex, birth, deceased with a death date). A new father keeps the surname of the person, a new mother
+  starts without one. The people and the family of new parents (the mother joins the family of the father made before
+  her, and the other way round) are written when the window is saved, as one undo step, with all pointers in place.
+
 ## 1.51.4 – 2026-10-17
 
 - **The edit window has a fixed layout.** The age, cause and agency row now lines up with the date and place columns above it, and the trash and add-child icons sit on the same line as their headings. "Divorced" moved into the marriage's "+ Details" (it opens by itself when the family is divorced). The structure (section, subsection, fields, hidden fields) is written down in the design guidelines.
