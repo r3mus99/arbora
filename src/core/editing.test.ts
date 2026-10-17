@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, decode, familyFields, parseGedcom, personFields, relinkFamily, rewritten, sourceChoices, writeGedcom, type FamilyFields, type GedNode,
+  applyFamily, applyPerson, decode, familyFields, parseGedcom, personFields, relinkFamily, relinkParents, rewritten, sourceChoices, writeGedcom, type FamilyFields, type GedNode,
   type PersonFields,
 } from "./index";
 import { RICH_GED } from "./fixtures/rich";
@@ -400,5 +400,53 @@ describe("spouses and children of a family", () => {
     const back = applyFamily(next, gone, before);
     expect(back.children.map((c) => `${c.tag} ${c.value}`.trim())).toEqual(fam.children.map((c) => `${c.tag} ${c.value}`.trim()));
     expect(run(() => ({}))).toBe(writeGedcom(recs()));
+  });
+});
+
+describe("parents and associations of a person", () => {
+  const text = [
+    "0 @I1@ INDI\n1 NAME A /X/\n1 FAMC @F1@\n2 PEDI adopted\n1 ASSO @I2@\n2 RELA godparent\n1 NOTE n",
+    "0 @I2@ INDI\n1 NAME B /X/", "0 @I3@ INDI\n1 NAME C /X/",
+    "0 @F1@ FAM\n1 HUSB @I2@\n1 CHIL @I1@", "0 @F2@ FAM\n1 HUSB @I3@\n1 CHIL @I2@", "",
+  ].join("\n");
+  const recs = () => parseGedcom(text);
+  const by = (list: GedNode[], id: string) => list.find((r) => r.xref === id)!;
+  const lines = (r: GedNode) => r.children.map((c) => `${c.tag} ${c.value}`.trim());
+
+  test("reads the parent families and the associations", () => {
+    const f = personFields(by(recs(), "@I1@"));
+    expect(f.parents).toEqual([{ origin: 0, fam: "@F1@", pedigree: "adopted" }]);
+    expect(f.associations).toEqual([{ origin: 0, id: "@I2@", role: "godparent" }]);
+  });
+
+  test("changes the kind of descent and the role, keeping the rest", () => {
+    const r = by(recs(), "@I1@"), f = personFields(r);
+    const out = applyPerson(r, f, { ...f, parents: [{ ...f.parents[0], pedigree: "foster" }], associations: [{ ...f.associations[0], role: "witness" }] });
+    expect(out.children[1].children.map((c) => c.value)).toEqual(["foster"]);
+    expect(out.children[2].children.map((c) => c.value)).toEqual(["witness"]);
+    expect(applyPerson(r, f, { ...f, parents: f.parents.map((p) => ({ ...p })) })).toBe(r);
+  });
+
+  test("adds a family and an association after the other links, before the note stays put", () => {
+    const r = by(recs(), "@I1@"), f = personFields(r);
+    const out = applyPerson(r, f, {
+      ...f, parents: [...f.parents, { origin: -1, fam: "@F2@", pedigree: "birth" }],
+      associations: [...f.associations, { origin: -1, id: "@I3@", role: "" }],
+    });
+    expect(lines(out)).toEqual(["NAME A /X/", "FAMC @F1@", "FAMC @F2@", "ASSO @I2@", "ASSO @I3@", "NOTE n"]);
+    expect(out.children[2].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["PEDI birth"]);
+    const g = personFields(out);
+    const back = applyPerson(out, g, { ...g, parents: g.parents.slice(0, 1), associations: g.associations.slice(0, 1) });
+    expect(lines(back)).toEqual(lines(r));
+  });
+
+  test("relinkParents moves the CHIL line between families", () => {
+    const all = recs(), f = personFields(by(all, "@I1@"));
+    const after = [{ origin: -1, fam: "@F2@", pedigree: "" }];
+    const changed = relinkParents("@I1@", f.parents, after, (id) => by(all, id));
+    expect(changed.map((c) => c.xref).sort()).toEqual(["@F1@", "@F2@"]);
+    expect(lines(by(changed, "@F1@"))).toEqual(["HUSB @I2@"]);
+    expect(lines(by(changed, "@F2@"))).toEqual(["HUSB @I3@", "CHIL @I2@", "CHIL @I1@"]);
+    expect(relinkParents("@I1@", f.parents, f.parents, (id) => by(all, id))).toEqual([]);
   });
 });

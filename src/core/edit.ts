@@ -38,6 +38,10 @@ export interface PersonFields {
   details: Record<EventKey, EventDetailFields>;
   /** the other events of the person (baptism, residence, custom, …) */
   events: EventRow[];
+  /** the families the person is a child of, with the kind of descent */
+  parents: ParentRow[];
+  /** the other people the person is associated with */
+  associations: AssocRow[];
   /** the source citations written directly under the person */
   citations: CitationRow[];
   /** the attribute lines (education, nationality, …) that have a value, date or place; `origin` is the index among all attribute lines, -1 for a new one */
@@ -71,6 +75,28 @@ export interface CitationRow {
   /** QUAY: how reliable, "0" to "3", or "" */
   quality: string;
 }
+
+/** a family the person is a child of (a FAMC line) */
+export interface ParentRow {
+  /** the index among the person's FAMC lines, -1 for a new one */
+  origin: number;
+  /** the family's pointer (@F1@) */
+  fam: string;
+  /** PEDI: "birth", "adopted", "foster", "sealing" or "" */
+  pedigree: string;
+}
+
+/** another person named by an ASSO line (a godparent, a witness, …) */
+export interface AssocRow {
+  /** the index among the person's ASSO lines, -1 for a new one */
+  origin: number;
+  /** the other person's pointer (@I1@) */
+  id: string;
+  /** RELA as typed */
+  role: string;
+}
+
+export const PEDIGREES = ["birth", "adopted", "foster", "sealing"];
 
 export interface AttributeRow extends EventFields { origin: number; tag: string; value: string }
 
@@ -156,6 +182,10 @@ export function personFields(rec: GedNode): PersonFields {
       origin, tag: c.tag, title: c.tag === "EVEN" ? childOf(c, "TYPE")?.value || "" : "",
       value: c.value === "Y" ? "" : c.value, ...datePlace(c), ...detailFields(c),
     })),
+    parents: childrenOf(rec, "FAMC").map((c, origin) => ({
+      origin, fam: c.value.trim(), pedigree: childOf(c, "PEDI")?.value.trim().toLowerCase() || "",
+    })),
+    associations: childrenOf(rec, "ASSO").map((c, origin) => ({ origin, id: c.value.trim(), role: childOf(c, "RELA")?.value.trim() || "" })),
     citations: childrenOf(rec, "SOUR").map((c, origin) => ({
       origin, source: c.value, page: childOf(c, "PAGE")?.value || "", quality: childOf(c, "QUAY")?.value.trim() || "",
     })),
@@ -214,7 +244,7 @@ export function suggestions(records: GedNode[]): Suggestions {
 /** usual GEDCOM order of a person's or family's lines; new lines go to their place */
 const ORDER = ["NAME", "SEX", "HUSB", "WIFE", "BIRT", "CHR", "BAPM", "DEAT", "BURI", "CREM", "MARR", "DIV",
                "OCCU", "RELI", ...ATTRIBUTE_TAGS, "NOTE"];
-const LINKS = new Set(["FAMC", "FAMS", "CHIL"]);
+const LINKS = new Set(["FAMC", "FAMS", "CHIL", "ASSO"]);
 const CLOSING = new Set(["SOUR", "OBJE", "CHAN", "RIN", "REFN"]);
 const LATE = new Set(["FAMC", "FAMS", "CHIL", "SOUR", "OBJE", "CHAN", "RIN", "REFN"]);
 
@@ -475,6 +505,58 @@ function setCitations(rec: GedNode, before: CitationRow[], after: CitationRow[])
   return out;
 }
 
+/** The FAMC lines from the rows (the family cannot change on a kept row); PEDI is set or removed. */
+function setParents(rec: GedNode, before: ParentRow[], after: ParentRow[]): GedNode {
+  const rows = after.map((r) => ({ ...r, fam: r.fam.trim(), pedigree: r.pedigree.trim() }));
+  const same = (a: ParentRow, b: ParentRow) => a.fam === b.fam && a.pedigree === b.pedigree;
+  if (rows.length === before.length && rows.every((r, i) => r.origin === before[i].origin && same(r, before[i]))) return rec;
+  let k = -1;
+  const children: GedNode[] = [];
+  for (const c of rec.children) {
+    if (c.tag !== "FAMC") { children.push(c); continue; }
+    k++;
+    const was = before.find((b) => b.origin === k);
+    const row = rows.find((r) => r.origin === k);
+    if (!was) { children.push(c); continue; }
+    if (!row) continue;
+    children.push(row.pedigree === was.pedigree ? c : setChild(c, "PEDI", row.pedigree, 0));
+  }
+  let out = { ...rec, children };
+  for (const row of rows.filter((r) => r.origin < 0 && r.fam)) {
+    if (out.children.some((c) => c.tag === "FAMC" && c.value.trim() === row.fam)) continue;
+    const line = row.pedigree ? gedNode("FAMC", row.fam, [gedNode("PEDI", row.pedigree)]) : gedNode("FAMC", row.fam);
+    out = { ...out, children: insert(out.children, line) };
+  }
+  return out;
+}
+
+/** The ASSO lines from the rows: the role is the RELA line under the pointer. */
+function setAssociations(rec: GedNode, before: AssocRow[], after: AssocRow[]): GedNode {
+  const rows = after.map((r) => ({ ...r, id: r.id.trim(), role: r.role.trim() }));
+  const same = (a: AssocRow, b: AssocRow) => a.id === b.id && a.role === b.role;
+  if (rows.length === before.length && rows.every((r, i) => r.origin === before[i].origin && same(r, before[i]))) return rec;
+  let k = -1;
+  const children: GedNode[] = [];
+  for (const c of rec.children) {
+    if (c.tag !== "ASSO") { children.push(c); continue; }
+    k++;
+    const was = before.find((b) => b.origin === k);
+    const row = rows.find((r) => r.origin === k);
+    if (!was) { children.push(c); continue; }
+    if (!row || !row.id) continue;
+    if (same(row, was)) { children.push(c); continue; }
+    let ev = row.id === was.id ? c : { ...c, value: row.id };
+    if (row.role !== was.role) ev = setChild(ev, "RELA", row.role, ev.children.length);
+    children.push(ev);
+  }
+  let out = { ...rec, children };
+  for (const row of rows.filter((r) => r.origin < 0 && r.id)) {
+    const line = row.role ? gedNode("ASSO", row.id, [gedNode("RELA", row.role)]) : gedNode("ASSO", row.id);
+    out = { ...out, children: insert(out.children, line) };
+  }
+  return out;
+}
+
 function setNote(rec: GedNode, text: string): GedNode {
   const note = inlineNote(rec);
   const value = text.replace(/\r\n?/g, "\n").trim();
@@ -508,6 +590,8 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   out = setDeceased(out, before.deceased, after.deceased);
   out = setOccupations(out, before.occupations, after.occupations);
   out = setAttributes(out, before.attributes, after.attributes);
+  out = setParents(out, before.parents, after.parents);
+  out = setAssociations(out, before.associations, after.associations);
   out = setCitations(out, before.citations, after.citations);
   out = setNameParts(out, before.nameParts, after.nameParts);
   out = setAliases(out, before.aliases, after.aliases, after);
@@ -575,8 +659,8 @@ const withoutFirst = (list: GedNode[], is: (c: GedNode) => boolean) => {
   return i < 0 ? list : list.filter((_, j) => j !== i);
 };
 
-/** a record with the pointer line `tag @fam@` (FAMC, FAMS) added when it has none, or removed when `on` is false */
-function setLink(rec: GedNode, tag: "FAMC" | "FAMS", fam: string, on: boolean): GedNode {
+/** a record with the pointer line `tag value` (FAMC, FAMS, CHIL) added when it has none, or removed when `on` is false */
+function setLink(rec: GedNode, tag: "FAMC" | "FAMS" | "CHIL", fam: string, on: boolean): GedNode {
   const has = rec.children.some((c) => c.tag === tag && c.value.trim() === fam);
   if (on === has) return rec;
   const children = on ? insert(rec.children, gedNode(tag, fam)) : withoutFirst(rec.children, (c) => c.tag === tag && c.value.trim() === fam);
@@ -605,6 +689,23 @@ export function relinkFamily(fam: string, before: FamilyFields, after: FamilyFie
     if (after[key]) touch(after[key], "FAMS", true);
   }
   return [...changed.values()];
+}
+
+/**
+ * The family records a change of the person's parents touches: a family the person left loses its CHIL line, a
+ * family they were put into gets one. `get` gives the newest record of a family; the changed ones are returned.
+ */
+export function relinkParents(person: string, before: ParentRow[], after: ParentRow[], get: (id: string) => GedNode | undefined): GedNode[] {
+  const was = new Set(before.map((r) => r.fam)), now = new Set(after.filter((r) => r.fam).map((r) => r.fam));
+  const changed: GedNode[] = [];
+  const touch = (fam: string, on: boolean) => {
+    const rec = get(fam);
+    const next = rec && setLink(rec, "CHIL", person, on);
+    if (rec && next && next !== rec) changed.push(next);
+  };
+  [...was].filter((f) => !now.has(f)).forEach((f) => touch(f, false));
+  [...now].filter((f) => !was.has(f)).forEach((f) => touch(f, true));
+  return changed;
 }
 
 // ------------------------------------------------------------ dates
