@@ -1,4 +1,3 @@
-import { Shuffle } from "lucide-react";
 import { TEXTS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
@@ -80,12 +79,6 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
         <label><input {...check("showDate")} /> <span>{t("showDate")}</span></label>
         <label><input {...check("colorPdf")} /> <span>{t("colorPdf")}</span></label>
       </div>
-    </div>
-    <div className="set-group">
-      <h3>{t("poster")}</h3>
-      <button type="button" title={t("posterNewTip")} aria-label={t("posterNewTip")}
-              onClick={() => onChange("posterSeed", form.posterSeed + 1)}>
-        <Shuffle className="icon" aria-hidden="true" />{t("posterNew")}</button>
     </div>
     </div>
   </section>

@@ -31,7 +31,7 @@ export interface ChartOptions {
   margin: number;
   /** PDF: colour the dates and places like the screen (bold names and italic places are always used) */
   colorPdf: boolean;
-  /** tree poster: the number that makes the branches differ; the same number draws the same tree */
+  /** tree poster: the number that makes the branches differ; the same number draws the same tree (not a setting: each download picks one) */
   posterSeed: number;
 }
 

@@ -1,6 +1,6 @@
 # Tree poster
 
-The tree poster (`src/core/poster.ts`; the SVG button in the top bar in `App.tsx`, "New branches" in `SettingsPanel.tsx`) draws the ancestors of one person as a
+The tree poster (`src/core/poster.ts`; the SVG button in the top bar in `App.tsx`, a fresh seed per click) draws the ancestors of one person as a
 decorative wall chart. This file records how it works and what is still open.
 
 ## How it works
@@ -12,7 +12,8 @@ decorative wall chart. This file records how it works and what is still open.
   generation, each plate halfway between its two parents. A missing ancestor leaves its place empty.
 - Branches are tapered filled shapes along a smooth curve with a seeded wiggle. Side shoots (two levels) and leaves
   grow along them; a shoot that would touch a plate, another shoot or the edge is not drawn. The seed combines the
-  person's id with the number set by "New branches", so a tree is repeatable and every seed is unique.
+  person's id with a random number picked at each download, so every download is a new tree; the same seed (the
+  `posterSeed` option) always draws the same one, which the tests use.
 - Names wrap to two lines when one line would be small; a generation shares one name size and one date size.
 - Text widths are an estimate (`textWidth`), identical for every output, so the layout never depends on a font.
 

@@ -155,7 +155,7 @@ Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexi
   backdrop dimmed; Esc and the X close it.
 - Scrollbars are the thin global ones.
 
-- **Tree poster**: not a mini-app. Its download is the SVG button in the top bar after GED and PDF (same `.icon-btn.save-btn`, a file-image icon, tooltip = title plus hint), and its one choice, "New branches", is a normal button with a shuffle icon in its own `.set-group` (12px uppercase title "Tree poster") at the end of the settings panel.
+- **Tree poster**: not a mini-app. Its download is the SVG button in the top bar after GED and PDF (same `.icon-btn.save-btn`, a file-image icon, tooltip = title plus hint). It has no settings of its own: every click draws new branches.
 
 ## 8. Tree view and detail
 

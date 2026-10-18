@@ -1,0 +1,1 @@
+- **Every tree poster download draws new branches.** The "New branches" setting is gone: each click on SVG in the top bar draws a different unique tree.

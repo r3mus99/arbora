@@ -195,7 +195,8 @@ export function App() {
   function createPoster(id = selectedId) {
     if (!data || !id) return;
     try {
-      const poster = buildPoster(data, id, toOptions(form, lang));
+      // every download draws new branches
+      const poster = buildPoster(data, id, { ...toOptions(form, lang), posterSeed: Math.floor(Math.random() * 2 ** 31) });
       saveFile(new Blob([posterSvg(poster)], { type: "image/svg+xml" }),
                `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}.svg`);
     } catch (e) {
