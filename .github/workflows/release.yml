@@ -1,8 +1,9 @@
 name: GitHub release
 
-# Publishes a release with the notes from CHANGELOG.md when the version in
-# package.json has no release yet. Runs on every push to main, so merging a
-# version bump is enough.
+# Turns the fragments in changelog.d/ (one per merged pull request, see changelog.d/README.md) into the next version:
+# bumps package.json, writes the CHANGELOG section, deletes the fragments and commits "Release x.y.z". Then, as
+# before, publishes a release with the notes of the CHANGELOG section of the version in package.json when that version
+# has no release yet, so a hand-written version bump (a major release) still works.
 on:
   push:
     branches: [main]
@@ -10,12 +11,36 @@ on:
 
 permissions:
   contents: write
+  actions: write
+
+# one release at a time, so two merges close together do not race on package.json
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Release the fragments
+        id: fragments
+        run: |
+          version=$(node --experimental-strip-types --no-warnings scripts/release.ts)
+          if [ -z "$version" ]; then
+            echo "No changelog fragments."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Release $version"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "released=true" >> "$GITHUB_OUTPUT"
       - name: Create the release if it does not exist
         env:
           GH_TOKEN: ${{ github.token }}
@@ -35,4 +60,10 @@ jobs:
             echo "CHANGELOG.md has no section for $version." >&2
             exit 1
           fi
-          gh release create "$tag" --target "$GITHUB_SHA" --title "Arbora $version" --notes-file notes.md
+          gh release create "$tag" --target "$(git rev-parse HEAD)" --title "Arbora $version" --notes-file notes.md
+      # a push made with the workflow token starts no other workflow, so the site with the new version is deployed here
+      - name: Deploy the new version
+        if: steps.fragments.outputs.released == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main
