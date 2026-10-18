@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.0 – 2026-10-18
+
+- **A new child starts with the father's surname in the form of the child's sex, and children can be sorted by birth.** Choosing a girl in the new-child form turns Novák into Nováková (and back for a boy) as long as the surname was not typed over, in languages and files with gendered surnames. New and found children are placed by year of birth, and a "Sort" button in the Children title orders the whole list.
+
+- **The browser no longer offers contacts while typing a name or address.** The name, surname and address fields of the edit window and of the inline edit ask the browser not to autofill them (macOS Contacts popup in Safari).
+
 ## 2.0.0 – 2026-10-18
 
 **Editor v2.** Arbora is now a full editor for the GEDCOM data it shows, not only a viewer. Everything below is in one edit window (the pencil in the person detail) that lies over the right half of the viewer, and every save is one undo step.
