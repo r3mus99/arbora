@@ -62,7 +62,7 @@ between relatives) is written out only once; later occurrences refer to it.
    sample. The page then switches to a compact top bar: the Arbora title, the
    file name with the number of people (click it or drop a file on it to open
    another one), the tool buttons and the language. The tools are icons with a
-   tooltip: file overview, file check, undo, redo, download GEDCOM, **PDF** and
+   tooltip: file overview, file check, undo, redo, download GEDCOM, **PDF**, **SVG** (tree poster) and
    settings.
 2. After loading, the **file overview** shows the number of people (men and
    women), families and generations (the longest parent–child line), the years
@@ -192,6 +192,16 @@ orientation, font size, custom title and the print date in the header.
 If the longest line does not fit the page width, the generation indent and then
 the font size are reduced automatically.
 
+### Tree poster
+
+The **SVG** button in the top bar, next to GED and PDF, downloads the ancestors of the chart's root person as a
+decorative wall chart for large-format printing: the person at the bottom, the father's line unfolding to the left and
+the mother's to the right, with branches and leaves between the name plates. The plates have exact positions, the
+branches are drawn from a seeded random generator, so the same seed always gives the same tree and **New branches**
+in the Settings (Tree poster) gives another one. The generations (2 to 7; "all" draws seven), the title, labels and
+dates follow the settings. The SVG is vector, so it prints sharply at any size; its proportions are those of A paper.
+The plan and the open points are in [docs/tree-poster.md](docs/tree-poster.md).
+
 ### Notes on the data
 
 - `ABT`, `EST`, `CAL` dates are shown as "about", `BEF` as "before", `AFT` as
@@ -217,6 +227,7 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   chart.ts          ancestor and descendant chart rows
   collapse.ts       collapsed branches: which rows stay visible
   pdf.ts            page layout and PDF
+  poster.ts         tree poster: plates, seeded branches and leaves, SVG
   texts.ts          PDF texts in 12 languages
   *.test.ts         tests on the sample and made-up data
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),

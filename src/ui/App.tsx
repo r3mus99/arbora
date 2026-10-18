@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
-import { FileDown, FileText, FileUp, LayoutDashboard,
+import { FileDown, FileText, FileImage, FileUp, LayoutDashboard,
          Loader2, BookMarked, History, Trash2, Clock, ListChecks, MapPin, Redo2, Replace, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
@@ -31,6 +31,7 @@ import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./t
 import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
 import { PlacesPanel } from "./PlacesPanel";
+import { buildPoster, posterSvg } from "../core/poster";
 import { PersonDetail } from "./PersonDetail";
 import { EditWindow } from "./EditWindow";
 import { PersonRail } from "./PersonRail";
@@ -187,6 +188,19 @@ export function App() {
       setStatus({ key: "errPdf", vars: { msg: (e as Error).message }, err: true });
     } finally {
       setBusy(false);
+    }
+  }
+
+  /** The tree poster of the chart's root person as an SVG file. */
+  function createPoster(id = selectedId) {
+    if (!data || !id) return;
+    try {
+      const poster = buildPoster(data, id, toOptions(form, lang));
+      saveFile(new Blob([posterSvg(poster)], { type: "image/svg+xml" }),
+               `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}.svg`);
+    } catch (e) {
+      console.error(e);
+      setStatus({ key: "posterErr", vars: { msg: (e as Error).message }, err: true });
     }
   }
 
@@ -583,6 +597,10 @@ export function App() {
                       aria-label={t("go")}>
                 {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
                 PDF</button>
+              <button type="button" className="icon-btn save-btn" onClick={() => createPoster()} title={`${t("poster")}. ${t("posterHint")}`}
+                      aria-label={t("poster")}>
+                <FileImage className="icon" aria-hidden="true" />
+                SVG</button>
             </div>}
             <div className="tools">
               <button type="button" className="icon-btn" onClick={toggleTheme}

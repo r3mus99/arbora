@@ -10,7 +10,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ TOP BAR   Arbora · open file │ undo redo │ save GED · PDF │ language │
+│ TOP BAR   Arbora · open file │ undo redo │ save GED · PDF · SVG │ language │
 ├──┬───────────────┬───────────────────────────────────────────┬───────────────┤
 │R │ MINI-APP      │  MAIN COMPONENT                           │  PERSON       │
 │A │ PANEL         │  tree view                                │  DETAIL       │
@@ -19,7 +19,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 └──┴───────────────┴───────────────────────────────────────────┴───────────────┘
 ```
 
-- **Top bar** (the first row of the frame, `--head-h` high, one line under it across the frame; global, not about one person): app name, the open file, undo / redo, save GED, save PDF,
+- **Top bar** (the first row of the frame, `--head-h` high, one line under it across the frame; global, not about one person): app name, the open file, undo / redo, save GED, save PDF, save SVG (tree poster),
   language. Order is fixed: identity, file, history, output, preferences. Anything that changes the whole document
   or the app belongs here.
 - **Rail** (left, icon column): one icon per mini-app. Opens and closes the mini-app panel.
@@ -154,6 +154,8 @@ Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexi
 - Dialogs: `--radius-lg`, header row as in a panel with a close X, footer with buttons on the right,
   backdrop dimmed; Esc and the X close it.
 - Scrollbars are the thin global ones.
+
+- **Tree poster**: not a mini-app. Its download is the SVG button in the top bar after GED and PDF (same `.icon-btn.save-btn`, a file-image icon, tooltip = title plus hint), and its one choice, "New branches", is a normal button with a shuffle icon in its own `.set-group` (12px uppercase title "Tree poster") at the end of the settings panel.
 
 ## 8. Tree view and detail
 

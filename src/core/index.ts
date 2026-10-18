@@ -23,3 +23,4 @@ export * from "./places";
 export * from "./names";
 export * from "./info";
 export * from "./placelist";
+export * from "./poster";

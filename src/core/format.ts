@@ -31,6 +31,8 @@ export interface ChartOptions {
   margin: number;
   /** PDF: colour the dates and places like the screen (bold names and italic places are always used) */
   colorPdf: boolean;
+  /** tree poster: the number that makes the branches differ; the same number draws the same tree */
+  posterSeed: number;
 }
 
 export const DEFAULTS: ChartOptions = {
@@ -38,6 +40,7 @@ export const DEFAULTS: ChartOptions = {
   chart: "ancestors", showSpouses: true,
   numbering: "generation", marriageOn: "father", title: "", showDate: true, pageSize: "a4", orientation: "portrait",
   fontSize: 8.5, lineHeight: 1.7, margin: 36, colorPdf: false,
+  posterSeed: 0,
 };
 
 export const fmt = (s: string, vars: Record<string, string | number>) =>
