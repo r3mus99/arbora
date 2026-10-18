@@ -54,7 +54,7 @@ export interface Poster {
 }
 
 export const POSTER_COLORS = {
-  paper: "#efe3cc", plate: "#f7efdf", ink: "#2a1d12", line: "#3a2a1a", branch: "#6b4626", branchEdge: "#4a2f18",
+  paper: "#efe3cc", plate: "#fffcf3", male: "#2f5f9e", female: "#a8322a", ink: "#2a1d12", line: "#3a2a1a", branch: "#6b4626", branchEdge: "#4a2f18",
   leafEdge: "#2f4a1c", leaves: ["#4f7a2e", "#5d8a34", "#3f6b28", "#6b9a3c", "#4a7a3a"],
 };
 
@@ -85,15 +85,6 @@ const num = (n: number) => String(Math.round(n * 10) / 10);
 /** Width of a text as the layout assumes it without the poster fonts; the real fonts are narrower, so a line never overflows its plate. */
 export const textWidth = (text: string, size: number, bold: boolean) => text.length * size * (bold ? 0.62 : 0.56);
 
-function roundedRect(x: number, y: number, w: number, h: number, r: number): string {
-  const k = r * 0.5523;
-  const [x2, y2] = [x + w, y + h];
-  return `M${num(x + r)},${num(y)}L${num(x2 - r)},${num(y)}C${num(x2 - r + k)},${num(y)} ${num(x2)},${num(y + r - k)} ${num(x2)},${num(y + r)}` +
-    `L${num(x2)},${num(y2 - r)}C${num(x2)},${num(y2 - r + k)} ${num(x2 - r + k)},${num(y2)} ${num(x2 - r)},${num(y2)}` +
-    `L${num(x + r)},${num(y2)}C${num(x + r - k)},${num(y2)} ${num(x)},${num(y2 - r + k)} ${num(x)},${num(y2 - r)}` +
-    `L${num(x)},${num(y + r)}C${num(x)},${num(y + r - k)} ${num(x + r - k)},${num(y)} ${num(x + r)},${num(y)}Z`;
-}
-
 /** Points of a Catmull-Rom spline through `pts`, `k` per segment. */
 function dense(pts: Point[], k = 6): Point[] {
   const out: Point[] = [];
@@ -108,6 +99,42 @@ function dense(pts: Point[], k = 6): Point[] {
   }
   out.push(pts[pts.length - 1]);
   return out;
+}
+
+/** A closed Catmull-Rom curve through `pts`. */
+function closedDense(pts: Point[], k = 6): Point[] {
+  const n = pts.length;
+  return dense([pts[n - 1], ...pts, pts[0], pts[1]], k).slice(k, k * (n + 1) + 1);
+}
+
+/**
+ * A hand-cut plate: edges that are slightly uneven and a border whose width changes along the way. Returns the outer
+ * shape (drawn in the ink colour) and the inner shape (drawn over it in the paper colour) around the centre (cx, cy).
+ */
+function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number): [string, string] {
+  const u = (a: number) => (rnd() * 2 - 1) * a;
+  const base = 2 + rnd();
+  const border = () => Math.max(1.3, base + u(1.1));
+  const wob = h * 0.022;
+  const xs = (n: number) => Array.from({ length: n }, (_, i) => w * (i + 0.5) / n);
+  const ys = (n: number) => Array.from({ length: n }, (_, i) => h * (i + 0.5) / n);
+  // clockwise from the top left corner: [x, y, inward x, inward y]
+  const seq: [number, number, number, number][] = [[u(wob), u(wob), 1, 1]];
+  for (const x of xs(4)) seq.push([x, u(wob * 1.3) + h * 0.01 * Math.sin(x / w * 6), 0, 1]);
+  seq.push([w + u(wob), u(wob), -1, 1]);
+  for (const y of ys(2)) seq.push([w + u(wob * 1.3), y, -1, 0]);
+  seq.push([w + u(wob), h + u(wob), -1, -1]);
+  for (const x of xs(4).reverse()) seq.push([x, h + u(wob * 1.3) + h * 0.015 * Math.sin(x / w * 5 + 1), 0, -1]);
+  seq.push([u(wob), h + u(wob), 1, -1]);
+  for (const y of ys(2).reverse()) seq.push([u(wob * 1.3), y, 1, 0]);
+  const outer: Point[] = [], inner: Point[] = [];
+  for (const [x, y, nx, ny] of seq) {
+    const t = border();
+    outer.push([cx - w / 2 + x, cy - h / 2 + y]);
+    inner.push([cx - w / 2 + x + nx * t, cy - h / 2 + y + ny * t]);
+  }
+  const path = (pts: Point[]) => "M" + closedDense(pts, 5).map(([x, y]) => `${num(x)},${num(y)}`).join("L") + "Z";
+  return [path(outer), path(inner)];
 }
 
 const angleAt = (d: Point[], k: number) => {
@@ -295,8 +322,10 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     }
   }
   for (const plate of plates) {
-    plateShapes.push({ d: roundedRect(plate.x - plate.w / 2, plate.y - plate.h / 2, plate.w, plate.h, 6),
-                       fill: C.plate, stroke: C.line, strokeWidth: plate === rootPlate ? 3 : 2.2 });
+    const sex = people.get(plate)!.sex;
+    const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h);
+    plateShapes.push({ d: outer, fill: sex === "M" ? C.male : sex === "F" ? C.female : C.branchEdge, stroke: null, strokeWidth: 0 },
+                     { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
     const same = lines.get(plate)!.map(([text, , bold]): Line => [text, smallest.get(`${plate.gen}${bold}`)!, bold]);
     texts.push(...stack(plate, same));
   }

@@ -116,3 +116,14 @@ describe("poster output", () => {
     expect(fonts.outline("Ľ Л", 40, false, 100, 100)).toMatch(/^M/);
   });
 });
+
+describe("poster plates", () => {
+  test("every plate has its own hand-cut outline, coloured by sex", () => {
+    const poster = buildPoster(data, ROOT, { generations: 4, posterSeed: 1 });
+    const outlines = poster.shapes.filter((s) => s.fill === "#2f5f9e" || s.fill === "#a8322a" || s.fill === "#4a2f18");
+    expect(outlines.length).toBe(poster.people);
+    expect(new Set(outlines.map((s) => s.d)).size).toBe(outlines.length);
+    expect(outlines.some((s) => s.fill === "#2f5f9e")).toBe(true);
+    expect(outlines.some((s) => s.fill === "#a8322a")).toBe(true);
+  });
+});
