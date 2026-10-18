@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.0 – 2026-10-18
+
+- **The marriage date and place sit behind the Details button of the family.** The family card in the edit window starts with the spouse and the children; Details holds date, place, age, cause, agency and divorce, and opens by itself when any of them has a value or the family is new and empty. "Add a family" also opens the Family part.
+
 ## 2.3.0 – 2026-10-18
 
 - **Filled date, place and name fields keep their name.** In the edit window a filled date, place, given name or surname shows a small caption above the value, so a value is never without its name; empty fields still show the name as a placeholder, selects and checkboxes keep their labels.

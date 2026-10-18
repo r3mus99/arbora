@@ -1,3 +1,1 @@
-- **Filled date, place and name fields keep their name.** In the edit window a filled date, place, given name or surname shows a small caption above the value, so a value is never without its name; empty fields still show the name as a placeholder, selects and checkboxes keep their labels.
-
-- **Rarely used fields of occupations, facts, sources and other details sit behind a button.** Date and place of an occupation or a fact, page and quality of a source, and the access restriction and address of a person show behind a Details (Restriction, Address) button that opens by itself when the fields hold a value.
+- **The marriage date and place sit behind the Details button of the family.** The family card in the edit window starts with the spouse and the children; Details holds date, place, age, cause, agency and divorce, and opens by itself when any of them has a value or the family is new and empty. "Add a family" also opens the Family part.
