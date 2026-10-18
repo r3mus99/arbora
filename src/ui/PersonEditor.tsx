@@ -271,6 +271,12 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const revealBtn = (id: string, shown: boolean, label: string, title?: string) =>
     <button type="button" className={`reveal${shown ? " open" : ""}`} title={title} aria-expanded={shown} onClick={() => toggleOf(id, shown)}>
       {label}<ChevronDown className="icon" aria-hidden="true" /></button>;
+  /** a group of fields behind a reveal button: shown when one holds a value or after the button; `pin` keeps it open while a value is typed or emptied */
+  const hidable = (id: string, filled: boolean, label: string, tip: string, body: ReactNode) => {
+    const shown = (filled || openDetails.includes(id)) && !closed.includes(id);
+    return <>{revealBtn(id, shown, label, tip)}{shown && body}</>;
+  };
+  const pin = (id: string) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); };
   /** the residences whose address field is open although it is empty or the same as the place */
   const [openAddr, setOpenAddr] = useState<string[]>([]);
   const rowId = (e: EventRow, i: number) => (e.origin < 0 ? `new${i}` : `o${e.origin}`);
@@ -686,10 +692,12 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onClick={() => set("occupations", form.occupations.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
-            <DateField value={o.date} shown={o.origin < 0 ? "" : initial.shown.occupations[o.origin].date} lang={lang}
-                       t={t} onChange={(v) => setOcc(i, { date: v })} />
-            <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={o.place} list={PLACES}
-                     onChange={(e) => setOcc(i, { place: e.target.value })} /></label>
+            {hidable(`oc${o.origin < 0 ? `new${i}` : o.origin}`, !!(o.date || o.place), t("eventDetails"), t("tipRowDetails"), <>
+              <DateField value={o.date} shown={o.origin < 0 ? "" : initial.shown.occupations[o.origin].date} lang={lang}
+                         t={t} onChange={(v) => { pin(`oc${o.origin < 0 ? `new${i}` : o.origin}`); setOcc(i, { date: v }); }} />
+              <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={o.place} list={PLACES}
+                       onChange={(e) => { pin(`oc${o.origin < 0 ? `new${i}` : o.origin}`); setOcc(i, { place: e.target.value }); }} /></label>
+            </>)}
           </div>
         ))}
       </fieldset>
@@ -709,10 +717,12 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onClick={() => set("attributes", form.attributes.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
-            <DateField value={a.date} shown={a.origin < 0 ? "" : shownAttr(a.origin)} lang={lang}
-                       t={t} onChange={(v) => setAttr(i, { date: v })} />
-            <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={a.place} list={PLACES}
-                     onChange={(e) => setAttr(i, { place: e.target.value })} /></label>
+            {hidable(`at${a.origin < 0 ? `new${i}` : a.origin}`, !!(a.date || a.place), t("eventDetails"), t("tipRowDetails"), <>
+              <DateField value={a.date} shown={a.origin < 0 ? "" : shownAttr(a.origin)} lang={lang}
+                         t={t} onChange={(v) => { pin(`at${a.origin < 0 ? `new${i}` : a.origin}`); setAttr(i, { date: v }); }} />
+              <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={a.place} list={PLACES}
+                       onChange={(e) => { pin(`at${a.origin < 0 ? `new${i}` : a.origin}`); setAttr(i, { place: e.target.value }); }} /></label>
+            </>)}
           </div>
         ))}
       </fieldset>
@@ -736,26 +746,29 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onClick={() => set("citations", form.citations.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
-            <div className="pair">
-              <label title={t("tipPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" value={c.page} onChange={(e) => setCite(i, { page: e.target.value })} /></label>
-              <label title={t("tipQuality")}><span>{t("quality")}</span>
-                <select value={c.quality} onChange={(e) => setCite(i, { quality: e.target.value })}>
-                  <option value="">–</option>
-                  {QUALITY.map((q) => <option key={q} value={q}>{t(`quality${q}` as StringKey)}</option>)}
-                </select></label>
-            </div>
+            {hidable(`ci${c.origin < 0 ? `new${i}` : c.origin}`, !!(c.page || c.quality), t("eventDetails"), t("tipCitationDetails"),
+              <div className="pair">
+                <label title={t("tipPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(`ci${c.origin < 0 ? `new${i}` : c.origin}`); setCite(i, { page: e.target.value }); }} /></label>
+                <label title={t("tipQuality")}><span>{t("quality")}</span>
+                  <select value={c.quality} onChange={(e) => { pin(`ci${c.origin < 0 ? `new${i}` : c.origin}`); setCite(i, { quality: e.target.value }); }}>
+                    <option value="">–</option>
+                    {QUALITY.map((q) => <option key={q} value={q}>{t(`quality${q}` as StringKey)}</option>)}
+                  </select></label>
+              </div>)}
           </div>
         ))}
       </fieldset>
       </>)}
       {section("other", <>
-      <label title={t("tipRestriction")}><span>{t("restriction")}</span>
-        <select value={form.restriction} onChange={(e) => set("restriction", e.target.value)}>
-          <option value="">–</option>
-          {!RESTRICTIONS.includes(form.restriction) && form.restriction && <option value={form.restriction}>{form.restriction}</option>}
-          {RESTRICTIONS.map((r) => <option key={r} value={r}>{t(`resn_${r}` as StringKey)}</option>)}
-        </select></label>
-      <label title={t("tipAddress")}><textarea placeholder={t("address")} aria-label={t("address")} rows={2} value={form.address} onChange={(e) => set("address", e.target.value)} /></label>
+      {hidable("pRestr", !!form.restriction, t("restriction"), t("tipRestriction"),
+        <label title={t("tipRestriction")}><span>{t("restriction")}</span>
+          <select value={form.restriction} onChange={(e) => { pin("pRestr"); set("restriction", e.target.value); }}>
+            <option value="">–</option>
+            {!RESTRICTIONS.includes(form.restriction) && form.restriction && <option value={form.restriction}>{form.restriction}</option>}
+            {RESTRICTIONS.map((r) => <option key={r} value={r}>{t(`resn_${r}` as StringKey)}</option>)}
+          </select></label>)}
+      {hidable("pAddr", !!form.address, t("address"), t("tipAddress"),
+        <label title={t("tipAddress")}><textarea autoComplete="off" placeholder={t("address")} aria-label={t("address")} rows={2} value={form.address} onChange={(e) => { pin("pAddr"); set("address", e.target.value); }} /></label>)}
       <fieldset className="list">
         <legend>{ico(Phone)}{t("contacts")}{acts(<button type="button" className="head-act" onClick={() => set("contacts", [...form.contacts, { origin: -1, tag: CONTACT_TAGS[0], value: "" }])}><Plus className="icon" aria-hidden="true" />{t("addContact")}</button>)}</legend>
         {form.contacts.map((c, i) => (

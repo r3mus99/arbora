@@ -356,6 +356,7 @@ button.link { display: inline; }
 .editor .child { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--field-h); padding: 0 4px; border-bottom: 1px dashed var(--border); }
 .editor fieldset > .trio, .editor fieldset > .add, .editor fieldset > .reveal, .editor fieldset > .sub { grid-column: 1 / -1; }
 .editor fieldset > .add, .editor fieldset > .reveal { justify-self: start; }
+.editor .item > .reveal { grid-column: 1 / -1; }
 .editor fieldset.sub { padding-top: 4px; }
 /* the inline form for a new child, spouse or parent: an inset card (--bg on the --panel of the part, 1px border) so it reads as a separate step */
 .editor .new-child { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 6px 0; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); }
