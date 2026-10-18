@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.54.3 – 2026-10-18
+
+- **Undo and the list of changes are checked after structural edits.** A new test makes 250 random edits (add and delete people and families, merge, change fields) and undoes them all one step at a time back to the opened file, redoes them to the last version, and checks that every step is one undo step and that the list of unsaved changes names exactly the records that differ from the opened file. The random file generator moved to `core/generatedFile.ts`, shared with the integrity test.
+
 ## 1.54.2 – 2026-10-18
 
 - **The edit window no longer offers a loop.** A person's own ancestors are not offered as their children, and a family of their descendants is not offered as their parents, so nobody can become their own ancestor by a slip in the form.
