@@ -12,6 +12,7 @@ import type { GedcomData, Person } from "./gedcom";
 import { formatEvent, type ChartOptions } from "./format";
 import { normalize } from "./chart";
 import { TEXTS } from "./texts";
+import type { PosterFonts } from "./posterFont";
 
 /** The drawing is as wide as it is high times the A-series ratio, so it prints on any A paper without cropping. */
 const RATIO = Math.SQRT2;
@@ -81,7 +82,7 @@ type Point = [number, number];
 const W = 3000;
 const num = (n: number) => String(Math.round(n * 10) / 10);
 
-/** Width of a text as the layout assumes it; the real fonts are narrower, so a line never overflows its plate. */
+/** Width of a text as the layout assumes it without the poster fonts; the real fonts are narrower, so a line never overflows its plate. */
 export const textWidth = (text: string, size: number, bold: boolean) => text.length * size * (bold ? 0.62 : 0.56);
 
 function roundedRect(x: number, y: number, w: number, h: number, r: number): string {
@@ -139,8 +140,9 @@ function leafPath(x: number, y: number, ang: number, s: number): string {
 interface Plate { id: string; gen: number; x: number; y: number; w: number; h: number }
 
 /** The ancestors of `rootId` as a poster; `options.generations` generations including the person (0 = as many as fit, at most seven). */
-export function buildPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>): Poster {
+export function buildPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts): Poster {
   const o = normalize(options);
+  const measure = fonts ? fonts.width : textWidth;
   const root = data.people[rootId];
   if (!root) throw new Error(`Person ${rootId} does not exist.`);
   const gens = Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(o.generations) || POSTER_MAX_GENERATIONS));
@@ -283,7 +285,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // ------------------------------------------------------------ plates and texts
   const texts: PosterText[] = [];
   const plateShapes: PosterShape[] = [];
-  const lines = new Map(plates.map((plate) => [plate, plateLines(plate, people.get(plate)!, o)]));
+  const lines = new Map(plates.map((plate) => [plate, plateLines(plate, people.get(plate)!, o, measure)]));
   // one size for the names and one for the dates of a generation, so a column reads evenly
   const smallest = new Map<string, number>();
   for (const [plate, ls] of lines) {
@@ -310,14 +312,14 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
 type Line = [text: string, size: number, bold: boolean];
 
 /** The name (one line, or two when it is long) and the dates of one plate, each shrunk until it fits. */
-function plateLines(plate: Plate, p: Person, o: ChartOptions): Line[] {
+function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFonts["width"]): Line[] {
   const name = p.name || "?";
   const dates = [formatEvent("birt", p.birth, { ...o, places: "none" }), formatEvent("deat", p.death, { ...o, places: "none" })]
     .filter(Boolean).join("  ");
   const avail = plate.w - 18;
   const base = plate.h / 3.4;
   const fit = (text: string, size: number, bold: boolean) => {
-    while (size > 9 && textWidth(text, size, bold) > avail) size -= 0.5;
+    while (size > 9 && measure(text, size, bold) > avail) size -= 0.5;
     return size;
   };
   const lines: Line[] = [];
@@ -352,16 +354,26 @@ function stack(plate: Plate, lines: Line[]): PosterText[] {
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-/** The poster as one SVG document. The text keeps its font family, so a viewer without DejaVu Sans uses a similar one. */
-export function posterSvg(poster: Poster): string {
+/**
+ * The poster as one SVG document. With `fonts` the text is drawn as outlines, so the file looks the same on any
+ * computer; without them it stays text in DejaVu Sans (or a similar font of the viewer).
+ */
+export function posterSvg(poster: Poster, fonts?: PosterFonts): string {
   const out = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${poster.width} ${poster.height}" width="${poster.width}" height="${poster.height}">`,
     `<title>${esc(poster.title)}</title>`];
   for (const s of poster.shapes) {
     out.push(`<path d="${s.d}"${s.fill ? ` fill="${s.fill}"` : ' fill="none"'}${s.stroke ? ` stroke="${s.stroke}" stroke-width="${s.strokeWidth}" stroke-linejoin="round"` : ""}/>`);
   }
-  out.push('<g font-family="DejaVu Sans, Verdana, Arial, sans-serif" text-anchor="middle">');
-  for (const t of poster.texts) {
-    out.push(`<text x="${num(t.x)}" y="${num(t.y)}" font-size="${t.size}"${t.bold ? ' font-weight="700"' : ""} fill="${t.fill}">${esc(t.text)}</text>`);
+  if (fonts) {
+    out.push("<g>");
+    for (const t of poster.texts) {
+      out.push(`<path d="${fonts.outline(t.text, t.size, t.bold, t.x, t.y)}" fill="${t.fill}"><title>${esc(t.text)}</title></path>`);
+    }
+  } else {
+    out.push('<g font-family="DejaVu Sans, Verdana, Arial, sans-serif" text-anchor="middle">');
+    for (const t of poster.texts) {
+      out.push(`<text x="${num(t.x)}" y="${num(t.y)}" font-size="${t.size}"${t.bold ? ' font-weight="700"' : ""} fill="${t.fill}">${esc(t.text)}</text>`);
+    }
   }
   out.push("</g></svg>");
   return out.join("\n");

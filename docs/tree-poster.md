@@ -15,7 +15,7 @@ decorative wall chart. This file records how it works and what is still open.
   person's id with a random number picked at each download, so every download is a new tree; the same seed (the
   `posterSeed` option) always draws the same one, which the tests use.
 - Names wrap to two lines when one line would be small; a generation shares one name size and one date size.
-- Text widths are an estimate (`textWidth`), identical for every output, so the layout never depends on a font.
+- Text widths come from the real fonts (`posterFonts`), so plates and text fit exactly; without fonts (tests) an estimate is used.
 
 ## Open points
 
@@ -26,7 +26,7 @@ decorative wall chart. This file records how it works and what is still open.
 2. **Fixed decorations:** the title ribbon, the crown of the tree in the middle, roots under the person, a list of
    the person's children. They need drawn vectors; the branches stay generated.
 3. **Leaf shape:** one drawn leaf (a plain path) would replace the generic one.
-4. **Text as outlines in SVG,** so a print shop without DejaVu Sans sees the same letters (fontkit can give glyph paths).
+4. **Fonts:** the text is set in Alkatra (OFL, `public/fonts/Alkatra-*.woff`, Latin and Latin Extended) and written as outlines, so a print shop sees the same letters; what Alkatra lacks (Cyrillic) falls back to DejaVu Sans per character (`core/posterFont.ts`). Open: a Cyrillic font that matches Alkatra, kerning, and smaller files (the outlines make an SVG about 1 MB at five generations).
 5. **Places, sources and residence on plates** (the poster ignores places for now).
 6. **Density of side shoots:** an option (sparse, normal, dense).
 7. **Colour themes** (paper, branch and leaf colours; black and white for a laser printer).
