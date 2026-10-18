@@ -1,1 +1,1 @@
-- **The tree poster has its own number of generations.** The Settings panel has a new "Tree poster" group where you choose 2 to 7 generations for the SVG poster; it no longer follows the generations of the chart.
+- **The tree poster has its own number of generations.** The Settings panel has a new "Tree poster" group where you choose 2 to 9 generations for the SVG poster; it no longer follows the generations of the chart. Beyond seven generations the poster grows (each generation doubles its size), while the plates and the text keep their size.

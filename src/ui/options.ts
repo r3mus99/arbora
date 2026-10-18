@@ -1,5 +1,6 @@
 /** Chart options as the settings form edits them, and as they are kept in the browser. */
 import { normalize } from "../core/chart";
+import { POSTER_BASE_GENERATIONS, POSTER_MAX_GENERATIONS, POSTER_MIN_GENERATIONS } from "../core/poster";
 import { DEFAULTS, type ChartKind, type ChartOptions } from "../core/format";
 import { LANGS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
@@ -17,7 +18,7 @@ export function toOptions(f: Form, lang: Lang): ChartOptions {
     ...f, lang,
     generations: Math.max(0, Math.round(num(f.generations, DEFAULTS.generations))),
     fontSize: Math.min(20, Math.max(5, num(f.fontSize, DEFAULTS.fontSize))),
-    posterGenerations: Math.min(7, Math.max(2, Math.round(f.posterGenerations) || DEFAULTS.posterGenerations)),
+    posterGenerations: Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(f.posterGenerations) || DEFAULTS.posterGenerations)),
   };
 }
 

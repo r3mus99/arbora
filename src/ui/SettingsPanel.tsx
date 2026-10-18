@@ -1,3 +1,4 @@
+import { POSTER_BASE_GENERATIONS, POSTER_MAX_GENERATIONS, POSTER_MIN_GENERATIONS } from "../core/poster";
 import { TEXTS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
@@ -84,9 +85,9 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
       <h3>{t("setPoster")}</h3>
       <div className="grid">
         <label><span>{t("posterGens")}</span>
-          <select value={Math.min(7, Math.max(2, Math.round(form.posterGenerations) || 7))}
+          <select value={Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(form.posterGenerations) || POSTER_BASE_GENERATIONS))}
                   onChange={(e) => onChange("posterGenerations", Number(e.target.value))}>
-            {[2, 3, 4, 5, 6, 7].map((n) => <option key={n} value={n}>{n}</option>)}
+            {Array.from({ length: POSTER_MAX_GENERATIONS - POSTER_MIN_GENERATIONS + 1 }, (_, i) => POSTER_MIN_GENERATIONS + i).map((n) => <option key={n} value={n}>{n}</option>)}
           </select></label>
       </div>
     </div>

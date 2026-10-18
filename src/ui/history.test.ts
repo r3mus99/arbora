@@ -179,10 +179,10 @@ describe("chart options", () => {
     expect(storedOptions({ chart: "descendants", numbering: "ahnentafel" }).numbering).toBe("daboville");
   });
 
-  test("the poster has its own number of generations, kept within 2 to 7", () => {
+  test("the poster has its own number of generations, kept within 2 to 9", () => {
     expect(DEFAULTS.posterGenerations).toBe(7);
     expect(storedOptions({ posterGenerations: 4 }).posterGenerations).toBe(4);
-    expect(toOptions(toForm({ ...DEFAULTS, posterGenerations: 12 }), "sk").posterGenerations).toBe(7);
+    expect(toOptions(toForm({ ...DEFAULTS, posterGenerations: 12 }), "sk").posterGenerations).toBe(9);
     expect(toOptions(toForm({ ...DEFAULTS, posterGenerations: 1 }), "sk").posterGenerations).toBe(2);
   });
 
