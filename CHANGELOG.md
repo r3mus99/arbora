@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.0 – 2026-10-18
+
+**Editor v2.** Arbora is now a full editor for the GEDCOM data it shows, not only a viewer. Everything below is in one edit window (the pencil in the person detail) that lies over the right half of the viewer, and every save is one undo step.
+
+- **One edit window for a person**, in collapsible parts: name, events, occupation and facts, family, parents and associations, notes and sources, other details. Small values (name, sex, date, place, religion, occupation, note) can still be changed in place in the detail.
+- **About 40 tags can be edited**: name parts and aka names, sex, living or deceased, all individual events with age, cause and agency, occupations and other attributes, source citations with page and quality, notes, marriage and divorce with their details, spouses and children, parents with their kind of relation, associations, address, phone, e-mail, web, restriction, reference numbers.
+- **Add and delete people and families.** A new person, a new family and a new child, spouse or parent can be made right in the family part of another person, with just the name, sex, birth and death. Deleting a person or a family cleans every pointer to it.
+- **Merge duplicates.** Pick the other person, choose the value on every conflict side by side, and the two records become one with all links moved.
+- **The file stays yours.** Records you do not change are written back byte for byte, unknown tags are kept, long notes keep their line breaks and spaces, and pointers between people and families are kept consistent in both directions. 250 random edits on generated files are tested to keep it that way, and to undo and redo cleanly.
+- **Also in this release:** releases are now built from small `changelog.d` files so open pull requests no longer conflict on the version.
+
 ## 1.54.3 – 2026-10-18
 
 - **Undo and the list of changes are checked after structural edits.** A new test makes 250 random edits (add and delete people and families, merge, change fields) and undoes them all one step at a time back to the opened file, redoes them to the last version, and checks that every step is one undo step and that the list of unsaved changes names exactly the records that differ from the opened file. The random file generator moved to `core/generatedFile.ts`, shared with the integrity test.
