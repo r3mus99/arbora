@@ -68,7 +68,7 @@ function DateField({ value, shown, lang, onChange, t, label }: {
   value: string; shown: string; lang: Lang; onChange: (v: string) => void; t: (key: StringKey) => string; label?: string;
 }) {
   const hint = dateHint(value, shown, lang, t);
-  return <label title={t("dateHint")}><input placeholder={label ?? t("date")} aria-label={label ?? t("date")} type="text" autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} />
+  return <label title={t("dateHint")} data-cap={label ?? t("date")}><input placeholder={label ?? t("date")} aria-label={label ?? t("date")} type="text" autoComplete="off" value={value} onChange={(e) => onChange(e.target.value)} />
     {hint && <small className={hint.warn ? "hint warn" : "hint"}>{hint.text}</small>}
   </label>;
 }
@@ -271,6 +271,12 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const revealBtn = (id: string, shown: boolean, label: string, title?: string) =>
     <button type="button" className={`reveal${shown ? " open" : ""}`} title={title} aria-expanded={shown} onClick={() => toggleOf(id, shown)}>
       {label}<ChevronDown className="icon" aria-hidden="true" /></button>;
+  /** a group of fields behind a reveal button: shown when one holds a value or after the button; `pin` keeps it open while a value is typed or emptied */
+  const hidable = (id: string, filled: boolean, label: string, tip: string, body: ReactNode) => {
+    const shown = (filled || openDetails.includes(id)) && !closed.includes(id);
+    return <>{revealBtn(id, shown, label, tip)}{shown && body}</>;
+  };
+  const pin = (id: string) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); };
   /** the residences whose address field is open although it is empty or the same as the place */
   const [openAddr, setOpenAddr] = useState<string[]>([]);
   const rowId = (e: EventRow, i: number) => (e.origin < 0 ? `new${i}` : `o${e.origin}`);
@@ -314,7 +320,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </legend>
       <DateField value={form[key].date} shown={initial.shown[key].date} lang={lang} t={t}
                  onChange={(v) => set(key, { ...form[key], date: v })} />
-      <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={form[key].place} list={PLACES}
+      <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={form[key].place} list={PLACES}
                onChange={(e) => set(key, { ...form[key], place: e.target.value })} />
       </label>
       {key === "christening" && <label className="full" title={t("tipReligion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
@@ -341,7 +347,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </div>
       <DateField value={form[key].date} shown={initial.shown[key].date} lang={lang} t={t}
                  onChange={(v) => set(key, { ...form[key], date: v })} />
-      <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={form[key].place} list={PLACES}
+      <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={form[key].place} list={PLACES}
                onChange={(e) => set(key, { ...form[key], place: e.target.value })} /></label>
       {key === "christening" && <label className="full" title={t("tipReligion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
@@ -422,9 +428,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const newPersonForm = (kind: "child" | "spouse" | "parent", i: number) => kid?.kind === kind && kid.fam === i && (<div className="sub new-child" role="group">
               <div className="card-head">{ico(UserPlus)}{t(kind === "child" ? "newChild" : kind === "spouse" ? "newSpouse" : "newParent")}</div>
               <div className="kid-row">
-                <label title={t("tipGiven")}><input placeholder={t("givenName")} aria-label={t("givenName")} type="text" autoComplete="off" autoFocus value={kid.given} list={givenList(kid.sex)} onChange={(e) => setKid({ ...kid, given: e.target.value })}
+                <label title={t("tipGiven")} data-cap={t("givenName")}><input placeholder={t("givenName")} aria-label={t("givenName")} type="text" autoComplete="off" autoFocus value={kid.given} list={givenList(kid.sex)} onChange={(e) => setKid({ ...kid, given: e.target.value })}
                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addKid(); } }} /></label>
-                <label title={t("tipSurname")}><input placeholder={t("surname")} aria-label={t("surname")} type="text" autoComplete="off" value={kid.surname} list={surnameList(kid.sex)} onChange={(e) => setKid({ ...kid, surname: e.target.value, base: undefined })}
+                <label title={t("tipSurname")} data-cap={t("surname")}><input placeholder={t("surname")} aria-label={t("surname")} type="text" autoComplete="off" value={kid.surname} list={surnameList(kid.sex)} onChange={(e) => setKid({ ...kid, surname: e.target.value, base: undefined })}
                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addKid(); } }} /></label>
                 <DateField value={kid.birth} shown="" lang={lang} t={t} onChange={(v) => setKid({ ...kid, birth: v })} label={t(EVENT_LABEL.birth)} />
               </div>
@@ -507,8 +513,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
       {section("name", <>
       <div className="pair">
-        <label title={t("tipGiven")}><input placeholder={t("givenName")} aria-label={t("givenName")} ref={firstInput} type="text" autoComplete="off" value={form.given} list={givenList(form.sex)} onChange={(e) => set("given", e.target.value)} /></label>
-        <label title={t("tipSurname")}><input placeholder={t("surname")} aria-label={t("surname")} type="text" autoComplete="off" value={form.surname} list={surnameList(form.sex)}
+        <label title={t("tipGiven")} data-cap={t("givenName")}><input placeholder={t("givenName")} aria-label={t("givenName")} ref={firstInput} type="text" autoComplete="off" value={form.given} list={givenList(form.sex)} onChange={(e) => set("given", e.target.value)} /></label>
+        <label title={t("tipSurname")} data-cap={t("surname")}><input placeholder={t("surname")} aria-label={t("surname")} type="text" autoComplete="off" value={form.surname} list={surnameList(form.sex)}
                  onChange={(e) => set("surname", e.target.value)} /></label>
       </div>
       <div className="sex-field" title={t("tipSex")}>
@@ -585,7 +591,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             </>}
             <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
                        t={t} onChange={(v) => setEv(i, { date: v })} />
-            <label title={t(e.tag === "RESI" ? "resiPlaceHint" : "tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={e.place} list={PLACES}
+            <label title={t(e.tag === "RESI" ? "resiPlaceHint" : "tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={e.place} list={PLACES}
                      onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
             {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
           </div>
@@ -618,7 +624,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           </div>
           <DateField value={fams[i].marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
                      onChange={(v) => setFam(i, {}, { date: v })} />
-          <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={fams[i].marriage.place} list={PLACES}
+          <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={fams[i].marriage.place} list={PLACES}
                    onChange={(e) => setFam(i, {}, { place: e.target.value })} />
           </label>
           {details(`m${r.xref}`, fams[i].details.marriage, (patch) => setFamDetails(i, "marriage", patch),
@@ -629,7 +635,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             <legend>{ico(HeartCrack)}{t("divorce")}</legend>
             <DateField value={fams[i].divorce.date} shown={initial.fams[i].shown.divorce.date} lang={lang} t={t}
                        onChange={(v) => setFam(i, {}, {}, { date: v })} />
-            <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={fams[i].divorce.place} list={PLACES}
+            <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={fams[i].divorce.place} list={PLACES}
                      onChange={(e) => setFam(i, {}, {}, { place: e.target.value })} /></label>
             {details(`d${r.xref}`, fams[i].details.divorce, (patch) => setFamDetails(i, "divorce", patch))}
           </fieldset>}
@@ -715,10 +721,12 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onClick={() => set("occupations", form.occupations.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
-            <DateField value={o.date} shown={o.origin < 0 ? "" : initial.shown.occupations[o.origin].date} lang={lang}
-                       t={t} onChange={(v) => setOcc(i, { date: v })} />
-            <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={o.place} list={PLACES}
-                     onChange={(e) => setOcc(i, { place: e.target.value })} /></label>
+            {hidable(`oc${o.origin < 0 ? `new${i}` : o.origin}`, !!(o.date || o.place), t("eventDetails"), t("tipRowDetails"), <>
+              <DateField value={o.date} shown={o.origin < 0 ? "" : initial.shown.occupations[o.origin].date} lang={lang}
+                         t={t} onChange={(v) => { pin(`oc${o.origin < 0 ? `new${i}` : o.origin}`); setOcc(i, { date: v }); }} />
+              <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={o.place} list={PLACES}
+                       onChange={(e) => { pin(`oc${o.origin < 0 ? `new${i}` : o.origin}`); setOcc(i, { place: e.target.value }); }} /></label>
+            </>)}
           </div>
         ))}
       </fieldset>
@@ -738,10 +746,12 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onClick={() => set("attributes", form.attributes.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
-            <DateField value={a.date} shown={a.origin < 0 ? "" : shownAttr(a.origin)} lang={lang}
-                       t={t} onChange={(v) => setAttr(i, { date: v })} />
-            <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={a.place} list={PLACES}
-                     onChange={(e) => setAttr(i, { place: e.target.value })} /></label>
+            {hidable(`at${a.origin < 0 ? `new${i}` : a.origin}`, !!(a.date || a.place), t("eventDetails"), t("tipRowDetails"), <>
+              <DateField value={a.date} shown={a.origin < 0 ? "" : shownAttr(a.origin)} lang={lang}
+                         t={t} onChange={(v) => { pin(`at${a.origin < 0 ? `new${i}` : a.origin}`); setAttr(i, { date: v }); }} />
+              <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={a.place} list={PLACES}
+                       onChange={(e) => { pin(`at${a.origin < 0 ? `new${i}` : a.origin}`); setAttr(i, { place: e.target.value }); }} /></label>
+            </>)}
           </div>
         ))}
       </fieldset>
@@ -765,26 +775,29 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onClick={() => set("citations", form.citations.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
-            <div className="pair">
-              <label title={t("tipPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => setCite(i, { page: e.target.value })} /></label>
-              <label title={t("tipQuality")}><span>{t("quality")}</span>
-                <select value={c.quality} onChange={(e) => setCite(i, { quality: e.target.value })}>
-                  <option value="">–</option>
-                  {QUALITY.map((q) => <option key={q} value={q}>{t(`quality${q}` as StringKey)}</option>)}
-                </select></label>
-            </div>
+            {hidable(`ci${c.origin < 0 ? `new${i}` : c.origin}`, !!(c.page || c.quality), t("eventDetails"), t("tipCitationDetails"),
+              <div className="pair">
+                <label title={t("tipPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(`ci${c.origin < 0 ? `new${i}` : c.origin}`); setCite(i, { page: e.target.value }); }} /></label>
+                <label title={t("tipQuality")}><span>{t("quality")}</span>
+                  <select value={c.quality} onChange={(e) => { pin(`ci${c.origin < 0 ? `new${i}` : c.origin}`); setCite(i, { quality: e.target.value }); }}>
+                    <option value="">–</option>
+                    {QUALITY.map((q) => <option key={q} value={q}>{t(`quality${q}` as StringKey)}</option>)}
+                  </select></label>
+              </div>)}
           </div>
         ))}
       </fieldset>
       </>)}
       {section("other", <>
-      <label title={t("tipRestriction")}><span>{t("restriction")}</span>
-        <select value={form.restriction} onChange={(e) => set("restriction", e.target.value)}>
-          <option value="">–</option>
-          {!RESTRICTIONS.includes(form.restriction) && form.restriction && <option value={form.restriction}>{form.restriction}</option>}
-          {RESTRICTIONS.map((r) => <option key={r} value={r}>{t(`resn_${r}` as StringKey)}</option>)}
-        </select></label>
-      <label title={t("tipAddress")}><textarea autoComplete="off" placeholder={t("address")} aria-label={t("address")} rows={2} value={form.address} onChange={(e) => set("address", e.target.value)} /></label>
+      {hidable("pRestr", !!form.restriction, t("restriction"), t("tipRestriction"),
+        <label title={t("tipRestriction")}><span>{t("restriction")}</span>
+          <select value={form.restriction} onChange={(e) => { pin("pRestr"); set("restriction", e.target.value); }}>
+            <option value="">–</option>
+            {!RESTRICTIONS.includes(form.restriction) && form.restriction && <option value={form.restriction}>{form.restriction}</option>}
+            {RESTRICTIONS.map((r) => <option key={r} value={r}>{t(`resn_${r}` as StringKey)}</option>)}
+          </select></label>)}
+      {hidable("pAddr", !!form.address, t("address"), t("tipAddress"),
+        <label title={t("tipAddress")}><textarea autoComplete="off" placeholder={t("address")} aria-label={t("address")} rows={2} value={form.address} onChange={(e) => { pin("pAddr"); set("address", e.target.value); }} /></label>)}
       <fieldset className="list">
         <legend>{ico(Phone)}{t("contacts")}{acts(<button type="button" className="head-act" onClick={() => set("contacts", [...form.contacts, { origin: -1, tag: CONTACT_TAGS[0], value: "" }])}><Plus className="icon" aria-hidden="true" />{t("addContact")}</button>)}</legend>
         {form.contacts.map((c, i) => (
