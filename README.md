@@ -197,8 +197,7 @@ the font size are reduced automatically.
 The **SVG** button in the top bar, next to GED and PDF, downloads the ancestors of the chart's root person as a
 decorative wall chart for large-format printing: the person at the bottom, the father's line unfolding to the left and
 the mother's to the right, with branches and leaves between the name plates. The plates have exact positions, the
-branches are drawn from a seeded random generator, so the same seed always gives the same tree and **New branches**
-in the Settings (Tree poster) gives another one. The generations (2 to 7; "all" draws seven), the title, labels and
+branches are drawn from a seeded random generator, so every download draws a different, unique tree. The generations (2 to 7; "all" draws seven), the title, labels and
 dates follow the settings. The SVG is vector, so it prints sharply at any size; its proportions are those of A paper.
 The plan and the open points are in [docs/tree-poster.md](docs/tree-poster.md).
 
