@@ -1,1 +1,0 @@
-- **A residence can take its place from the parents.** The "From parents" button on a residence row in the edit window fills the place from the first residence of the father, else of the mother; it is off when the parents have none.

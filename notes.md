@@ -1,3 +1,1 @@
-- **A new child starts with the father's surname in the form of the child's sex, and children can be sorted by birth.** Choosing a girl in the new-child form turns Novák into Nováková (and back for a boy) as long as the surname was not typed over, in languages and files with gendered surnames. New and found children are placed by year of birth, and a "Sort" button in the Children title orders the whole list.
-
-- **The browser no longer offers contacts while typing a name or address.** The name, surname and address fields of the edit window and of the inline edit ask the browser not to autofill them (macOS Contacts popup in Safari).
+- **A residence can take its place from the parents.** The "From parents" button on a residence row in the edit window fills the place from the first residence of the father, else of the mother; it is off when the parents have none.
