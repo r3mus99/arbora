@@ -1,0 +1,1 @@
+- **The browser no longer offers contacts while typing a name or address.** The name, surname and address fields of the edit window and of the inline edit ask the browser not to autofill them (macOS Contacts popup in Safari).
