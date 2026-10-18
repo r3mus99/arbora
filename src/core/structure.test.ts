@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { addFamily, addPerson, deleteFamily, deletePerson, parseGedcom, writeGedcom } from "./index";
+import { addFamily, addPerson, deleteFamily, deletePerson, lineage, parseGedcom, readRecords, writeGedcom } from "./index";
 
 const FILE = [
   "0 HEAD", "1 CHAR UTF-8",
@@ -83,4 +83,19 @@ describe("a new person from a form", () => {
 test("a new family record lists its members", async () => {
   const { familyRecord } = await import("./index");
   expect(writeGedcom([familyRecord("@F9@", "@I1@", "", ["@I2@"])])).toBe("0 @F9@ FAM\n1 HUSB @I1@\n1 CHIL @I2@\n");
+});
+
+describe("the line of a person", () => {
+  const data = readRecords(parseGedcom(FILE));
+  test("ancestors and descendants, not the person and not siblings", () => {
+    expect([...lineage(data, "@I3@", "up")].sort()).toEqual(["@I1@", "@I2@"]);
+    expect([...lineage(data, "@I1@", "down")]).toEqual(["@I3@"]);
+    expect([...lineage(data, "@I3@", "down")]).toEqual([]);
+    expect([...lineage(data, "@X@", "up")]).toEqual([]);
+  });
+
+  test("a loop in the links ends the walk", () => {
+    const loop = readRecords(parseGedcom(FILE.replace("1 FAMS @F1@\n0 @I2@", "1 FAMS @F1@\n1 FAMC @F1@\n0 @I2@")));
+    expect([...lineage(loop, "@I1@", "up")]).toEqual(["@I2@"]);
+  });
 });

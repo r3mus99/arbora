@@ -1,0 +1,1 @@
+- **The edit window no longer offers a loop.** A person's own ancestors are not offered as their children, and a family of their descendants is not offered as their parents, so nobody can become their own ancestor by a slip in the form.

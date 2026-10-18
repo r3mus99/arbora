@@ -1,5 +1,5 @@
 /** Adding and removing whole people and families, with the pointers between the records kept consistent. */
-import { gedNode, rewritten, type GedNode } from "./gedcom";
+import { gedNode, rewritten, type GedcomData, type GedNode } from "./gedcom";
 import { addLine, applyPerson, personFields } from "./edit";
 
 /**
@@ -106,4 +106,19 @@ export function deletePerson(records: GedNode[], id: string): GedNode[] {
   const empty = out.filter((r) => r.tag === "FAM" && !r.children.some((c) => ["HUSB", "WIFE", "CHIL"].includes(c.tag)) && records.find((o) => o.xref === r.xref) !== r);
   for (const fam of empty) out = deleteFamily(out, fam.xref!);
   return out;
+}
+
+/** Everyone above (`up`: parents, their parents, …) or below (`down`: children, their children, …) a person; the person is not in it, and a loop in the links ends the walk. */
+export function lineage(data: GedcomData, id: string, direction: "up" | "down"): Set<string> {
+  const found = new Set<string>();
+  const queue = [id];
+  while (queue.length) {
+    const p = data.people[queue.pop()!];
+    if (!p) continue;
+    const next = direction === "up"
+      ? p.famc.flatMap((f) => [data.families[f]?.husb, data.families[f]?.wife])
+      : p.fams.flatMap((f) => data.families[f]?.children ?? []);
+    for (const n of next) if (n && n !== id && !found.has(n)) { found.add(n); queue.push(n); }
+  }
+  return found;
 }
