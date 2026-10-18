@@ -373,6 +373,7 @@ button.link { display: inline; }
 .editor .item-head input { flex: 1; min-width: 0; }
 .editor .item-head .grow { flex: 1; min-width: 0; align-self: center; overflow-wrap: anywhere; }
 .editor .item-head .icon-btn { padding: 0 11px; }
+.editor .item-head .head-act { margin-left: auto; align-self: center; }
 .editor .add { min-height: var(--field-h); padding: 0 14px; font-size: 14px; gap: 6px; }
 .editor .add { justify-self: start; }
 .editor .copy { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; margin-left: 6px;
