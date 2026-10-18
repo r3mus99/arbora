@@ -192,6 +192,16 @@ orientation, font size, custom title and the print date in the header.
 If the longest line does not fit the page width, the generation indent and then
 the font size are reduced automatically.
 
+### Tree poster
+
+The **Tree poster** tool (frame icon in the tool bar) turns the ancestors of the chart's root person into a decorative
+wall chart for large-format printing: the person at the bottom, the father's line unfolding to the left and the
+mother's to the right, with branches and leaves between the name plates. The plates have exact positions, the
+branches are drawn from a seeded random generator, so the same seed always gives the same tree and every
+**New branches** click gives another one. Choose 2 to 7 generations and the paper (A3 to A0); the title, labels and
+dates follow the settings. Download it as **SVG** and **PDF** (vector, for printing) or **PNG** (4800 px wide, for
+sharing). The plan and the open points are in [docs/tree-poster.md](docs/tree-poster.md).
+
 ### Notes on the data
 
 - `ABT`, `EST`, `CAL` dates are shown as "about", `BEF` as "before", `AFT` as
@@ -217,6 +227,7 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   chart.ts          ancestor and descendant chart rows
   collapse.ts       collapsed branches: which rows stay visible
   pdf.ts            page layout and PDF
+  poster.ts         tree poster: plates, seeded branches and leaves, SVG (posterPdf.ts: its PDF)
   texts.ts          PDF texts in 12 languages
   *.test.ts         tests on the sample and made-up data
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),

@@ -190,6 +190,7 @@ const STRINGS_RAW = {
     overview: "Prehľad súboru", ovPeople: "Osoby", ovSex: "muži {m} · ženy {f}", ovFamilies: "Rodiny", ovGens: "Generácie",
     ovGensSub: "najdlhšia línia rodič – dieťa", ovSpan: "Obdobie", ovSpanSub: "roky narodenia a úmrtia", ovOldest: "Najstarší predok", ovProblems: "Problémy",
     ovNone: "žiadne", ovSurnames: "Najčastejšie priezviská", ovPlaces: "Najčastejšie miesta", ovSurnameTip: "Hľadať osoby s týmto priezviskom",
+    poster: "Plagát stromu", posterHint: "Predkovia vybranej osoby ako ozdobný strom na veľkoformátovú tlač. Nadpis, označenia a dátumy sa riadia nastaveniami.", posterPaper: "Papier", posterNew: "Nové konáre", posterNewTip: "Nakresliť konáre znova, každé číslo dá iný strom", posterSave: "Stiahnuť", posterSvgTip: "Vektorový obrázok, vhodný na úpravu a tlač", posterPdfTip: "Vektorové PDF na jednu stranu zvoleného papiera", posterPngTip: "Obrázok na zdieľanie (4800 px na šírku)", posterErr: "Plagát sa nepodarilo vytvoriť: {msg}", filePoster: "plagat", posterWorking: "Vytváram plagát…",
   },
   cs: {
     name: "Čeština", language: "Jazyk",
@@ -347,6 +348,7 @@ const STRINGS_RAW = {
     overview: "Přehled souboru", ovPeople: "Osoby", ovSex: "muži {m} · ženy {f}", ovFamilies: "Rodiny", ovGens: "Generace",
     ovGensSub: "nejdelší linie rodič – dítě", ovSpan: "Období", ovSpanSub: "roky narození a úmrtí", ovOldest: "Nejstarší předek", ovProblems: "Problémy",
     ovNone: "žádné", ovSurnames: "Nejčastější příjmení", ovPlaces: "Nejčastější místa", ovSurnameTip: "Hledat osoby s tímto příjmením",
+    poster: "Plakát stromu", posterHint: "Předkové vybrané osoby jako ozdobný strom pro velkoformátový tisk. Nadpis, označení a data se řídí nastavením.", posterPaper: "Papír", posterNew: "Nové větve", posterNewTip: "Nakreslit větve znovu, každé číslo dá jiný strom", posterSave: "Stáhnout", posterSvgTip: "Vektorový obrázek, vhodný k úpravě a tisku", posterPdfTip: "Vektorové PDF na jednu stranu zvoleného papíru", posterPngTip: "Obrázek ke sdílení (4800 px na šířku)", posterErr: "Plakát se nepodařilo vytvořit: {msg}", filePoster: "plakat", posterWorking: "Vytvářím plakát…",
   },
   pl: {
     name: "Polski", language: "Język",
@@ -505,6 +507,7 @@ const STRINGS_RAW = {
     overview: "Przegląd pliku", ovPeople: "Osoby", ovSex: "mężczyźni {m} · kobiety {f}", ovFamilies: "Rodziny", ovGens: "Pokolenia",
     ovGensSub: "najdłuższa linia rodzic – dziecko", ovSpan: "Okres", ovSpanSub: "lata urodzenia i śmierci", ovOldest: "Najstarszy przodek", ovProblems: "Problemy",
     ovNone: "brak", ovSurnames: "Najczęstsze nazwiska", ovPlaces: "Najczęstsze miejsca", ovSurnameTip: "Szukaj osób o tym nazwisku",
+    poster: "Plakat drzewa", posterHint: "Przodkowie wybranej osoby jako ozdobne drzewo do druku wielkoformatowego. Tytuł, oznaczenia i daty zależą od ustawień.", posterPaper: "Papier", posterNew: "Nowe gałęzie", posterNewTip: "Narysuj gałęzie od nowa, każda liczba daje inne drzewo", posterSave: "Pobierz", posterSvgTip: "Obraz wektorowy, nadaje się do edycji i druku", posterPdfTip: "Wektorowy PDF na jednej stronie wybranego papieru", posterPngTip: "Obraz do udostępniania (4800 px szerokości)", posterErr: "Nie udało się utworzyć plakatu: {msg}", filePoster: "plakat", posterWorking: "Tworzę plakat…",
   },
   hu: {
     name: "Magyar", language: "Nyelv",
@@ -663,6 +666,7 @@ const STRINGS_RAW = {
     overview: "Fájl áttekintése", ovPeople: "Személyek", ovSex: "férfiak {m} · nők {f}", ovFamilies: "Családok", ovGens: "Nemzedékek",
     ovGensSub: "leghosszabb szülő – gyermek ág", ovSpan: "Időszak", ovSpanSub: "születési és halálozási évek", ovOldest: "Legrégebbi ős", ovProblems: "Problémák",
     ovNone: "nincs", ovSurnames: "Leggyakoribb vezetéknevek", ovPlaces: "Leggyakoribb helyek", ovSurnameTip: "Személyek keresése ezzel a vezetéknévvel",
+    poster: "Családfa-plakát", posterHint: "A kiválasztott személy felmenői díszes fa formájában, nagyméretű nyomtatáshoz. A cím, a jelölések és a dátumok a beállításokat követik.", posterPaper: "Papír", posterNew: "Új ágak", posterNewTip: "Az ágak újrarajzolása, minden szám más fát ad", posterSave: "Letöltés", posterSvgTip: "Vektoros kép, szerkesztésre és nyomtatásra alkalmas", posterPdfTip: "Vektoros PDF a választott papír egy oldalán", posterPngTip: "Megosztható kép (4800 px szélesség)", posterErr: "A plakátot nem sikerült elkészíteni: {msg}", filePoster: "plakat", posterWorking: "A plakát készül…",
   },
   de: {
     name: "Deutsch", language: "Sprache",
@@ -822,6 +826,7 @@ const STRINGS_RAW = {
     overview: "Dateiübersicht", ovPeople: "Personen", ovSex: "Männer {m} · Frauen {f}", ovFamilies: "Familien", ovGens: "Generationen",
     ovGensSub: "längste Linie Eltern – Kind", ovSpan: "Zeitraum", ovSpanSub: "Geburts- und Sterbejahre", ovOldest: "Ältester Vorfahr", ovProblems: "Probleme",
     ovNone: "keine", ovSurnames: "Häufigste Nachnamen", ovPlaces: "Häufigste Orte", ovSurnameTip: "Personen mit diesem Nachnamen suchen",
+    poster: "Stammbaum-Poster", posterHint: "Die Vorfahren der gewählten Person als dekorativer Baum für den Großformatdruck. Titel, Kennzeichen und Daten folgen den Einstellungen.", posterPaper: "Papier", posterNew: "Neue Äste", posterNewTip: "Die Äste neu zeichnen, jede Zahl ergibt einen anderen Baum", posterSave: "Herunterladen", posterSvgTip: "Vektorbild, geeignet zum Bearbeiten und Drucken", posterPdfTip: "Vektor-PDF auf einer Seite des gewählten Papiers", posterPngTip: "Bild zum Teilen (4800 px Breite)", posterErr: "Das Poster konnte nicht erstellt werden: {msg}", filePoster: "poster", posterWorking: "Poster wird erstellt…",
   },
   en: {
     name: "English", language: "Language",
@@ -979,6 +984,7 @@ const STRINGS_RAW = {
     overview: "File overview", ovPeople: "People", ovSex: "men {m} · women {f}", ovFamilies: "Families", ovGens: "Generations",
     ovGensSub: "longest parent–child line", ovSpan: "Time span", ovSpanSub: "years of birth and death", ovOldest: "Oldest ancestor", ovProblems: "Problems",
     ovNone: "none", ovSurnames: "Most common surnames", ovPlaces: "Most common places", ovSurnameTip: "Search people with this surname",
+    poster: "Tree poster", posterHint: "The ancestors of the chosen person as a decorative tree for large-format printing. The title, labels and dates follow the settings.", posterPaper: "Paper", posterNew: "New branches", posterNewTip: "Draw the branches again, every number gives another tree", posterSave: "Download", posterSvgTip: "Vector image, good for editing and printing", posterPdfTip: "Vector PDF, one page of the chosen paper", posterPngTip: "Image for sharing (4800 px wide)", posterErr: "The poster could not be created: {msg}", filePoster: "poster", posterWorking: "Creating the poster…",
   },
   fr: {
     name: "Français", language: "Langue",
@@ -1137,6 +1143,7 @@ const STRINGS_RAW = {
     overview: "Aperçu du fichier", ovPeople: "Personnes", ovSex: "hommes {m} · femmes {f}", ovFamilies: "Familles", ovGens: "Générations",
     ovGensSub: "plus longue lignée parent – enfant", ovSpan: "Période", ovSpanSub: "années de naissance et de décès", ovOldest: "Ancêtre le plus ancien", ovProblems: "Problèmes",
     ovNone: "aucun", ovSurnames: "Noms les plus fréquents", ovPlaces: "Lieux les plus fréquents", ovSurnameTip: "Chercher les personnes portant ce nom",
+    poster: "Affiche de l’arbre", posterHint: "Les ancêtres de la personne choisie sous forme d’arbre décoratif pour l’impression grand format. Le titre, les libellés et les dates suivent les réglages.", posterPaper: "Papier", posterNew: "Nouvelles branches", posterNewTip: "Redessiner les branches, chaque nombre donne un autre arbre", posterSave: "Télécharger", posterSvgTip: "Image vectorielle, adaptée à la retouche et à l’impression", posterPdfTip: "PDF vectoriel, une page du papier choisi", posterPngTip: "Image à partager (4800 px de large)", posterErr: "L’affiche n’a pas pu être créée : {msg}", filePoster: "affiche", posterWorking: "Création de l’affiche…",
   },
   it: {
     name: "Italiano", language: "Lingua",
@@ -1295,6 +1302,7 @@ const STRINGS_RAW = {
     overview: "Panoramica del file", ovPeople: "Persone", ovSex: "uomini {m} · donne {f}", ovFamilies: "Famiglie", ovGens: "Generazioni",
     ovGensSub: "linea genitore – figlio più lunga", ovSpan: "Periodo", ovSpanSub: "anni di nascita e di morte", ovOldest: "Antenato più antico", ovProblems: "Problemi",
     ovNone: "nessuno", ovSurnames: "Cognomi più frequenti", ovPlaces: "Luoghi più frequenti", ovSurnameTip: "Cerca persone con questo cognome",
+    poster: "Poster dell’albero", posterHint: "Gli antenati della persona scelta come albero decorativo per la stampa in grande formato. Titolo, etichette e date seguono le impostazioni.", posterPaper: "Carta", posterNew: "Nuovi rami", posterNewTip: "Ridisegna i rami, ogni numero dà un albero diverso", posterSave: "Scarica", posterSvgTip: "Immagine vettoriale, adatta alla modifica e alla stampa", posterPdfTip: "PDF vettoriale, una pagina della carta scelta", posterPngTip: "Immagine da condividere (4800 px di larghezza)", posterErr: "Impossibile creare il poster: {msg}", filePoster: "poster", posterWorking: "Creo il poster…",
   },
   es: {
     name: "Español", language: "Idioma",
@@ -1453,6 +1461,7 @@ const STRINGS_RAW = {
     overview: "Resumen del archivo", ovPeople: "Personas", ovSex: "hombres {m} · mujeres {f}", ovFamilies: "Familias", ovGens: "Generaciones",
     ovGensSub: "línea padre – hijo más larga", ovSpan: "Período", ovSpanSub: "años de nacimiento y muerte", ovOldest: "Antepasado más antiguo", ovProblems: "Problemas",
     ovNone: "ninguno", ovSurnames: "Apellidos más frecuentes", ovPlaces: "Lugares más frecuentes", ovSurnameTip: "Buscar personas con este apellido",
+    poster: "Póster del árbol", posterHint: "Los antepasados de la persona elegida como árbol decorativo para impresión en gran formato. El título, las etiquetas y las fechas siguen los ajustes.", posterPaper: "Papel", posterNew: "Ramas nuevas", posterNewTip: "Dibujar las ramas de nuevo, cada número da un árbol distinto", posterSave: "Descargar", posterSvgTip: "Imagen vectorial, apta para editar e imprimir", posterPdfTip: "PDF vectorial, una página del papel elegido", posterPngTip: "Imagen para compartir (4800 px de ancho)", posterErr: "No se pudo crear el póster: {msg}", filePoster: "poster", posterWorking: "Creando el póster…",
   },
   pt: {
     name: "Português", language: "Idioma",
@@ -1612,6 +1621,7 @@ const STRINGS_RAW = {
     overview: "Resumo do ficheiro", ovPeople: "Pessoas", ovSex: "homens {m} · mulheres {f}", ovFamilies: "Famílias", ovGens: "Gerações",
     ovGensSub: "linha pai – filho mais longa", ovSpan: "Período", ovSpanSub: "anos de nascimento e morte", ovOldest: "Antepassado mais antigo", ovProblems: "Problemas",
     ovNone: "nenhum", ovSurnames: "Apelidos mais frequentes", ovPlaces: "Locais mais frequentes", ovSurnameTip: "Procurar pessoas com este apelido",
+    poster: "Póster da árvore", posterHint: "Os antepassados da pessoa escolhida como árvore decorativa para impressão em grande formato. O título, os rótulos e as datas seguem as definições.", posterPaper: "Papel", posterNew: "Novos ramos", posterNewTip: "Desenhar os ramos de novo, cada número dá uma árvore diferente", posterSave: "Transferir", posterSvgTip: "Imagem vetorial, boa para editar e imprimir", posterPdfTip: "PDF vetorial, uma página do papel escolhido", posterPngTip: "Imagem para partilhar (4800 px de largura)", posterErr: "Não foi possível criar o póster: {msg}", filePoster: "poster", posterWorking: "A criar o póster…",
   },
   nl: {
     name: "Nederlands", language: "Taal",
@@ -1770,6 +1780,7 @@ const STRINGS_RAW = {
     overview: "Overzicht van het bestand", ovPeople: "Personen", ovSex: "mannen {m} · vrouwen {f}", ovFamilies: "Gezinnen", ovGens: "Generaties",
     ovGensSub: "langste lijn ouder – kind", ovSpan: "Periode", ovSpanSub: "geboorte- en sterfjaren", ovOldest: "Oudste voorouder", ovProblems: "Problemen",
     ovNone: "geen", ovSurnames: "Meest voorkomende achternamen", ovPlaces: "Meest voorkomende plaatsen", ovSurnameTip: "Personen met deze achternaam zoeken",
+    poster: "Stamboomposter", posterHint: "De voorouders van de gekozen persoon als decoratieve boom voor groot-formaatdruk. Titel, labels en data volgen de instellingen.", posterPaper: "Papier", posterNew: "Nieuwe takken", posterNewTip: "De takken opnieuw tekenen, elk getal geeft een andere boom", posterSave: "Downloaden", posterSvgTip: "Vectorafbeelding, geschikt om te bewerken en te printen", posterPdfTip: "Vector-pdf, één pagina van het gekozen papier", posterPngTip: "Afbeelding om te delen (4800 px breed)", posterErr: "Het poster kon niet worden gemaakt: {msg}", filePoster: "poster", posterWorking: "Poster wordt gemaakt…",
   },
   uk: {
     name: "Українська", language: "Мова",
@@ -1927,6 +1938,7 @@ const STRINGS_RAW = {
     overview: "Огляд файлу", ovPeople: "Особи", ovSex: "чоловіки {m} · жінки {f}", ovFamilies: "Родини", ovGens: "Покоління",
     ovGensSub: "найдовша лінія батьки – дитина", ovSpan: "Період", ovSpanSub: "роки народження та смерті", ovOldest: "Найдавніший предок", ovProblems: "Проблеми",
     ovNone: "немає", ovSurnames: "Найчастіші прізвища", ovPlaces: "Найчастіші місця", ovSurnameTip: "Шукати осіб із цим прізвищем",
+    poster: "Плакат дерева", posterHint: "Предки обраної особи у вигляді декоративного дерева для великоформатного друку. Заголовок, позначки й дати залежать від налаштувань.", posterPaper: "Папір", posterNew: "Нові гілки", posterNewTip: "Намалювати гілки заново, кожне число дає інше дерево", posterSave: "Завантажити", posterSvgTip: "Векторне зображення, придатне для редагування й друку", posterPdfTip: "Векторний PDF, одна сторінка обраного паперу", posterPngTip: "Зображення для поширення (4800 px завширшки)", posterErr: "Не вдалося створити плакат: {msg}", filePoster: "plakat", posterWorking: "Створюю плакат…",
   },
 };
 

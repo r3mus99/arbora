@@ -155,6 +155,8 @@ Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexi
   backdrop dimmed; Esc and the X close it.
 - Scrollbars are the thin global ones.
 
+- **Poster panel** (`PosterPanel`, side panel, rail icon Frame): `PanelHead`, then `.set-group` blocks divided by 1px lines: a preview (`.poster-preview`, full width, 1px `--border`, `--radius`) with a 12px `--muted` hint, the choices (generations as a switch, paper as a select, "New branches" as a normal button with an icon) and a 12px uppercase "Download" label over one row of equal normal buttons (SVG, PDF, PNG) that each carry a download icon and turn into a spinner while a file is being made.
+
 ## 8. Tree view and detail
 
 - Tree rows are 24px with zebra tint; name 600, spouse `--muted`; event letters coloured with the event tokens; selection = accent fill on the name only.
