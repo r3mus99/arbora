@@ -1,1 +1,1 @@
-- **The tree poster is set in the Alkatra font.** Names and the title use Alkatra, written as outlines in the SVG so the file looks the same on any computer and in a print shop; characters Alkatra lacks, such as Cyrillic, use DejaVu Sans.
+- **Tree poster name plates look hand-cut.** Each plate has slightly uneven sides and a border of changing width, so no two are alike; the border is blue for men, red for women and brown when the sex is unknown.
