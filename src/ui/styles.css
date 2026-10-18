@@ -764,3 +764,10 @@ section.check { margin: 0 0 14px; }
 /* several families of one person: each is its own inset card, so the marriages do not run together */
 .editor .fam-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
 .editor .fam-card .new-child { background: var(--panel); }
+
+/* date, place and name pairs keep their name once filled: a small caption above the value (the placeholder is gone by then) */
+.editor label[data-cap] { position: relative; }
+.editor label[data-cap]:has(> input:not(:placeholder-shown))::before {
+  content: attr(data-cap); position: absolute; left: 0; top: -7px; z-index: 1; padding: 0 3px 0 0; pointer-events: none;
+  font-size: 11px; line-height: 1; font-weight: 600; color: var(--muted);
+}

@@ -68,7 +68,7 @@ function DateField({ value, shown, lang, onChange, t, label }: {
   value: string; shown: string; lang: Lang; onChange: (v: string) => void; t: (key: StringKey) => string; label?: string;
 }) {
   const hint = dateHint(value, shown, lang, t);
-  return <label title={t("dateHint")}><input placeholder={label ?? t("date")} aria-label={label ?? t("date")} type="text" value={value} onChange={(e) => onChange(e.target.value)} />
+  return <label title={t("dateHint")} data-cap={label ?? t("date")}><input placeholder={label ?? t("date")} aria-label={label ?? t("date")} type="text" value={value} onChange={(e) => onChange(e.target.value)} />
     {hint && <small className={hint.warn ? "hint warn" : "hint"}>{hint.text}</small>}
   </label>;
 }
@@ -320,7 +320,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </legend>
       <DateField value={form[key].date} shown={initial.shown[key].date} lang={lang} t={t}
                  onChange={(v) => set(key, { ...form[key], date: v })} />
-      <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={form[key].place} list={PLACES}
+      <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={form[key].place} list={PLACES}
                onChange={(e) => set(key, { ...form[key], place: e.target.value })} />
       </label>
       {key === "christening" && <label className="full" title={t("tipReligion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" value={form.religion} list={RELIGIONS}
@@ -347,7 +347,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </div>
       <DateField value={form[key].date} shown={initial.shown[key].date} lang={lang} t={t}
                  onChange={(v) => set(key, { ...form[key], date: v })} />
-      <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={form[key].place} list={PLACES}
+      <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={form[key].place} list={PLACES}
                onChange={(e) => set(key, { ...form[key], place: e.target.value })} /></label>
       {key === "christening" && <label className="full" title={t("tipReligion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
@@ -415,9 +415,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const newPersonForm = (kind: "child" | "spouse" | "parent", i: number) => kid?.kind === kind && kid.fam === i && (<div className="sub new-child" role="group">
               <div className="card-head">{ico(UserPlus)}{t(kind === "child" ? "newChild" : kind === "spouse" ? "newSpouse" : "newParent")}</div>
               <div className="kid-row">
-                <label title={t("tipGiven")}><input placeholder={t("givenName")} aria-label={t("givenName")} type="text" autoFocus value={kid.given} list={givenList(kid.sex)} onChange={(e) => setKid({ ...kid, given: e.target.value })}
+                <label title={t("tipGiven")} data-cap={t("givenName")}><input placeholder={t("givenName")} aria-label={t("givenName")} type="text" autoFocus value={kid.given} list={givenList(kid.sex)} onChange={(e) => setKid({ ...kid, given: e.target.value })}
                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addKid(); } }} /></label>
-                <label title={t("tipSurname")}><input placeholder={t("surname")} aria-label={t("surname")} type="text" value={kid.surname} list={surnameList(kid.sex)} onChange={(e) => setKid({ ...kid, surname: e.target.value })}
+                <label title={t("tipSurname")} data-cap={t("surname")}><input placeholder={t("surname")} aria-label={t("surname")} type="text" value={kid.surname} list={surnameList(kid.sex)} onChange={(e) => setKid({ ...kid, surname: e.target.value })}
                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addKid(); } }} /></label>
                 <DateField value={kid.birth} shown="" lang={lang} t={t} onChange={(v) => setKid({ ...kid, birth: v })} label={t(EVENT_LABEL.birth)} />
               </div>
@@ -489,8 +489,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
       {section("name", <>
       <div className="pair">
-        <label title={t("tipGiven")}><input placeholder={t("givenName")} aria-label={t("givenName")} ref={firstInput} type="text" value={form.given} list={givenList(form.sex)} onChange={(e) => set("given", e.target.value)} /></label>
-        <label title={t("tipSurname")}><input placeholder={t("surname")} aria-label={t("surname")} type="text" value={form.surname} list={surnameList(form.sex)}
+        <label title={t("tipGiven")} data-cap={t("givenName")}><input placeholder={t("givenName")} aria-label={t("givenName")} ref={firstInput} type="text" value={form.given} list={givenList(form.sex)} onChange={(e) => set("given", e.target.value)} /></label>
+        <label title={t("tipSurname")} data-cap={t("surname")}><input placeholder={t("surname")} aria-label={t("surname")} type="text" value={form.surname} list={surnameList(form.sex)}
                  onChange={(e) => set("surname", e.target.value)} /></label>
       </div>
       <div className="sex-field" title={t("tipSex")}>
@@ -564,7 +564,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             </>}
             <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
                        t={t} onChange={(v) => setEv(i, { date: v })} />
-            <label title={t(e.tag === "RESI" ? "resiPlaceHint" : "tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={e.place} list={PLACES}
+            <label title={t(e.tag === "RESI" ? "resiPlaceHint" : "tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={e.place} list={PLACES}
                      onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
             {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
           </div>
@@ -597,7 +597,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           </div>
           <DateField value={fams[i].marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
                      onChange={(v) => setFam(i, {}, { date: v })} />
-          <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={fams[i].marriage.place} list={PLACES}
+          <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={fams[i].marriage.place} list={PLACES}
                    onChange={(e) => setFam(i, {}, { place: e.target.value })} />
           </label>
           {details(`m${r.xref}`, fams[i].details.marriage, (patch) => setFamDetails(i, "marriage", patch),
@@ -608,7 +608,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             <legend>{ico(HeartCrack)}{t("divorce")}</legend>
             <DateField value={fams[i].divorce.date} shown={initial.fams[i].shown.divorce.date} lang={lang} t={t}
                        onChange={(v) => setFam(i, {}, {}, { date: v })} />
-            <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={fams[i].divorce.place} list={PLACES}
+            <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={fams[i].divorce.place} list={PLACES}
                      onChange={(e) => setFam(i, {}, {}, { place: e.target.value })} /></label>
             {details(`d${r.xref}`, fams[i].details.divorce, (patch) => setFamDetails(i, "divorce", patch))}
           </fieldset>}
@@ -695,7 +695,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             {hidable(`oc${o.origin < 0 ? `new${i}` : o.origin}`, !!(o.date || o.place), t("eventDetails"), t("tipRowDetails"), <>
               <DateField value={o.date} shown={o.origin < 0 ? "" : initial.shown.occupations[o.origin].date} lang={lang}
                          t={t} onChange={(v) => { pin(`oc${o.origin < 0 ? `new${i}` : o.origin}`); setOcc(i, { date: v }); }} />
-              <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={o.place} list={PLACES}
+              <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={o.place} list={PLACES}
                        onChange={(e) => { pin(`oc${o.origin < 0 ? `new${i}` : o.origin}`); setOcc(i, { place: e.target.value }); }} /></label>
             </>)}
           </div>
@@ -720,7 +720,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             {hidable(`at${a.origin < 0 ? `new${i}` : a.origin}`, !!(a.date || a.place), t("eventDetails"), t("tipRowDetails"), <>
               <DateField value={a.date} shown={a.origin < 0 ? "" : shownAttr(a.origin)} lang={lang}
                          t={t} onChange={(v) => { pin(`at${a.origin < 0 ? `new${i}` : a.origin}`); setAttr(i, { date: v }); }} />
-              <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={a.place} list={PLACES}
+              <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={a.place} list={PLACES}
                        onChange={(e) => { pin(`at${a.origin < 0 ? `new${i}` : a.origin}`); setAttr(i, { place: e.target.value }); }} /></label>
             </>)}
           </div>
