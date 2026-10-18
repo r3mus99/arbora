@@ -1,6 +1,6 @@
 /** Chart options as the settings form edits them, and as they are kept in the browser. */
 import { normalize } from "../core/chart";
-import { POSTER_BASE_GENERATIONS, POSTER_MAX_GENERATIONS, POSTER_MIN_GENERATIONS } from "../core/poster";
+import { POSTER_MAX_GENERATIONS, POSTER_MIN_GENERATIONS } from "../core/poster";
 import { DEFAULTS, type ChartKind, type ChartOptions } from "../core/format";
 import { LANGS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";

@@ -176,8 +176,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const root = data.people[rootId];
   if (!root) throw new Error(`Person ${rootId} does not exist.`);
   const gens = Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(o.generations) || POSTER_BASE_GENERATIONS));
-  const k = 2 ** Math.max(0, gens - POSTER_BASE_GENERATIONS);
-  const W = W0 * k, H = Math.round(W / RATIO);
+  const scale = 2 ** Math.max(0, gens - POSTER_BASE_GENERATIONS);
+  const W = W0 * scale, H = Math.round(W / RATIO);
   const seed = posterSeed(rootId, o.posterSeed);
   const rnd = random(seed);
   const uniform = (a: number, b: number) => a + (b - a) * rnd();
@@ -187,7 +187,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // ------------------------------------------------------------ plates
   // each side has 2^(gens-2) rows at the outermost generation; a plate sits in the middle of its two parents
   const rows = 2 ** Math.max(0, gens - 2);
-  const top = 190 * k, bottom = 150 * k;
+  const top = 190 * scale, bottom = 150 * scale;
   const rowH = (H - top - bottom) / rows;
   const plateH = Math.min(78, rowH * 0.78);
   const rootW = 400;
@@ -335,7 +335,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   }
 
   const title = o.title || TEXTS[o.lang].title.replace("{name}", root.name || "?");
-  texts.push({ text: title, x: W / 2, y: 92 * k, size: 58 * k, bold: true, fill: C.ink });
+  texts.push({ text: title, x: W / 2, y: 92 * scale, size: 58 * scale, bold: true, fill: C.ink });
 
   shapes.push({ d: `M0,0L${W},0L${W},${H}L0,${H}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
               ...branches, ...leaves, ...plateShapes);
