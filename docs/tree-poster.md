@@ -1,13 +1,13 @@
 # Tree poster
 
-The tree poster (`src/core/poster.ts`, `posterPdf.ts`, panel `src/ui/PosterPanel.tsx`) draws the ancestors of one person as a
+The tree poster (`src/core/poster.ts`; the SVG button in the top bar in `App.tsx`, "New branches" in `SettingsPanel.tsx`) draws the ancestors of one person as a
 decorative wall chart. This file records how it works and what is still open.
 
 ## How it works
 
 - `buildPoster()` returns a flat drawing: shapes (SVG path data with fill and stroke) and centred text lines, in a fixed
-  3000-unit-wide area whose height follows the paper proportions. SVG (`posterSvg`), PDF (`generatePoster`, pdf-lib
-  `drawSvgPath`) and the PNG canvas (`ui/posterImage.ts`, `Path2D`) all draw that one list, so the three outputs match.
+  3000-unit-wide area with the proportions of A paper. `posterSvg` writes it as SVG (Marek decided in the thread that SVG is the
+  only export, next to GED and PDF in the top bar). The list is output-neutral, so PDF or PNG can be added later.
 - Plates sit in fixed rows: the person at the bottom centre, the father's line left, the mother's right, one column per
   generation, each plate halfway between its two parents. A missing ancestor leaves its place empty.
 - Branches are tapered filled shapes along a smooth curve with a seeded wiggle. Side shoots (two levels) and leaves
@@ -32,4 +32,5 @@ decorative wall chart. This file records how it works and what is still open.
 8. **More than seven generations,** or a poster for descendants.
 9. **Custom paper size** and a print margin.
 10. **Pedigree collapse:** a repeated ancestor is drawn twice; mark the second plate or link them.
-11. **A bigger PNG** where the browser allows it (now 4800 px wide because of Safari's pixel limit).
+11. **Other outputs** (PDF via pdf-lib `drawSvgPath`, PNG via a canvas `Path2D`) were built and dropped; the SVG is enough for now.
+12. **A preview** of the poster before the download.

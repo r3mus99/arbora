@@ -763,10 +763,3 @@ section.check { margin: 0 0 14px; }
 /* several families of one person: each is its own inset card, so the marriages do not run together */
 .editor .fam-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
 .editor .fam-card .new-child { background: var(--panel); }
-
-/* tree poster panel */
-.poster-preview { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: var(--radius); }
-.poster-hint { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
-.poster-field > span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
-.poster-save { display: flex; gap: 8px; }
-.poster-save button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }

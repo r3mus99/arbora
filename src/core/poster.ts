@@ -4,8 +4,8 @@
  * positions; the branches between them are drawn from a seeded random generator, so one seed always gives the same
  * tree and every seed a different one.
  *
- * The result is a flat list of shapes (SVG path data with fill and stroke) and text lines, so the same drawing
- * goes to SVG, PDF and a canvas without any of them knowing about family trees.
+ * The result is a flat list of shapes (SVG path data with fill and stroke) and text lines, written out as SVG by
+ * `posterSvg`; other outputs can draw the same list.
  */
 
 import type { GedcomData, Person } from "./gedcom";
@@ -13,10 +13,8 @@ import { formatEvent, type ChartOptions } from "./format";
 import { normalize } from "./chart";
 import { TEXTS } from "./texts";
 
-/** Paper sizes of the poster in points, landscape. */
-export const POSTER_PAPER: Record<ChartOptions["posterPaper"], [number, number]> = {
-  a3: [1190.5512, 841.8898], a2: [1683.7795, 1190.5512], a1: [2383.937, 1683.7795], a0: [3370.3937, 2383.937],
-};
+/** The drawing is as wide as it is high times the A-series ratio, so it prints on any A paper without cropping. */
+const RATIO = Math.SQRT2;
 
 export const POSTER_MIN_GENERATIONS = 2;
 export const POSTER_MAX_GENERATIONS = 7;
@@ -140,14 +138,13 @@ function leafPath(x: number, y: number, ang: number, s: number): string {
 
 interface Plate { id: string; gen: number; x: number; y: number; w: number; h: number }
 
-/** The ancestors of `rootId` as a poster; `options.posterGens` generations including the person. */
+/** The ancestors of `rootId` as a poster; `options.generations` generations including the person (0 = as many as fit, at most seven). */
 export function buildPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>): Poster {
   const o = normalize(options);
   const root = data.people[rootId];
   if (!root) throw new Error(`Person ${rootId} does not exist.`);
-  const gens = Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(o.posterGens)));
-  const [pw, ph] = POSTER_PAPER[o.posterPaper] || POSTER_PAPER.a2;
-  const H = Math.round(W * ph / pw);
+  const gens = Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(o.generations) || POSTER_MAX_GENERATIONS));
+  const H = Math.round(W / RATIO);
   const seed = posterSeed(rootId, o.posterSeed);
   const rnd = random(seed);
   const uniform = (a: number, b: number) => a + (b - a) * rnd();

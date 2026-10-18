@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
-import { FileDown, FileText, Frame, FileUp, LayoutDashboard,
+import { FileDown, FileText, FileImage, FileUp, LayoutDashboard,
          Loader2, BookMarked, History, Trash2, Clock, ListChecks, MapPin, Redo2, Replace, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
@@ -32,7 +32,6 @@ import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
 import { PlacesPanel } from "./PlacesPanel";
 import { buildPoster, posterSvg } from "../core/poster";
-import { PosterPanel, type PosterFormat } from "./PosterPanel";
 import { PersonDetail } from "./PersonDetail";
 import { EditWindow } from "./EditWindow";
 import { PersonRail } from "./PersonRail";
@@ -111,8 +110,8 @@ export function App() {
   const finderRef = useRef<HTMLInputElement>(null);
   // the list of people starts as a narrow rail with a magnifier; the choice is remembered
   // one tool panel is open at a time: the list of people, the file check, or none
-  const [tool, setTool] = useState<"people" | "check" | "fix" | "overview" | "sources" | "places" | "recent" | "poster" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
-  const listOpen = tool === "people", showCheck = tool === "check", showFix = tool === "fix", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showPoster = tool === "poster", showSettings = tool === "settings", showChanges = tool === "changes";
+  const [tool, setTool] = useState<"people" | "check" | "fix" | "overview" | "sources" | "places" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
+  const listOpen = tool === "people", showCheck = tool === "check", showFix = tool === "fix", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
   const setShowFix = (on: boolean) => setTool(on ? "fix" : listOpen ? "people" : null);
@@ -121,7 +120,6 @@ export function App() {
   const setShowSources = (on: boolean) => setTool(on ? "sources" : listOpen ? "people" : null);
   const setShowPlaces = (on: boolean) => setTool(on ? "places" : listOpen ? "people" : null);
   const setShowChanges = (on: boolean) => setTool(on ? "changes" : listOpen ? "people" : null);
-  const setShowPoster = (on: boolean) => setTool(on ? "poster" : listOpen ? "people" : null);
   const setShowRecent = (on: boolean) => setTool(on ? "recent" : listOpen ? "people" : null);
   useEffect(() => { if (listOpen) finderRef.current?.focus(); }, [listOpen]);
   const fonts = useRef<Promise<Fonts> | null>(null);
@@ -193,33 +191,16 @@ export function App() {
     }
   }
 
-  /** The tree poster of the chart's root person as SVG, PDF or PNG. */
-  async function createPoster(format: PosterFormat, id = selectedId) {
-    if (!data || !id || busy) return;
-    setBusy(true);
-    setStatus({ key: "posterWorking", vars: {}, err: false });
+  /** The tree poster of the chart's root person as an SVG file. */
+  function createPoster(id = selectedId) {
+    if (!data || !id) return;
     try {
-      const opts = toOptions(form, lang);
-      const base = `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}`;
-      if (format === "svg") {
-        saveFile(new Blob([posterSvg(buildPoster(data, id, opts))], { type: "image/svg+xml" }), `${base}.svg`);
-      } else {
-        const f = await (fonts.current || (fonts.current = loadFonts()));
-        if (format === "pdf") {
-          const { generatePoster } = await import("../core/posterPdf");
-          saveFile(new Blob([(await generatePoster(data, id, opts, f)).bytes as BlobPart], { type: "application/pdf" }), `${base}.pdf`);
-        } else {
-          const { posterPng } = await import("./posterImage");
-          saveFile(await posterPng(buildPoster(data, id, opts), f), `${base}.png`);
-        }
-      }
-      setStatus(null);
+      const poster = buildPoster(data, id, toOptions(form, lang));
+      saveFile(new Blob([posterSvg(poster)], { type: "image/svg+xml" }),
+               `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}.svg`);
     } catch (e) {
       console.error(e);
-      fonts.current = null;
       setStatus({ key: "posterErr", vars: { msg: (e as Error).message }, err: true });
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -616,6 +597,10 @@ export function App() {
                       aria-label={t("go")}>
                 {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
                 PDF</button>
+              <button type="button" className="icon-btn save-btn" onClick={() => createPoster()} title={`${t("poster")}. ${t("posterHint")}`}
+                      aria-label={t("poster")}>
+                <FileImage className="icon" aria-hidden="true" />
+                SVG</button>
             </div>}
             <div className="tools">
               <button type="button" className="icon-btn" onClick={toggleTheme}
@@ -680,9 +665,6 @@ export function App() {
                 <button type="button" className={showPlaces ? "on" : undefined} aria-pressed={showPlaces}
                         title={t("places")} aria-label={t("places")} onClick={() => setShowPlaces(!showPlaces)}>
                   <MapPin className="icon" aria-hidden="true" /></button>
-                <button type="button" className={showPoster ? "on" : undefined} aria-pressed={showPoster}
-                        title={t("poster")} aria-label={t("poster")} onClick={() => setShowPoster(!showPoster)}>
-                  <Frame className="icon" aria-hidden="true" /></button>
                 {(dirty || showChanges) && <button type="button" className={showChanges ? "on" : undefined} aria-pressed={showChanges}
                         title={`${t("changes")}: ${changes}`} aria-label={t("changes")} onClick={() => setShowChanges(!showChanges)}>
                   <ListChecks className="icon" aria-hidden="true" />{changes > 0 && <span className="badge">{changes > 99 ? "99+" : changes}</span>}</button>}
@@ -705,10 +687,6 @@ export function App() {
               </aside>}
               {showSettings && <aside className="rail-wrap" aria-label={t("settings")}>
                 <SettingsPanel form={form} lang={lang} onChange={setOpt} t={t} />
-              </aside>}
-              {showPoster && selectedId && <aside className="rail-wrap" aria-label={t("poster")}>
-                <PosterPanel data={data} rootId={selectedId} form={form} lang={lang} busy={busy} onChange={setOpt}
-                             onExport={(format) => createPoster(format)} t={t} />
               </aside>}
               {showPlaces && placeList && <aside className="rail-wrap sp-wrap" aria-label={t("places")}>
                 <PlacesPanel places={placeList} data={data} onPerson={(id) => pick(id)} t={t} />

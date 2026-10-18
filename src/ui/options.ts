@@ -37,7 +37,7 @@ const CHOICES: { [K in keyof ChartOptions]?: readonly ChartOptions[K][] } = {
   chart: ["ancestors", "descendants"], labels: ["symbols", "abbr"], dates: ["year", "full"],
   places: ["none", "short", "full"], numbering: ["generation", "ahnentafel", "daboville", "none"],
   marriageOn: ["father", "both", "none"], pageSize: ["a4", "a3", "a5", "letter", "legal"],
-  orientation: ["portrait", "landscape"], posterPaper: ["a3", "a2", "a1", "a0"], lang: LANGS,
+  orientation: ["portrait", "landscape"], lang: LANGS,
 };
 
 /** Options kept in the browser, with defaults for anything missing or no longer valid. */
