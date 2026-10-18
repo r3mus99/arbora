@@ -1,1 +1,3 @@
-- **A residence can take its place from the parents.** The "From parents" button on a residence row in the edit window fills the place from the first residence of the father, else of the mother; it is off when the parents have none.
+- **Filled date, place and name fields keep their name.** In the edit window a filled date, place, given name or surname shows a small caption above the value, so a value is never without its name; empty fields still show the name as a placeholder, selects and checkboxes keep their labels.
+
+- **Rarely used fields of occupations, facts, sources and other details sit behind a button.** Date and place of an occupation or a fact, page and quality of a source, and the access restriction and address of a person show behind a Details (Restriction, Address) button that opens by itself when the fields hold a value.

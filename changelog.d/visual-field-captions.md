@@ -1,1 +1,0 @@
-- **Filled date, place and name fields keep their name.** In the edit window a filled date, place, given name or surname shows a small caption above the value, so a value is never without its name; empty fields still show the name as a placeholder, selects and checkboxes keep their labels.

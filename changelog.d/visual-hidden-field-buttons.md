@@ -1,1 +1,0 @@
-- **Rarely used fields of occupations, facts, sources and other details sit behind a button.** Date and place of an occupation or a fact, page and quality of a source, and the access restriction and address of a person show behind a Details (Restriction, Address) button that opens by itself when the fields hold a value.
