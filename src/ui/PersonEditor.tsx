@@ -348,6 +348,18 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
     </div></fieldset>;
   };
+  /** the place of a residence of the parents, the father's first; empty when they have none in the file */
+  const parentsResidence = useMemo(() => {
+    for (const p of form.parents) {
+      const fam = data.families[p.fam];
+      for (const id of [fam?.husb, fam?.wife]) {
+        const rec = id && recordOf(id);
+        const place = rec && personFields(rec).events.find((e) => e.tag === "RESI" && e.place)?.place;
+        if (place) return place;
+      }
+    }
+    return "";
+  }, [form.parents, data, recordOf]);
   /** which of the two spouse lines of the family is the other person's */
   const otherKey = (f: FamilyFields) => (f.husb === record.xref ? "wife" : "husb");
   /** "Husband" or "Wife" by the sex of the chosen spouse, else by the place in the family */
@@ -542,6 +554,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onChange={(ev) => setEv(i, { tag: ev.target.value })}>
                 {OTHER_EVENT_TAGS.map((tag) => <option key={tag} value={tag}>{t(OTHER_LABEL[tag])}</option>)}
               </select>
+              {e.tag === "RESI" && <button type="button" className="head-act" disabled={!parentsResidence || e.place === parentsResidence}
+                title={parentsResidence ? `${t("copyParentsResidence")}: ${parentsResidence}` : t("copyParentsResidenceNone")} onClick={() => setEv(i, { place: parentsResidence })}>
+                <Copy className="icon" aria-hidden="true" />{t("copyParentsResidence")}</button>}
               <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                       onClick={() => set("events", form.events.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
