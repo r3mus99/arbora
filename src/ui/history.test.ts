@@ -179,6 +179,13 @@ describe("chart options", () => {
     expect(storedOptions({ chart: "descendants", numbering: "ahnentafel" }).numbering).toBe("daboville");
   });
 
+  test("the poster has its own number of generations, kept within 2 to 7", () => {
+    expect(DEFAULTS.posterGenerations).toBe(7);
+    expect(storedOptions({ posterGenerations: 4 }).posterGenerations).toBe(4);
+    expect(toOptions(toForm({ ...DEFAULTS, posterGenerations: 12 }), "sk").posterGenerations).toBe(7);
+    expect(toOptions(toForm({ ...DEFAULTS, posterGenerations: 1 }), "sk").posterGenerations).toBe(2);
+  });
+
   test("the number of unsaved changes counts steps since the saved version", () => {
     const a = doc("A"), b = next(a, "B"), c = next(b, "C");
     let edits = startEdits(a);

@@ -17,6 +17,7 @@ export function toOptions(f: Form, lang: Lang): ChartOptions {
     ...f, lang,
     generations: Math.max(0, Math.round(num(f.generations, DEFAULTS.generations))),
     fontSize: Math.min(20, Math.max(5, num(f.fontSize, DEFAULTS.fontSize))),
+    posterGenerations: Math.min(7, Math.max(2, Math.round(f.posterGenerations) || DEFAULTS.posterGenerations)),
   };
 }
 

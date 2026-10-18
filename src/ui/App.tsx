@@ -213,7 +213,8 @@ export function App() {
         fonts.current || (fonts.current = loadFonts()), loadAlkatra(), import("../core/posterFont")]);
       const pf = posterFonts([...alkatra.regular, dejavu.regular], [...alkatra.bold, dejavu.bold || dejavu.regular]);
       // every download draws new branches
-      const poster = buildPoster(data, id, { ...toOptions(form, lang), posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf);
+      const opts = toOptions(form, lang);
+      const poster = buildPoster(data, id, { ...opts, generations: opts.posterGenerations, posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf);
       saveFile(new Blob([posterSvg(poster, pf)], { type: "image/svg+xml" }),
                `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}.svg`);
       setStatus(null);

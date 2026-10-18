@@ -80,6 +80,16 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
         <label><input {...check("colorPdf")} /> <span>{t("colorPdf")}</span></label>
       </div>
     </div>
+    <div className="set-group">
+      <h3>{t("setPoster")}</h3>
+      <div className="grid">
+        <label><span>{t("posterGens")}</span>
+          <select value={Math.min(7, Math.max(2, Math.round(form.posterGenerations) || 7))}
+                  onChange={(e) => onChange("posterGenerations", Number(e.target.value))}>
+            {[2, 3, 4, 5, 6, 7].map((n) => <option key={n} value={n}>{n}</option>)}
+          </select></label>
+      </div>
+    </div>
     </div>
   </section>
   );

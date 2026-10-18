@@ -33,6 +33,8 @@ export interface ChartOptions {
   colorPdf: boolean;
   /** tree poster: the number that makes the branches differ; the same number draws the same tree (not a setting: each download picks one) */
   posterSeed: number;
+  /** tree poster: generations including the person, 2 to 7 */
+  posterGenerations: number;
 }
 
 export const DEFAULTS: ChartOptions = {
@@ -40,7 +42,7 @@ export const DEFAULTS: ChartOptions = {
   chart: "ancestors", showSpouses: true,
   numbering: "generation", marriageOn: "father", title: "", showDate: true, pageSize: "a4", orientation: "portrait",
   fontSize: 8.5, lineHeight: 1.7, margin: 36, colorPdf: false,
-  posterSeed: 0,
+  posterSeed: 0, posterGenerations: 7,
 };
 
 export const fmt = (s: string, vars: Record<string, string | number>) =>
