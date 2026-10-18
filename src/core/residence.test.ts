@@ -53,3 +53,14 @@ describe("residence", () => {
     expect(personLine(boris, null, null, opts())).not.toContain("⌂");
   });
 });
+
+describe("divorce mark", () => {
+  const fam = { id: "@F1@", husb: null, wife: null, marriage: { date: "1856", place: "Vienna" }, divorced: true, children: [] };
+  const anna = load(GED).people["@I1@"];
+
+  test("a divorced marriage ends with the divorce symbol, or the abbreviation with abbreviated labels", () => {
+    expect(personLine(anna, null, fam, opts({ places: "short" }))).toContain("∞1856 Vienna ⚮,");
+    expect(personLine(anna, null, fam, opts({ labels: "abbr", lang: "en" }))).toContain("m. 1856 Vienna (div.)");
+    expect(personLine(anna, null, { ...fam, marriage: { date: "", place: "" } }, opts())).toContain("∞⚮");
+  });
+});

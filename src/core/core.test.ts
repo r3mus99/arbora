@@ -180,7 +180,7 @@ describe("descendant chart", () => {
   test("several marriages and a divorce", () => {
     const spouses = chartRows(data, "@I416@", opts({ chart: "descendants" })).filter((r) => r.spouse);
     expect(spouses.slice(0, 2).map((r) => r.text)).toEqual([
-      "∞1572 (rozv.) Margaréta Valois (*1553, †1615)",
+      "∞1572 ⚮ Margaréta Valois (*1553, †1615)",
       "∞1600 Mária Medicejská (*1575, †1642)",
     ]);
   });
