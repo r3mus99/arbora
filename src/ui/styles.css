@@ -658,7 +658,10 @@ section.check { margin: 0 0 14px; }
 .inline-value { all: unset; cursor: text; box-sizing: border-box; max-width: 100%; border-bottom: 1px dashed var(--border); border-radius: 2px; }
 .inline-value:hover { border-bottom-color: var(--muted); }
 .inline-value:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; }
-.inline-fields { display: inline; font: inherit; letter-spacing: inherit; }
+.inline-fields { display: inline; position: relative; font: inherit; letter-spacing: inherit; }
+.inline-hint { position: absolute; left: 0; top: 100%; z-index: 2; margin-top: 2px; padding: 2px 6px; width: max-content; max-width: 230px; font-size: 12px; font-weight: 400; line-height: 1.35;
+  letter-spacing: 0; color: var(--muted); background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); }
+.inline-hint.warn { color: var(--danger); }
 .fit { display: inline-grid; vertical-align: baseline; }
 .fit > * { grid-area: 1 / 1; min-width: 0; white-space: pre; font: inherit; letter-spacing: inherit; }
 .fit > input { width: 0; min-width: 100%; }

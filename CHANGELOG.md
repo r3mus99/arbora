@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.54.0 – 2026-10-18
+
+- **Editing a date in the detail tells you how it is understood.** The same hint as in the edit window now shows under a date while you edit it in place: `→ 1891-05-14` style GEDCOM value, or a warning that the date has no known form and will be saved as text. The field's tooltip shows the accepted formats. Both places share one rule (`dateHint`), so they can no longer disagree. Tiny values (name, sex, date, place, religion, occupation, note) stay editable in place; everything else lives in the edit window.
 ## 1.53.0 – 2026-10-17
 
 - **The latest residence can be shown in the tree and the PDF.** A new option "show residence" in the display settings prints the place of the person's latest residence (RESI, by year) after the brackets, with a ⌂ symbol (or an abbreviation with abbreviated labels). It is left out when it equals the place of birth or death, and it needs places to be on. Off by default; the GEDCOM file is not touched.

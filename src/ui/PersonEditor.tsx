@@ -57,14 +57,19 @@ const EVENT_LABEL: Record<(typeof PERSON_EVENTS)[number], StringKey> = {
 /** dates as shown in the form, the stored GEDCOM date otherwise */
 const shownEvent = (e: EventFields, lang: Lang): EventFields => ({ ...e, date: dateInput(e.date, lang) });
 
+/** how a typed date is understood, as it will be stored; nothing while it is as it was opened */
+export function dateHint(value: string, shown: string, lang: Lang, t: (key: StringKey) => string): { text: string; warn: boolean } | null {
+  if (value === shown || !value.trim()) return null;
+  const parsed = parseDate(value, lang);
+  return { text: parsed.ok ? `→ ${parsed.value}` : t("datePhrase"), warn: !parsed.ok };
+}
+
 function DateField({ value, shown, lang, onChange, t, label }: {
   value: string; shown: string; lang: Lang; onChange: (v: string) => void; t: (key: StringKey) => string; label?: string;
 }) {
-  const parsed = value !== shown && value.trim() ? parseDate(value, lang) : null;
+  const hint = dateHint(value, shown, lang, t);
   return <label title={t("dateHint")}><input placeholder={label ?? t("date")} aria-label={label ?? t("date")} type="text" value={value} onChange={(e) => onChange(e.target.value)} />
-    {/* how the typed date is understood, as it will be stored */}
-    {parsed && <small className={parsed.ok ? "hint" : "hint warn"}>
-      {parsed.ok ? `→ ${parsed.value}` : t("datePhrase")}</small>}
+    {hint && <small className={hint.warn ? "hint warn" : "hint"}>{hint.text}</small>}
   </label>;
 }
 
