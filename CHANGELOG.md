@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.54.1 – 2026-10-18
+
+- **Pull requests no longer conflict on the version and the changelog.** A pull request now adds a small file `changelog.d/<kind>-<name>.md` instead of editing `CHANGELOG.md` and `package.json`. When it is merged, the release workflow collects the fragments, picks the next version (minor for a feature or visual change, patch otherwise), writes the CHANGELOG section, bumps `package.json`, publishes the GitHub release and deploys the site. A major version is still written by hand.
+
 ## 1.54.0 – 2026-10-18
 
 - **Editing a date in the detail tells you how it is understood.** The same hint as in the edit window now shows under a date while you edit it in place: `→ 1891-05-14` style GEDCOM value, or a warning that the date has no known form and will be saved as text. The field's tooltip shows the accepted formats. Both places share one rule (`dateHint`), so they can no longer disagree. Tiny values (name, sex, date, place, religion, occupation, note) stay editable in place; everything else lives in the edit window.
