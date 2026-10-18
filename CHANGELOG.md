@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.53.1 – 2026-10-18
+
+- **Divorce has its own symbol in the tree and the PDF.** A divorced marriage ends with ⚮ instead of the word "(div.)", like birth, marriage and death have *, ∞ and †. With abbreviated labels the abbreviation stays. The symbol exists in the PDF font.
+
 ## 1.53.0 – 2026-10-17
 
 - **The latest residence can be shown in the tree and the PDF.** A new option "show residence" in the display settings prints the place of the person's latest residence (RESI, by year) after the brackets, with a ⌂ symbol (or an abbreviation with abbreviated labels). It is left out when it equals the place of birth or death, and it needs places to be on. Off by default; the GEDCOM file is not touched.

@@ -44,6 +44,10 @@ export const fmt = (s: string, vars: Record<string, string | number>) =>
   s.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k]));
 
 const SYMBOLS = { birt: "*", marr: "∞", deat: "†" };
+const DIVORCE_SYMBOL = "⚮";
+
+/** What marks a divorced marriage: the symbol, or the abbreviation with abbreviated labels. */
+export const divorceMark = (o: ChartOptions) => o.labels === "symbols" ? DIVORCE_SYMBOL : TEXTS[o.lang].divorced;
 type EventKind = keyof typeof SYMBOLS;
 
 /** Day (may be null), month and year in the date format of the language. */
@@ -117,7 +121,8 @@ export function eventSegments(kind: EventKind, ev: GedEvent | null, o: ChartOpti
   if (!date && !place && !extra) return [];
   const segs: Seg[] = [{ text: label(kind, o) + date, kind }];
   if (place) segs.push({ text: (date ? " " : "") + place, kind: "place" });
-  if (extra) segs.push({ text: (date || place ? " (" : "") + extra + (date || place ? ")" : ""), kind });
+  if (extra === DIVORCE_SYMBOL) segs.push({ text: (date || place ? " " : "") + extra, kind });
+  else if (extra) segs.push({ text: (date || place ? " (" : "") + extra + (date || place ? ")" : ""), kind });
   return segs;
 }
 
@@ -140,12 +145,11 @@ export function residencePlace(p: Person, o: ChartOptions): string {
 /** Pieces of "<number>. <name> (<birth>, <marriage>, <death>)". */
 export function personSegments(p: Person | null, number: number | string | null,
                                marriage: Family | null, o: ChartOptions): Seg[] {
-  const t = TEXTS[o.lang];
   const name = p && p.name ? p.name : "?";
   const events: Seg[][] = [];
   if (p) events.push(eventSegments("birt", p.birth, o));
   if (marriage) events.push(eventSegments("marr", marriage.marriage, o,
-                                          marriage.divorced ? t.divorced : ""));
+                                          marriage.divorced ? divorceMark(o) : ""));
   if (p) events.push(eventSegments("deat", p.death, o));
   const shown = events.filter((e) => e.length);
   const segs: Seg[] = [];

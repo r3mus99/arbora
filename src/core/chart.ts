@@ -2,8 +2,7 @@
 
 import { yearOf } from "./date";
 import type { Family, GedcomData, Person } from "./gedcom";
-import { DEFAULTS, eventSegments, label, personSegments, type ChartOptions, type Seg } from "./format";
-import { TEXTS } from "./texts";
+import { DEFAULTS, divorceMark, eventSegments, label, personSegments, type ChartOptions, type Seg } from "./format";
 
 /** Vertical connector at column `gen` from row a to row b. */
 export interface Link {
@@ -114,8 +113,7 @@ function byBirth(ids: string[], people: Record<string, Person>): string[] {
 }
 
 function spouseParts(fam: Family, spouse: Person | null, o: ChartOptions): Seg[] {
-  const t = TEXTS[o.lang];
-  const marr = eventSegments("marr", fam.marriage, o, fam.divorced ? t.divorced : "");
+  const marr = eventSegments("marr", fam.marriage, o, fam.divorced ? divorceMark(o) : "");
   const prefix: Seg[] = marr.length ? marr : [{ text: label("marr", o).trim(), kind: "marr" }];
   return [...prefix, { text: " ", kind: "plain" }, ...personSegments(spouse, null, null, o)];
 }
