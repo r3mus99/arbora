@@ -1,5 +1,5 @@
 import { Hash, Phone, Baby, BookMarked, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Tag, Tags, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
-import { familyRecord, personRecord, type NewPerson } from "../core/structure";
+import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   CONTACT_TAGS, OTHER_EVENT_TAGS, PEDIGREES, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
@@ -436,6 +436,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             </div>);
   const setChildren = (i: number, children: string[]) => setFam(i, { children });
   /** the families a person can be put into as a child: not the ones they already belong to or have themselves */
+  /** a child is never offered from the person's own ancestors, nor a family of their descendants as parents: that would make a loop */
+  const above = useMemo(() => lineage(data, record.xref!, "up"), [data, record]);
+  const below = useMemo(() => lineage(data, record.xref!, "down"), [data, record]);
   const familyChoices = useMemo(() => {
     const plain = Object.values(data.families).map((f) => {
       const names = [f.husb, f.wife].map((p) => (p && data.people[p]?.name) || "").filter(Boolean).join(" & ") || "?";
@@ -607,7 +610,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             <span className="lab">{ico(Baby)}{t("children")}
               {acts(<button type="button" className="head-act" title={t("newChild")} onClick={() => startKid("child", i)}><Plus className="icon" aria-hidden="true" />{t("addShort")}</button>,
                     <button type="button" className="head-act" title={t("findChild")} onClick={() => setAdding(adding === i ? null : i)}><Search className="icon" aria-hidden="true" />{t("findShort")}</button>)}</span>
-            {adding === i && <PersonPick choices={personChoices} clearOnPick focus exclude={[record.xref!, fams[i].husb, fams[i].wife, ...fams[i].children]}
+            {adding === i && <PersonPick choices={personChoices} clearOnPick focus exclude={[record.xref!, fams[i].husb, fams[i].wife, ...fams[i].children, ...above]}
                         value="" label="" placeholder={t("pickPerson")} tip={t("addChild")}
                         onPick={(id) => { if (id) { setChildren(i, [...fams[i].children, id]); setAdding(null); } }} />}
             {fams[i].children.map((id) => (
@@ -633,7 +636,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           <button type="button" className="head-act" title={t("newParent")} onClick={() => startKid("parent")}><Plus className="icon" aria-hidden="true" />{t("addShort")}</button>,
           <button type="button" className="head-act" title={t("tipAddParents")} aria-expanded={addingParents} onClick={() => setAddingParents(!addingParents)}><Search className="icon" aria-hidden="true" />{t("findShort")}</button>)}</legend>
         {addingParents && <PersonPick choices={familyChoices} clearOnPick focus
-                    exclude={[...form.parents.map((p) => p.fam), ...families.map((f) => f.xref!)]} value="" label="" tip={t("tipAddParents")}
+                    exclude={[...form.parents.map((p) => p.fam), ...families.map((f) => f.xref!),
+                      ...Object.values(data.families).filter((f) => [f.husb, f.wife].some((x) => x && below.has(x))).map((f) => f.id)]} value="" label="" tip={t("tipAddParents")}
                     placeholder={t("pickFamily")} onPick={(id) => { if (id) { set("parents", [...form.parents, { origin: -1, fam: id, pedigree: "" }]); setAddingParents(false); } }} />}
         {form.parents.map((p, i) => (
           <div className="item" key={p.origin < 0 ? `new${i}` : p.origin}>
