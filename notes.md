@@ -1,1 +1,1 @@
-- **Every tree poster download draws new branches.** The "New branches" setting is gone: each click on SVG in the top bar draws a different unique tree.
+- **The tree poster is set in the Alkatra font.** Names and the title use Alkatra, written as outlines in the SVG so the file looks the same on any computer and in a print shop; characters Alkatra lacks, such as Cyrillic, use DejaVu Sans.
