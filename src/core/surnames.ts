@@ -65,3 +65,14 @@ export function surnamesFor(surnames: string[], sex: string, lang?: Lang): strin
   const sort = (list: string[]) => [...new Set(list)].sort((a, b) => a.localeCompare(b));
   return [...sort(own), ...sort(made.filter((s) => !have.has(s)))];
 }
+
+/** A surname in the form that fits `sex` (`M`/`F`): Novák → Nováková for a girl, Nováková → Novák for a boy.
+ *  A surname that is the same for both sexes, an unknown sex or a language without gendered surnames leaves it as it is. */
+export function surnameForSex(surname: string, sex: string, surnames: string[], lang?: Lang): string {
+  const want: Form | null = sex === "M" ? "m" : sex === "F" ? "f" : null;
+  const r = rules(lang, surnames);
+  if (!want || !surname || (!r.sk && !r.pl)) return surname;
+  const form = formOf(surname, r);
+  if (form === "n" || form === want) return surname;
+  return want === "f" ? toFemale(surname, r) : toMale(surname, r);
+}

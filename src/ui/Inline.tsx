@@ -48,7 +48,7 @@ export function Inline({ children, label, edit, onClose, className }: Props) {
 function FitInput({ value, list, label, tip, onChange }: { value: string; list?: string; label: string; tip?: string; onChange: (v: string) => void }) {
   return <span className="fit">
     <span className="fit-ghost" aria-hidden="true">{value}</span>
-    <input type="text" value={value} list={list} aria-label={label} title={tip ?? label} onChange={(e) => onChange(e.target.value)} />
+    <input type="text" autoComplete="off" value={value} list={list} aria-label={label} title={tip ?? label} onChange={(e) => onChange(e.target.value)} />
   </span>;
 }
 
@@ -103,7 +103,7 @@ export function InlineNote({ value, label, onCommit, className, children }: {
     return <div className={`${className || ""} inline-note`} title={label} onClick={(e) => { if (!(e.target as HTMLElement).closest("a")) setOpen(true); }}>
       {children}</div>;
   }
-  return <textarea className={`${className || ""} inline-note-field`} value={v} aria-label={label} autoFocus rows={Math.max(2, v.split("\n").length)}
+  return <textarea autoComplete="off" className={`${className || ""} inline-note-field`} value={v} aria-label={label} autoFocus rows={Math.max(2, v.split("\n").length)}
                    onChange={(e) => setV(e.target.value)} onBlur={() => done(true)}
                    onKeyDown={(e) => {
                      if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); }

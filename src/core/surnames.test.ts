@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { surnamesFor } from "./surnames";
+import { surnameForSex, surnamesFor } from "./surnames";
 
 const FILE = ["Dlhý", "Hrabová", "Modrá", "Rybár", "Skála", "Zelený"];
 
@@ -36,4 +36,13 @@ test("Polish -ski / -ska", () => {
 
 test("upper case surnames keep their case", () => {
   expect(surnamesFor(["RYBÁR"], "F", "sk")).toEqual(["RYBÁROVÁ"]);
+});
+
+test("a child gets the father's surname in the form of the child's sex", () => {
+  expect(surnameForSex("Rybár", "F", FILE, "sk")).toBe("Rybárová");
+  expect(surnameForSex("Rybár", "M", FILE, "sk")).toBe("Rybár");
+  expect(surnameForSex("Zelený", "F", FILE, "sk")).toBe("Zelená");
+  expect(surnameForSex("Hrabová", "M", FILE, "sk")).toBe("Hrab");
+  expect(surnameForSex("Rybár", "", FILE, "sk")).toBe("Rybár");
+  expect(surnameForSex("Smith", "F", ["Smith"], "en")).toBe("Smith");
 });
