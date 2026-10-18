@@ -589,23 +589,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             </div>}
             {newPersonForm("spouse", i)}
           </div>
-          <DateField value={fams[i].marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
-                     onChange={(v) => setFam(i, {}, { date: v })} />
-          <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={fams[i].marriage.place} list={PLACES}
-                   onChange={(e) => setFam(i, {}, { place: e.target.value })} />
-          </label>
-          {details(`m${r.xref}`, fams[i].details.marriage, (patch) => setFamDetails(i, "marriage", patch),
-            <label className="check" title={t("tipDivorced")}><input type="checkbox" checked={fams[i].divorced}
-                     onChange={(e) => setFam(i, { divorced: e.target.checked })} />
-              <span>{t("divorcedLabel")}</span></label>, fams[i].divorced)}
-          {fams[i].divorced && <fieldset className="sub">
-            <legend>{ico(HeartCrack)}{t("divorce")}</legend>
-            <DateField value={fams[i].divorce.date} shown={initial.fams[i].shown.divorce.date} lang={lang} t={t}
-                       onChange={(v) => setFam(i, {}, {}, { date: v })} />
-            <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" value={fams[i].divorce.place} list={PLACES}
-                     onChange={(e) => setFam(i, {}, {}, { place: e.target.value })} /></label>
-            {details(`d${r.xref}`, fams[i].details.divorce, (patch) => setFamDetails(i, "divorce", patch))}
-          </fieldset>}
           <div className="wide children">
             <span className="lab">{ico(Baby)}{t("children")}
               {acts(<button type="button" className="head-act" title={t("newChild")} onClick={() => startKid("child", i)}><Plus className="icon" aria-hidden="true" />{t("addShort")}</button>,
@@ -623,12 +606,43 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             ))}
             {newPersonForm("child", i)}
           </div>
+          {(() => {
+            const f = fams[i], id = `m${r.xref}`;
+            // date, place and the rest of the marriage sit behind the Details button: open when they hold a value, and for a new empty family
+            const filled = !!(f.marriage.date || f.marriage.place || hasDetails(f.details.marriage) || f.divorced);
+            const empty = !filled && !f[otherKey(f)] && f.children.length === 0;
+            const shown = (filled || empty || openDetails.includes(id)) && !closed.includes(id);
+            return <>
+              {revealBtn(id, shown, t("eventDetails"), t("tipMarriageDetails"))}
+              {shown && <>
+                <DateField value={f.marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
+                           onChange={(v) => setFam(i, {}, { date: v })} />
+                <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={f.marriage.place} list={PLACES}
+                         onChange={(e) => setFam(i, {}, { place: e.target.value })} /></label>
+                <div className="trio">
+                  {DETAILS.map(([k, label, tip]) => <label key={k} title={t(tip)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={f.details.marriage[k]}
+                           onChange={(e) => setFamDetails(i, "marriage", { [k]: e.target.value })} /></label>)}
+                </div>
+                <label className="check" title={t("tipDivorced")}><input type="checkbox" checked={f.divorced}
+                         onChange={(e) => setFam(i, { divorced: e.target.checked })} />
+                  <span>{t("divorcedLabel")}</span></label>
+                {f.divorced && <fieldset className="sub">
+                  <legend>{ico(HeartCrack)}{t("divorce")}</legend>
+                  <DateField value={f.divorce.date} shown={initial.fams[i].shown.divorce.date} lang={lang} t={t}
+                             onChange={(v) => setFam(i, {}, {}, { date: v })} />
+                  <label title={t("tipPlace")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={f.divorce.place} list={PLACES}
+                           onChange={(e) => setFam(i, {}, {}, { place: e.target.value })} /></label>
+                  {details(`d${r.xref}`, f.details.divorce, (patch) => setFamDetails(i, "divorce", patch))}
+                </fieldset>}
+              </>}
+            </>;
+          })()}
         </fieldset>
         </div>
       ))}
       {families.length === 0 && <span className="muted">{t("noValue")}</span>}
       </>, onAddFamily && <button type="button" className="head-act" disabled={dirty} title={dirty ? t("saveFirst") : undefined}
-                                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddFamily(); }}>
+                                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); const next = new Set(openNow).add("families"); setOpenNow(next); onToggleSection?.(next); onAddFamily(); }}>
         <Plus className="icon" aria-hidden="true" />{t("addFamily")}</button>)}
       {section("parents", <>
       <fieldset className="list">

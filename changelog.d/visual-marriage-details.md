@@ -1,0 +1,1 @@
+- **The marriage date and place sit behind the Details button of the family.** The family card in the edit window starts with the spouse and the children; Details holds date, place, age, cause, agency and divorce, and opens by itself when any of them has a value or the family is new and empty. "Add a family" also opens the Family part.
