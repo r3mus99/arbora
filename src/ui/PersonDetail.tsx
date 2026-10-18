@@ -16,7 +16,7 @@ import { TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
 import { timeline, weddingAges, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
-import { givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
+import { dateHint, givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
 import { InlineName, InlineNote, InlineText } from "./Inline";
 import { Row, Section } from "./Section";
 import { EventSources, Linked, PersonSources } from "./Sources";
@@ -97,7 +97,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
   /** a date shown as text that can be changed in place; `set` gets the new date as GEDCOM */
   const dateInline = (stored: string, set: (date: string) => void) => {
     const shown = dateInput(stored, lang);
-    return <InlineText value={shown} label={t("date")} onCommit={(v) => { if (v !== shown) set(parseDate(v, lang).value); }}>
+    return <InlineText value={shown} label={t("date")} tip={t("dateHint")} hint={(typed) => dateHint(typed, shown, lang, t)} onCommit={(v) => { if (v !== shown) set(parseDate(v, lang).value); }}>
       {formatDate(stored, true, lang)}</InlineText>;
   };
   const placeInline = (stored: string, set: (place: string) => void) =>

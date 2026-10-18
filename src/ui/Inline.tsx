@@ -45,10 +45,10 @@ export function Inline({ children, label, edit, onClose, className }: Props) {
 }
 
 /** A text field exactly as wide as its text: a hidden copy of the text sets the width, the input covers it. */
-function FitInput({ value, list, label, onChange }: { value: string; list?: string; label: string; onChange: (v: string) => void }) {
+function FitInput({ value, list, label, tip, onChange }: { value: string; list?: string; label: string; tip?: string; onChange: (v: string) => void }) {
   return <span className="fit">
     <span className="fit-ghost" aria-hidden="true">{value}</span>
-    <input type="text" value={value} list={list} aria-label={label} title={label} onChange={(e) => onChange(e.target.value)} />
+    <input type="text" value={value} list={list} aria-label={label} title={tip ?? label} onChange={(e) => onChange(e.target.value)} />
   </span>;
 }
 
@@ -70,13 +70,23 @@ export function InlineName({ given, surname, label, givenLabel, surnameLabel, gi
 }
 
 /** One text value (a date, a place) edited in place; `value` is what the field starts with, `children` how it is shown. */
-export function InlineText({ value, label, list, onCommit, children }: {
+export function InlineText({ value, label, list, hint, tip, onCommit, children }: {
   value: string; label: string; list?: string; onCommit: (value: string) => void; children: ReactNode;
+  /** a line under the field while it is edited, e.g. how a typed date is understood */
+  hint?: (typed: string) => { text: string; warn: boolean } | null;
+  /** tooltip of the open field, when it says more than the label */
+  tip?: string;
 }) {
   const [v, setV] = useState(value);
   useEffect(() => setV(value), [value]);
   return <Inline label={label} onClose={(ok) => { if (ok) onCommit(v); else setV(value); }}
-                 edit={() => <FitInput value={v} list={list} label={label} onChange={setV} />}>
+                 edit={() => {
+                   const h = hint?.(v);
+                   return <>
+                     <FitInput value={v} list={list} label={label} tip={tip} onChange={setV} />
+                     {h && <small className={h.warn ? "inline-hint warn" : "inline-hint"}>{h.text}</small>}
+                   </>;
+                 }}>
     {children}
   </Inline>;
 }
