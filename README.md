@@ -198,7 +198,7 @@ The **SVG** button in the top bar, next to GED and PDF, downloads the ancestors 
 decorative wall chart for large-format printing: the person at the bottom, the father's line unfolding to the left and
 the mother's to the right, with branches and leaves between the name plates. The plates have exact positions, the
 branches are drawn from a seeded random generator, so every download draws a different, unique tree. The generations (2 to 7; "all" draws seven), the title, labels and
-dates follow the settings. The SVG is vector, so it prints sharply at any size; its proportions are those of A paper.
+dates follow the settings. The SVG is vector, with the text set in Alkatra and written as outlines, so it prints sharply at any size and looks the same without the font; its proportions are those of A paper.
 The plan and the open points are in [docs/tree-poster.md](docs/tree-poster.md).
 
 ### Notes on the data
@@ -226,7 +226,7 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   chart.ts          ancestor and descendant chart rows
   collapse.ts       collapsed branches: which rows stay visible
   pdf.ts            page layout and PDF
-  poster.ts         tree poster: plates, seeded branches and leaves, SVG
+  poster.ts         tree poster: plates, seeded branches and leaves, SVG (posterFont.ts: glyph widths and outlines)
   texts.ts          PDF texts in 12 languages
   *.test.ts         tests on the sample and made-up data
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),

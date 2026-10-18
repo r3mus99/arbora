@@ -72,6 +72,18 @@ async function loadFonts(): Promise<Fonts> {
   return { regular, bold, italic };
 }
 
+/** The font of the tree poster text: Latin and Latin Extended of Alkatra, then DejaVu Sans for what it lacks. */
+async function loadAlkatra() {
+  const get = async (p: string) => {
+    const r = await fetch(import.meta.env.BASE_URL + p);
+    if (!r.ok) throw new Error(p);
+    return r.arrayBuffer();
+  };
+  const [lr, er, lb, eb] = await Promise.all(["Latin-Regular", "LatinExt-Regular", "Latin-Bold", "LatinExt-Bold"]
+    .map((n) => get(`fonts/Alkatra-${n}.woff`)));
+  return { regular: [lr, er], bold: [lb, eb] };
+}
+
 export function App() {
   const [lang, setLang] = useState<Lang>(() => {
     const l = readStore().lang;
@@ -191,17 +203,26 @@ export function App() {
     }
   }
 
-  /** The tree poster of the chart's root person as an SVG file. */
-  function createPoster(id = selectedId) {
-    if (!data || !id) return;
+  /** The tree poster of the chart's root person as an SVG file with the text as outlines. */
+  async function createPoster(id = selectedId) {
+    if (!data || !id || busy) return;
+    setBusy(true);
+    setStatus({ key: "posterWorking", vars: {}, err: false });
     try {
+      const [dejavu, alkatra, { posterFonts }] = await Promise.all([
+        fonts.current || (fonts.current = loadFonts()), loadAlkatra(), import("../core/posterFont")]);
+      const pf = posterFonts([...alkatra.regular, dejavu.regular], [...alkatra.bold, dejavu.bold || dejavu.regular]);
       // every download draws new branches
-      const poster = buildPoster(data, id, { ...toOptions(form, lang), posterSeed: Math.floor(Math.random() * 2 ** 31) });
-      saveFile(new Blob([posterSvg(poster)], { type: "image/svg+xml" }),
+      const poster = buildPoster(data, id, { ...toOptions(form, lang), posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf);
+      saveFile(new Blob([posterSvg(poster, pf)], { type: "image/svg+xml" }),
                `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}.svg`);
+      setStatus(null);
     } catch (e) {
       console.error(e);
+      fonts.current = null;
       setStatus({ key: "posterErr", vars: { msg: (e as Error).message }, err: true });
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -598,7 +619,7 @@ export function App() {
                       aria-label={t("go")}>
                 {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
                 PDF</button>
-              <button type="button" className="icon-btn save-btn" onClick={() => createPoster()} title={`${t("poster")}. ${t("posterHint")}`}
+              <button type="button" className="icon-btn save-btn" disabled={busy} onClick={() => createPoster()} title={`${t("poster")}. ${t("posterHint")}`}
                       aria-label={t("poster")}>
                 <FileImage className="icon" aria-hidden="true" />
                 SVG</button>

@@ -1,10 +1,14 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  buildPoster, load, posterSeed, posterSvg, random, textWidth,
+  buildPoster, load, posterFonts, posterSeed, posterSvg, random, textWidth,
 } from "./index";
 
 const data = load(readFileSync(new URL("../../public/sample.ged", import.meta.url)));
+const file = (name: string) => readFileSync(new URL(`../../public/fonts/${name}`, import.meta.url));
+const fonts = posterFonts(
+  [file("Alkatra-Latin-Regular.woff"), file("Alkatra-LatinExt-Regular.woff"), file("DejaVuSans.ttf")],
+  [file("Alkatra-Latin-Bold.woff"), file("Alkatra-LatinExt-Bold.woff"), file("DejaVuSans-Bold.ttf")]);
 const ROOT = "@I1@";
 
 describe("seeded random", () => {
@@ -91,5 +95,24 @@ describe("poster output", () => {
     expect(svg.startsWith("<svg")).toBe(true);
     expect(svg.match(/<path /g)).toHaveLength(p.shapes.length);
     expect(svg.match(/<text /g)).toHaveLength(p.texts.length);
+  });
+
+  test("with the poster fonts the text is outlines and every line fits its plate", () => {
+    const p = buildPoster(data, ROOT, { generations: 7 }, fonts);
+    const svg = posterSvg(p, fonts);
+    expect(svg).not.toContain("<text");
+    expect(svg.match(/<path /g)).toHaveLength(p.shapes.length + p.texts.length);
+    for (const t of p.texts) {
+      const w = fonts.width(t.text, t.size, t.bold);
+      expect(t.x - w / 2, t.text).toBeGreaterThanOrEqual(-1);
+      expect(t.x + w / 2, t.text).toBeLessThanOrEqual(p.width + 1);
+    }
+  });
+
+  test("a character Alkatra lacks is set in DejaVu, Latin Extended in Alkatra", () => {
+    const wide = fonts.width("Ľudovít", 40, true), cyrillic = fonts.width("Людовік", 40, true);
+    expect(wide).toBeGreaterThan(0);
+    expect(cyrillic).toBeGreaterThan(0);
+    expect(fonts.outline("Ľ Л", 40, false, 100, 100)).toMatch(/^M/);
   });
 });
