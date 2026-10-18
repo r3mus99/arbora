@@ -3,6 +3,7 @@
 ## 1.54.0 – 2026-10-18
 
 - **Editing a date in the detail tells you how it is understood.** The same hint as in the edit window now shows under a date while you edit it in place: `→ 1891-05-14` style GEDCOM value, or a warning that the date has no known form and will be saved as text. The field's tooltip shows the accepted formats. Both places share one rule (`dateHint`), so they can no longer disagree. Tiny values (name, sex, date, place, religion, occupation, note) stay editable in place; everything else lives in the edit window.
+
 ## 1.53.1 – 2026-10-18
 
 - **Divorce has its own symbol in the tree and the PDF.** A divorced marriage ends with ⚮ instead of the word "(div.)", like birth, marriage and death have *, ∞ and †. With abbreviated labels the abbreviation stays. The symbol exists in the PDF font.
