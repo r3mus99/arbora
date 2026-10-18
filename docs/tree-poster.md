@@ -8,7 +8,7 @@ decorative wall chart. This file records how it works and what is still open.
 - `buildPoster()` returns a flat drawing: shapes (SVG path data with fill and stroke) and centred text lines, in a fixed
   3000-unit-wide area with the proportions of A paper. `posterSvg` writes it as SVG (Marek decided in the thread that SVG is the
   only export, next to GED and PDF in the top bar). The list is output-neutral, so PDF or PNG can be added later.
-- Plates sit in fixed rows: the person at the bottom centre, the father's line left, the mother's right, one column per
+- Plates are hand-cut labels (uneven edges, border width varies, blue/red by sex) and sit in fixed rows: the person at the bottom centre, the father's line left, the mother's right, one column per
   generation, each plate halfway between its two parents. A missing ancestor leaves its place empty.
 - Branches are tapered filled shapes along a smooth curve with a seeded wiggle. Side shoots (two levels) and leaves
   grow along them; a shoot that would touch a plate, another shoot or the edge is not drawn. The seed combines the
@@ -19,10 +19,11 @@ decorative wall chart. This file records how it works and what is still open.
 
 ## Open points
 
-1. **Name plate templates (SVG).** Marek will supply sample plates (scroll, ribbon, frame). Needed for the generator: a
-   template with fixed decorative ends and a stretchable middle (9-slice style) of plain paths and flat colours (no
-   gradients, filters or shadows, which pdf-lib does not draw); a safe text area inside; a licence that allows
-   MIT use. Until then the plate is a rounded rectangle.
+1. **Fine-tune the name plates.** Plates are plain hand-cut labels: uneven sides and a border of changing width, drawn as
+   two flat shapes (ink colour under paper colour), blue for men, red for women, brown for unknown sex. Every plate is
+   different because the seed drives its edges. Later ideas: more characterful shapes (scroll ends, folded corners, branch
+   frames, tried in prototypes under `arbora/tree-poster/nameplate` in the project files), border-width and waviness
+   settings.
 2. **Fixed decorations:** the title ribbon, the crown of the tree in the middle, roots under the person, a list of
    the person's children. They need drawn vectors; the branches stay generated.
 3. **Leaf shape:** one drawn leaf (a plain path) would replace the generic one.
