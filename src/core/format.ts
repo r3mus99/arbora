@@ -12,6 +12,8 @@ export interface ChartOptions {
   labels: "symbols" | "abbr";
   dates: "year" | "full";
   places: "none" | "short" | "full";
+  /** also print the latest residence, when it differs from the places of birth and death */
+  showResidence: boolean;
   numbering: "generation" | "ahnentafel" | "daboville" | "none";
   /** ancestors: next to which parent the parents' marriage is printed */
   marriageOn: "father" | "both" | "none";
@@ -32,7 +34,7 @@ export interface ChartOptions {
 }
 
 export const DEFAULTS: ChartOptions = {
-  generations: 0, lang: "sk", labels: "symbols", dates: "year", places: "none",
+  generations: 0, lang: "sk", labels: "symbols", dates: "year", places: "none", showResidence: false,
   chart: "ancestors", showSpouses: true,
   numbering: "generation", marriageOn: "father", title: "", showDate: true, pageSize: "a4", orientation: "portrait",
   fontSize: 8.5, lineHeight: 1.7, margin: 36, colorPdf: false,
@@ -123,6 +125,18 @@ export function formatEvent(kind: EventKind, ev: GedEvent | null, o: ChartOption
   return eventSegments(kind, ev, o, extra).map((s) => s.text).join("");
 }
 
+const samePlace = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/** The latest residence as shown, or "" when places are off, there is none, or it is the place of birth or death. */
+export function residencePlace(p: Person, o: ChartOptions): string {
+  const home = p.residence?.place;
+  if (!home || o.places === "none") return "";
+  const shown = formatPlace(home, o.places);
+  const known = [p.birth?.place, p.death?.place].filter((x): x is string => !!x);
+  if (known.some((x) => samePlace(x, home) || samePlace(formatPlace(x, o.places), shown))) return "";
+  return shown;
+}
+
 /** Pieces of "<number>. <name> (<birth>, <marriage>, <death>)". */
 export function personSegments(p: Person | null, number: number | string | null,
                                marriage: Family | null, o: ChartOptions): Seg[] {
@@ -141,6 +155,8 @@ export function personSegments(p: Person | null, number: number | string | null,
     segs.push({ text: i === 0 ? " (" : ", ", kind: "plain" }, ...e);
   });
   if (shown.length) segs.push({ text: ")", kind: "plain" });
+  const home = p && o.showResidence ? residencePlace(p, o) : "";
+  if (home) segs.push({ text: ` ${o.labels === "symbols" ? "⌂" : TEXTS[o.lang].abbr.resi.trim()} ${home}`, kind: "place" });
   return segs;
 }
 

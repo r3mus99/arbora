@@ -18,7 +18,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     value: form[key] as string,
     onChange: (e: { target: { value: string } }) => onChange(key, e.target.value as Form[K]),
   });
-  const check = (key: "showSpouses" | "showDate" | "colorPdf") => ({
+  const check = (key: "showSpouses" | "showDate" | "colorPdf" | "showResidence") => ({
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => onChange(key, e.target.checked),
   });
@@ -53,9 +53,10 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
             <option value="none">{t("marrNone")}</option>
           </select></label>}
       </div>
-      {desc && <div className="checks">
-        <label><input {...check("showSpouses")} /> <span>{t("showSpouses")}</span></label>
-      </div>}
+      <div className="checks">
+        <label><input {...check("showResidence")} disabled={form.places === "none"} /> <span>{t("showResidence")}</span></label>
+        {desc && <label><input {...check("showSpouses")} /> <span>{t("showSpouses")}</span></label>}
+      </div>
     </div>
     <div className="set-group">
       <h3>{t("setPrint")}</h3>
