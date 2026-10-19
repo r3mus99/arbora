@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.40.0 – 2026-10-19
+
+- **The person detail is made of cards.** The sections (parents, timeline, …) are inset cards, like the parts of the edit window.
+
 ## 2.39.0 – 2026-10-19
 
 - **"Deceased" and "Divorced" are iOS-style switches, and cards and dialogs have rounder corners.** The system font stack now names SF Pro explicitly on Apple devices.

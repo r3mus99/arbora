@@ -1,1 +1,1 @@
-- **"Deceased" and "Divorced" are iOS-style switches, and cards and dialogs have rounder corners.** The system font stack now names SF Pro explicitly on Apple devices.
+- **The person detail is made of cards.** The sections (parents, timeline, …) are inset cards, like the parts of the edit window.

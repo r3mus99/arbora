@@ -1,1 +1,0 @@
-- **The person detail is made of cards.** The sections (parents, timeline, …) are inset cards, like the parts of the edit window.
