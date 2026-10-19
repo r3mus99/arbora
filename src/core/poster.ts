@@ -116,7 +116,7 @@ function closedDense(pts: Point[], k = 6): Point[] {
  * A hand-cut plate: edges that are slightly uneven and a border whose width changes along the way. Returns the outer
  * shape (drawn in the ink colour) and the inner shape (drawn over it in the paper colour) around the centre (cx, cy); the border grows with the plate (`scale`).
  */
-function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number, scale = 1): [string, string] {
+export function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number, scale = 1): [string, string] {
   const u = (a: number) => (rnd() * 2 - 1) * a;
   const base = 2 + rnd();
   const border = () => Math.max(1.3, base + u(1.1)) * scale;
