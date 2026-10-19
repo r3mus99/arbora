@@ -547,6 +547,7 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
     return size;
   };
   const lines: Line[] = [];
+  let wrappedName = false;
   let nameSize = fit(name, base * 1.25, true);
   if (nameSize >= base * 0.95 || !name.includes(" ")) {
     lines.push([name, nameSize, true]);
@@ -561,8 +562,9 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
     const halves = [words.slice(0, best).join(" "), words.slice(best).join(" ")];
     nameSize = Math.min(fit(halves[0], base, true), fit(halves[1], base, true));
     lines.push([halves[0], nameSize, true], [halves[1], nameSize, true]);
+    wrappedName = true;
   }
-  if (dates) lines.push([dates + age, fit(dates + age, base * 0.95, false), false]);
+  if (dates) lines.push([dates + age, fit(dates + age, base * (wrappedName ? 0.75 : 0.95), false), false]);
   return lines;
 }
 
