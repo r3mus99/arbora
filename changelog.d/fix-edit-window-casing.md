@@ -1,0 +1,1 @@
+- **The app starts on case-insensitive file systems (macOS, Windows).** The edit-window rules moved from `editWindow.ts` to `editWindowRules.ts`, so they no longer clash with `EditWindow.tsx`.

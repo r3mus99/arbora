@@ -1,6 +1,6 @@
 import { BookOpen, Briefcase, CalendarDays, Ellipsis, Link2, UserRound, Users, type LucideIcon } from "lucide-react";
 import type { StringKey } from "./i18n";
-import type { EditSection } from "./editWindow";
+import type { EditSection } from "./editWindowRules";
 
 /** the title and the icon of each part of the edit window; the icons are the ones the detail uses for the same things */
 export const SECTIONS: Record<EditSection, { title: StringKey; icon: LucideIcon }> = {

@@ -1,6 +1,6 @@
 import { describe, expect, test, vi } from "vitest";
 import { LANGS } from "../core/texts";
-import { EDIT_SECTIONS, mayClose } from "./editWindow";
+import { EDIT_SECTIONS, mayClose } from "./editWindowRules";
 import { STRINGS } from "./i18n";
 
 describe("edit window", () => {

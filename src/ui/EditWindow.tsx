@@ -4,7 +4,7 @@ import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
 import type { Suggestions } from "../core/edit";
 import type { SourceChoice } from "../core/sources";
-import { mayClose } from "./editWindow";
+import { mayClose } from "./editWindowRules";
 import type { StringKey } from "./i18n";
 import { MergePanel } from "./MergePanel";
 import type { MergePick } from "../core/merge";
