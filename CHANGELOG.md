@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.11.0 – 2026-10-19
+
+- **Long branches of the tree poster bend less.** The sideways swing is capped, so no big waves appear; the side shoots are longer on a longer branch instead.
+
 ## 2.10.0 – 2026-10-19
 
 - **The tree poster stresses the closest generations and bends long branches.** The person is drawn at 200 %, the parents at 175 %, the grandparents at 150 %, the great-grandparents at 125 % and everyone further at 100 %, and long branches are curled instead of running straight.
