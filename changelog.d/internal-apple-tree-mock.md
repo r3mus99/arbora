@@ -1,0 +1,1 @@
+- **Apple tree poster mock-up.** A hand-drawn SVG apple tree with the existing name plates on dummy data, shown at `?tree` for review (not yet wired to real people).
