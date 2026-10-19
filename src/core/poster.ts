@@ -24,6 +24,9 @@ export const POSTER_BASE_GENERATIONS = 7;
 const POSTER_MAX_SWING = 24;
 const POSTER_BRANCH_OVERLAP = 6;
 export const POSTER_PLATE_SCALE = [2, 1.75, 1.5, 1.25];
+/** From this generation on (the person is generation 1) the plates are only this tall (text, spacing and border shrink with them), so a big poster does not grow so fast in height. */
+export const POSTER_SMALL_FROM = 7;
+export const POSTER_SMALL_HEIGHT = 0.5;
 
 export interface PosterShape {
   /** SVG path data in poster units, absolute coordinates */
@@ -194,11 +197,14 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const baseW = gens <= 4 ? 280 : gens <= 6 ? 230 : 200;
   const scaleOf = (gen: number) => POSTER_PLATE_SCALE[gen - 1] ?? 1;
   const widthOf = (gen: number) => Math.round(baseW * scaleOf(gen));
-  const heightOf = (gen: number) => Math.round(baseH * scaleOf(gen));
+  const small = (gen: number) => gen >= POSTER_SMALL_FROM;
+  const heightOf = (gen: number) => Math.round(baseH * scaleOf(gen) * (small(gen) ? POSTER_SMALL_HEIGHT : 1));
+  // the border and the tag of a plate follow its height
+  const lookOf = (gen: number) => scaleOf(gen) * (small(gen) ? 0.7 : 1);
   // The year of a marriage and the number of children of the couple are a small brown text where the branches of the
   // two parents meet, each line led by a drawn symbol (two rings, two figures); its size follows the generation of the
   // child, and the gap between the child's column and the parents' is wide enough for it.
-  const marrSize = (gen: number) => 12 * scaleOf(gen);
+  const marrSize = (gen: number) => 12 * lookOf(gen);
   const symbolW = (size: number) => size * 1.14;
   const lineW = ({ text }: MarrLine, size: number) => symbolW(size) + size * 0.3 + measure(text, size, false);
   const marrLines = (pid: string | null): MarrLine[] => {
@@ -294,7 +300,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     if (cs.length === 1) { offsets.set(plate, [0]); return [own, ...cs[0]]; }
     const [a, b] = cs;
     let delta = 0;
-    for (let i = 0; i < Math.min(a.length, b.length); i++) delta = Math.max(delta, a[i][1] - b[i][0] + rowGap);
+    // the gap between two plates of a column shrinks with the small plates (the contour starts at this plate's generation)
+    for (let i = 0; i < Math.min(a.length, b.length); i++) delta = Math.max(delta, a[i][1] - b[i][0] + (small(plate.gen + 1 + i) ? rowGap * POSTER_SMALL_HEIGHT : rowGap));
     offsets.set(plate, [-delta / 2, delta / 2]);
     const out: Contour = [own];
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
@@ -516,17 +523,17 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   for (const plate of plates) appearances.set(plate.id, (appearances.get(plate.id) ?? 0) + 1);
   for (const plate of plates) {
     const sex = people.get(plate)!.sex;
-    const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h, scaleOf(plate.gen));
+    const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h, lookOf(plate.gen));
     plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 },
                      { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
     const own = lines.get(plate)!;
     const same = own.map(([text, size, bold]): Line => [text, Math.min(size, smallest.get(`${plate.gen}${bold}`) ?? size), bold]);
-    texts.push(...stack(plate, same, sex === "M" ? C.male : sex === "F" ? C.female : C.ink));
+    texts.push(...stack(plate, same, small(plate.gen) ? 1.05 : 1.15, sex === "M" ? C.male : sex === "F" ? C.female : C.ink));
     // a person who stands on the poster more than once (both lines of the family lead to them) carries a small
     // brown tag with the number of places in the top right corner
     const times = appearances.get(plate.id)!;
     if (times > 1) {
-      const k = scaleOf(plate.gen), w = 24 * k, h = 15 * k, cx = plate.x + plate.w / 2 - 8 * k, cy = plate.y - plate.h / 2 + 2 * k;
+      const k = lookOf(plate.gen), w = 24 * k, h = 15 * k, cx = plate.x + plate.w / 2 - 8 * k, cy = plate.y - plate.h / 2 + 2 * k;
       plateShapes.push({ d: plateOutline(rnd, cx, cy, w, h, k)[0], fill: C.branchEdge, stroke: null, strokeWidth: 0 });
       texts.push({ text: `${times}\u00D7`, x: cx, y: cy + h * 0.3, size: h * 0.85, bold: true, fill: C.plate });
     }
@@ -575,10 +582,12 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
   // the age is only known (and worth printing) when both years are
   const by = yearOf(p.birth?.date), dy = yearOf(p.death?.date);
   const age = by !== null && dy !== null && dy >= by && dy - by < 130 ? `, ${dy - by} ${TEXTS[o.lang].ageAbbr}` : "";
-  const avail = plate.w - 18;
+  const small = plate.gen >= POSTER_SMALL_FROM;
+  const avail = plate.w - (small ? 12 : 18);
+  const minSize = small ? 5.5 : 9;
   const base = plate.h / 3.4;
   const fit = (text: string, size: number, bold: boolean) => {
-    while (size > 9 && measure(text, size, bold) > avail) size -= 0.5;
+    while (size > minSize && measure(text, size, bold) > avail) size -= 0.5;
     return size;
   };
   const lines: Line[] = [];
@@ -604,8 +613,8 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
 }
 
 /** The lines centred one under the other on the plate. */
-function stack(plate: Plate, lines: Line[], nameFill: string): PosterText[] {
-  const heights = lines.map(([, size]) => size * 1.15);
+function stack(plate: Plate, lines: Line[], spacing: number, nameFill: string): PosterText[] {
+  const heights = lines.map(([, size]) => size * spacing);
   let y = plate.y - heights.reduce((a, b) => a + b, 0) / 2;
   return lines.map(([text, size, bold], i) => {
     y += heights[i];
