@@ -1,1 +1,0 @@
-- **The tree poster has a ruler with the generations.** Under the title a line like a measuring tape marks "1. generation", "2. generation" and so on to both sides, with the oldest and youngest birth year of each.

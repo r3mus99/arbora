@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.33.0 – 2026-10-19
+
+- **The tree poster has a ruler with the generations.** Under the title a line like a measuring tape marks "1. generation", "2. generation" and so on to both sides, with the oldest and youngest birth year of each.
+
 ## 2.32.0 – 2026-10-19
 
 - **The corner lists of the tree poster say more.** The heading of each branch now ends with the number of ancestors on it, the rows are labelled again (Origin, First names, Surnames), and a list names 5 values up to 5 generations, 6 up to 7 generations and 7 from 8 generations.
