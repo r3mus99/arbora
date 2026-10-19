@@ -34,10 +34,12 @@ decorative wall chart. This file records how it works and what is still open.
   in its top right corner, drawn with the same hand-cut outline as the plates (not a circle), and the title counts every
   person once.
 - The setting "End the branch at a repeated person" (`posterOnce`, off by default) shortens the poster when there
-  are many generations: the first occurrence in layout order (the father's side first, depth first) keeps its whole
-  ancestry, every later plate of the same person ends its branch there and keeps the "2×" tag. The layout packs only
-  the plates that remain, so the poster gets lower. A person met first at the last generation shows no ancestors even
-  if another branch would have shown some; that is the price of "the first branch wins".
+  are many generations: a person met again is drawn as a plate only and ends the branch there (with the "2×" tag)
+  when the same person is already drawn with the ancestry in the same or an earlier generation, because then the
+  branch is the same or a shorter copy of one that is already on the poster. A person who is first met in a later
+  generation is not merged: the later plate has more generations of ancestors to show, so it keeps its whole branch
+  (the father's side is walked first, depth first). The layout packs only the plates that remain, so the poster
+  gets lower.
 - Names wrap to two lines when one line would be small; a generation shares one name size and one date size.
 - Text widths come from the real fonts (`posterFonts`), so plates and text fit exactly; without fonts (tests) an estimate is used.
 

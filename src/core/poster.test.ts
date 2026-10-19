@@ -239,20 +239,22 @@ describe("poster repeated people, the branch ends once", () => {
     expect(once.plates.every((x) => ids.has(x.id))).toBe(true);
   });
 
-  test("the first branch in the layout order keeps the whole ancestry, the later plates end the branch", () => {
-    // the plates counted by hand: father's side first, a person seen again adds its plate and no parents
-    const seen = new Set<string>();
+  test("a branch ends only where the person is already drawn with the ancestry in the same or an earlier generation", () => {
+    // the plates counted by hand: father's side first; a person met again adds its plate and no parents, unless the
+    // earlier plate stands in a later generation (it shows fewer ancestors), then the new one is drawn in full
+    const shown = new Map<string, number>();
     const count = (id: string, gen: number, max: number): number => {
       const person = data.people[id];
       if (!person) return 0;
-      const again = seen.has(id);
-      seen.add(id);
+      const at = shown.get(id);
+      const again = at !== undefined && at <= gen;
+      if (!again) shown.set(id, gen);
       const fam = person.famc.length ? data.families[person.famc[0]] : null;
       if (gen >= max || !fam || again) return 1;
       return 1 + [fam.husb, fam.wife].reduce((n, parent) => n + (parent ? count(parent, gen + 1, max) : 0), 0);
     };
-    for (const gens of [4, 6]) {
-      seen.clear();
+    for (const gens of [4, 6, 8]) {
+      shown.clear();
       const once = buildPoster(data, ROOT, { generations: gens, lang: "en", posterSeed: 1, posterOnce: true });
       expect(once.plates.length).toBe(count(ROOT, 1, gens));
     }
