@@ -1,0 +1,1 @@
+- **Places are one checkbox.** "Show places" prints the municipality of birth, marriage and death and, when it differs, the residence. The "full place" choice and the separate residence checkbox are gone; settings saved earlier are converted.
