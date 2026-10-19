@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.20.0 – 2026-10-19
+
+Poster: a quiet hand-cut double border with softly rounded corners now frames the whole poster.
+
 ## 2.19.0 – 2026-10-19
 
 Poster: the marriage year and number of children now look for a free spot between the two branches first (in a wider area), and only then above or below them, so they no longer sit on a branch.
