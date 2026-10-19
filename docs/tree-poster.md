@@ -8,7 +8,7 @@ decorative wall chart. This file records how it works and what is still open.
 - `buildPoster()` returns a flat drawing: shapes (SVG path data with fill and stroke) and centred text lines, in an area
   sized by the content. `posterSvg` writes it as SVG (Marek decided in the thread that SVG is the
   only export, next to GED and PDF in the top bar). The list is output-neutral, so PDF or PNG can be added later.
-- Plates are hand-cut labels (uneven edges, border width varies, blue/red by sex) and keep one size. The person is at the bottom centre, the father's line left, the mother's right, one column per
+- Plates are hand-cut labels (uneven edges, border width varies, blue/red by sex) and keep one size. The person is in the centre, level with both parents (so the branches from them are short), the father's line left, the mother's right, one column per
   generation. Within a side the people are packed like a tidy tree (Reingold-Tilford): each plate sits halfway between its
   two parents (level with a lone parent), and the father's branch is pushed against the mother's only as far as plates of
   one column need to stay apart. Only people who exist take room, so the poster height follows the family, not the
