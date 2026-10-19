@@ -1,1 +1,1 @@
-- **The tree poster can list places and name statistics in its corners.** A new setting (off by default) adds a list in each corner for the four grandparent lines: the most common birth places (and residences, with the residence setting), given names and surnames, each with the number of people.
+- **The tree poster grows less in height.** From the 7th generation on, the name plates are half as tall and a third narrower, with smaller text, tighter spacing and shorter branches, so a poster of 9 or 10 generations is about half as high.

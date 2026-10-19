@@ -1,1 +1,0 @@
-- **The tree poster grows less in height.** From the 7th generation on, the name plates are half as tall and a third narrower, with smaller text, tighter spacing and shorter branches, so a poster of 9 or 10 generations is about half as high.
