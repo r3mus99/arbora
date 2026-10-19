@@ -1,1 +1,0 @@
-- **The tree poster border is made of straight lines.** The double border around the poster is no longer soft and hand-drawn; both lines are straight with sharp corners.
