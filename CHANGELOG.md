@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.14.0 – 2026-10-19
+
+- **The poster draws symbols before the marriage year and the number of children.** Two rings lead the year and two small figures lead the number, both left-aligned; an only child is not counted, and the word "children" no longer needs translating.
+
 ## 2.13.0 – 2026-10-19
 
 - **The tree poster shows the number of children of each couple.** It stands under the year of the marriage, in the language of the poster ("6 children", "3 deti", "5 дітей").
