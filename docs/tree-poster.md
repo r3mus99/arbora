@@ -63,7 +63,7 @@ decorative wall chart. This file records how it works and what is still open.
 2. **Fixed decorations:** the title ribbon, the crown of the tree in the middle, roots under the person, a list of
    the person's children. They need drawn vectors; the branches stay generated.
 3. **Leaf shape:** one drawn leaf (a plain path) would replace the generic one.
-4. **Fonts:** the text is set in Alkatra (OFL, `public/fonts/Alkatra-*.woff`, Latin and Latin Extended) and written as outlines, so a print shop sees the same letters; what Alkatra lacks (Cyrillic) falls back to DejaVu Sans per character (`core/posterFont.ts`). Open: a Cyrillic font that matches Alkatra, kerning, and smaller files (the outlines make an SVG about 1 MB at five generations).
+4. **Fonts:** the text is set in Alkatra (OFL, `public/fonts/Alkatra-*.woff`, Latin and Latin Extended) and written as outlines, so a print shop sees the same letters; what Alkatra lacks (Cyrillic) falls back to DejaVu Sans per character (`core/posterFont.ts`). Open: a Cyrillic font that matches Alkatra. Each letter is stored once in `<defs>` and reused with `<use>`, so the 7-generation sample SVG is about 1.1 MB.
 5. **Places, sources and residence on plates** (the poster ignores places for now). Tried as a preview and postponed
    (Marek, 2026-10-19): an extra small line inside the plate, `* Graz  ⌂ Prague  † Vienna` (birth place, residence,
    death place, only what is known), only for the generations with the big plates (200 % to 125 %), none for the
