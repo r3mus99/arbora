@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  buildPoster, LANGS, load, posterFonts, posterSeed, posterSvg, random, TEXTS, textWidth,
+  buildPoster, load, posterFonts, posterSeed, posterSvg, random, textWidth,
 } from "./index";
 
 const data = load(readFileSync(new URL("../../public/sample.ged", import.meta.url)));
