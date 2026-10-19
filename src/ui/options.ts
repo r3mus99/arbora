@@ -5,11 +5,14 @@ import { DEFAULTS, type ChartKind, type ChartOptions } from "../core/format";
 import { LANGS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 
+/** What the app starts with: the core defaults, but places of birth and death are shown as the town only. */
+export const APP_DEFAULTS: ChartOptions = { ...DEFAULTS, places: "short" };
+
 /** Options as edited in the form; number fields keep the typed text. */
-export type Form = Omit<ChartOptions, "generations" | "fontSize"> & { generations: string; fontSize: string };
+export type Form = Omit<ChartOptions, "generations"> & { generations: string };
 
 export const toForm = (o: ChartOptions): Form =>
-  ({ ...o, generations: String(o.generations), fontSize: String(o.fontSize) });
+  ({ ...o, generations: String(o.generations) });
 
 /** The options for the chart: typed numbers read and kept within bounds. */
 export function toOptions(f: Form, lang: Lang): ChartOptions {
@@ -17,7 +20,6 @@ export function toOptions(f: Form, lang: Lang): ChartOptions {
   return {
     ...f, lang,
     generations: Math.max(0, Math.round(num(f.generations, DEFAULTS.generations))),
-    fontSize: Math.min(20, Math.max(5, num(f.fontSize, DEFAULTS.fontSize))),
     posterGenerations: Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(f.posterGenerations) || DEFAULTS.posterGenerations)),
   };
 }
@@ -38,7 +40,7 @@ export function withOption<K extends keyof Form>(form: Form, key: K, value: Form
 const CHOICES: { [K in keyof ChartOptions]?: readonly ChartOptions[K][] } = {
   chart: ["ancestors", "descendants"], labels: ["symbols", "abbr"], dates: ["year", "full"],
   places: ["none", "short", "full"], numbering: ["generation", "ahnentafel", "daboville", "none"],
-  marriageOn: ["father", "both", "none"], pageSize: ["a4", "a3", "a5", "letter", "legal"],
+  pageSize: ["a4", "a3", "a5", "letter", "legal"],
   orientation: ["portrait", "landscape"], lang: LANGS,
 };
 
@@ -46,13 +48,13 @@ const CHOICES: { [K in keyof ChartOptions]?: readonly ChartOptions[K][] } = {
 export function storedOptions(stored: unknown): ChartOptions {
   const o: Record<string, unknown> = stored && typeof stored === "object" ? { ...stored } : {};
   const valid = (key: keyof ChartOptions) => {
-    const v = o[key], d = DEFAULTS[key];
+    const v = o[key], d = APP_DEFAULTS[key];
     const choices = CHOICES[key] as readonly unknown[] | undefined;
     if (choices) return choices.includes(v);
     return typeof v === typeof d && (typeof v !== "number" || Number.isFinite(v));
   };
-  const out = { ...DEFAULTS };
-  for (const key of Object.keys(DEFAULTS) as (keyof ChartOptions)[]) {
+  const out = { ...APP_DEFAULTS };
+  for (const key of Object.keys(APP_DEFAULTS) as (keyof ChartOptions)[]) {
     if (valid(key)) (out as Record<string, unknown>)[key] = o[key];
   }
   return normalize(out);

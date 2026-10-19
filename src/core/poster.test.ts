@@ -117,10 +117,9 @@ describe("poster layout", () => {
     expect(posterSvg(buildPoster(data, "@I2@", { posterSeed: 3 }))).not.toBe(one);
   });
 
-  test("a custom title replaces the automatic one, long names wrap to two lines", () => {
-    const p = buildPoster(data, ROOT, { generations: 7, title: "Our family & <friends>" });
-    expect(p.title).toBe("Our family & <friends>");
-    expect(posterSvg(p)).toContain("Our family &amp; &lt;friends&gt;");
+  test("the title names the person, long names wrap to two lines", () => {
+    const p = buildPoster(data, ROOT, { generations: 7 });
+    expect(p.title).toBe("Predkovia: Charles I of Austria");
     expect(p.texts.length).toBeGreaterThan(p.people * 2);
   });
 

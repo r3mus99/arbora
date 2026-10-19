@@ -61,12 +61,7 @@ export function buildRows(rootId: string, people: Record<string, Person>,
     const dup = expanded.has(pid);
     if (dup || ancestors.has(pid)) father = mother = null;
 
-    let marr: Family | null = null;
-    if (childFam && o.marriageOn !== "none") {
-      const isFather = childFam.husb === pid;
-      const hasFather = !!childFam.husb && childFam.husb in people;
-      if (o.marriageOn === "both" || isFather || !hasFather) marr = childFam;
-    }
+    const marr = childFam;
     const number = o.numbering === "generation" ? gen
       : o.numbering === "ahnentafel" ? ahnen : null;
     const parts = personSegments(p, number, marr, o);
