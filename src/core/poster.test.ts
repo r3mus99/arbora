@@ -159,6 +159,33 @@ describe("poster output", () => {
 });
 
 describe("poster plates", () => {
+  test("the main branches overlap each connected plate by six drawing units", () => {
+    const poster = buildPoster(full(3), "@I1@", { generations: 3, posterSeed: 1 });
+    const limbs = poster.shapes
+      .filter((shape) => shape.fill === "#6b4626" && shape.strokeWidth === 1)
+      .map((shape) => (shape.d.match(/-?\d+(?:\.\d+)?/g) || []).map(Number))
+      .map((values) => {
+        const points = Array.from({ length: values.length / 2 }, (_, i) => [values[i * 2], values[i * 2 + 1]] as const);
+        const midpoint = (a: readonly [number, number], b: readonly [number, number]) =>
+          [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2] as const;
+        const half = points.length / 2;
+        return [midpoint(points[0], points[points.length - 1]), midpoint(points[half - 1], points[half])];
+      });
+    const overlap = (x: number, y: number) =>
+      Math.min(...limbs.flatMap((ends) => ends.map(([px, py]) => Math.hypot(px - x, py - y))));
+    const root = poster.plates.find((plate) => plate.gen === 1)!;
+    expect(overlap(root.x, root.y - root.h / 2)).toBeCloseTo(6, 1);
+
+    for (const plate of poster.plates.filter((item) => item.gen === 2)) {
+      const side = Math.sign(plate.x - poster.width / 2);
+      expect(overlap(plate.x - side * plate.w * 0.2, plate.y + plate.h / 2)).toBeCloseTo(6, 1);
+    }
+    for (const plate of poster.plates.filter((item) => item.gen === 3)) {
+      const side = Math.sign(plate.x - poster.width / 2);
+      expect(overlap(plate.x - side * plate.w / 2, plate.y)).toBeCloseTo(6, 1);
+    }
+  });
+
   test("every plate has its own hand-cut brown outline, and the name is blue for men and red for women", () => {
     const poster = buildPoster(data, ROOT, { generations: 4, posterSeed: 1 });
     const outlines = poster.shapes.filter((s) => s.fill === "#4a2f18" && !s.stroke);
