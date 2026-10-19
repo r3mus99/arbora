@@ -329,7 +329,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // The ruler is a strip between the title and the plates; the plates move down by its height.
   // the lists beside the title end above the ruler, with room for its labels
   const rulerY = Math.max(frameY + 75 + 74, topH && beside ? 50 + topH + 85 : 0);
-  top = rulerY + 58 + 40;
+  top = rulerY + 100 + 40;
 
   // Tidy-tree packing: a person stands halfway between the two parents (or level with a lone parent), and the
   // father's branch is pushed against the mother's just far enough that no two plates of one column touch. Only
@@ -598,8 +598,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     rows.forEach((value, n) => put(value, CORNER_VALUE_SIZE, false, y0 + CORNER_FIRST_Y + n * CORNER_STEP, C.ink, x));
   }
 
-  // The ruler: a purely decorative line across the poster with a tick at the middle of every generation's column and
-  // "Nth generation" over it (father's side left, mother's side right, the main person in the middle).
+  // The ruler: a purely decorative line across the poster with a tick at the middle of every generation's column,
+  // "Nth generation" over it and under it how many of the possible people of that column are known (father's side left, mother's side right, the main person in the middle).
   {
     const ordinal = TEXTS[o.lang].generation;
     const left = Math.min(...plates.map((p) => p.x - p.w / 2)), right = Math.max(...plates.map((p) => p.x + p.w / 2));
@@ -616,6 +616,9 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
       const cx = members.reduce((sum, q) => sum + q.x, 0) / members.length;
       d += bar(cx - 2, base - 26, cx + 2, base + 18);
       texts.push({ text: ordinal.replace("{n}", String(gen)), x: fit(cx, ordinal.replace("{n}", String(gen)), 26, true), y: base - 38, size: 26, bold: true, fill: C.branchEdge });
+      // how many of the possible people are known: a column on one side holds 2^(generation-2) of them
+      const known = TEXTS[o.lang].known.replace("{a}", String(members.length)).replace("{b}", String(gen === 1 ? 1 : 2 ** (gen - 2)));
+      texts.push({ text: known, x: fit(cx, known, 22, false), y: base + 44, size: 22, bold: false, fill: C.ink });
     }
     plateShapes.push({ d, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
   }

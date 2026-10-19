@@ -632,6 +632,14 @@ describe("poster generation ruler", () => {
     expect(p.texts.some((t) => /^\d{4}–\d{4}$/.test(t.text))).toBe(false);
   });
 
+  test("under each generation the known people are counted out of the possible ones", () => {
+    const p = buildPoster(full(4), ROOT, { generations: 4, lang: "en" });
+    expect(p.texts.filter((t) => /^\d+ of \d+$/.test(t.text)).map((t) => t.text).sort()).toEqual(["1 of 1", "1 of 1", "1 of 1", "2 of 2", "2 of 2", "4 of 4", "4 of 4"]);
+    // person 4 has no parents: of the 4 people the father's side could hold in generation 4, 2 are known
+    const sparse = buildPoster(full(4, (n) => n !== 4), ROOT, { generations: 4, lang: "en" });
+    expect(sparse.texts.some((t) => t.text === "2 of 4")).toBe(true);
+  });
+
   test("the ruler stands between the title frame and the plates", () => {
     const p = buildPoster(data, ROOT, { generations: 4, lang: "en" });
     const label = p.texts.find((t) => t.text === "Generation 1")!, title = p.texts.find((t) => t.text === p.title)!;
