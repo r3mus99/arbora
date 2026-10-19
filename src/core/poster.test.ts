@@ -244,10 +244,16 @@ describe("poster plates", () => {
     expect(wrapped.texts.some((t) => t.text === "Maximiliana Konstantina")).toBe(true);
   });
 
+  test("a double border stands in a margin outside the tree, which the svg view box includes", () => {
+    const poster = buildPoster(data, ROOT, { generations: 4, posterSeed: 1 });
+    expect(poster.margin).toBeGreaterThan(0);
+    expect(posterSvg(poster)).toContain(`viewBox="${-poster.margin} ${-poster.margin} ${poster.width + 2 * poster.margin}`);
+  });
+
   test("every plate has its own hand-cut brown outline, and the name is blue for men and red for women", () => {
     const poster = buildPoster(data, ROOT, { generations: 4, posterSeed: 1 });
     const outlines = poster.shapes.filter((s) => s.fill === "#4a2f18" && !s.stroke);
-    expect(outlines.length).toBe(poster.people + 1); // one more for the frame of the title
+    expect(outlines.length).toBe(poster.people + 3); // the frame of the title and the two rings of the border
     expect(new Set(outlines.map((s) => s.d)).size).toBe(outlines.length);
     const names = poster.texts.filter((t) => t.bold && t.fill !== "#2a1d12");
     expect(names.some((t) => t.fill === "#2f5f9e")).toBe(true);

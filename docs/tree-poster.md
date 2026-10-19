@@ -41,6 +41,7 @@ decorative wall chart. This file records how it works and what is still open.
   (the father's side is walked first, depth first). The layout packs only the plates that remain, so the poster
   gets lower.
 - Names wrap to two lines when one line would be small; two-line names use a smaller font so the date line stays clear of the plate edge. A generation shares one name size and one date size, taken from its single-line plates; a plate with a wrapped name keeps its own smaller sizes and does not shrink the others.
+- A quiet double border with softly rounded corners, hand-cut like the plates, runs around the whole poster in a margin outside the tree (`Poster.margin`; the SVG view box starts at `-margin`, so `width` and `height` still describe the tree itself). It is always on.
 - Text widths come from the real fonts (`posterFonts`), so plates and text fit exactly; without fonts (tests) an estimate is used.
 
 ## Open points
