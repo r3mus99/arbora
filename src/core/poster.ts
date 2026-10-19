@@ -10,6 +10,7 @@
 import type { GedcomData, Person } from "./gedcom";
 import { formatDate, formatEvent, type ChartOptions } from "./format";
 import { normalize } from "./chart";
+import { yearOf } from "./date";
 import { TEXTS } from "./texts";
 import type { PosterFonts } from "./posterFont";
 
@@ -484,7 +485,13 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   }
 
   const title = o.title || TEXTS[o.lang].title.replace("{name}", root.name || "?");
-  texts.push(...marriages, { text: title, x: W / 2, y: 92, size: 58, bold: true, fill: C.ink });
+  // the title stands in a hand-cut frame like the plates, with the numbers of the poster under it
+  const stats = TEXTS[o.lang].posterStats.replace("{n}", String(plates.length - 1)).replace("{g}", String(gens));
+  const frameW = Math.max(measure(title, 58, true), measure(stats, 26, false)) + 120, frameH = 150, frameY = 100;
+  const [frameOuter, frameInner] = plateOutline(rnd, W / 2, frameY, frameW, frameH, 2);
+  plateShapes.push({ d: frameOuter, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: frameInner, fill: C.plate, stroke: null, strokeWidth: 0 });
+  texts.push(...marriages, { text: title, x: W / 2, y: frameY - 4, size: 58, bold: true, fill: C.ink },
+             { text: stats, x: W / 2, y: frameY + 40, size: 26, bold: false, fill: C.branch });
 
   shapes.push({ d: `M0,0L${W},0L${W},${H}L0,${H}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
               ...branches, ...leaves, ...symbols, ...plateShapes);
@@ -498,6 +505,9 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
   const name = p.name || "?";
   const dates = [formatEvent("birt", p.birth, { ...o, places: "none" }), formatEvent("deat", p.death, { ...o, places: "none" })]
     .filter(Boolean).join("  ");
+  // the age is only known (and worth printing) when both years are
+  const by = yearOf(p.birth?.date), dy = yearOf(p.death?.date);
+  const age = by !== null && dy !== null && dy >= by && dy - by < 130 ? `, ${dy - by} ${TEXTS[o.lang].ageAbbr}` : "";
   const avail = plate.w - 18;
   const base = plate.h / 3.4;
   const fit = (text: string, size: number, bold: boolean) => {
@@ -520,7 +530,7 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
     nameSize = Math.min(fit(halves[0], base * 1.1, true), fit(halves[1], base * 1.1, true));
     lines.push([halves[0], nameSize, true], [halves[1], nameSize, true]);
   }
-  if (dates) lines.push([dates, fit(dates, base * 0.95, false), false]);
+  if (dates) lines.push([dates + age, fit(dates + age, base * 0.95, false), false]);
   return lines;
 }
 
