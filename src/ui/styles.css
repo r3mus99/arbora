@@ -814,3 +814,19 @@ section.check { margin: 0 0 14px; }
   .tools .save-btn .badge { font-size: 12px; }
   footer { display: none; }
 }
+
+/* Motion: short, only opacity and a few pixels of movement, never the size of a column. One duration token; people who ask the
+   system for less motion get none. The tree and the lists do not animate (long lists would cost). */
+:root { --motion: .16s; }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes slide-in-left { from { opacity: 0; transform: translateX(-8px); } }
+@keyframes slide-in-right { from { opacity: 0; transform: translateX(12px); } }
+.rail-wrap { animation: slide-in-left var(--motion) ease-out; }
+.check-wide, .edit-window { animation: slide-in-right var(--motion) ease-out; }
+.detail { animation: fade-in var(--motion) ease-out; }
+.tree-row button { transition: background-color var(--motion); }
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion: 0s; }
+  .rail-wrap, .check-wide, .edit-window, .detail { animation: none; }
+  .tree-row button, .drop, .set-legend .chip { transition: none; }
+}
