@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.29.1 – 2026-10-19
+
+- **The settings legend shows that Labels also change the SVG tree poster.** Hovering the Labels setting now lights the SVG output as well as the screen and the PDF.
+
 ## 2.29.0 – 2026-10-19
 
 - **The settings show which output they change.** A row of Screen, PDF and SVG chips stays at the top of the settings, and the ones a setting affects light up while the pointer is over it. "End the branch at a repeated person" and the corner lists are offered only for posters of five or more generations. The groups are called Display, Text output (PDF) and Graphic output (SVG) and are set apart by a gap.

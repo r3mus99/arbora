@@ -1,1 +1,0 @@
-- **The settings legend shows that Labels also change the SVG tree poster.** Hovering the Labels setting now lights the SVG output as well as the screen and the PDF.
