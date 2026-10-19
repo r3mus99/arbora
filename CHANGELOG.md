@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.10.0 – 2026-10-19
+
+- **The tree poster stresses the closest generations and bends long branches.** The person is drawn at 200 %, the parents at 175 %, the grandparents at 150 %, the great-grandparents at 125 % and everyone further at 100 %, and long branches are curled instead of running straight.
+- **Poster plates have a brown border, and the name carries the colour.** The name is blue for men and red for women.
+
 ## 2.9.0 – 2026-10-19
 
 - **The tree poster is as high as the family needs.** Only people who exist take room on the poster: each person stands halfway between the parents and the branches of one side are packed as close as the plates allow, so a family with gaps gives a much lower poster, with no empty areas. The person stands in the middle below the two parents, joined to them by one limb that splits in two. The plates and the text keep their size, and the poster no longer has the fixed proportions of A paper.
