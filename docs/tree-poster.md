@@ -22,10 +22,11 @@ decorative wall chart. This file records how it works and what is still open.
   grow along them; a shoot that would touch a plate, another shoot or the edge is not drawn. The seed combines the
   person's id with a random number picked at each download, so every download is a new tree; the same seed (the
   `posterSeed` option) always draws the same one, which the tests use.
-- The year of a marriage is a small brown text "⚭ 1885" where the branches of the two parents meet: in the gap between
+- The year of a marriage and the number of children of the couple ("⚭ 1885" and under it "6 children", in the language
+  of the poster, plural by `Intl.PluralRules`; the date is left out when unknown) are a small brown text where the branches of the two parents meet: in the gap between
   a person and the parents, or beside the fork under the main person's parents. It has no plate of its own, its size
   follows the generation of the child (12 units times the plate scale), the gap between two columns is widened to fit
-  it, and nothing is shown when the date is unknown or a parent is missing. The room is kept free of side shoots before
+  it, and nothing is shown when a parent is missing. The room is kept free of side shoots before
   they grow, and afterwards the spot nearest the usual one that touches no plate, branch, shoot or leaf is taken.
 - Names wrap to two lines when one line would be small; a generation shares one name size and one date size.
 - Text widths come from the real fonts (`posterFonts`), so plates and text fit exactly; without fonts (tests) an estimate is used.
@@ -41,11 +42,23 @@ decorative wall chart. This file records how it works and what is still open.
    the person's children. They need drawn vectors; the branches stay generated.
 3. **Leaf shape:** one drawn leaf (a plain path) would replace the generic one.
 4. **Fonts:** the text is set in Alkatra (OFL, `public/fonts/Alkatra-*.woff`, Latin and Latin Extended) and written as outlines, so a print shop sees the same letters; what Alkatra lacks (Cyrillic) falls back to DejaVu Sans per character (`core/posterFont.ts`). Open: a Cyrillic font that matches Alkatra, kerning, and smaller files (the outlines make an SVG about 1 MB at five generations).
-5. **Places, sources and residence on plates** (the poster ignores places for now).
-6. **Density of side shoots:** an option (sparse, normal, dense).
-7. **Colour themes** (paper, branch and leaf colours; black and white for a laser printer).
-8. **A poster for descendants,** and more than ten generations (the width grows by one column per generation).
-9. **Fixed paper size:** the poster now has the proportions of its content, not of A paper. A choice of paper (fit or pad to A3/A2/A1) and a print margin could be added.
-10. **Pedigree collapse:** a repeated ancestor is drawn twice; mark the second plate or link them.
-11. **Other outputs** (PDF via pdf-lib `drawSvgPath`, PNG via a canvas `Path2D`) were built and dropped; the SVG is enough for now.
-12. **A preview** of the poster before the download.
+5. **Places, sources and residence on plates** (the poster ignores places for now). Tried as a preview and postponed
+   (Marek, 2026-10-19): an extra small line inside the plate, `* Graz  ⌂ Prague  † Vienna` (birth place, residence,
+   death place, only what is known), only for the generations with the big plates (200 % to 125 %), none for the
+   100 % ones. Findings: the plates need to be about 30 % higher (a separate residence line needs 55 % and two-line
+   names then touch the border); long place names shrink the line to small type, mostly on the 125 % plates, so a
+   long line would have to wrap or the places would be limited to 200 % to 150 %; the residence shows only when it
+   differs from the birth and death places. A residence line is better as an opt-in setting.
+6. **More facts on the poster** (Marek liked all five, 2026-10-19; the number of children comes first, see the
+   marriage text under "Plates"):
+   - the occupation under the name on the big plates (200 % to 125 %), only when known;
+   - the title with numbers, e.g. "63 ancestors in 6 generations", maybe the oldest known ancestor and the year;
+   - the age at death next to the years (*1907 †1986, 79 y.);
+   - a footer with the date of creation and the author's name, for print.
+7. **Density of side shoots:** an option (sparse, normal, dense).
+8. **Colour themes** (paper, branch and leaf colours; black and white for a laser printer).
+9. **A poster for descendants,** and more than ten generations (the width grows by one column per generation).
+10. **Fixed paper size:** the poster now has the proportions of its content, not of A paper. A choice of paper (fit or pad to A3/A2/A1) and a print margin could be added.
+11. **Pedigree collapse:** a repeated ancestor is drawn twice; mark the second plate or link them.
+12. **Other outputs** (PDF via pdf-lib `drawSvgPath`, PNG via a canvas `Path2D`) were built and dropped; the SVG is enough for now.
+13. **A preview** of the poster before the download.

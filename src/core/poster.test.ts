@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  buildPoster, load, posterFonts, posterSeed, posterSvg, random, textWidth,
+  buildPoster, LANGS, load, posterFonts, posterSeed, posterSvg, random, TEXTS, textWidth,
 } from "./index";
 
 const data = load(readFileSync(new URL("../../public/sample.ged", import.meta.url)));
@@ -167,12 +167,13 @@ describe("poster plates", () => {
     const names = poster.texts.filter((t) => t.bold && t.fill !== "#2a1d12");
     expect(names.some((t) => t.fill === "#2f5f9e")).toBe(true);
     expect(names.some((t) => t.fill === "#a8322a")).toBe(true);
-    expect(poster.texts.filter((t) => !t.bold && !t.text.startsWith("\u26AD")).every((t) => t.fill === "#2a1d12")).toBe(true);
+    expect(poster.texts.filter((t) => !t.bold && t.fill !== "#6b4626").every((t) => t.fill === "#2a1d12")).toBe(true);
   });
 });
 
 describe("poster marriage years", () => {
   const years = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.text.startsWith("\u26AD"));
+  const brown = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === "#6b4626");
 
   test("a marriage year stands at each couple, bigger for the closer generations, and nothing without a date", () => {
     const p = buildPoster(full(6, () => true, true), ROOT, { generations: 6 });
@@ -186,14 +187,46 @@ describe("poster marriage years", () => {
     expect(years(buildPoster(full(6), ROOT, { generations: 6 }))).toHaveLength(0);
   });
 
+  test("the number of children stands under the year, in the language of the poster, with the right plural", () => {
+    const families = (n: number) => load(`0 HEAD
+0 @I1@ INDI
+1 NAME Child /One/
+1 FAMC @F1@
+0 @I2@ INDI
+1 NAME Father /One/
+0 @I3@ INDI
+1 NAME Mother /One/
+0 @F1@ FAM
+1 HUSB @I2@
+1 WIFE @I3@
+1 MARR
+2 DATE 1885
+${Array.from({ length: n }, (_, i) => `1 CHIL @I${i === 0 ? 1 : 10 + i}@`).join("\n")}
+0 TRLR
+`);
+    const lines = (n: number, lang: "en" | "sk" | "uk") =>
+      buildPoster(families(n), "@I1@", { generations: 2, lang }).texts.filter((t) => t.fill === "#6b4626").map((t) => t.text);
+    expect(lines(1, "en")).toEqual(["\u26AD 1885", "1 child"]);
+    expect(lines(6, "en")).toEqual(["\u26AD 1885", "6 children"]);
+    expect(lines(1, "sk")[1]).toBe("1 dieťa");
+    expect(lines(3, "sk")[1]).toBe("3 deti");
+    expect(lines(5, "sk")[1]).toBe("5 detí");
+    expect(lines(3, "uk")[1]).toBe("3 дитини");
+    expect(lines(5, "uk")[1]).toBe("5 дітей");
+  });
+
+  test("every language names the children in three forms", () => {
+    for (const lang of LANGS) expect(TEXTS[lang].children.every((f) => f.length > 1), lang).toBe(true);
+  });
+
   test("a marriage year touches no plate and no other marriage year", () => {
     const p = buildPoster(full(7, () => true, true), ROOT, { generations: 7 });
     const hits: string[] = [];
     const box = (t: { text: string; x: number; y: number; size: number }) => [t.x, t.y - t.size * 0.3, textWidth(t.text, t.size, false), t.size] as const;
-    for (const t of years(p)) {
+    for (const t of brown(p)) {
       const [x, y, w, h] = box(t);
       for (const q of p.plates) if (Math.abs(x - q.x) < (w + q.w) / 2 && Math.abs(y - q.y) < (h + q.h) / 2) hits.push(`${t.text} ${q.id}`);
-      for (const u of years(p)) {
+      for (const u of brown(p)) {
         const [x2, y2, w2, h2] = box(u);
         if (u !== t && Math.abs(x - x2) < (w + w2) / 2 && Math.abs(y - y2) < (h + h2) / 2) hits.push(`${t.text} ${u.text}`);
       }
