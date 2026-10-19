@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.38.1 – 2026-10-19
+
+Spouses are always shown in the descendants chart and the PDF; the "Show spouses" setting is gone.
+
 ## 2.38.0 – 2026-10-19
 
 - **On a phone, Arbora shows the list of people and one person at a time.** The chart is hidden on narrow screens; tap a person to see the detail, use the back arrow to return to the list.
