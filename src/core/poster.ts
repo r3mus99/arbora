@@ -332,7 +332,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const corners = withCorners ? cornerBlocks(branchOf, o, measure, (key) => {
     const room = isTop(key) && beside ? sideRoom : W / 2 - 100;
     return room - (key.startsWith("father") ? plateLeft - 60 : W - 60 - plateRight);
-  }) : [];
+  }, gens) : [];
   const bandH = (top: boolean) => Math.max(0, ...corners.filter((c) => isTop(c.key) === top).map((c) => cornerHeight(c.rows.length)));
   const topH = bandH(true), bottomH = bandH(false);
   // title and plates move down when the lists need room above them

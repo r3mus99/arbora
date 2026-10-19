@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  buildPoster, load, mergeSurnameForms, posterFonts, posterSeed, posterSvg, random, textWidth, LANGS, TEXTS,
+  buildPoster, cornerMaxValues, load, mergeSurnameForms, posterFonts, posterSeed, posterSvg, random, textWidth, LANGS, TEXTS,
 } from "./index";
 
 const data = load(readFileSync(new URL("../../public/sample.ged", import.meta.url)));
@@ -517,12 +517,15 @@ describe("poster corner lists", () => {
     expect(lines(p)).toHaveLength(0);
   });
 
-  test("each of the four branches gets a heading and three lines (places, names, surnames) without labels, and the poster grows", () => {
+  test("each of the four branches gets a heading and three labelled lines (origin, first names, surnames), and the poster grows", () => {
     const off = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1 });
     const on = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
     expect(heads(on)).toHaveLength(4);
     expect(lines(on)).toHaveLength(12);
-    expect(on.texts.some((t) => ["Born in", "Names", "Surnames"].includes(t.text))).toBe(false);
+    expect(on.texts.some((t) => ["Born in", "Names"].includes(t.text))).toBe(false);
+    expect(lines(on).some((t) => t.text.startsWith("Origin: "))).toBe(true);
+    expect(lines(on).some((t) => t.text.startsWith("First names: "))).toBe(true);
+    expect(lines(on).some((t) => t.text.startsWith("Surnames: "))).toBe(true);
     expect(on.height).toBeGreaterThan(off.height);
     expect(on.width).toBe(off.width);
   });
@@ -530,7 +533,7 @@ describe("poster corner lists", () => {
   test("the lines count people: most common first, with the number", () => {
     const on = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
     // father's father is person 4; his branch holds 4, 8, 9 and 16 to 19, born in Town0 (4, 8, 16), Town1 (9, 17), Town2 (18), Town3 (19)
-    expect(on.texts.some((t) => t.text === "Town0 (3)  \u00B7  Town1 (2)  \u00B7  Town2  \u00B7  Town3")).toBe(true);
+    expect(on.texts.some((t) => t.text === "Origin: Town0 (3)  \u00B7  Town1 (2)  \u00B7  Town2  \u00B7  Town3")).toBe(true);
   });
 
   test("the last value is not followed by a dot before \"+ N more\"", () => {
@@ -559,7 +562,7 @@ describe("poster corner lists", () => {
 
   test("what does not fit is counted as \"+ N more\"", () => {
     const on = buildPoster(places(6), ROOT, { generations: 6, lang: "en", posterSeed: 1, posterCorners: true });
-    const names = on.texts.filter((t) => /^(Anna|Jan)\d+  ·/.test(t.text));
+    const names = on.texts.filter((t) => /^First names: (Anna|Jan)\d+  ·/.test(t.text));
     expect(names).toHaveLength(4);
     expect(names.every((t) => /\+ \d+ more$/.test(t.text))).toBe(true);
   });
@@ -587,20 +590,28 @@ describe("poster corner lists", () => {
 
   test("a corner is headed by the first person of the branch", () => {
     const p = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
-    expect(heads(p).map((t) => t.text).sort()).toEqual(["Line: Anna4 Branch0", "Line: Anna5 Branch1", "Line: Anna7 Branch1", "Line: Jan6 Branch0"].sort());
+    expect(heads(p).map((t) => t.text).sort()).toEqual(["Line: Anna4 Branch0  \u00B7  7 ancestors", "Line: Anna5 Branch1  \u00B7  7 ancestors", "Line: Anna7 Branch1  \u00B7  7 ancestors", "Line: Jan6 Branch0  \u00B7  7 ancestors"].sort());
   });
 
-  test("a corner line names at most five values", () => {
+  test("a corner line names at most 5 values up to 5 generations, 6 up to 7 and 7 from 8", () => {
+    expect([3, 5, 6, 7, 8, 10].map(cornerMaxValues)).toEqual([5, 5, 6, 6, 7, 7]);
     const p = buildPoster(places(6), ROOT, { generations: 6, lang: "en", posterSeed: 1, posterCorners: true });
-    const names = lines(p).filter((t) => /^(Anna|Jan)\d+/.test(t.text));
+    const names = lines(p).filter((t) => /^First names: (Anna|Jan)\d+/.test(t.text));
     expect(names.length).toBeGreaterThan(0);
-    for (const t of names) expect(t.text.split("  ·  ").filter((x) => !x.startsWith("+")).length).toBeLessThanOrEqual(5);
+    for (const t of names) expect(t.text.split("  ·  ").filter((x) => !x.startsWith("+")).length).toBeLessThanOrEqual(6);
+  });
+
+  test("a heading that fits names the line, the birth and the number of ancestors", () => {
+    const p = buildPoster(data, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true, dates: "full" }, fonts);
+    expect(heads(p).length).toBeGreaterThan(0);
+    expect(heads(p).every((t) => /^Line: .+  \u00B7  \d+ ancestors?$/.test(t.text))).toBe(true);
+    expect(heads(p).some((t) => /^Line: .+  \u00B7  b\. .+  \u00B7  \d+ ancestors$/.test(t.text))).toBe(true);
   });
 
   test("every language has the corner texts", () => {
     for (const lang of LANGS) {
       const t = TEXTS[lang].corners;
-      expect([t.line, ...t.more].every(Boolean), lang).toBe(true);
+      expect([t.line, t.origin, t.given, t.surnames, ...t.more].every(Boolean), lang).toBe(true);
     }
   });
 });
@@ -612,10 +623,10 @@ describe("poster corner lists: places and surnames", () => {
       + "0 @I4@ INDI\n1 NAME Jan /Test/\n1 BIRT\n2 DATE 1700\n1 FAMC @F3@\n0 @I6@ INDI\n1 NAME Petr /Test/\n1 BIRT\n2 PLAC Lesná, okres Doly\n0 @F3@ FAM\n1 HUSB @I6@\n1 CHIL @I4@\n0 @I5@ INDI\n1 NAME Anna /Test/\n"
       + "0 @F1@ FAM\n1 HUSB @I2@\n1 WIFE @I3@\n1 CHIL @I1@\n0 @F2@ FAM\n1 HUSB @I4@\n1 WIFE @I5@\n1 CHIL @I2@\n0 TRLR\n";
     const p = buildPoster(load(ged), ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
-    const born = p.texts.filter((t) => t.text.startsWith("Lesná"));
+    const born = p.texts.filter((t) => t.text.startsWith("Origin: Lesná"));
     expect(born.length).toBeGreaterThan(0);
     for (const t of born) expect(t.text).not.toContain("okres");
-    expect(p.texts.some((t) => t.bold && t.text === "Line: Jan Test  \u00B7  b. 1700")).toBe(true);
+    expect(p.texts.some((t) => t.bold && t.text === "Line: Jan Test  \u00B7  2 ancestors")).toBe(true);
   });
 
   test("a municipality and the same one with a number are one entry", () => {
@@ -625,7 +636,7 @@ describe("poster corner lists: places and surnames", () => {
       + "0 @F1@ FAM\n1 HUSB @I2@\n1 WIFE @I3@\n1 CHIL @I1@\n0 @F2@ FAM\n1 HUSB @I4@\n1 WIFE @I5@\n1 CHIL @I2@\n"
       + "0 @F3@ FAM\n1 HUSB @I6@\n1 WIFE @I7@\n1 CHIL @I4@\n0 TRLR\n";
     const p = buildPoster(load(ged), ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
-    expect(p.texts.some((t) => t.text === "Lesná (3)")).toBe(true);
+    expect(p.texts.some((t) => t.text === "Origin: Lesná (3)")).toBe(true);
   });
 
   test("female and male surname forms are one entry, shown in the male form", () => {

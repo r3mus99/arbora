@@ -43,11 +43,11 @@ decorative wall chart. This file records how it works and what is still open.
 - The setting "Places and name statistics in the corners" (`posterCorners`, off by default; `core/posterCorners.ts`) puts a
   list in each corner, one per main branch: top left the father's father line, bottom left the father's mother line,
   top right the mother's father line, bottom right the mother's mother line (the people of that branch on the poster,
-  each counted once). A list is a heading with the name and birth date of the head of the branch ("Line: Name  ·  b. 1700";
-  the date is left out when it does not fit) and up to three one-line rows without labels: birth municipalities (the part
+  each counted once). A list is a heading with the name and birth date of the head of the branch ("Line: Name  ·  b. 7 Apr 1700  ·  62 ancestors", the date format follows the Dates setting;
+  the birth and then the count are left out when they do not fit) and up to three labelled one-line rows ("Origin:", "First names:", "Surnames:"): birth municipalities (the part
   of the place before the first comma), first given names and surnames (only when the file separates them). Female and
   male forms of a surname (Nováková/Novák, Kowalska/Kowalski, Иванова/Иванов) are one entry shown in the male form. A row
-  names the most common values first, at most five, with the number of people ("Vienna (7)  ·  Prague (5)"); the rest
+  names the most common values first, at most 5 (up to 5 generations), 6 (6 and 7) or 7 (from 8), with the number of people ("Vienna (7)  ·  Prague (5)"); the rest
   is counted ("+ 13 more", with no dot before it). A trailing district number ("Prague 2") is dropped, so the municipality and its numbered forms are one entry. The left lists start at the leftmost plate edge and the right ones end at the rightmost. A row without values is left out. The poster grows: the top lists stand beside the title when there is
   room (otherwise above it, and the title moves down), the bottom ones under the lowest plates.
 - Names wrap to two lines when one line would be small; two-line names use a smaller font so the date line stays clear of the plate edge. A generation shares one name size and one date size, taken from its single-line plates; a plate with a wrapped name keeps its own smaller sizes and does not shrink the others.
