@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.42.0 – 2026-10-19
+
+- **Every corner is rounded the same.** Fields, buttons, chips, switches and cards all use one 10 px radius; fields are rounded at the top so their underline stays straight.
+
 ## 2.41.0 – 2026-10-19
 
 - **Keyboard shortcuts and small transitions.** ⌘F (Ctrl+F) searches the list of people, ⌘S downloads the GED, ⌘, opens the settings and ⌘Z / ⇧⌘Z undoes and redoes; the shortcut is shown in the button tooltips. Panels slide in and the detail fades in when another person is chosen; with "reduce motion" set in the system there is no animation.
