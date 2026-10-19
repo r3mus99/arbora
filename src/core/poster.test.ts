@@ -41,7 +41,7 @@ describe("seeded random", () => {
 });
 
 describe("poster layout", () => {
-  test("a full five-generation tree has a plate for each of the 31 ancestors, and the root in the middle, level with the parents", () => {
+  test("a full five-generation tree has a plate for each of the 31 ancestors, and the root below the parents in the middle", () => {
     const p = buildPoster(data, ROOT, { generations: 5, lang: "en" });
     expect(p.people).toBe(31);
     expect(p.generations).toBe(5);
@@ -50,7 +50,8 @@ describe("poster layout", () => {
     expect(root.x).toBe(p.width / 2);
     const parents = p.plates.filter((q) => q.gen === 2);
     expect(parents).toHaveLength(2);
-    expect(parents.every((q) => q.y === root.y)).toBe(true);
+    expect(parents[0].y).toBe(parents[1].y);
+    expect(root.y).toBeGreaterThan(parents[0].y + root.h / 2);
   });
 
   test("everything stays inside the drawing area and no line is wider than the assumed text width", () => {

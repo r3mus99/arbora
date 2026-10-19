@@ -1,6 +1,5 @@
 /**
- * Tree poster: the ancestors of one person as a decorative wall chart. The person stands in the centre, level with the
- * parents, the father's line unfolds to the left and the mother's to the right, one generation per column. Name plates have exact
+ * Tree poster: the ancestors of one person as a decorative wall chart. The person stands in the centre below the parents, the father's line unfolds to the left and the mother's to the right, one generation per column. Name plates have exact
  * positions; the branches between them are drawn from a seeded random generator, so one seed always gives the same
  * tree and every seed a different one.
  *
@@ -185,7 +184,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const plateW = gens <= 4 ? 280 : gens <= 6 ? 230 : 200;
   const rootW = 400;
   const colStep = plateW + 70;
-  const firstX = rootW / 2 + 120 + plateW / 2;
+  const firstX = plateW / 2 + 40;
   const W = Math.max(1400, Math.round(2 * (firstX + (gens - 2) * colStep + plateW / 2 + 20)));
   const top = 190, bottom = 70;
   const plates: Plate[] = [];
@@ -250,16 +249,17 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     const low = Math.min(...c.map((r) => r[0])), high = Math.max(...c.map((r) => r[1]));
     return { plate, low, high };
   });
-  // the parents stand level with the person in the middle, so the branches from the person are short; the rest of
-  // each side hangs above and below them
+  // the two parents stand level in the middle, the person below them; the rest of each side hangs above and below
+  // the parents
   const levelY = top + plateH / 2 + Math.max(0, ...sides.map((x) => -x.low));
-  const H = Math.round(levelY + Math.max(0, ...sides.map((x) => x.high)) + plateH / 2 + bottom);
+  const rootY = levelY + plateH / 2 + 140 + rootPlate.h / 2;
+  const H = Math.round(Math.max(levelY + Math.max(0, ...sides.map((x) => x.high)) + plateH / 2, rootY + rootPlate.h / 2) + bottom);
   const settle = (plate: Plate, y: number) => {
     plate.y = y;
     (kids.get(plate) || []).forEach((q, i) => settle(q, y + offsets.get(plate)![i]));
   };
   for (const x of sides) settle(x.plate, levelY);
-  rootPlate.y = levelY;
+  rootPlate.y = rootY;
 
   // ------------------------------------------------------------ branches
   const shapes: PosterShape[] = [];
@@ -308,8 +308,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     return true;
   };
 
-  /** A smooth curve from `a` to `b` with a seeded wiggle; it leaves `a` sideways. */
-  const curve = (a: Point, b: Point): Point[] => {
+  /** A smooth curve from `a` to `b` with a seeded wiggle; it leaves `a` sideways or, with `up`, upwards. */
+  const curve = (a: Point, b: Point, up = false): Point[] => {
     const N = 14, [dx, dy] = [b[0] - a[0], b[1] - a[1]];
     const len = Math.hypot(dx, dy) || 1;
     const phase = uniform(0, Math.PI * 2), freq = uniform(1, 1.8), amp = uniform(0.03, 0.07) * len + 6;
@@ -317,19 +317,17 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     for (let i = 0; i <= N; i++) {
       const t = i / N, s = t * t * (3 - 2 * t);
       const wob = Math.sin(phase + t * freq * Math.PI * 2) * amp * Math.sin(Math.PI * t) ** 0.8;
-      pts.push([a[0] + dx * t, a[1] + dy * s + wob]);
+      pts.push(up ? [a[0] + dx * s + wob, a[1] + dy * t] : [a[0] + dx * t, a[1] + dy * s + wob]);
     }
     return pts;
   };
 
-  const grow = (child: Plate, parent: Plate, side: -1 | 1) => {
-    const from: Point = [child.x + side * child.w / 2, child.y];
-    const to: Point = [parent.x - side * parent.w / 2, parent.y];
-    const pts = curve(from, to);
-    const thick = gens - parent.gen;
+  /** A limb along `pts` of the given thickness class, with side shoots and leaves. */
+  const limb = (pts: Point[], thick: number) => {
     const d = dense(pts);
     branch(tapered(d, 5 + 2.2 * thick, 2.5 + 1.2 * thick), 1);
-    const count = Math.max(2, Math.round(Math.hypot(to[0] - from[0], to[1] - from[1]) / 95));
+    const [a, b] = [pts[0], pts[pts.length - 1]];
+    const count = Math.max(2, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / 95));
     let side2 = pick([-1, 1]);
     for (let i = 0; i < count; i++) {
       const k = Math.min(Math.max(Math.floor(d.length * (i + 0.5 + uniform(-0.2, 0.2)) / count), 3), d.length - 4);
@@ -338,9 +336,22 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
         if (twig(d[k][0], d[k][1], angleAt(d, k) + side2 * uniform(40, 70) * Math.PI / 180, uniform(34, 60), 3.4, 1)) break;
       }
     }
+  };
+
+  const grow = (child: Plate, parent: Plate, side: -1 | 1) => {
+    limb(curve([child.x + side * child.w / 2, child.y], [parent.x - side * parent.w / 2, parent.y]), gens - parent.gen);
     for (const q of kids.get(parent) || []) grow(parent, q, side);
   };
-  for (const [plate, side] of rootKids) grow(rootPlate, plate, side);
+  // one limb rises from the person and splits in two, one for each parent
+  if (rootKids.length) {
+    const lowest = Math.max(...rootKids.map(([plate]) => plate.y + plate.h / 2));
+    const fork: Point = [rootPlate.x, lowest + 70];
+    limb(curve([rootPlate.x, rootPlate.y - rootPlate.h / 2], fork, true), gens - 1);
+    for (const [plate, side] of rootKids) {
+      limb(curve(fork, [plate.x - side * plate.w * 0.2, plate.y + plate.h / 2], true), gens - 2);
+      for (const q of kids.get(plate) || []) grow(plate, q, side);
+    }
+  }
 
   // ------------------------------------------------------------ plates and texts
   const texts: PosterText[] = [];
