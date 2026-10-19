@@ -169,6 +169,35 @@ describe("poster plates", () => {
   });
 });
 
+describe("poster plate sizes", () => {
+  test("the closest generations have bigger plates: 200 %, 175 %, 150 %, 125 %, then 100 %", () => {
+    for (const d of [data, full(6)]) {
+      const p = buildPoster(d, ROOT, { generations: 6 });
+      const width = (gen: number) => p.plates.find((q) => q.gen === gen)!.w;
+      const height = (gen: number) => p.plates.find((q) => q.gen === gen)!.h;
+      for (const [gen, scale] of [[1, 2], [2, 1.75], [3, 1.5], [4, 1.25], [5, 1], [6, 1]]) {
+        expect(width(gen) / width(5), `width ${gen}`).toBeCloseTo(scale, 1);
+        expect(height(gen) / height(5), `height ${gen}`).toBeCloseTo(scale, 1);
+      }
+    }
+  });
+
+  test("bigger plates never overlap, and the text is bigger with them", () => {
+    const p = buildPoster(full(6), ROOT, { generations: 6 });
+    const hits: string[] = [];
+    for (const a of p.plates) {
+      for (const b of p.plates) {
+        if (a.id < b.id && Math.abs(a.x - b.x) < (a.w + b.w) / 2 && Math.abs(a.y - b.y) < (a.h + b.h) / 2) hits.push(`${a.id} ${b.id}`);
+      }
+    }
+    expect(hits).toEqual([]);
+    const size = (id: string) => p.texts.find((t) => t.text === `P${id.replace(/\D/g, "")} Full`)!.size;
+    expect(size("@I1@")).toBeGreaterThan(size("@I2@"));
+    expect(size("@I2@")).toBeGreaterThan(size("@I4@"));
+    expect(size("@I4@")).toBeGreaterThan(size("@I32@"));
+  });
+});
+
 describe("poster beyond seven generations", () => {
   test("a bigger poster keeps the size of the plates and of the text", () => {
     const seven = buildPoster(full(7), "@I1@", { generations: 7 });
