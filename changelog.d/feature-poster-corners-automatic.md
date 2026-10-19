@@ -1,1 +1,0 @@
-- **The tree poster shows the corner statistics on its own.** The "Places and name statistics in the corners" checkbox is gone: from 5 generations that are really on the poster each of the four main branches gets its list of places, first names and surnames, as long as the branch has at least 5 people.

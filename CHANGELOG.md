@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.37.0 – 2026-10-19
+
+- **The tree poster shows the corner statistics on its own.** The "Places and name statistics in the corners" checkbox is gone: from 5 generations that are really on the poster each of the four main branches gets its list of places, first names and surnames, as long as the branch has at least 5 people.
+
 ## 2.36.0 – 2026-10-19
 
 - **The PDF is always A4, in colour, and turns landscape on its own.** The page size, orientation and colour settings are gone; the font shrinks down to 6 pt and the pages become landscape only when even that does not fit a portrait page. A printer can scale the A4 PDF to Letter and other papers.
