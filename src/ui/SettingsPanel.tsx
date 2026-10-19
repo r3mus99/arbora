@@ -27,7 +27,6 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     onMouseEnter: () => setHot(scopes), onMouseLeave: () => setHot([]),
     onFocus: () => setHot(scopes), onBlur: () => setHot([]),
   });
-  const desc = form.chart === "descendants";
   const ab = TEXTS[lang].abbr;
   const sel = <K extends keyof Form>(key: K) => ({
     value: form[key] as string,
