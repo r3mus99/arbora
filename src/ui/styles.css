@@ -231,8 +231,9 @@ footer a { color: var(--accent); }
 .detail .row-icon .icon { width: var(--d-icon-row); height: var(--d-icon-row); }
 .facts { margin-top: 14px; }
 .section { min-width: 0; }
-/* sections are told apart by a thin line */
-.facts > * + * { margin-top: var(--d-section-gap); padding-top: var(--d-section-gap); border-top: 1px solid var(--border); }
+/* sections are inset cards (the same look as the parts of the edit window) */
+.facts { display: grid; gap: 10px; }
+.facts > .section { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 10px 12px; }
 .sec-head { display: grid; grid-template-columns: var(--d-col) auto 1fr; column-gap: var(--d-gap); align-items: center;
             margin: 0 0 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
             color: var(--muted); font-family: inherit; list-style: none; cursor: default; }
@@ -250,7 +251,7 @@ footer a { color: var(--accent); }
 .timeline .sec-rows { position: relative; }
 .timeline .sec-rows::before { content: ""; position: absolute; left: calc(var(--d-col) / 2 - 1px); top: 14px; bottom: 14px;
                               width: 2px; background: var(--border); }
-.timeline .row-icon .icon { position: relative; background: var(--panel); box-shadow: 0 3px 0 var(--panel), 0 -3px 0 var(--panel); }
+.timeline .row-icon .icon { position: relative; background: var(--bg); box-shadow: 0 3px 0 var(--bg), 0 -3px 0 var(--bg); }
 .tl-body { min-width: 0; overflow-wrap: anywhere; position: relative; }
 /* the sources button sits at the right end of the first line; the opened sources go below the event */
 .tl-body.has-src .tl-date { padding-right: 52px; }
