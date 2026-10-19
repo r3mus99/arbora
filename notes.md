@@ -1,1 +1,1 @@
-- **The poster draws symbols before the marriage year and the number of children.** Two rings lead the year and two small figures lead the number, both left-aligned; an only child is not counted, and the word "children" no longer needs translating.
+- **The poster shows the age at death and a framed title.** Nameplates read "*1907 †1986, 79 y." when both years are known, and the title stands in a hand-cut frame with the numbers of ancestors and generations under it, in all 12 languages.

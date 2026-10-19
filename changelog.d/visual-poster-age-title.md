@@ -1,1 +1,0 @@
-- **The poster shows the age at death and a framed title.** Nameplates read "*1907 †1986, 79 y." when both years are known, and the title stands in a hand-cut frame with the numbers of ancestors and generations under it, in all 12 languages.
