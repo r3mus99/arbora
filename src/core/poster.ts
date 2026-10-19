@@ -486,7 +486,13 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
 
   const title = o.title || TEXTS[o.lang].title.replace("{name}", root.name || "?");
   // the title stands in a hand-cut frame like the plates, with the numbers of the poster under it
-  const stats = TEXTS[o.lang].posterStats.replace("{n}", String(plates.length - 1)).replace("{g}", String(gens));
+  const born = [...people.values()].map((x) => yearOf(x.birth?.date)).filter((y): y is number => y !== null);
+  const rootYear = yearOf(root.birth?.date);
+  const plural = new Intl.PluralRules(o.lang);
+  const counted = (n: number, forms: string[]) => `${n} ${forms[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2]}`;
+  // "6 generations · 62 ancestors · 1722–1887": the range runs from the oldest birth to the main person's
+  const stats = [counted(gens, TEXTS[o.lang].generations), counted(plates.length - 1, TEXTS[o.lang].ancestors),
+    rootYear !== null && born.length > 1 ? `${Math.min(...born)}\u2013${rootYear}` : ""].filter(Boolean).join(" \u00B7 ");
   const frameW = Math.max(measure(title, 58, true), measure(stats, 26, false)) + 120, frameH = 150, frameY = 100;
   const [frameOuter, frameInner] = plateOutline(rnd, W / 2, frameY, frameW, frameH, 2);
   plateShapes.push({ d: frameOuter, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: frameInner, fill: C.plate, stroke: null, strokeWidth: 0 });

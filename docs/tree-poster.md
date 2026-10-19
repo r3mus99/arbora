@@ -53,8 +53,9 @@ decorative wall chart. This file records how it works and what is still open.
 6. **More facts on the poster** (Marek liked all five, 2026-10-19; the number of children is done, see the
    marriage text under "Plates"):
    - the occupation under the name on the big plates (200 % to 125 %), only when known;
-   - ~~the title with numbers~~ done: the title stands in a hand-cut frame with "Ancestors: 62 · Generations: 6" under it
-     (`posterStats`); maybe the oldest known ancestor and the year;
+   - ~~the title with numbers~~ done: the title stands in a hand-cut frame with "6 generations · 62 ancestors · 1722–1887" under it
+     (the nouns follow the plural of the language: `generations`, `ancestors`; the years run from the oldest birth to the main
+     person's and are left out when unknown);
    - ~~the age at death next to the years~~ done (*1907 †1986, 79 y.), only when both years are known (`ageAbbr`);
    - a footer with the date of creation and the author's name, for print.
 7. **Density of side shoots:** an option (sparse, normal, dense).

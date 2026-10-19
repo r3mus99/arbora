@@ -194,12 +194,19 @@ describe("poster age and title", () => {
 
   test("the title stands in its own frame with the number of ancestors and generations under it", () => {
     const p = buildPoster(data, ROOT, { generations: 4, lang: "en" });
-    expect(p.texts.some((t) => t.text === `Ancestors: ${p.people - 1} \u00B7 Generations: 4`)).toBe(true);
+    const root = p.texts.find((t) => t.text.startsWith(`4 generations \u00B7 ${p.people - 1} ancestors`))!;
+    expect(root).toBeDefined();
+    expect(root.text).toMatch(/ \u00B7 \d{4}\u2013\d{4}$/); // from the oldest birth to the main person's
+    // the nouns follow the plural of the language
+    const first = (generations: number, lang: "sk" | "en") => buildPoster(data, ROOT, { generations, lang }).texts.find((t) => /\u00B7/.test(t.text) && /^\d/.test(t.text))!.text.split(" \u00B7 ")[0];
+    expect(first(3, "sk")).toBe("3 generácie");
+    expect(first(5, "sk")).toBe("5 generácií");
+    expect(first(5, "en")).toBe("5 generations");
   });
 });
 
 describe("poster marriage years", () => {
-  const brown = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === "#6b4626" && !t.text.startsWith("Ancestors:"));
+  const brown = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === "#6b4626" && !/^\d+ generations \u00B7 /.test(t.text));
   const years = (p: ReturnType<typeof buildPoster>) => brown(p).filter((t) => /^\d{4}$/.test(t.text));
 
   test("a marriage year stands at each couple, bigger for the closer generations, and nothing without a date", () => {
