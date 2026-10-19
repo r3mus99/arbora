@@ -116,40 +116,30 @@ function dense(pts: Point[], k = 6): Point[] {
   return out;
 }
 
-/** A closed Catmull-Rom curve through `pts`. */
-function closedDense(pts: Point[], k = 6): Point[] {
-  const n = pts.length;
-  return dense([pts[n - 1], ...pts, pts[0], pts[1]], k).slice(k, k * (n + 1) + 1);
+/** A rectangle with corners rounded by `r`, as a path around the centre (cx, cy). Rectangles that are too small for `r` get less rounding. */
+function roundedRect(cx: number, cy: number, w: number, h: number, r: number, hole = false): string {
+  const x0 = cx - w / 2, y0 = cy - h / 2, x1 = cx + w / 2, y1 = cy + h / 2;
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
+  const a = (x: number, y: number) => `A${num(r)},${num(r)} 0 0 ${hole ? 0 : 1} ${num(x)},${num(y)}`;
+  const l = (x: number, y: number) => `L${num(x)},${num(y)}`;
+  // a hole runs the other way round, so that it cuts out of the shape it lies in
+  return hole
+    ? `M${num(x0 + r)},${num(y0)}${a(x0, y0 + r)}${l(x0, y1 - r)}${a(x0 + r, y1)}${l(x1 - r, y1)}${a(x1, y1 - r)}${l(x1, y0 + r)}${a(x1 - r, y0)}Z`
+    : `M${num(x0 + r)},${num(y0)}${l(x1 - r, y0)}${a(x1, y0 + r)}${l(x1, y1 - r)}${a(x1 - r, y1)}${l(x0 + r, y1)}${a(x0, y1 - r)}${l(x0, y0 + r)}${a(x0 + r, y0)}Z`;
 }
 
 /**
- * A hand-cut plate: edges that are slightly uneven and a border whose width changes along the way. Returns the outer
- * shape (drawn in the ink colour) and the inner shape (drawn over it in the paper colour) around the centre (cx, cy); the border grows with the plate (`scale`).
+ * A plate with straight edges, rounded corners and a double line (a thick one outside, a thin one inside, like the
+ * border of the whole poster); with `single` just one line. Returns the ink shape (the lines) and the paper shape
+ * (drawn over it), both around the centre (cx, cy); the lines grow with the plate (`scale`).
  */
-function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number, scale = 1, wobbleH = h): [string, string] {
-  const u = (a: number) => (rnd() * 2 - 1) * a;
-  const base = 2 + rnd();
-  const border = () => Math.max(1.3, base + u(1.1)) * scale;
-  const wob = wobbleH * 0.022;
-  const xs = (n: number) => Array.from({ length: n }, (_, i) => w * (i + 0.5) / n);
-  const ys = (n: number) => Array.from({ length: n }, (_, i) => h * (i + 0.5) / n);
-  // clockwise from the top left corner: [x, y, inward x, inward y]
-  const seq: [number, number, number, number][] = [[u(wob), u(wob), 1, 1]];
-  for (const x of xs(4)) seq.push([x, u(wob * 1.3) + wobbleH * 0.01 * Math.sin(x / w * 6), 0, 1]);
-  seq.push([w + u(wob), u(wob), -1, 1]);
-  for (const y of ys(2)) seq.push([w + u(wob * 1.3), y, -1, 0]);
-  seq.push([w + u(wob), h + u(wob), -1, -1]);
-  for (const x of xs(4).reverse()) seq.push([x, h + u(wob * 1.3) + wobbleH * 0.015 * Math.sin(x / w * 5 + 1), 0, -1]);
-  seq.push([u(wob), h + u(wob), 1, -1]);
-  for (const y of ys(2).reverse()) seq.push([u(wob * 1.3), y, 1, 0]);
-  const outer: Point[] = [], inner: Point[] = [];
-  for (const [x, y, nx, ny] of seq) {
-    const t = border();
-    outer.push([cx - w / 2 + x, cy - h / 2 + y]);
-    inner.push([cx - w / 2 + x + nx * t, cy - h / 2 + y + ny * t]);
-  }
-  const path = (pts: Point[]) => "M" + closedDense(pts, 5).map(([x, y]) => `${num(x)},${num(y)}`).join("L") + "Z";
-  return [path(outer), path(inner)];
+function plateOutline(cx: number, cy: number, w: number, h: number, scale: number, single = false): [string, string] {
+  const thick = 2.2 * scale, gap = 2.6 * scale, thin = 1.2 * scale, r = 7 * scale;
+  const ring = (inset: number, width: number) =>
+    roundedRect(cx, cy, w - 2 * inset, h - 2 * inset, r - inset) + roundedRect(cx, cy, w - 2 * (inset + width), h - 2 * (inset + width), r - inset - width, true);
+  if (single) return [ring(0, thick), roundedRect(cx, cy, w - 2 * thick, h - 2 * thick, r - thick)];
+  const inner = thick + gap + thin;
+  return [ring(0, thick) + ring(thick + gap, thin), ring(thick, gap) + roundedRect(cx, cy, w - 2 * inner, h - 2 * inner, r - inner)];
 }
 
 const angleAt = (d: Point[], k: number) => {
@@ -292,7 +282,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const appearances = new Map<string, number>();
   for (const plate of plates) appearances.set(plate.id, (appearances.get(plate.id) ?? 0) + 1);
   const title = o.title || TEXTS[o.lang].title.replace("{name}", root.name || "?");
-  // the title stands in a hand-cut frame like the plates, with the numbers of the poster under it
+  // the title stands in a frame like the plates, with the numbers of the poster under it
   const born = [...people.values()].map((x) => yearOf(x.birth?.date)).filter((y): y is number => y !== null);
   const rootYear = yearOf(root.birth?.date);
   const plural = new Intl.PluralRules(o.lang);
@@ -566,7 +556,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   }
   for (const plate of plates) {
     const sex = people.get(plate)!.sex;
-    const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h, lookOf(plate.gen));
+    const [outer, inner] = plateOutline(plate.x, plate.y, plate.w, plate.h, lookOf(plate.gen), small(plate.gen));
     plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 },
                      { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
     const own = lines.get(plate)!;
@@ -577,12 +567,12 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     const times = appearances.get(plate.id)!;
     if (times > 1) {
       const k = lookOf(plate.gen), w = 24 * k, h = 15 * k, cx = plate.x + plate.w / 2 - 8 * k, cy = plate.y - plate.h / 2 + 2 * k;
-      plateShapes.push({ d: plateOutline(rnd, cx, cy, w, h, k)[0], fill: C.branchEdge, stroke: null, strokeWidth: 0 });
+      plateShapes.push({ d: roundedRect(cx, cy, w, h, 3 * k), fill: C.branchEdge, stroke: null, strokeWidth: 0 });
       texts.push({ text: `${times}\u00D7`, x: cx, y: cy + h * 0.3, size: h * 0.85, bold: true, fill: C.plate });
     }
   }
 
-  const [frameOuter, frameInner] = plateOutline(rnd, W / 2, frameY, frameW, frameH, 2);
+  const [frameOuter, frameInner] = plateOutline(W / 2, frameY, frameW, frameH, 2);
   plateShapes.push({ d: frameOuter, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: frameInner, fill: C.plate, stroke: null, strokeWidth: 0 });
   texts.push(...marriages, { text: title, x: W / 2, y: frameY - 4, size: 58, bold: true, fill: C.ink },
              { text: stats, x: W / 2, y: frameY + 40, size: 26, bold: false, fill: C.branch });
@@ -624,7 +614,8 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
   const by = yearOf(p.birth?.date), dy = yearOf(p.death?.date);
   const age = by !== null && dy !== null && dy >= by && dy - by < 130 ? `, ${dy - by} ${TEXTS[o.lang].ageAbbr}` : "";
   const small = plate.gen >= POSTER_SMALL_FROM;
-  const avail = plate.w - (small ? 12 : 18);
+  // the double line of a big plate grows with it and needs more room than the usual margin
+  const avail = plate.w - (small ? 12 : 18 + 2 * Math.max(0, 6.5 * plate.h / 66 - 9));
   const minSize = small ? 5.5 : 9;
   const base = plate.h / 3.4;
   const fit = (text: string, size: number, bold: boolean) => {

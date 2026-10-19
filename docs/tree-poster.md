@@ -8,7 +8,7 @@ decorative wall chart. This file records how it works and what is still open.
 - `buildPoster()` returns a flat drawing: shapes (SVG path data with fill and stroke) and centred text lines, in an area
   sized by the content. `posterSvg` writes it as SVG (Marek decided in the thread that SVG is the
   only export, next to GED and PDF in the top bar). The list is output-neutral, so PDF or PNG can be added later.
-- Plates are hand-cut labels (uneven edges, border width varies, brown border, the name blue for men and red for women). The people the person may still have known
+- Plates are rectangles with straight edges and rounded corners, a double brown line like the poster border (a single line from the 7th generation on), the name blue for men and red for women). The people the person may still have known
   stand out: the person is drawn at 200 %, the parents at 175 %, the grandparents at 150 %, the great-grandparents at 125 %,
   every further generation at 100 % (`POSTER_PLATE_SCALE`); the text and the border grow with the plate, and the packing and the column
   widths take the plate sizes into account. The person is in the centre below the two parents (one limb rises from them and splits in two; the parents are level and close to the middle, which keeps the poster narrow), the father's line left, the mother's right, one column per
@@ -31,7 +31,7 @@ decorative wall chart. This file records how it works and what is still open.
   they grow, and afterwards the spot nearest the usual one that touches no plate, branch, shoot or leaf is taken, searched up to 70 units sideways and 120 up or down: a spot between the two branches is preferred, one above or below them is the last resort.
 - A person who is an ancestor on more than one branch (the family married within itself) keeps a plate on every
   branch, so the tree stays clean and symmetrical; each of those plates carries a small brown tag with the count ("2×")
-  in its top right corner, drawn with the same hand-cut outline as the plates (not a circle), and the title counts every
+  in its top right corner, drawn as a small rounded rectangle (not a circle), and the title counts every
   person once.
 - The setting "End the branch at a repeated person" (`posterOnce`, off by default) shortens the poster when there
   are many generations: a person met again is drawn as a plate only and ends the branch there (with the "2×" tag)
@@ -56,9 +56,8 @@ decorative wall chart. This file records how it works and what is still open.
 
 ## Open points
 
-1. **Fine-tune the name plates.** Plates are plain hand-cut labels: uneven sides and a border of changing width, drawn as
-   two flat shapes (brown under paper colour); the name is blue for men and red for women (ink for unknown sex; the dates stay ink). An earlier variant coloured the border by sex. Every plate is
-   different because the seed drives its edges. Later ideas: more characterful shapes (scroll ends, folded corners, branch
+1. **Fine-tune the name plates.** Plates are plain labels with straight sides, rounded corners and a double line (single from the 7th generation on), drawn as
+   two flat shapes (brown under paper colour); the name is blue for men and red for women (ink for unknown sex; the dates stay ink). An earlier variant coloured the border by sex. Later ideas: more characterful shapes (scroll ends, folded corners, branch
    frames, tried in prototypes under `arbora/tree-poster/nameplate` in the project files), border-width and waviness
    settings.
 2. **Fixed decorations:** the title ribbon, the crown of the tree in the middle, roots under the person, a list of
@@ -75,7 +74,7 @@ decorative wall chart. This file records how it works and what is still open.
 6. **More facts on the poster** (Marek liked all five, 2026-10-19; the number of children is done, see the
    marriage text under "Plates"):
    - the occupation under the name on the big plates (200 % to 125 %), only when known;
-   - ~~the title with numbers~~ done: the title stands in a hand-cut frame with "6 generations · 62 ancestors · 1722–1887" under it
+   - ~~the title with numbers~~ done: the title stands in a plate-like frame with "6 generations · 62 ancestors · 1722–1887" under it
      (the nouns follow the plural of the language: `generations`, `ancestors`; the years run from the oldest birth to the main
      person's and are left out when unknown);
    - ~~the age at death next to the years~~ done (*1907 †1986, 79 y.), only when both years are known (`ageAbbr`);
