@@ -475,6 +475,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
       smallest.set(key, Math.min(smallest.get(key) ?? Infinity, size));
     }
   }
+  const appearances = new Map<string, number>();
+  for (const plate of plates) appearances.set(plate.id, (appearances.get(plate.id) ?? 0) + 1);
   for (const plate of plates) {
     const sex = people.get(plate)!.sex;
     const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h, scaleOf(plate.gen));
@@ -482,6 +484,14 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
                      { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
     const same = lines.get(plate)!.map(([text, , bold]): Line => [text, smallest.get(`${plate.gen}${bold}`)!, bold]);
     texts.push(...stack(plate, same, sex === "M" ? C.male : sex === "F" ? C.female : C.ink));
+    // a person who stands on the poster more than once (both lines of the family lead to them) carries a small
+    // brown tag with the number of places in the top right corner
+    const times = appearances.get(plate.id)!;
+    if (times > 1) {
+      const k = scaleOf(plate.gen), w = 24 * k, h = 15 * k, cx = plate.x + plate.w / 2 - 8 * k, cy = plate.y - plate.h / 2 + 2 * k;
+      plateShapes.push({ d: plateOutline(rnd, cx, cy, w, h, k)[0], fill: C.branchEdge, stroke: null, strokeWidth: 0 });
+      texts.push({ text: `${times}\u00D7`, x: cx, y: cy + h * 0.3, size: h * 0.85, bold: true, fill: C.plate });
+    }
   }
 
   const title = o.title || TEXTS[o.lang].title.replace("{name}", root.name || "?");
@@ -491,7 +501,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const plural = new Intl.PluralRules(o.lang);
   const counted = (n: number, forms: string[]) => `${n} ${forms[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2]}`;
   // "6 generations · 62 ancestors · 1722–1887": the range runs from the oldest birth to the main person's
-  const stats = [counted(gens, TEXTS[o.lang].generations), counted(plates.length - 1, TEXTS[o.lang].ancestors),
+  const stats = [counted(gens, TEXTS[o.lang].generations), counted(appearances.size - 1, TEXTS[o.lang].ancestors),
     rootYear !== null && born.length > 1 ? `${Math.min(...born)}\u2013${rootYear}` : ""].filter(Boolean).join(" \u00B7 ");
   const frameW = Math.max(measure(title, 58, true), measure(stats, 26, false)) + 120, frameH = 150, frameY = 100;
   const [frameOuter, frameInner] = plateOutline(rnd, W / 2, frameY, frameW, frameH, 2);
