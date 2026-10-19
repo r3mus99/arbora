@@ -98,11 +98,12 @@ export function cornerBlocks(branches: Record<CornerKey, Person[]>, o: ChartOpti
     while (n > 1 && measure(shown(n), CORNER_VALUE_SIZE, false) > width) n--;
     return shown(n);
   };
-  // the head of the branch (the first of its people): "Name  ·  b. 1700", without the birth when it does not fit
+  // the head of the branch (the first of its people): "Line: Name  ·  b. 1700", without the birth when it does not fit
   const heading = (head: Person, width: number) => {
     const name = head.name || "?", date = head.birth?.date ? formatDate(head.birth.date, o.dates === "full", o.lang) : "";
-    const full = date ? `${name}  \u00B7  ${TEXTS[o.lang].abbr.birt.trim()} ${date}` : name;
-    return measure(full, CORNER_HEAD_SIZE, true) <= width ? full : name;
+    const label = `${TEXTS[o.lang].corners.line}: ${name}`;
+    const full = date ? `${label}  \u00B7  ${TEXTS[o.lang].abbr.birt.trim()} ${date}` : label;
+    return measure(full, CORNER_HEAD_SIZE, true) <= width ? full : label;
   };
   return CORNER_KEYS.flatMap((key): Corner[] => {
     const people = branches[key];

@@ -556,7 +556,7 @@ describe("poster corner lists", () => {
 
   test("a corner is headed by the first person of the branch", () => {
     const p = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
-    expect(heads(p).map((t) => t.text).sort()).toEqual(["Anna4 Branch0", "Anna5 Branch1", "Anna7 Branch1", "Jan6 Branch0"].sort());
+    expect(heads(p).map((t) => t.text).sort()).toEqual(["Line: Anna4 Branch0", "Line: Anna5 Branch1", "Line: Anna7 Branch1", "Line: Jan6 Branch0"].sort());
   });
 
   test("a corner line names at most five values", () => {
@@ -569,7 +569,7 @@ describe("poster corner lists", () => {
   test("every language has the corner texts", () => {
     for (const lang of LANGS) {
       const t = TEXTS[lang].corners;
-      expect(t.more.every(Boolean), lang).toBe(true);
+      expect([t.line, ...t.more].every(Boolean), lang).toBe(true);
     }
   });
 });
@@ -584,7 +584,7 @@ describe("poster corner lists: places and surnames", () => {
     const born = p.texts.filter((t) => t.text.startsWith("Lesná"));
     expect(born.length).toBeGreaterThan(0);
     for (const t of born) expect(t.text).not.toContain("okres");
-    expect(p.texts.some((t) => t.bold && t.text === "Jan Test  \u00B7  b. 1700")).toBe(true);
+    expect(p.texts.some((t) => t.bold && t.text === "Line: Jan Test  \u00B7  b. 1700")).toBe(true);
   });
 
   test("female and male surname forms are one entry, shown in the male form", () => {

@@ -43,7 +43,7 @@ decorative wall chart. This file records how it works and what is still open.
 - The setting "Places and name statistics in the corners" (`posterCorners`, off by default; `core/posterCorners.ts`) puts a
   list in each corner, one per main branch: top left the father's father line, bottom left the father's mother line,
   top right the mother's father line, bottom right the mother's mother line (the people of that branch on the poster,
-  each counted once). A list is a heading with the name and birth date of the head of the branch ("Name  ·  b. 1700";
+  each counted once). A list is a heading with the name and birth date of the head of the branch ("Line: Name  ·  b. 1700";
   the date is left out when it does not fit) and up to three one-line rows without labels: birth municipalities (the part
   of the place before the first comma), first given names and surnames (only when the file separates them). Female and
   male forms of a surname (Nováková/Novák, Kowalska/Kowalski, Иванова/Иванов) are one entry shown in the male form. A row
