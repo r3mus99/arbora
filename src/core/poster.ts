@@ -326,9 +326,34 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     else { frameY += topH + 35; top += topH + 35; }
   }
   const bottom = bottomH ? 30 + bottomH + 40 : 70;
-  // The ruler is a strip between the title and the plates; the plates move down by its height.
+  // The ruler is a strip between the title and the plates; the plates move down by its height. It is a time scale in
+  // real years (a tick every 10, a year every 50) with a band under it for each generation, from the oldest to the
+  // youngest birth in it (the generations overlap in time, so the bands may need more than one row).
   const rulerY = frameY + 75 + 74;
-  top = rulerY + 100 + 40;
+  const span = new Map<number, [number, number]>();
+  for (const q of plates) {
+    const y = yearOf(people.get(q)?.birth?.date);
+    const old = span.get(q.gen);
+    if (y !== null) span.set(q.gen, old ? [Math.min(old[0], y), Math.max(old[1], y)] : [y, y]);
+  }
+  const years = [...span.values()].flat();
+  const minor = years.length && Math.max(...years) - Math.min(...years) > 400 ? 50 : 10, major = minor * 5;
+  const t0 = years.length ? Math.floor(Math.min(...years) / minor) * minor : 0, t1 = years.length ? Math.ceil(Math.max(...years) / minor) * minor : minor;
+  const scaleLeft = Math.min(...plates.map((p) => p.x - p.w / 2)) + 40, scaleRight = Math.max(...plates.map((p) => p.x + p.w / 2)) - 40;
+  const yearX = (yr: number) => scaleLeft + (yr - t0) / Math.max(1, t1 - t0) * (scaleRight - scaleLeft);
+  const bands: { text: string; x0: number; x1: number; row: number }[] = [];
+  const rowEnds: number[] = [];
+  for (const [gen, [a, b]] of [...span].sort((x, y) => x[1][0] - y[1][0] || x[0] - y[0])) {
+    const text = `${gen}.  ${a === b ? a : `${a}\u2013${b}`}`;
+    const w = Math.max(yearX(b) - yearX(a), measure(text, 18, true) + 20), mid = (yearX(a) + yearX(b)) / 2;
+    const x0 = Math.max(scaleLeft - 20, mid - w / 2);
+    let row = rowEnds.findIndex((end) => end + 8 < x0);
+    if (row < 0) row = rowEnds.push(0) - 1;
+    rowEnds[row] = x0 + w;
+    bands.push({ text, x0, x1: x0 + w, row });
+  }
+  const bandRowsH = rowEnds.length * 30, columnLabelY = rulerY + 6 + 24 + bandRowsH + 34;
+  top = columnLabelY + 50;
 
   // Tidy-tree packing: a person stands halfway between the two parents (or level with a lone parent), and the
   // father's branch is pushed against the mother's just far enough that no two plates of one column touch. Only
@@ -597,31 +622,35 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     rows.forEach((value, n) => put(value, CORNER_VALUE_SIZE, false, y0 + CORNER_FIRST_Y + n * CORNER_STEP, C.ink, x));
   }
 
-  // The ruler: a line across the poster with a tick at the middle of every generation's column, "Nth generation" on
-  // top and, with `years`, the oldest and the youngest birth in that column (father's side left, mother's side right).
+  // The ruler: the time scale and the bands of the generations (see above); under them "Nth generation" stands over
+  // each column of plates (father's side left, mother's side right, the main person in the middle).
   {
     const ordinal = TEXTS[o.lang].generation;
-    const left = Math.min(...plates.map((p) => p.x - p.w / 2)), right = Math.max(...plates.map((p) => p.x + p.w / 2));
     const bar = (x0: number, y0: number, x1: number, y1: number) => `M${x0},${y0}L${x1},${y0}L${x1},${y1}L${x0},${y1}Z`;
     // the outermost labels may be wider than their narrow plates: they stay inside the drawing
     const fit = (x: number, text: string, size: number, bold: boolean) => Math.min(W - 10 - measure(text, size, bold) / 2, Math.max(10 + measure(text, size, bold) / 2, x));
     const base = rulerY + 6;
-    let d = bar(left, base - 1.5, right, base + 1.5);
-    for (let x = left; x <= right; x += 25) d += bar(x - 0.75, base - 7, x + 0.75, base);
-    const cols = new Map<string, Plate[]>();
-    for (const q of plates) cols.set(`${q.gen}:${q === rootPlate ? 0 : Math.sign(q.x - rootPlate.x)}`, [...(cols.get(`${q.gen}:${q === rootPlate ? 0 : Math.sign(q.x - rootPlate.x)}`) || []), q]);
-    for (const [key, members] of cols) {
-      const gen = Number(key.split(":")[0]);
-      const cx = members.reduce((sum, q) => sum + q.x, 0) / members.length;
-      d += bar(cx - 2, base - 26, cx + 2, base + 18);
-      texts.push({ text: ordinal.replace("{n}", String(gen)), x: fit(cx, ordinal.replace("{n}", String(gen)), 26, true), y: base - 38, size: 26, bold: true, fill: C.branchEdge });
-      {
-        const ys = members.map((q) => yearOf(people.get(q)?.birth?.date)).filter((y): y is number => y !== null);
-        const range = !ys.length ? "" : Math.min(...ys) === Math.max(...ys) ? String(ys[0]) : `${Math.min(...ys)}\u2013${Math.max(...ys)}`;
-        if (range) texts.push({ text: range, x: fit(cx, range, 22, false), y: base + 44, size: 22, bold: false, fill: C.ink });
-      }
+    let d = bar(scaleLeft, base - 1.5, scaleRight, base + 1.5);
+    for (let yr = t0; yr <= t1; yr += minor) {
+      const big = yr % major === 0, x = yearX(yr);
+      d += bar(x - (big ? 1.2 : 0.75), base - (big ? 16 : 8), x + (big ? 1.2 : 0.75), base);
+      if (big) texts.push({ text: String(yr), x, y: base - 28, size: 20, bold: false, fill: C.ink });
     }
     plateShapes.push({ d, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
+    for (const band of bands) {
+      const cy = base + 24 + band.row * 30 + 11;
+      plateShapes.push({ d: roundedRect((band.x0 + band.x1) / 2, cy, band.x1 - band.x0, 22, 5), fill: C.branch, stroke: null, strokeWidth: 0 });
+      texts.push({ text: band.text, x: (band.x0 + band.x1) / 2, y: cy + 6, size: 18, bold: true, fill: C.plate });
+    }
+    const cols = new Map<string, Plate[]>();
+    for (const q of plates) {
+      const key = `${q.gen}:${q === rootPlate ? 0 : Math.sign(q.x - rootPlate.x)}`;
+      cols.set(key, [...(cols.get(key) || []), q]);
+    }
+    for (const [key, members] of cols) {
+      const text = ordinal.replace("{n}", key.split(":")[0]);
+      texts.push({ text, x: fit(members.reduce((sum, q) => sum + q.x, 0) / members.length, text, 24, true), y: columnLabelY, size: 24, bold: true, fill: C.branchEdge });
+    }
   }
 
   // a quiet double border of straight lines around the whole poster, in the margin outside the tree

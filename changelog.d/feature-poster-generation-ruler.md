@@ -1,0 +1,1 @@
+- **The tree poster has a ruler with a time scale and the generations.** Under the title a scale in real years (a tick every 10 years) with a band for each generation from its oldest to its youngest birth, and "N. generation" over each column of plates.

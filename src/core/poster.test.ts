@@ -625,11 +625,25 @@ describe("poster packing of uneven sides", () => {
 });
 
 describe("poster generation ruler", () => {
-  test("every generation has a label and the oldest to youngest birth year of its column", () => {
+  test("every column of plates has a generation label", () => {
     const p = buildPoster(data, ROOT, { generations: 4, lang: "en", dates: "year" });
     const labels = p.texts.filter((t) => /^Generation \d$/.test(t.text));
     expect(labels.map((t) => t.text).sort()).toEqual(["Generation 1", "Generation 2", "Generation 2", "Generation 3", "Generation 3", "Generation 4", "Generation 4"]);
-    expect(p.texts.some((t) => /^\d{4}–\d{4}$/.test(t.text))).toBe(true);
+  });
+
+  test("a band per generation shows its number and the oldest to youngest birth year", () => {
+    const p = buildPoster(full(4, () => true), ROOT, { generations: 4, lang: "en" });
+    expect(p.texts.filter((t) => /^\d\.  /.test(t.text)).length).toBe(0); // no birth years in the generated tree
+    const bands = buildPoster(data, ROOT, { generations: 4, lang: "en", dates: "year" }).texts.filter((t) => /^\d\.  \d{4}/.test(t.text));
+    expect(bands.map((t) => t.text.slice(0, 2)).sort()).toEqual(["1.", "2.", "3.", "4."]);
+    expect(bands.every((t) => /^\d\.  \d{4}(\u2013\d{4})?$/.test(t.text))).toBe(true);
+  });
+
+  test("the scale shows real years: the year labels grow from left to right", () => {
+    const p = buildPoster(data, ROOT, { generations: 7, lang: "en" });
+    const marks = p.texts.filter((t) => /^\d{4}$/.test(t.text) && Number(t.text) % 50 === 0 && t.y < 400);
+    expect(marks.length).toBeGreaterThan(2);
+    for (let i = 1; i < marks.length; i++) expect(marks[i].x).toBeGreaterThan(marks[i - 1].x);
   });
 
   test("the ruler stands between the title frame and the plates", () => {
