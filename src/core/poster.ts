@@ -342,6 +342,9 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     else { frameY += topH + 35; top += topH + 35; }
   }
   const bottom = bottomH ? 30 + bottomH + 40 : 70;
+  // The ruler is a strip between the title and the plates; the plates move down by its height.
+  const rulerY = frameY + 75 + 74;
+  top = rulerY + 100 + 40;
 
   // Tidy-tree packing: a person stands halfway between the two parents (or level with a lone parent), and the
   // father's branch is pushed against the mother's just far enough that no two plates of one column touch. Only
@@ -608,6 +611,33 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     };
     put(heading, CORNER_HEAD_SIZE, true, y0 + CORNER_HEAD_Y, C.branchEdge, x);
     rows.forEach((value, n) => put(value, CORNER_VALUE_SIZE, false, y0 + CORNER_FIRST_Y + n * CORNER_STEP, C.ink, x));
+  }
+
+  // The ruler: a line across the poster with a tick at the middle of every generation's column, "Nth generation" on
+  // top and, with `years`, the oldest and the youngest birth in that column (father's side left, mother's side right).
+  {
+    const ordinal = TEXTS[o.lang].generation;
+    const left = Math.min(...plates.map((p) => p.x - p.w / 2)), right = Math.max(...plates.map((p) => p.x + p.w / 2));
+    const bar = (x0: number, y0: number, x1: number, y1: number) => `M${x0},${y0}L${x1},${y0}L${x1},${y1}L${x0},${y1}Z`;
+    // the outermost labels may be wider than their narrow plates: they stay inside the drawing
+    const fit = (x: number, text: string, size: number, bold: boolean) => Math.min(W - 10 - measure(text, size, bold) / 2, Math.max(10 + measure(text, size, bold) / 2, x));
+    const base = rulerY + 6;
+    let d = bar(left, base - 1.5, right, base + 1.5);
+    for (let x = left; x <= right; x += 25) d += bar(x - 0.75, base - 7, x + 0.75, base);
+    const cols = new Map<string, Plate[]>();
+    for (const q of plates) cols.set(`${q.gen}:${q === rootPlate ? 0 : Math.sign(q.x - rootPlate.x)}`, [...(cols.get(`${q.gen}:${q === rootPlate ? 0 : Math.sign(q.x - rootPlate.x)}`) || []), q]);
+    for (const [key, members] of cols) {
+      const gen = Number(key.split(":")[0]);
+      const cx = members.reduce((sum, q) => sum + q.x, 0) / members.length;
+      d += bar(cx - 2, base - 26, cx + 2, base + 18);
+      texts.push({ text: ordinal.replace("{n}", String(gen)), x: fit(cx, ordinal.replace("{n}", String(gen)), 26, true), y: base - 38, size: 26, bold: true, fill: C.branchEdge });
+      {
+        const ys = members.map((q) => yearOf(people.get(q)?.birth?.date)).filter((y): y is number => y !== null);
+        const range = !ys.length ? "" : Math.min(...ys) === Math.max(...ys) ? String(ys[0]) : `${Math.min(...ys)}\u2013${Math.max(...ys)}`;
+        if (range) texts.push({ text: range, x: fit(cx, range, 22, false), y: base + 44, size: 22, bold: false, fill: C.ink });
+      }
+    }
+    plateShapes.push({ d, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
   }
 
   // a quiet double border of straight lines around the whole poster, in the margin outside the tree
