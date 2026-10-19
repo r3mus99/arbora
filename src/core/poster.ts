@@ -608,22 +608,19 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     });
   }
 
-  // a quiet double border with softly rounded corners around the whole poster, in the margin outside the tree
+  // a quiet double border of straight lines around the whole poster, in the margin outside the tree
   const margin = 84, inset = 54, gap = 16;
-  const [out, mid] = plateOutline(rnd, W / 2, H / 2, W + 2 * (margin - inset), H + 2 * (margin - inset), 2.4, 50);
-  const [out2, mid2] = plateOutline(rnd, W / 2, H / 2, W + 2 * (margin - inset - gap), H + 2 * (margin - inset - gap), 1.2, 50);
-  const ring = (a: string, b: string) => a + reversePath(b);
-  const frameShapes: PosterShape[] = [{ d: ring(out, mid), fill: C.branchEdge, stroke: null, strokeWidth: 0 },
-                                      { d: ring(out2, mid2), fill: C.branchEdge, stroke: null, strokeWidth: 0 }];
+  const rect = (x0: number, y0: number, x1: number, y1: number, reverse = false) =>
+    reverse ? `M${x0},${y0}L${x0},${y1}L${x1},${y1}L${x1},${y0}Z` : `M${x0},${y0}L${x1},${y0}L${x1},${y1}L${x0},${y1}Z`;
+  const line = (distance: number, thickness: number) => {
+    const o = inset - distance;
+    return rect(-o, -o, W + o, H + o) + rect(-o + thickness, -o + thickness, W + o - thickness, H + o - thickness, true);
+  };
+  const frameShapes: PosterShape[] = [{ d: line(0, 6), fill: C.branchEdge, stroke: null, strokeWidth: 0 },
+                                      { d: line(gap, 3), fill: C.branchEdge, stroke: null, strokeWidth: 0 }];
   shapes.push({ d: `M${-margin},${-margin}L${W + margin},${-margin}L${W + margin},${H + margin}L${-margin},${H + margin}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
               ...frameShapes, ...branches, ...leaves, ...symbols, ...plateShapes);
   return { width: W, height: H, margin, shapes, texts, generations: gens, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
-}
-
-/** The same closed polygon path walked the other way round, so that appended to another it cuts a hole. */
-function reversePath(d: string): string {
-  const pts = d.slice(1, -1).split("L");
-  return "M" + pts.reverse().join("L") + "Z";
 }
 
 type Line = [text: string, size: number, bold: boolean];
