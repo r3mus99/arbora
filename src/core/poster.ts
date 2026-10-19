@@ -19,8 +19,8 @@ export const POSTER_MIN_GENERATIONS = 3;
 export const POSTER_MAX_GENERATIONS = 10;
 /** what 0 ("all") draws */
 export const POSTER_BASE_GENERATIONS = 7;
-/** the fewest generations for which the corner lists are offered, and applied */
-export const POSTER_EXTRAS_MIN_GENERATIONS = 5;
+/** the fewest generations that are actually on the poster (not only asked for) for the corner lists to be drawn */
+export const POSTER_CORNERS_MIN_GENERATIONS = 5;
 /** Plate size by generation (person, parents, grandparents, great-grandparents): the people the person may still have
  * known stand out; every further generation is 100 %. */
 /** The most a branch swings sideways from the straight line between its ends, in drawing units. */
@@ -182,8 +182,6 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const root = data.people[rootId];
   if (!root) throw new Error(`Person ${rootId} does not exist.`);
   const gens = Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(o.generations) || POSTER_BASE_GENERATIONS));
-  const extras = gens >= POSTER_EXTRAS_MIN_GENERATIONS;
-  const withCorners = extras && o.posterCorners;
   const seed = posterSeed(rootId, o.posterSeed);
   const rnd = random(seed);
   const uniform = (a: number, b: number) => a + (b - a) * rnd();
@@ -292,7 +290,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     rootYear !== null && born.length > 1 ? `${Math.min(...born)}\u2013${rootYear}` : ""].filter(Boolean).join(" \u00B7 ");
   const frameW = Math.max(measure(title, 58, true), measure(stats, 26, false)) + 120, frameH = 150;
 
-  // The lists in the corners (option `posterCorners`): the top ones stand beside the title when there is room for
+  // The lists in the corners (drawn when the poster really reaches POSTER_CORNERS_MIN_GENERATIONS generations): the top ones stand beside the title when there is room for
   // them there, otherwise above it; the bottom ones under the lowest plates. The poster grows by their height.
   const branchPeople = (q: Plate) => {
     const out = new Map<string, Person>();
@@ -313,7 +311,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // the lists start where the plates start: the left ones at the leftmost plate edge, the right ones end at the rightmost
   const plateLeft = Math.min(...plates.map((p) => p.x - p.w / 2)), plateRight = Math.max(...plates.map((p) => p.x + p.w / 2));
   const cornerEdge = (key: CornerKey) => key.startsWith("father") ? plateLeft : plateRight;
-  const corners = withCorners ? cornerBlocks(branchOf, o, measure, (key) => {
+  const filledGens = Math.max(...plates.map((p) => p.gen));
+  const corners = filledGens >= POSTER_CORNERS_MIN_GENERATIONS ? cornerBlocks(branchOf, o, measure, (key) => {
     const room = isTop(key) && beside ? sideRoom : W / 2 - 100;
     return room - (key.startsWith("father") ? plateLeft - 60 : W - 60 - plateRight);
   }, gens) : [];
