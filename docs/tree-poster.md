@@ -22,6 +22,11 @@ decorative wall chart. This file records how it works and what is still open.
   grow along them; a shoot that would touch a plate, another shoot or the edge is not drawn. The seed combines the
   person's id with a random number picked at each download, so every download is a new tree; the same seed (the
   `posterSeed` option) always draws the same one, which the tests use.
+- The year of a marriage is a small brown text "⚭ 1885" where the branches of the two parents meet: in the gap between
+  a person and the parents, or beside the fork under the main person's parents. It has no plate of its own, its size
+  follows the generation of the child (12 units times the plate scale), the gap between two columns is widened to fit
+  it, and nothing is shown when the date is unknown or a parent is missing. The room is kept free of side shoots before
+  they grow, and afterwards the spot nearest the usual one that touches no plate, branch, shoot or leaf is taken.
 - Names wrap to two lines when one line would be small; a generation shares one name size and one date size.
 - Text widths come from the real fonts (`posterFonts`), so plates and text fit exactly; without fonts (tests) an estimate is used.
 
@@ -39,7 +44,7 @@ decorative wall chart. This file records how it works and what is still open.
 5. **Places, sources and residence on plates** (the poster ignores places for now).
 6. **Density of side shoots:** an option (sparse, normal, dense).
 7. **Colour themes** (paper, branch and leaf colours; black and white for a laser printer).
-8. **A poster for descendants,** and more than nine generations (the width grows by one column per generation).
+8. **A poster for descendants,** and more than ten generations (the width grows by one column per generation).
 9. **Fixed paper size:** the poster now has the proportions of its content, not of A paper. A choice of paper (fit or pad to A3/A2/A1) and a print margin could be added.
 10. **Pedigree collapse:** a repeated ancestor is drawn twice; mark the second plate or link them.
 11. **Other outputs** (PDF via pdf-lib `drawSvgPath`, PNG via a canvas `Path2D`) were built and dropped; the SVG is enough for now.

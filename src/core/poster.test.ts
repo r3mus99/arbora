@@ -12,14 +12,14 @@ const fonts = posterFonts(
 const ROOT = "@I1@";
 
 // a complete tree: person n has parents 2n and 2n+1, down to `gens` generations
-const full = (gens: number, hasParents: (n: number) => boolean = () => true) => {
+const full = (gens: number, hasParents: (n: number) => boolean = () => true, married = false) => {
   let ged = "0 HEAD\n";
   const last = 2 ** gens - 1;
   for (let n = 1; n <= last; n++) {
     ged += `0 @I${n}@ INDI\n1 NAME P${n} /Full/\n1 SEX ${n % 2 ? "F" : "M"}\n`;
     if (n < 2 ** (gens - 1) && hasParents(n)) ged += `1 FAMC @F${n}@\n`;
   }
-  for (let n = 1; n < 2 ** (gens - 1); n++) if (hasParents(n)) ged += `0 @F${n}@ FAM\n1 HUSB @I${2 * n}@\n1 WIFE @I${2 * n + 1}@\n1 CHIL @I${n}@\n`;
+  for (let n = 1; n < 2 ** (gens - 1); n++) if (hasParents(n)) ged += `0 @F${n}@ FAM\n1 HUSB @I${2 * n}@\n1 WIFE @I${2 * n + 1}@\n${married ? `1 MARR\n2 DATE ${1700 + n}\n` : ""}1 CHIL @I${n}@\n`;
   return load(ged + "0 TRLR\n");
 };
 
@@ -65,9 +65,9 @@ describe("poster layout", () => {
     }
   });
 
-  test("the generations are limited to 2..9 and a person without parents has just the plate", () => {
-    expect(buildPoster(full(3), ROOT, { generations: 99 }).generations).toBe(9);
-    expect(buildPoster(data, ROOT, { generations: 1 }).generations).toBe(2);
+  test("the generations are limited to 3..10 and a person without parents has just the plate", () => {
+    expect(buildPoster(full(3), ROOT, { generations: 99 }).generations).toBe(10);
+    expect(buildPoster(data, ROOT, { generations: 1 }).generations).toBe(3);
     expect(buildPoster(data, ROOT, { generations: 0 }).generations).toBe(7);
     const lone = Object.values(data.people).find((x) => !x.famc.length)!;
     const p = buildPoster(data, lone.id, { generations: 5 });
@@ -167,7 +167,38 @@ describe("poster plates", () => {
     const names = poster.texts.filter((t) => t.bold && t.fill !== "#2a1d12");
     expect(names.some((t) => t.fill === "#2f5f9e")).toBe(true);
     expect(names.some((t) => t.fill === "#a8322a")).toBe(true);
-    expect(poster.texts.filter((t) => !t.bold).every((t) => t.fill === "#2a1d12")).toBe(true);
+    expect(poster.texts.filter((t) => !t.bold && !t.text.startsWith("\u26AD")).every((t) => t.fill === "#2a1d12")).toBe(true);
+  });
+});
+
+describe("poster marriage years", () => {
+  const years = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.text.startsWith("\u26AD"));
+
+  test("a marriage year stands at each couple, bigger for the closer generations, and nothing without a date", () => {
+    const p = buildPoster(full(6, () => true, true), ROOT, { generations: 6 });
+    expect(years(p)).toHaveLength(2 ** 5 - 1);
+    expect(years(p).map((t) => t.text)).toContain("\u26AD 1701");
+    expect(years(p).every((t) => !t.bold && t.fill === "#6b4626")).toBe(true);
+    const size = (year: string) => years(p).find((t) => t.text === year)!.size;
+    expect(size("\u26AD 1701")).toBeGreaterThan(size("\u26AD 1702"));
+    expect(size("\u26AD 1702")).toBeGreaterThan(size("\u26AD 1704"));
+    expect(size("\u26AD 1704")).toBeGreaterThan(size("\u26AD 1716"));
+    expect(years(buildPoster(full(6), ROOT, { generations: 6 }))).toHaveLength(0);
+  });
+
+  test("a marriage year touches no plate and no other marriage year", () => {
+    const p = buildPoster(full(7, () => true, true), ROOT, { generations: 7 });
+    const hits: string[] = [];
+    const box = (t: { text: string; x: number; y: number; size: number }) => [t.x, t.y - t.size * 0.3, textWidth(t.text, t.size, false), t.size] as const;
+    for (const t of years(p)) {
+      const [x, y, w, h] = box(t);
+      for (const q of p.plates) if (Math.abs(x - q.x) < (w + q.w) / 2 && Math.abs(y - q.y) < (h + q.h) / 2) hits.push(`${t.text} ${q.id}`);
+      for (const u of years(p)) {
+        const [x2, y2, w2, h2] = box(u);
+        if (u !== t && Math.abs(x - x2) < (w + w2) / 2 && Math.abs(y - y2) < (h + h2) / 2) hits.push(`${t.text} ${u.text}`);
+      }
+    }
+    expect(hits).toEqual([]);
   });
 });
 
@@ -203,14 +234,14 @@ describe("poster plate sizes", () => {
 describe("poster beyond seven generations", () => {
   test("a bigger poster keeps the size of the plates and of the text", () => {
     const seven = buildPoster(full(7), "@I1@", { generations: 7 });
-    const nine = buildPoster(full(9), "@I1@", { generations: 9 });
-    expect(nine.generations).toBe(9);
-    expect(nine.people).toBe(2 ** 9 - 1);
-    expect(nine.width).toBeGreaterThan(seven.width);
-    expect(nine.plates[1].w).toBe(seven.plates[1].w);
-    expect(nine.plates[1].h).toBe(seven.plates[1].h);
+    const ten = buildPoster(full(10), "@I1@", { generations: 10 });
+    expect(ten.generations).toBe(10);
+    expect(ten.people).toBe(2 ** 10 - 1);
+    expect(ten.width).toBeGreaterThan(seven.width);
+    expect(ten.plates[1].w).toBe(seven.plates[1].w);
+    expect(ten.plates[1].h).toBe(seven.plates[1].h);
     // the names of the last generation are as big as on the smaller poster
-    expect(Math.min(...nine.texts.slice(0, -1).map((t) => t.size))).toBeGreaterThanOrEqual(
+    expect(Math.min(...ten.texts.slice(0, -1).map((t) => t.size))).toBeGreaterThanOrEqual(
       Math.min(...seven.texts.slice(0, -1).map((t) => t.size)));
   }, 60000);
 });
