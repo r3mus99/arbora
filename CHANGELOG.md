@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.24.0 – 2026-10-19
+
+- **The lists in the poster corners are shorter and plainer.** Each corner is headed by "Line:", the name and birth date of the ancestor at the head of the branch, every line shows at most five values followed by "+ N more", births are counted by municipality only, female and male forms of a surname are one entry, and the line labels and the residence line are gone.
+
 ## 2.23.0 – 2026-10-19
 
 - **The tree poster border is made of straight lines.** The double border around the poster is no longer soft and hand-drawn; both lines are straight with sharp corners.
