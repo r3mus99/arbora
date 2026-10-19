@@ -625,11 +625,11 @@ describe("poster packing of uneven sides", () => {
 });
 
 describe("poster generation ruler", () => {
-  test("every generation has a label and the oldest to youngest birth year of its column", () => {
+  test("every column of plates has a generation label", () => {
     const p = buildPoster(data, ROOT, { generations: 4, lang: "en", dates: "year" });
     const labels = p.texts.filter((t) => /^Generation \d$/.test(t.text));
     expect(labels.map((t) => t.text).sort()).toEqual(["Generation 1", "Generation 2", "Generation 2", "Generation 3", "Generation 3", "Generation 4", "Generation 4"]);
-    expect(p.texts.some((t) => /^\d{4}–\d{4}$/.test(t.text))).toBe(true);
+    expect(p.texts.some((t) => /^\d{4}–\d{4}$/.test(t.text))).toBe(false);
   });
 
   test("the ruler stands between the title frame and the plates", () => {
