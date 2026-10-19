@@ -33,13 +33,8 @@ decorative wall chart. This file records how it works and what is still open.
   branch, so the tree stays clean and symmetrical; each of those plates carries a small brown tag with the count ("2×")
   in its top right corner, drawn as a small rounded rectangle (not a circle), and the title counts every
   person once.
-- The setting "End the branch at a repeated person" (`posterOnce`, off by default) shortens the poster when there
-  are many generations: a person met again is drawn as a plate only and ends the branch there (with the "2×" tag)
-  when the same person is already drawn with the ancestry in the same or an earlier generation, because then the
-  branch is the same or a shorter copy of one that is already on the poster. A person who is first met in a later
-  generation is not merged: the later plate has more generations of ancestors to show, so it keeps its whole branch
-  (the father's side is walked first, depth first). The layout packs only the plates that remain, so the poster
-  gets lower.
+- Repeated people are always drawn in full (there is no setting to hide them), so the numbers in the corners and the
+  count of known ancestors always agree with what is on the poster.
 - The setting "Places and name statistics in the corners" (`posterCorners`, off by default; `core/posterCorners.ts`) puts a
   list in each corner, one per main branch: top left the father's father line, bottom left the father's mother line,
   top right the mother's father line, bottom right the mother's mother line (the people of that branch on the poster,
