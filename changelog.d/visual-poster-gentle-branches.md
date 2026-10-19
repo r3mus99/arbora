@@ -1,0 +1,1 @@
+- **Long branches of the tree poster bend less.** The sideways swing is capped, so no big waves appear; the side shoots are longer on a longer branch instead.

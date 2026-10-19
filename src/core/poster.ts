@@ -19,6 +19,8 @@ export const POSTER_MAX_GENERATIONS = 9;
 export const POSTER_BASE_GENERATIONS = 7;
 /** Plate size by generation (person, parents, grandparents, great-grandparents): the people the person may still have
  * known stand out; every further generation is 100 %. */
+/** The most a branch swings sideways from the straight line between its ends, in drawing units. */
+const POSTER_MAX_SWING = 24;
 export const POSTER_PLATE_SCALE = [2, 1.75, 1.5, 1.25];
 
 export interface PosterShape {
@@ -322,7 +324,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
 
   /**
    * A smooth curve from `a` to `b` with a seeded wiggle; it leaves `a` sideways or, with `up`, upwards. The wiggle
-   * swings across the chord, and the longer the chord, the more it bends (an S), so no long straight run is left.
+   * swings across the chord (an S), a little more for a longer chord but never beyond POSTER_MAX_SWING, so big waves
+   * do not appear; a long branch gets longer side shoots instead (see `limb`).
    * A bend that would run over a plate is tried again with less swing.
    */
   const curve = (a: Point, b: Point, up = false): Point[] => {
@@ -330,8 +333,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     const len = Math.hypot(dx, dy) || 1;
     const [nx, ny] = [-dy / len, dx / len];
     const phase = uniform(0, Math.PI * 2), freq = uniform(1, 1.8);
-    const longer = Math.min(1, Math.max(0, (len - 240) / 360));
-    const swing = uniform(0.03, 0.07) * len + 6 + longer * uniform(0.07, 0.11) * len;
+    const swing = Math.min(POSTER_MAX_SWING, uniform(0.03, 0.06) * len + 5);
     const build = (amp: number) => {
       const pts: Point[] = [];
       for (let i = 0; i <= N; i++) {
@@ -354,13 +356,16 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     const d = dense(pts);
     branch(tapered(d, 5 + 2.2 * thick, 2.5 + 1.2 * thick), 1);
     const [a, b] = [pts[0], pts[pts.length - 1]];
-    const count = Math.max(2, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / 95));
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    const count = Math.max(2, Math.round(len / 95));
+    // the side shoots grow with the branch: 1 at 260 units, proportionally longer on a longer branch (0.8 to 2)
+    const reach = Math.min(2, Math.max(0.8, len / 260));
     let side2 = pick([-1, 1]);
     for (let i = 0; i < count; i++) {
       const k = Math.min(Math.max(Math.floor(d.length * (i + 0.5 + uniform(-0.2, 0.2)) / count), 3), d.length - 4);
       side2 = -side2;
       for (let tries = 0; tries < 4; tries++) {
-        if (twig(d[k][0], d[k][1], angleAt(d, k) + side2 * uniform(40, 70) * Math.PI / 180, uniform(34, 60), 3.4, 1)) break;
+        if (twig(d[k][0], d[k][1], angleAt(d, k) + side2 * uniform(40, 70) * Math.PI / 180, uniform(34, 60) * reach, 3.4, 1)) break;
       }
     }
   };
