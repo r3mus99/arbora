@@ -11,9 +11,8 @@ export interface ChartOptions {
   lang: Lang;
   labels: "symbols" | "abbr";
   dates: "year" | "full";
-  places: "none" | "short" | "full";
-  /** also print the latest residence, when it differs from the places of birth and death */
-  showResidence: boolean;
+  /** print the municipality of birth, marriage and death and, when it differs from them, of the latest residence */
+  showPlaces: boolean;
   numbering: "generation" | "ahnentafel" | "daboville" | "none";
   /** maximum number of generations including the root, 0 = all */
   generations: number;
@@ -35,7 +34,7 @@ export interface ChartOptions {
 }
 
 export const DEFAULTS: ChartOptions = {
-  generations: 0, lang: "sk", labels: "symbols", dates: "year", places: "none", showResidence: false,
+  generations: 0, lang: "sk", labels: "symbols", dates: "year", showPlaces: false,
   chart: "ancestors", showSpouses: true,
   numbering: "generation", pageSize: "a4", orientation: "portrait",
   lineHeight: 1.7, margin: 36, colorPdf: false,
@@ -100,11 +99,9 @@ export function formatDate(raw: string, full: boolean, lang: Lang): string {
   return fmt(qual, { d: one(s) });
 }
 
-export function formatPlace(raw: string, mode: ChartOptions["places"]): string {
-  if (mode === "none" || !raw) return "";
-  const parts = raw.split(",").map((p) => p.trim()).filter(Boolean);
-  if (!parts.length) return "";
-  return mode === "short" ? parts[0] : parts.join(", ");
+/** The municipality of a place written as "Village, District, Country". */
+export function formatPlace(raw: string): string {
+  return raw ? raw.split(",")[0].trim() : "";
 }
 
 export function label(kind: EventKind, o: ChartOptions): string {
@@ -119,7 +116,7 @@ export interface Seg { text: string; kind: SegKind }
 export function eventSegments(kind: EventKind, ev: GedEvent | null, o: ChartOptions, extra = ""): Seg[] {
   if (!ev && !extra) return [];
   const date = ev ? formatDate(ev.date, o.dates === "full", o.lang) : "";
-  const place = ev ? formatPlace(ev.place, o.places) : "";
+  const place = ev && o.showPlaces ? formatPlace(ev.place) : "";
   if (!date && !place && !extra) return [];
   const segs: Seg[] = [{ text: label(kind, o) + date, kind }];
   if (place) segs.push({ text: (date ? " " : "") + place, kind: "place" });
@@ -137,10 +134,10 @@ const samePlace = (a: string, b: string) => a.trim().toLowerCase() === b.trim().
 /** The latest residence as shown, or "" when places are off, there is none, or it is the place of birth or death. */
 export function residencePlace(p: Person, o: ChartOptions): string {
   const home = p.residence?.place;
-  if (!home || o.places === "none") return "";
-  const shown = formatPlace(home, o.places);
+  if (!home || !o.showPlaces) return "";
+  const shown = formatPlace(home);
   const known = [p.birth?.place, p.death?.place].filter((x): x is string => !!x);
-  if (known.some((x) => samePlace(x, home) || samePlace(formatPlace(x, o.places), shown))) return "";
+  if (known.some((x) => samePlace(x, home) || samePlace(formatPlace(x), shown))) return "";
   return shown;
 }
 
@@ -161,7 +158,7 @@ export function personSegments(p: Person | null, number: number | string | null,
     segs.push({ text: i === 0 ? " (" : ", ", kind: "plain" }, ...e);
   });
   if (shown.length) segs.push({ text: ")", kind: "plain" });
-  const home = p && o.showResidence ? residencePlace(p, o) : "";
+  const home = p ? residencePlace(p, o) : "";
   if (home) segs.push({ text: ` ${o.labels === "symbols" ? "⌂" : TEXTS[o.lang].abbr.resi.trim()} ${home}`, kind: "place" });
   return segs;
 }

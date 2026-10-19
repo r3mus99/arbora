@@ -643,7 +643,7 @@ type Line = [text: string, size: number, bold: boolean];
 /** The name (one line, or two when it is long) and the dates of one plate, each shrunk until it fits. */
 function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFonts["width"]): Line[] {
   const name = p.name || "?";
-  const dates = [formatEvent("birt", p.birth, { ...o, places: "none" }), formatEvent("deat", p.death, { ...o, places: "none" })]
+  const dates = [formatEvent("birt", p.birth, { ...o, showPlaces: false }), formatEvent("deat", p.death, { ...o, showPlaces: false })]
     .filter(Boolean).join("  ");
   // the age is only known (and worth printing) when both years are
   const by = yearOf(p.birth?.date), dy = yearOf(p.death?.date);

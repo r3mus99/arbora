@@ -127,9 +127,9 @@ describe("formatting", () => {
   });
 
   test("places", () => {
-    expect(formatPlace("Dolná Ves, Okres, Kraj", "short")).toBe("Dolná Ves");
-    expect(formatPlace("Dolná Ves, Okres, Kraj", "full")).toBe("Dolná Ves, Okres, Kraj");
-    expect(formatPlace("Dolná Ves", "none")).toBe("");
+    expect(formatPlace("Dolná Ves, Okres, Kraj")).toBe("Dolná Ves");
+    expect(formatPlace("Dolná Ves")).toBe("Dolná Ves");
+    expect(formatPlace("")).toBe("");
   });
 
   test("every language has all PDF texts", () => {
@@ -264,7 +264,7 @@ describe("PDF", () => {
   });
 
   test("styled pieces match the text; coloured and italic PDF is built", async () => {
-    const o = { lang: "en" as const, places: "short" as const, dates: "full" as const, generations: 4 };
+    const o = { lang: "en" as const, showPlaces: true as const, dates: "full" as const, generations: 4 };
     const rows = chartRows(data, "@I1@", o);
     for (const r of rows) expect(r.parts.map((p) => p.text).join("")).toBe(r.text);
     const kinds = new Set(rows.flatMap((r) => r.parts.map((p) => p.kind)));
