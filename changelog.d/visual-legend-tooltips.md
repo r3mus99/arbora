@@ -1,0 +1,1 @@
+- **The output chips in the settings have a tooltip.** Hovering Screen, PDF or SVG says which output the chip stands for.

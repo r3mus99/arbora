@@ -37,8 +37,8 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => onChange(key, e.target.checked),
   });
-  const chip = (scope: Scope, icon: ReactNode, text: string) =>
-    <span className={`chip${hot.includes(scope) ? " on" : ""}`}>{icon}{text}</span>;
+  const chip = (scope: Scope, icon: ReactNode, text: string, tip: string) =>
+    <span className={`chip${hot.includes(scope) ? " on" : ""}`} title={tip}>{icon}{text}</span>;
   const extras = form.posterGenerations >= POSTER_EXTRAS_MIN_GENERATIONS;
 
   return (
@@ -46,9 +46,9 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     <PanelHead title={t("settings")} />
     <div className="panel-body">
     <div className="set-legend" aria-hidden="true">
-      {chip("screen", <Monitor className="icon" />, t("scopeScreen"))}
-      {chip("pdf", <FileText className="icon" />, "PDF")}
-      {chip("svg", <FileImage className="icon" />, "SVG")}
+      {chip("screen", <Monitor className="icon" />, t("scopeScreen"), t("tipScreen"))}
+      {chip("pdf", <FileText className="icon" />, "PDF", t("tipPdf"))}
+      {chip("svg", <FileImage className="icon" />, "SVG", t("tipSvg"))}
     </div>
     <div className="set-group">
       <h3 {...scoped(CHART)}>{t("setChart")}</h3>
