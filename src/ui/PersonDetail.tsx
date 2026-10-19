@@ -1,6 +1,6 @@
 import {
   Award, Baby, Briefcase, CircleHelp, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
-  StickyNote, Star, CalendarDays, Tag, Users, Venus, type LucideIcon,
+  ChevronLeft, StickyNote, Star, CalendarDays, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
 import { applyAttribute, applyEventLine, applyEventNode, applyFamily, applyPerson, type AttributeFields, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields, type Suggestions } from "../core/edit";
@@ -43,6 +43,8 @@ interface Props {
   suggest: Suggestions;
   /** opens the edit window */
   onEdit: () => void;
+  /** back to the list of people, shown only on a narrow screen */
+  onBack: () => void;
   t: (key: StringKey) => string;
 }
 
@@ -62,7 +64,7 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, lookup, inbound, rootId, starred, onStar, lang, onFocus, onMakeRoot, onChange, suggest, onEdit, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, inbound, rootId, starred, onStar, lang, onFocus, onMakeRoot, onChange, suggest, onEdit, onBack, t }: Props) {
   const p = data.people[id];
   if (!p) return null;
   const f = record ? personFields(record) : null;
@@ -184,6 +186,8 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
   return (
     <aside className="detail" aria-live="polite">
       <div className="detail-head">
+        <button type="button" className="icon-btn back-btn" onClick={onBack} title={t("backToList")} aria-label={t("backToList")}>
+          <ChevronLeft className="icon" aria-hidden="true" /></button>
         <div className="detail-name">
         <h3>{prefix && `${prefix} `}
           {live && f ? <InlineName key={`${id}|${f.given}|${f.surname}`} given={f.given} surname={f.surname} label={t("edit")}

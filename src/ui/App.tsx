@@ -84,6 +84,9 @@ async function loadAlkatra() {
   return { regular: [lr, er], bold: [lb, eb] };
 }
 
+/** the width up to which the app shows the list and the detail one at a time, see docs/design-guidelines.md */
+const NARROW = "(max-width: 900px)";
+
 export function App() {
   const [lang, setLang] = useState<Lang>(() => {
     const l = readStore().lang;
@@ -122,7 +125,16 @@ export function App() {
   const finderRef = useRef<HTMLInputElement>(null);
   // the list of people starts as a narrow rail with a magnifier; the choice is remembered
   // one tool panel is open at a time: the list of people, the file check, or none
-  const [tool, setTool] = useState<"people" | "check" | "fix" | "overview" | "sources" | "places" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
+  // phone and small tablet: only the list of people and the detail of one person, one at a time, no chart and no tool panels
+  const [narrow, setNarrow] = useState(() => matchMedia(NARROW).matches);
+  useEffect(() => {
+    const mq = matchMedia(NARROW);
+    const on = () => setNarrow(mq.matches);
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, []);
+  const [chosenTool, setTool] = useState<"people" | "check" | "fix" | "overview" | "sources" | "places" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
+  const tool = narrow ? "people" : chosenTool;
   const listOpen = tool === "people", showCheck = tool === "check", showFix = tool === "fix", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
@@ -133,7 +145,7 @@ export function App() {
   const setShowPlaces = (on: boolean) => setTool(on ? "places" : listOpen ? "people" : null);
   const setShowChanges = (on: boolean) => setTool(on ? "changes" : listOpen ? "people" : null);
   const setShowRecent = (on: boolean) => setTool(on ? "recent" : listOpen ? "people" : null);
-  useEffect(() => { if (listOpen) finderRef.current?.focus(); }, [listOpen]);
+  useEffect(() => { if (listOpen && !narrow) finderRef.current?.focus(); }, [listOpen, narrow]);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
   const t = useCallback((key: StringKey, vars: Vars = {}) =>
@@ -262,7 +274,7 @@ export function App() {
     // the chart shows at once: last chosen person, else the first one in the file
     const root = last && parsed.people[last] ? last : Object.keys(parsed.people)[0];
     setSelectedId(root);
-    setFocusId(root);
+    setFocusId(narrow ? null : root);
     setMarks(visited(marksOf(readStore().marks, fileKey(name)), root));
     setMarkedFor(root);
     setJumpRow(null);
@@ -620,7 +632,7 @@ export function App() {
                       aria-label={t("go")}>
                 {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
                 PDF</button>
-              <button type="button" className="icon-btn save-btn" disabled={busy} onClick={() => createPoster()} title={`${t("poster")}. ${t("posterHint")}`}
+              <button type="button" className="icon-btn save-btn poster" disabled={busy} onClick={() => createPoster()} title={`${t("poster")}. ${t("posterHint")}`}
                       aria-label={t("poster")}>
                 <FileImage className="icon" aria-hidden="true" />
                 SVG</button>
@@ -659,7 +671,7 @@ export function App() {
             <button type="button" onClick={loadSample}>{t("sample")}</button>
           </div>
         </div>}
-        {data && chosen && <div className={`viewer${focusId || showCheck || showFix ? "" : " no-detail"}`}>
+        {data && chosen && <div className={`viewer${focusId || showCheck || showFix ? " has-detail" : " no-detail"}`}>
             {/* one sidebar: a narrow bar of tools and, next to it, the panel of the active tool (second click closes it) */}
             <div className="side">
               <nav className="toolbar" aria-label={t("showList")}>
@@ -737,7 +749,7 @@ export function App() {
                 : <CheckPanel issues={issues} data={data} t={t} onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
                               onFocus={(id) => focus(id, true)} />}
             </aside> : <>
-            <div className="mid">
+            {!narrow && <div className="mid">
               <div className="chart-bar">
                 <h2>{t("treeTitle")}</h2>
                 <div className="chart-switch" role="radiogroup">
@@ -762,11 +774,11 @@ export function App() {
                         numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
                         onFocus={(id) => id === focusId ? deselect() : focus(id, false)} onToggle={toggle}
                         onJump={(r) => jump(r.targetIndex)} t={t} />
-            </div>
+            </div>}
             {focusId && <PersonDetail data={data} id={focusId} starred={favourites.has(focusId)}
                                       onStar={() => star(focusId)} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} onChange={commit} suggest={suggest}
-                                      onEdit={() => setWindowId(focusId)} t={t} />}
+                                      onEdit={() => setWindowId(focusId)} onBack={deselect} t={t} />}
             </>}
         </div>}
       </section>
