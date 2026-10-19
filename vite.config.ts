@@ -9,6 +9,8 @@ export default defineConfig({
   build: { outDir: "dist", chunkSizeWarningLimit: 1500 },
   test: {
     include: ["src/**/*.test.ts"],
+    // the poster layouts take seconds under coverage on a slow runner; the default 5 s let a test fail by a hair
+    testTimeout: 30000,
     // the core is tested in full; the thresholds keep it that way (the UI has no tests yet)
     coverage: {
       include: ["src/core/**"],
