@@ -191,20 +191,25 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const scaleOf = (gen: number) => POSTER_PLATE_SCALE[gen - 1] ?? 1;
   const widthOf = (gen: number) => Math.round(baseW * scaleOf(gen));
   const heightOf = (gen: number) => Math.round(baseH * scaleOf(gen));
-  // The year of a marriage is a small brown text where the branches of the two parents meet; its size follows the
-  // generation of the child, and the gap between the child's column and the parents' is wide enough for it.
+  // The year of a marriage and the number of children of the couple are a small brown text where the branches of the
+  // two parents meet; its size follows the generation of the child, and the gap between the child's column and the
+  // parents' is wide enough for it.
   const marrSize = (gen: number) => 12 * scaleOf(gen);
-  const marrText = (pid: string | null): string => {
+  const plural = new Intl.PluralRules(o.lang);
+  const marrLines = (pid: string | null): string[] => {
     const f = pid && data.people[pid]?.famc.length ? data.families[data.people[pid].famc[0]] : null;
-    const date = f?.marriage ? formatDate(f.marriage.date, o.dates === "full", o.lang) : "";
-    return date ? `\u26AD ${date}` : "";
+    if (!f) return [];
+    const date = f.marriage ? formatDate(f.marriage.date, o.dates === "full", o.lang) : "";
+    const n = f.children.length, forms = TEXTS[o.lang].children;
+    const kind = plural.select(n);
+    return [date && `\u26AD ${date}`, n > 0 && `${n} ${forms[kind === "one" ? 0 : kind === "few" ? 1 : 2]}`].filter((x): x is string => !!x);
   };
   const needed = new Map<number, number>();
   const survey = (pid: string | null, gen: number) => {
     const f = pid && gen < gens && data.people[pid]?.famc.length ? data.families[data.people[pid].famc[0]] : null;
     if (!f || !f.husb || !f.wife || !data.people[f.husb] || !data.people[f.wife]) return;
-    const text = marrText(pid);
-    if (text && gen > 1) needed.set(gen, Math.max(needed.get(gen) ?? 0, measure(text, marrSize(gen), false)));
+    const widest = Math.max(0, ...marrLines(pid).map((t) => measure(t, marrSize(gen), false)));
+    if (widest && gen > 1) needed.set(gen, Math.max(needed.get(gen) ?? 0, widest));
     survey(f.husb, gen + 1);
     survey(f.wife, gen + 1);
   };
@@ -307,9 +312,9 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // afterwards the spot closest to the usual one that touches no plate, branch, shoot or leaf is taken.
   const labels = plates.flatMap((plate) => {
     if ((plate === rootPlate ? rootKids : kids.get(plate) || []).length !== 2) return [];
-    const text = marrText(plate.id);
-    if (!text) return [];
-    const size = marrSize(plate.gen), width = measure(text, size, false), height = size * 1.1;
+    const lines = marrLines(plate.id);
+    if (!lines.length) return [];
+    const size = marrSize(plate.gen), width = Math.max(...lines.map((t) => measure(t, size, false))), height = size * 1.15 * lines.length;
     let x: number, y: number;
     if (plate === rootPlate) {
       x = plate.x + 30 + width / 2;
@@ -322,7 +327,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     for (let px = x - width / 2; px <= x + width / 2; px += 6) {
       for (let py = y - height / 2; py <= y + height / 2; py += 6) occupied.push([px, py]);
     }
-    return [{ text, size, width, height, x, y }];
+    return [{ lines, size, width, height, x, y }];
   });
   const reserved = occupied.length;
 
@@ -440,13 +445,13 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     !limbPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10) &&
     !leafPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10);
   for (const label of labels) {
-    const { text, size, width, height, x, y } = label;
+    const { lines, size, width, height, x, y } = label;
     const near: [number, number, number][] = [];
     for (let dx = -40; dx <= 40; dx += 4) for (let dy = -30; dy <= 30; dy += 4) near.push([x + dx, y + dy, Math.abs(dx) + 2 * Math.abs(dy)]);
     near.sort((a, b) => a[2] - b[2]);
     const spot = near.find(([px, py]) => free(px, py, width, height) && !occupied.slice(reserved).some(([ox, oy]) =>
       Math.abs(ox - px) < width / 2 + 6 && Math.abs(oy - py) < height / 2 + 6)) ?? [x, y];
-    marriages.push({ text, x: spot[0], y: spot[1] + size * 0.3, size, bold: false, fill: C.branch });
+    lines.forEach((text, i) => marriages.push({ text, x: spot[0], y: spot[1] - height / 2 + (i + 0.5) * size * 1.15 + size * 0.3, size, bold: false, fill: C.branch }));
   }
 
   // ------------------------------------------------------------ plates and texts
