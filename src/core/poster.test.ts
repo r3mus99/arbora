@@ -159,13 +159,15 @@ describe("poster output", () => {
 });
 
 describe("poster plates", () => {
-  test("every plate has its own hand-cut outline, coloured by sex", () => {
+  test("every plate has its own hand-cut brown outline, and the name is blue for men and red for women", () => {
     const poster = buildPoster(data, ROOT, { generations: 4, posterSeed: 1 });
-    const outlines = poster.shapes.filter((s) => s.fill === "#2f5f9e" || s.fill === "#a8322a" || s.fill === "#4a2f18");
+    const outlines = poster.shapes.filter((s) => s.fill === "#4a2f18" && !s.stroke);
     expect(outlines.length).toBe(poster.people);
     expect(new Set(outlines.map((s) => s.d)).size).toBe(outlines.length);
-    expect(outlines.some((s) => s.fill === "#2f5f9e")).toBe(true);
-    expect(outlines.some((s) => s.fill === "#a8322a")).toBe(true);
+    const names = poster.texts.filter((t) => t.bold && t.fill !== "#2a1d12");
+    expect(names.some((t) => t.fill === "#2f5f9e")).toBe(true);
+    expect(names.some((t) => t.fill === "#a8322a")).toBe(true);
+    expect(poster.texts.filter((t) => !t.bold).every((t) => t.fill === "#2a1d12")).toBe(true);
   });
 });
 

@@ -1,1 +1,2 @@
 - **The tree poster stresses the closest generations and bends long branches.** The person is drawn at 200 %, the parents at 175 %, the grandparents at 150 %, the great-grandparents at 125 % and everyone further at 100 %, and long branches are curled instead of running straight.
+- **Poster plates have a brown border, and the name carries the colour.** The name is blue for men and red for women.

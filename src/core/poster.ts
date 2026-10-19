@@ -395,10 +395,10 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   for (const plate of plates) {
     const sex = people.get(plate)!.sex;
     const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h);
-    plateShapes.push({ d: outer, fill: sex === "M" ? C.male : sex === "F" ? C.female : C.branchEdge, stroke: null, strokeWidth: 0 },
+    plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 },
                      { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
     const same = lines.get(plate)!.map(([text, , bold]): Line => [text, smallest.get(`${plate.gen}${bold}`)!, bold]);
-    texts.push(...stack(plate, same));
+    texts.push(...stack(plate, same, sex === "M" ? C.male : sex === "F" ? C.female : C.ink));
   }
 
   const title = o.title || TEXTS[o.lang].title.replace("{name}", root.name || "?");
@@ -443,12 +443,12 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
 }
 
 /** The lines centred one under the other on the plate. */
-function stack(plate: Plate, lines: Line[]): PosterText[] {
+function stack(plate: Plate, lines: Line[], nameFill: string): PosterText[] {
   const heights = lines.map(([, size]) => size * 1.15);
   let y = plate.y - heights.reduce((a, b) => a + b, 0) / 2;
   return lines.map(([text, size, bold], i) => {
     y += heights[i];
-    return { text, x: plate.x, y: y - size * 0.22, size, bold, fill: POSTER_COLORS.ink };
+    return { text, x: plate.x, y: y - size * 0.22, size, bold, fill: bold ? nameFill : POSTER_COLORS.ink };
   });
 }
 
