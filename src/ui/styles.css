@@ -633,9 +633,9 @@ section.check { margin: 0 0 14px; }
 
 /* settings in the tool panel: one column of fields */
 .set-panel .grid { grid-template-columns: 1fr; gap: 12px; }
-.set-group h3 { display: flex; align-items: center; gap: var(--gap); }
-.set-group h3 .scope { display: flex; gap: 4px; margin-left: auto; }
-.set-group h3 .chip { margin-left: 0; text-transform: none; letter-spacing: 0; }
+.set-legend { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; gap: 4px; padding: 8px var(--pad); background: var(--panel); border-bottom: 1px solid var(--border); }
+.set-legend .chip { margin-left: 0; transition: background-color .12s, border-color .12s, color .12s; }
+.set-legend .chip.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 .set-panel .field > span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
 .set-panel .set-gens { display: flex; }
 .set-panel .set-gens button { flex: 1 1 0; min-width: 0; padding: 0; }

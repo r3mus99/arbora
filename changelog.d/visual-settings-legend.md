@@ -1,0 +1,1 @@
+- **The settings show which output they change.** A row of Screen, PDF and SVG chips stays at the top of the settings, and the ones a setting affects light up while the pointer is over it. "End the branch at a repeated person" and the corner lists are offered only for posters of five or more generations.

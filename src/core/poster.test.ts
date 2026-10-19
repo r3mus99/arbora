@@ -354,6 +354,16 @@ describe("poster repeated people, the branch ends once", () => {
     }
   });
 
+  test("the options of a larger poster are ignored below five generations", () => {
+    const plain = buildPoster(data, ROOT, { generations: 4, lang: "en", posterSeed: 1 });
+    const asked = buildPoster(data, ROOT, { generations: 4, lang: "en", posterSeed: 1, posterOnce: true, posterCorners: true });
+    expect(asked.plates).toEqual(plain.plates);
+    expect(asked.texts).toEqual(plain.texts);
+    const five = buildPoster(data, ROOT, { generations: 5, lang: "en", posterSeed: 1 });
+    const fiveCorners = buildPoster(data, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
+    expect(fiveCorners.texts.length).toBeGreaterThan(five.texts.length);
+  });
+
   test("without repeats the option changes nothing", () => {
     const a = buildPoster(data, ROOT, { generations: 4, lang: "en", posterSeed: 1 });
     const b = buildPoster(data, ROOT, { generations: 4, lang: "en", posterSeed: 1, posterOnce: true });
@@ -569,7 +579,7 @@ describe("poster corner lists", () => {
   });
 
   test("a file without separate surnames has places and names only", () => {
-    const p = buildPoster(data, ROOT, { generations: 4, lang: "en", posterSeed: 1, posterCorners: true });
+    const p = buildPoster(data, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
     const corner = lines(p).filter((t) => t.text.includes("  \u00B7  "));
     expect(corner).toHaveLength(heads(p).length * 2);
     expect(corner.some((t) => t.text.includes("Vienna"))).toBe(true);
@@ -601,7 +611,7 @@ describe("poster corner lists: places and surnames", () => {
       + "0 @I2@ INDI\n1 NAME Karel /Test/\n1 BIRT\n2 PLAC Lesná, okres Doly\n1 FAMC @F2@\n0 @I3@ INDI\n1 NAME Eva /Test/\n"
       + "0 @I4@ INDI\n1 NAME Jan /Test/\n1 BIRT\n2 DATE 1700\n1 FAMC @F3@\n0 @I6@ INDI\n1 NAME Petr /Test/\n1 BIRT\n2 PLAC Lesná, okres Doly\n0 @F3@ FAM\n1 HUSB @I6@\n1 CHIL @I4@\n0 @I5@ INDI\n1 NAME Anna /Test/\n"
       + "0 @F1@ FAM\n1 HUSB @I2@\n1 WIFE @I3@\n1 CHIL @I1@\n0 @F2@ FAM\n1 HUSB @I4@\n1 WIFE @I5@\n1 CHIL @I2@\n0 TRLR\n";
-    const p = buildPoster(load(ged), ROOT, { generations: 4, lang: "en", posterSeed: 1, posterCorners: true });
+    const p = buildPoster(load(ged), ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
     const born = p.texts.filter((t) => t.text.startsWith("Lesná"));
     expect(born.length).toBeGreaterThan(0);
     for (const t of born) expect(t.text).not.toContain("okres");
@@ -614,7 +624,7 @@ describe("poster corner lists: places and surnames", () => {
       + person(4, "Lesná 2, okres Hory", "1 FAMC @F3@\n") + person(5, "Elsewhere") + person(6, "Lesná") + person(7, "Lesná 10")
       + "0 @F1@ FAM\n1 HUSB @I2@\n1 WIFE @I3@\n1 CHIL @I1@\n0 @F2@ FAM\n1 HUSB @I4@\n1 WIFE @I5@\n1 CHIL @I2@\n"
       + "0 @F3@ FAM\n1 HUSB @I6@\n1 WIFE @I7@\n1 CHIL @I4@\n0 TRLR\n";
-    const p = buildPoster(load(ged), ROOT, { generations: 4, lang: "en", posterSeed: 1, posterCorners: true });
+    const p = buildPoster(load(ged), ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
     expect(p.texts.some((t) => t.text === "Lesná (3)")).toBe(true);
   });
 
