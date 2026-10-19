@@ -42,7 +42,7 @@ const FEMALE = /(ová|á|(?:sk|ck|dzk)a|ова|ева|ина|іна|ая|ськ�
 /** The stem two forms of a surname share: -ová, -á, -ý (Slovak, Czech), -ska/-ski (Polish), -ова/-ов, -ая/-ый (Russian, Ukrainian). */
 function surnameStem(s: string): string {
   const l = s.toLowerCase();
-  if (/ová$/.test(l)) return l.slice(0, -3);
+  if (l.endsWith("ová")) return l.slice(0, -3);
   if (/(ова|ева|ина|іна)$/.test(l)) return l.slice(0, -1);
   if (/(ая|ий|ый|ой|(?:sk|ck|dzk)i)$/.test(l)) return l.replace(/(ая|ий|ый|ой)$/, "").replace(/i$/, "");
   if (/(á|ý|(?:sk|ck|dzk)a)$/.test(l)) return l.slice(0, -1);
