@@ -33,7 +33,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     value: form[key] as string,
     onChange: (e: { target: { value: string } }) => onChange(key, e.target.value as Form[K]),
   });
-  const check = (key: "showSpouses" | "showResidence" | "posterCorners") => ({
+  const check = (key: "showSpouses" | "showPlaces" | "posterCorners") => ({
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => onChange(key, e.target.checked),
   });
@@ -62,18 +62,13 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
           <select {...sel("dates")}>
             <option value="year">{t("year")}</option><option value="full">{t("fullDate")}</option>
           </select></label>
-        <label {...scoped(CHART)}><span>{t("places")}</span>
-          <select {...sel("places")}>
-            <option value="none">{t("noPlaces")}</option><option value="short">{t("shortPlace")}</option>
-            <option value="full">{t("fullPlace")}</option>
-          </select></label>
         <label {...scoped(CHART)}><span>{t("numbering")}</span>
           <select {...sel("numbering")}>
             {NUMBERING[form.chart].map(([v, key]) => <option key={v} value={v}>{t(key)}</option>)}
           </select></label>
       </div>
       <div className="checks">
-        <label title={t("showResidenceTip")} {...scoped(CHART)}><input {...check("showResidence")} disabled={form.places === "none"} /> <span>{t("showResidence")}</span></label>
+        <label title={t("showPlacesTip")} {...scoped(CHART)}><input {...check("showPlaces")} /> <span>{t("showPlaces")}</span></label>
         {desc && <label {...scoped(CHART)}><input {...check("showSpouses")} /> <span>{t("showSpouses")}</span></label>}
       </div>
     </div>

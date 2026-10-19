@@ -514,7 +514,7 @@ describe("poster corner lists", () => {
   });
 
   test("residences are not listed in the corners", () => {
-    const on = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true, showResidence: true });
+    const on = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true, showPlaces: true });
     expect(lines(on)).toHaveLength(12);
     expect(on.texts.some((t) => t.text.startsWith("Farm"))).toBe(false);
   });
@@ -528,7 +528,7 @@ describe("poster corner lists", () => {
 
   test("the corner text stays clear of every plate and inside the poster", () => {
     for (const gens of [3, 4, 6]) {
-      const p = buildPoster(places(gens), ROOT, { generations: gens, lang: "en", posterSeed: 1, posterCorners: true, showResidence: true });
+      const p = buildPoster(places(gens), ROOT, { generations: gens, lang: "en", posterSeed: 1, posterCorners: true, showPlaces: true });
       const cornerTexts = [...heads(p), ...lines(p)];
       for (const t of cornerTexts) {
         const w = textWidth(t.text, t.size, t.bold);

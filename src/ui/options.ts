@@ -5,8 +5,8 @@ import { DEFAULTS, type ChartKind, type ChartOptions } from "../core/format";
 import { LANGS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 
-/** What the app starts with: the core defaults, but places of birth and death are shown as the town only. */
-export const APP_DEFAULTS: ChartOptions = { ...DEFAULTS, places: "short" };
+/** What the app starts with: the core defaults, but places (the town only) are shown. */
+export const APP_DEFAULTS: ChartOptions = { ...DEFAULTS, showPlaces: true };
 
 /** Options as edited in the form; number fields keep the typed text. */
 export type Form = Omit<ChartOptions, "generations"> & { generations: string };
@@ -39,7 +39,7 @@ export function withOption<K extends keyof Form>(form: Form, key: K, value: Form
 /** the values each choice may have; anything else kept in the browser is dropped */
 const CHOICES: { [K in keyof ChartOptions]?: readonly ChartOptions[K][] } = {
   chart: ["ancestors", "descendants"], labels: ["symbols", "abbr"], dates: ["year", "full"],
-  places: ["none", "short", "full"], numbering: ["generation", "ahnentafel", "daboville", "none"],
+  numbering: ["generation", "ahnentafel", "daboville", "none"],
   lang: LANGS,
 };
 
@@ -52,6 +52,8 @@ export function storedOptions(stored: unknown): ChartOptions {
     if (choices) return choices.includes(v);
     return typeof v === typeof d && (typeof v !== "number" || Number.isFinite(v));
   };
+  // before the setting became a checkbox, places had the values none / short / full
+  if (typeof o.places === "string" && typeof o.showPlaces !== "boolean") o.showPlaces = o.places !== "none";
   const out = { ...APP_DEFAULTS };
   for (const key of Object.keys(APP_DEFAULTS) as (keyof ChartOptions)[]) {
     if (valid(key)) (out as Record<string, unknown>)[key] = o[key];

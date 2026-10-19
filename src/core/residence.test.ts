@@ -28,7 +28,7 @@ const GED = `0 HEAD
 `;
 
 const opts = (o: Partial<ChartOptions> = {}): ChartOptions =>
-  ({ ...DEFAULTS, places: "short", showResidence: true, ...o });
+  ({ ...DEFAULTS, showPlaces: true, ...o });
 
 describe("residence", () => {
   const data = load(GED);
@@ -47,9 +47,8 @@ describe("residence", () => {
       .toBe("Anna Test (b. 1850 Alpha, d. 1920 Omega) res. Gamma");
   });
 
-  test("hidden when off, when places are off, and when equal to the birth place", () => {
-    expect(personLine(anna, null, null, opts({ showResidence: false }))).not.toContain("⌂");
-    expect(personLine(anna, null, null, opts({ places: "none" }))).not.toContain("⌂");
+  test("hidden when places are off and when equal to the birth place", () => {
+    expect(personLine(anna, null, null, opts({ showPlaces: false }))).not.toContain("⌂");
     expect(personLine(boris, null, null, opts())).not.toContain("⌂");
   });
 });
@@ -59,7 +58,7 @@ describe("divorce mark", () => {
   const anna = load(GED).people["@I1@"];
 
   test("a divorced marriage ends with the divorce symbol, or the abbreviation with abbreviated labels", () => {
-    expect(personLine(anna, null, fam, opts({ places: "short" }))).toContain("∞1856 Vienna ⚮,");
+    expect(personLine(anna, null, fam, opts({ showPlaces: true }))).toContain("∞1856 Vienna ⚮,");
     expect(personLine(anna, null, fam, opts({ labels: "abbr", lang: "en" }))).toContain("m. 1856 Vienna (div.)");
     expect(personLine(anna, null, { ...fam, marriage: { date: "", place: "" } }, opts())).toContain("∞⚮");
   });

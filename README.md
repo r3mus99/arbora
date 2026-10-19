@@ -231,12 +231,11 @@ The first part of the Settings window applies to both the chart and the PDF:
 |---|---|
 | Labels | symbols `* ∞ †` or abbreviations (`b. m. d.` in English) |
 | Dates | year only, or the full date |
-| Places | none, first part only (village), full place |
+| Places | checkbox: show the municipality (first part of the place) |
 | Numbering | generation (1, 2, 3…); Ahnentafel for ancestors (father = 2n, mother = 2n+1), d'Aboville for descendants (1.2.1); none |
 | Parents' marriage | for ancestors: next to the father, next to both parents, not shown |
 | Generations | maximum number including the root (0 = all) |
 | Spouses | for descendants: show the spouse with the year of marriage, or blood descendants only |
-| Residence | optionally show the place of the latest residence after the brackets (needs places on) |
 
 The dark mode is switched with the moon icon in the top bar; without a choice it follows the system.
 
