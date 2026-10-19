@@ -245,7 +245,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     colX.set(g, edge + widthOf(g) / 2);
     edge += widthOf(g) + gapAfter(g);
   }
-  const W = Math.max(1400, Math.round(2 * (edge - gapAfter(gens) + 20)));
+  // placed around x = 0 first; the poster is made as wide as the plates need, each side by its own depth (below)
+  let W = 0;
   const plates: Plate[] = [];
   const kids = new Map<Plate, Plate[]>();
   const people = new Map<Plate, Person>();
@@ -255,7 +256,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     const p = pid ? data.people[pid] : null;
     if (!p) return null;
     const again = o.posterOnce && covered(pid!, gen);
-    const plate: Plate = { id: pid!, gen, w: widthOf(gen), h: heightOf(gen), x: W / 2 + side * colX.get(gen)!, y: 0 };
+    const plate: Plate = { id: pid!, gen, w: widthOf(gen), h: heightOf(gen), x: side * colX.get(gen)!, y: 0 };
     plates.push(plate);
     people.set(plate, p);
     const fam = p.famc.length ? data.families[p.famc[0]] : null;
@@ -270,7 +271,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     return plate;
   };
 
-  const rootPlate: Plate = { id: rootId, gen: 1, x: W / 2, y: 0, w: widthOf(1), h: heightOf(1) };
+  const rootPlate: Plate = { id: rootId, gen: 1, x: 0, y: 0, w: widthOf(1), h: heightOf(1) };
   plates.push(rootPlate);
   people.set(rootPlate, root);
   const fam = root.famc.length ? data.families[root.famc[0]] : null;
@@ -280,6 +281,15 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     if (f) rootKids.push([f, -1]);
     if (m) rootKids.push([m, 1]);
   }
+
+  // A side with fewer generations leaves no empty room: the poster is as wide as the two sides need, and the main
+  // person stands where the sides meet, not necessarily in the middle (the title stays in the middle of the sheet).
+  const reach = (side: -1 | 1) => Math.max(rootPlate.w / 2, ...plates.filter((q) => q !== rootPlate && Math.sign(q.x) === side).map((q) => side * q.x + q.w / 2));
+  const [leftReach, rightReach] = [reach(-1), reach(1)];
+  const content = leftReach + rightReach + 40;
+  W = Math.max(1400, Math.round(content));
+  const shift = 20 + leftReach + (W - content) / 2;
+  for (const q of plates) q.x += shift;
 
   const appearances = new Map<string, number>();
   for (const plate of plates) appearances.set(plate.id, (appearances.get(plate.id) ?? 0) + 1);
@@ -392,7 +402,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
       x = plate.x + 30 + width / 2;
       y = Math.max(...rootKids.map(([q]) => q.y + q.h / 2)) + 70 + 40;
     } else {
-      const side = Math.sign(plate.x - W / 2);
+      const side = Math.sign(plate.x - rootPlate.x);
       x = plate.x + side * (plate.w / 2 + gapAfter(plate.gen) * 0.6);
       y = plate.y;
     }

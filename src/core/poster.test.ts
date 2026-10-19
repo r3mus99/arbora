@@ -632,3 +632,14 @@ describe("poster corner lists: places and surnames", () => {
     expect(m([["Kovács", 2], ["Smith", 1]])).toEqual([["Kovács", 2], ["Smith", 1]]);
   });
 });
+
+describe("poster packing of uneven sides", () => {
+  test("a side with fewer generations does not keep the width of the deeper one", () => {
+    const even = buildPoster(full(6), ROOT, { generations: 6 });
+    const uneven = buildPoster(full(6, (n) => !(n === 2 || n === 4 || n === 5)), ROOT, { generations: 6 });
+    expect(uneven.width).toBeLessThan(even.width);
+    const root = uneven.plates.find((p) => p.id === ROOT)!;
+    expect(root.x).toBeLessThan(uneven.width / 2);
+    expect(Math.min(...uneven.plates.map((p) => p.x - p.w / 2))).toBeLessThan(60);
+  });
+});
