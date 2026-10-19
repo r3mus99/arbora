@@ -27,13 +27,12 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     onMouseEnter: () => setHot(scopes), onMouseLeave: () => setHot([]),
     onFocus: () => setHot(scopes), onBlur: () => setHot([]),
   });
-  const desc = form.chart === "descendants";
   const ab = TEXTS[lang].abbr;
   const sel = <K extends keyof Form>(key: K) => ({
     value: form[key] as string,
     onChange: (e: { target: { value: string } }) => onChange(key, e.target.value as Form[K]),
   });
-  const check = (key: "showSpouses" | "showPlaces") => ({
+  const check = (key: "showPlaces") => ({
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => onChange(key, e.target.checked),
   });
@@ -68,7 +67,6 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
       </div>
       <div className="checks">
         <label title={t("showPlacesTip")} {...scoped(CHART)}><input {...check("showPlaces")} /> <span>{t("showPlaces")}</span></label>
-        {desc && <label {...scoped(CHART)}><input {...check("showSpouses")} /> <span>{t("showSpouses")}</span></label>}
       </div>
     </div>
     <div className="set-group">

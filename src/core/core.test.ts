@@ -193,11 +193,10 @@ describe("descendant chart", () => {
     for (const r of spouses.filter((s) => s.spouseId)) expect(r.text).toContain(data.people[r.spouseId!].name);
   });
 
-  test("d'Aboville numbering and without spouses", () => {
-    const rows = chartRows(data, "@I52@", opts({ chart: "descendants", numbering: "ahnentafel",
-                                                 showSpouses: false }));
-    expect(rows.some((r) => r.spouse)).toBe(false);
-    expect(rows[1].text).toMatch(/^1\.1\. Archduchess Maria Elisabeth of Austria/);
+  test("d'Aboville numbering", () => {
+    const rows = chartRows(data, "@I52@", opts({ chart: "descendants", numbering: "ahnentafel" }));
+    expect(rows.some((r) => r.spouse)).toBe(true);
+    expect(rows.find((r) => !r.spouse && r.path === "1.1")!.text).toMatch(/^1\.1\. Archduchess Maria Elisabeth of Austria/);
   });
 });
 

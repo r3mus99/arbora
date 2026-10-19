@@ -16,8 +16,6 @@ export interface ChartOptions {
   numbering: "generation" | "ahnentafel" | "daboville" | "none";
   /** maximum number of generations including the root, 0 = all */
   generations: number;
-  /** descendants: print spouse lines */
-  showSpouses: boolean;
   lineHeight: number;
   margin: number;
   /** tree poster: the number that makes the branches differ; the same number draws the same tree (not a setting: each download picks one) */
@@ -28,7 +26,7 @@ export interface ChartOptions {
 
 export const DEFAULTS: ChartOptions = {
   generations: 0, lang: "sk", labels: "symbols", dates: "year", showPlaces: false,
-  chart: "ancestors", showSpouses: true,
+  chart: "ancestors",
   numbering: "generation",
   lineHeight: 1.7, margin: 36,
   posterSeed: 0, posterGenerations: 7,

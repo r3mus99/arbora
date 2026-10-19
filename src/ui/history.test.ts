@@ -172,7 +172,9 @@ describe("chart options", () => {
     expect(storedOptions("junk")).toEqual(APP_DEFAULTS);
     expect(APP_DEFAULTS.showPlaces).toBe(true);
     const kept = storedOptions({ showPlaces: false, dates: "full", showSpouses: false, fontSize: 11 });
-    expect(kept).toMatchObject({ showPlaces: false, dates: "full", showSpouses: false });
+    expect(kept).toMatchObject({ showPlaces: false, dates: "full" });
+    // the removed spouses setting is ignored
+    expect(kept).not.toHaveProperty("showSpouses");
     expect(kept).not.toHaveProperty("fontSize");
     // settings saved before places became a checkbox
     expect(storedOptions({ places: "none" }).showPlaces).toBe(false);

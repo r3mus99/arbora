@@ -60,7 +60,6 @@ const STRINGS_RAW = {
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "bez čísel",
     generations: "Generácie", allGens: "všetky", tipA3: "rodičia a starí rodičia", tipA4: "rodičia, starí rodičia a prastarí rodičia", tipA5: "rodičia, starí rodičia, prastarí rodičia a praprastarí rodičia", tipD3: "deti a vnúčatá", tipD4: "deti, vnúčatá a pravnúčatá", tipD5: "deti, vnúčatá, pravnúčatá a prapravnúčatá", genTipAll: "všetky generácie",
 
-    showSpouses: "zobraziť manželov a manželky",
     showPlaces: "zobraziť miesta", showPlacesTip: "zobraziť miesta (obec narodenia, sobáša a úmrtia a bydlisko, ak je iné)",
     go: "Vytvoriť PDF", download: "Stiahnuť PDF", working: "Vytváram PDF…",
     done: "Hotovo – strany: {pages}, generácie: {gens}.",
@@ -221,7 +220,6 @@ const STRINGS_RAW = {
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "bez čísel",
     generations: "Generace", allGens: "všechny", tipA3: "rodiče a prarodiče", tipA4: "rodiče, prarodiče a praprarodiče", tipA5: "rodiče, prarodiče, praprarodiče a prapraprarodiče", tipD3: "děti a vnoučata", tipD4: "děti, vnoučata a pravnoučata", tipD5: "děti, vnoučata, pravnoučata a prapravnoučata", genTipAll: "všechny generace",
 
-    showSpouses: "zobrazit manžele a manželky",
     showPlaces: "zobrazit místa", showPlacesTip: "zobrazit místa (obec narození, sňatku a úmrtí a bydliště, je-li jiné)",
     go: "Vytvořit PDF", download: "Stáhnout PDF", working: "Vytvářím PDF…",
     done: "Hotovo – stránky: {pages}, generace: {gens}.",
@@ -382,7 +380,6 @@ const STRINGS_RAW = {
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "bez numerów",
     generations: "Pokolenia", allGens: "wszystkie", tipA3: "rodzice i dziadkowie", tipA4: "rodzice, dziadkowie i pradziadkowie", tipA5: "rodzice, dziadkowie, pradziadkowie i prapradziadkowie", tipD3: "dzieci i wnuki", tipD4: "dzieci, wnuki i prawnuki", tipD5: "dzieci, wnuki, prawnuki i praprawnuki", genTipAll: "wszystkie pokolenia",
 
-    showSpouses: "pokaż małżonków",
     showPlaces: "pokaż miejsca", showPlacesTip: "pokaż miejsca (miejscowość urodzenia, ślubu i śmierci oraz zamieszkania, jeśli inna)",
     go: "Utwórz PDF", download: "Pobierz PDF", working: "Tworzę PDF…",
     done: "Gotowe – strony: {pages}, pokolenia: {gens}.",
@@ -544,7 +541,6 @@ const STRINGS_RAW = {
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "számozás nélkül",
     generations: "Nemzedékek", allGens: "mind", tipA3: "szülők és nagyszülők", tipA4: "szülők, nagyszülők és dédszülők", tipA5: "szülők, nagyszülők, dédszülők és ükszülők", tipD3: "gyermekek és unokák", tipD4: "gyermekek, unokák és dédunokák", tipD5: "gyermekek, unokák, dédunokák és ükunokák", genTipAll: "minden nemzedék",
 
-    showSpouses: "házastársak megjelenítése",
     showPlaces: "helyek megjelenítése", showPlacesTip: "helyek megjelenítése (születés, házasság és halál települése, valamint a lakhely, ha eltér)",
     go: "PDF készítése", download: "PDF letöltése", working: "PDF készül…",
     done: "Kész – oldalak: {pages}, nemzedékek: {gens}.",
@@ -706,7 +702,6 @@ const STRINGS_RAW = {
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "ohne Nummern",
     generations: "Generationen", allGens: "alle", tipA3: "Eltern und Großeltern", tipA4: "Eltern, Großeltern und Urgroßeltern", tipA5: "Eltern, Großeltern, Urgroßeltern und Ururgroßeltern", tipD3: "Kinder und Enkel", tipD4: "Kinder, Enkel und Urenkel", tipD5: "Kinder, Enkel, Urenkel und Ururenkel", genTipAll: "alle Generationen",
 
-    showSpouses: "Ehepartner anzeigen",
     showPlaces: "Orte anzeigen", showPlacesTip: "Orte anzeigen (Ort von Geburt, Heirat und Tod sowie Wohnort, wenn er abweicht)",
     go: "PDF erstellen", download: "PDF herunterladen", working: "PDF wird erstellt…",
     done: "Fertig – Seiten: {pages}, Generationen: {gens}.",
@@ -869,7 +864,6 @@ const STRINGS_RAW = {
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "no numbers",
     generations: "Generations", allGens: "all", tipA3: "parents and grandparents", tipA4: "parents, grandparents and great-grandparents", tipA5: "parents, grandparents, great-grandparents and great-great-grandparents", tipD3: "children and grandchildren", tipD4: "children, grandchildren and great-grandchildren", tipD5: "children, grandchildren, great-grandchildren and great-great-grandchildren", genTipAll: "all generations",
 
-    showSpouses: "show spouses",
     showPlaces: "show places", showPlacesTip: "show places (town of birth, marriage and death, and the residence if it differs)",
     go: "Create PDF", download: "Download PDF", working: "Creating PDF…",
     done: "Done – pages: {pages}, generations: {gens}.",
@@ -1030,7 +1024,6 @@ const STRINGS_RAW = {
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "sans numéros",
     generations: "Générations", allGens: "toutes", tipA3: "parents et grands-parents", tipA4: "parents, grands-parents et arrière-grands-parents", tipA5: "parents, grands-parents, arrière-grands-parents et arrière-arrière-grands-parents", tipD3: "enfants et petits-enfants", tipD4: "enfants, petits-enfants et arrière-petits-enfants", tipD5: "enfants, petits-enfants, arrière-petits-enfants et arrière-arrière-petits-enfants", genTipAll: "toutes les générations",
 
-    showSpouses: "afficher les conjoints",
     showPlaces: "afficher les lieux", showPlacesTip: "afficher les lieux (commune de naissance, mariage et décès, et la résidence si elle diffère)",
     go: "Créer le PDF", download: "Télécharger le PDF", working: "Création du PDF…",
     done: "Terminé – pages : {pages}, générations : {gens}.",
@@ -1192,7 +1185,6 @@ const STRINGS_RAW = {
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "senza numeri",
     generations: "Generazioni", allGens: "tutte", tipA3: "genitori e nonni", tipA4: "genitori, nonni e bisnonni", tipA5: "genitori, nonni, bisnonni e trisnonni", tipD3: "figli e nipoti", tipD4: "figli, nipoti e pronipoti", tipD5: "figli, nipoti, pronipoti e abnipoti", genTipAll: "tutte le generazioni",
 
-    showSpouses: "mostra i coniugi",
     showPlaces: "mostra i luoghi", showPlacesTip: "mostra i luoghi (comune di nascita, matrimonio e morte, e la residenza se diversa)",
     go: "Crea PDF", download: "Scarica PDF", working: "Creazione del PDF…",
     done: "Fatto – pagine: {pages}, generazioni: {gens}.",
@@ -1354,7 +1346,6 @@ const STRINGS_RAW = {
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "sin números",
     generations: "Generaciones", allGens: "todas", tipA3: "padres y abuelos", tipA4: "padres, abuelos y bisabuelos", tipA5: "padres, abuelos, bisabuelos y tatarabuelos", tipD3: "hijos y nietos", tipD4: "hijos, nietos y bisnietos", tipD5: "hijos, nietos, bisnietos y tataranietos", genTipAll: "todas las generaciones",
 
-    showSpouses: "mostrar cónyuges",
     showPlaces: "mostrar los lugares", showPlacesTip: "mostrar los lugares (localidad de nacimiento, matrimonio y defunción, y la residencia si difiere)",
     go: "Crear PDF", download: "Descargar PDF", working: "Creando PDF…",
     done: "Listo – páginas: {pages}, generaciones: {gens}.",
@@ -1516,7 +1507,6 @@ const STRINGS_RAW = {
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "sem números",
     generations: "Gerações", allGens: "todas", tipA3: "pais e avós", tipA4: "pais, avós e bisavós", tipA5: "pais, avós, bisavós e trisavós", tipD3: "filhos e netos", tipD4: "filhos, netos e bisnetos", tipD5: "filhos, netos, bisnetos e trinetos", genTipAll: "todas as gerações",
 
-    showSpouses: "mostrar cônjuges",
     showPlaces: "mostrar os locais", showPlacesTip: "mostrar os locais (localidade de nascimento, casamento e morte, e a residência se diferir)",
     go: "Criar PDF", download: "Descarregar PDF", working: "A criar o PDF…",
     done: "Concluído – páginas: {pages}, gerações: {gens}.",
@@ -1679,7 +1669,6 @@ const STRINGS_RAW = {
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "zonder nummers",
     generations: "Generaties", allGens: "alle", tipA3: "ouders en grootouders", tipA4: "ouders, grootouders en overgrootouders", tipA5: "ouders, grootouders, overgrootouders en betovergrootouders", tipD3: "kinderen en kleinkinderen", tipD4: "kinderen, kleinkinderen en achterkleinkinderen", tipD5: "kinderen, kleinkinderen, achterkleinkinderen en achterachterkleinkinderen", genTipAll: "alle generaties",
 
-    showSpouses: "partners tonen",
     showPlaces: "plaatsen tonen", showPlacesTip: "plaatsen tonen (plaats van geboorte, huwelijk en overlijden, en de woonplaats als die afwijkt)",
     go: "PDF maken", download: "PDF downloaden", working: "PDF wordt gemaakt…",
     done: "Klaar – pagina's: {pages}, generaties: {gens}.",
@@ -1841,7 +1830,6 @@ const STRINGS_RAW = {
     numDab: "д'Абовіль (1, 1.1, 1.1.2…)", numNone: "без номерів",
     generations: "Покоління", allGens: "усі", tipA3: "батьки та дідусі й бабусі", tipA4: "батьки, дідусі й бабусі та прадіди й прабабусі", tipA5: "батьки, дідусі й бабусі, прадіди й прабабусі та прапрадіди й прапрабабусі", tipD3: "діти та онуки", tipD4: "діти, онуки та правнуки", tipD5: "діти, онуки, правнуки та праправнуки", genTipAll: "усі покоління",
 
-    showSpouses: "показувати подружжя",
     showPlaces: "показувати місця", showPlacesTip: "показувати місця (населений пункт народження, шлюбу і смерті та місце проживання, якщо інше)",
     go: "Створити PDF", download: "Завантажити PDF", working: "Створюю PDF…",
     done: "Готово – сторінок: {pages}, поколінь: {gens}.",
