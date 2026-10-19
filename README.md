@@ -52,7 +52,7 @@ are in parentheses:
             └ 3. …
 ```
 
-Sample: [public/sample_ancestors.pdf](public/sample_ancestors.pdf) (names as in the Slovak Wikidata labels).
+Sample: [public/sample_ancestors.pdf](public/sample_ancestors.pdf).
 
 ### Descendants
 
@@ -77,7 +77,7 @@ spouse they had them with:
    └ 2. …
 ```
 
-Sample: [public/sample_descendants.pdf](public/sample_descendants.pdf) (names as in the Slovak Wikidata labels).
+Sample: [public/sample_descendants.pdf](public/sample_descendants.pdf).
 
 A person who appears in the tree more than once (for example after marriages
 between relatives) is written out only once; later occurrences refer to it.
@@ -314,8 +314,8 @@ is *Pages → Source: GitHub Actions*.
 (I1) and the male-line descendants of Francis I of Lorraine (I52) with their
 spouses, 1714 people in all. Nobody in it was born in 1950 or later, and from
 1900 on only people with a known date of death, so there are no living persons.
-Names and places currently come from the Slovak Wikidata labels (an English version of the sample is planned), where missing from the
-Czech, German or English ones; every person carries their Wikidata ID
+Names and places come from the English Wikidata labels, where missing from the
+German, Czech or Slovak ones; every person carries their Wikidata ID
 (`REFN … TYPE Wikidata`). It has approximate dates, several marriages, a divorce
 (e.g. Henry IV, I416), children with an unknown mother and many repeated
 ancestors.

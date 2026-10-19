@@ -45,7 +45,7 @@ describe("poster layout", () => {
     const p = buildPoster(data, ROOT, { generations: 5, lang: "en" });
     expect(p.people).toBe(31);
     expect(p.generations).toBe(5);
-    expect(p.title).toBe("Ancestors of Karol I.");
+    expect(p.title).toBe("Ancestors of Charles I of Austria");
     const root = p.plates.find((q) => q.id === ROOT)!;
     expect(root.x).toBe(p.width / 2);
     const parents = p.plates.filter((q) => q.gen === 2);

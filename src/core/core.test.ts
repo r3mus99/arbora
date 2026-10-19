@@ -20,7 +20,7 @@ describe("GEDCOM", () => {
   test("loads the sample", () => {
     expect(Object.keys(data.people)).toHaveLength(1714);
     expect(Object.keys(data.families)).toHaveLength(906);
-    expect(data.people["@I52@"]).toMatchObject({ name: "František I.", sex: "M" });
+    expect(data.people["@I52@"]).toMatchObject({ name: "Francis I, Holy Roman Emperor", sex: "M" });
   });
 
   test("joins CONC/CONT and nests sub-records", () => {
@@ -60,7 +60,7 @@ describe("GEDCOM", () => {
   });
 
   test("finds people by name without diacritics or by ID", () => {
-    expect(findPeople("frantisek i.", data.people).map((p) => p.id)).toContain("@I52@");
+    expect(findPeople("francis i, holy", data.people).map((p) => p.id)).toContain("@I52@");
     expect(findPeople("I52", data.people)).toEqual([data.people["@I52@"]]);
   });
 
@@ -146,10 +146,10 @@ describe("ancestor chart", () => {
   test("root is generation 1 with father's line above and mother's below", () => {
     expect(rows).toHaveLength(1491);
     const root = rows.findIndex((r) => r.gen === 1);
-    expect(rows[root].text).toBe("1. Karol I. (*1887, †1922)");
-    expect(rows.slice(0, root).some((r) => r.text.startsWith("2. Otto František Jozef Habsburský"))).toBe(true);
-    expect(rows.slice(root + 1).some((r) => r.text.startsWith("2. Mária Jozefa Saská"))).toBe(true);
-    expect(rows[0].text).toBe("13. František I. (*1517, ∞1541, †1545)");
+    expect(rows[root].text).toBe("1. Charles I of Austria (*1887, †1922)");
+    expect(rows.slice(0, root).some((r) => r.text.startsWith("2. Archduke Otto of Austria"))).toBe(true);
+    expect(rows.slice(root + 1).some((r) => r.text.startsWith("2. Princess Maria Josepha of Saxony"))).toBe(true);
+    expect(rows[0].text).toBe("13. Francis I, Duke of Lorraine (*1517, ∞1541, †1545)");
   });
 
   test("repeated ancestor is printed once and then referenced", () => {
@@ -162,7 +162,7 @@ describe("ancestor chart", () => {
     const ahn = chartRows(data, "@I1@", opts({ numbering: "ahnentafel", generations: 3 }));
     expect(ahn.map((r) => r.text.split(".")[0]).sort((a, b) => +a - +b))
       .toEqual(["1", "2", "3", "4", "5", "6", "7"]);
-    expect(ahn.find((r) => r.text.startsWith("2. "))?.text).toBe("2. Otto František Jozef Habsburský (*1865, ∞1886, †1906)");
+    expect(ahn.find((r) => r.text.startsWith("2. "))?.text).toBe("2. Archduke Otto of Austria (*1865, ∞1886, †1906)");
   });
 });
 
@@ -171,17 +171,17 @@ describe("descendant chart", () => {
     const rows = chartRows(data, "@I52@", opts({ chart: "descendants" }));
     expect(rows).toHaveLength(699);
     expect(rows.slice(0, 3).map((r) => [r.gen, r.text])).toEqual([
-      [1, "1. František I. (*1708, †1765)"],
-      [1, "∞1736 Mária Terézia (*1717, †1780)"],
-      [2, "2. Marie Alžběta Rakouská (*1737, †1740)"],
+      [1, "1. Francis I, Holy Roman Emperor (*1708, †1765)"],
+      [1, "∞1736 Maria Theresa of Austria (*1717, †1780)"],
+      [2, "2. Archduchess Maria Elisabeth of Austria (*1737, †1740)"],
     ]);
   });
 
   test("several marriages and a divorce", () => {
     const spouses = chartRows(data, "@I416@", opts({ chart: "descendants" })).filter((r) => r.spouse);
     expect(spouses.slice(0, 2).map((r) => r.text)).toEqual([
-      "∞1572 ⚮ Margaréta Valois (*1553, †1615)",
-      "∞1600 Mária Medicejská (*1575, †1642)",
+      "∞1572 ⚮ Margaret of Valois (*1553, †1615)",
+      "∞1600 Marie de' Medici (*1575, †1642)",
     ]);
   });
 
@@ -197,7 +197,7 @@ describe("descendant chart", () => {
     const rows = chartRows(data, "@I52@", opts({ chart: "descendants", numbering: "ahnentafel",
                                                  showSpouses: false }));
     expect(rows.some((r) => r.spouse)).toBe(false);
-    expect(rows[1].text).toMatch(/^1\.1\. Marie Alžběta Rakouská/);
+    expect(rows[1].text).toMatch(/^1\.1\. Archduchess Maria Elisabeth of Austria/);
   });
 });
 
@@ -233,7 +233,7 @@ describe("collapsed branches", () => {
 
   test("descendants: spouse lines fold with the person", () => {
     const leopold = desc.find((r) => r.ref === "1.9")!;
-    expect(leopold.text).toBe("2. Leopold II. (*1747, †1792)");
+    expect(leopold.text).toBe("2. Leopold II, Holy Roman Emperor (*1747, †1792)");
     const shown = visibleRows(desc, new Set([leopold.path]));
     expect(shown.some((r) => r.path.startsWith("1.9~") || r.path.startsWith("1.9."))).toBe(false);
     expect(shown.find((r) => r.path === "1.9")!.hidden).toBe(desc.filter((r) => !r.spouse && r.path.startsWith("1.9.")).length);
@@ -249,16 +249,16 @@ describe("collapsed branches", () => {
 describe("PDF", () => {
   test("ancestors, A4 portrait", async () => {
     const res = await generate(data, "@I1@", { lang: "sk", generations: 7 }, fonts);
-    expect(res).toMatchObject({ pages: 3, rows: 103, generations: 7, title: "Predkovia: Karol I." });
+    expect(res).toMatchObject({ pages: 3, rows: 103, generations: 7, title: "Predkovia: Charles I of Austria" });
     const doc = await PDFDocument.load(res.bytes);
     expect(doc.getPageCount()).toBe(3);
-    expect(doc.getTitle()).toBe("Predkovia: Karol I.");
+    expect(doc.getTitle()).toBe("Predkovia: Charles I of Austria");
   });
 
   test("descendants in English, landscape", async () => {
     const res = await generate(data, "@I52@", { chart: "descendants", lang: "en",
                                                 orientation: "landscape" }, fonts);
-    expect(res.title).toBe("Descendants of František I.");
+    expect(res.title).toBe("Descendants of Francis I, Holy Roman Emperor");
     const page = (await PDFDocument.load(res.bytes)).getPage(0);
     expect(page.getWidth()).toBeGreaterThan(page.getHeight());
   });

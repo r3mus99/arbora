@@ -44,6 +44,6 @@ describe("overview", () => {
     const o = overview(r, readRecords(r));
     expect(o.people).toBe(1714);
     expect(o.generations).toBeGreaterThan(10);
-    expect(o.surnames[0].value).toMatch(/Habsbur/);
+    expect(o.surnames[0].value).toBe("Austria");
   });
 });

@@ -156,9 +156,9 @@ describe("writing GEDCOM", () => {
     const records = parseGedcom(sampleText);
     const rec = record(records, "@I52@");
     const f = personFields(rec);
-    expect(f).toMatchObject({ given: "František I.", surname: "", sex: "M" });
+    expect(f).toMatchObject({ given: "Francis I, Holy Roman Emperor", surname: "", sex: "M" });
     const changed = applyPerson(rec, f, { ...f, surname: "Lotrinský" });
-    expect(readRecords(records.map((r) => (r === rec ? changed : r))).people["@I52@"].name).toBe("František I. Lotrinský");
+    expect(readRecords(records.map((r) => (r === rec ? changed : r))).people["@I52@"].name).toBe("Francis I, Holy Roman Emperor Lotrinský");
   });
 });
 
