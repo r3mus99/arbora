@@ -240,11 +240,10 @@ The first part of the Settings window applies to both the chart and the PDF:
 
 The dark mode is switched with the moon icon in the top bar; without a choice it follows the system.
 
-**Print settings** (PDF only): page size (A4, A3, A5, Letter, Legal),
-orientation, font size, custom title and the print date in the header.
-
-If the longest line does not fit the page width, the generation indent and then
-the font size are reduced automatically.
+**PDF**: the PDF has no settings of its own. It is always A4 and in colour (a printer can scale it to Letter and other papers).
+If the longest line does not fit the page width, the generation indent and then the font size
+(down to 6 pt) are reduced automatically; only when even that does not fit a portrait page,
+the pages turn landscape.
 
 ### Tree poster
 

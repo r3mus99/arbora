@@ -1,0 +1,1 @@
+- **The PDF is always A4, in colour, and turns landscape on its own.** The page size, orientation and colour settings are gone; the font shrinks down to 6 pt and the pages become landscape only when even that does not fit a portrait page. A printer can scale the A4 PDF to Letter and other papers.

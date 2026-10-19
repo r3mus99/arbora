@@ -40,8 +40,7 @@ export function withOption<K extends keyof Form>(form: Form, key: K, value: Form
 const CHOICES: { [K in keyof ChartOptions]?: readonly ChartOptions[K][] } = {
   chart: ["ancestors", "descendants"], labels: ["symbols", "abbr"], dates: ["year", "full"],
   places: ["none", "short", "full"], numbering: ["generation", "ahnentafel", "daboville", "none"],
-  pageSize: ["a4", "a3", "a5", "letter", "legal"],
-  orientation: ["portrait", "landscape"], lang: LANGS,
+  lang: LANGS,
 };
 
 /** Options kept in the browser, with defaults for anything missing or no longer valid. */

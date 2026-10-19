@@ -171,10 +171,10 @@ describe("chart options", () => {
     expect(storedOptions(undefined)).toEqual(APP_DEFAULTS);
     expect(storedOptions("junk")).toEqual(APP_DEFAULTS);
     expect(APP_DEFAULTS.places).toBe("short");
-    const kept = storedOptions({ pageSize: "a3", places: "none", dates: "full", showSpouses: false, fontSize: 11 });
-    expect(kept).toMatchObject({ pageSize: "a3", places: "none", dates: "full", showSpouses: false });
+    const kept = storedOptions({ places: "none", dates: "full", showSpouses: false, fontSize: 11 });
+    expect(kept).toMatchObject({ places: "none", dates: "full", showSpouses: false });
     expect(kept).not.toHaveProperty("fontSize");
-    const bad = storedOptions({ pageSize: "tabloid", dates: 3, orientation: null, lang: "xx",
+    const bad = storedOptions({ pageSize: "tabloid", dates: 3, orientation: "landscape", lang: "xx",
                                 lineHeight: Number.NaN });
     expect(bad).toEqual(APP_DEFAULTS);
     expect(storedOptions({ chart: "descendants", numbering: "ahnentafel" }).numbering).toBe("daboville");

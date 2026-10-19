@@ -19,12 +19,8 @@ export interface ChartOptions {
   generations: number;
   /** descendants: print spouse lines */
   showSpouses: boolean;
-  pageSize: "a4" | "a3" | "a5" | "letter" | "legal";
-  orientation: "portrait" | "landscape";
   lineHeight: number;
   margin: number;
-  /** PDF: colour the dates and places like the screen (bold names and italic places are always used) */
-  colorPdf: boolean;
   /** tree poster: the number that makes the branches differ; the same number draws the same tree (not a setting: each download picks one) */
   posterSeed: number;
   /** tree poster: generations including the person, 2 to 7 */
@@ -37,8 +33,8 @@ export interface ChartOptions {
 export const DEFAULTS: ChartOptions = {
   generations: 0, lang: "sk", labels: "symbols", dates: "year", places: "none", showResidence: false,
   chart: "ancestors", showSpouses: true,
-  numbering: "generation", pageSize: "a4", orientation: "portrait",
-  lineHeight: 1.7, margin: 36, colorPdf: false,
+  numbering: "generation",
+  lineHeight: 1.7, margin: 36,
   posterSeed: 0, posterGenerations: 7, posterCorners: false,
 };
 
