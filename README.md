@@ -22,8 +22,8 @@ Everything runs in your browser; the file is never uploaded anywhere.
   given names and places in bulk.
 - **Browse** every place and every source and note of the file in their own
   lists.
-- **Print** the tree as a **PDF** chart (A3 to Letter, your own title and font
-  size), or as a decorative **tree poster** in SVG for large-format printing.
+- **Print** the tree as a coloured A4 **PDF** chart, or as a decorative
+  **tree poster** in SVG for large-format printing.
 - **12 languages**, light and dark mode, and your data stays on your computer.
 
 ![The edit window lies over the tree and the details](docs/screenshots/editor.png)
