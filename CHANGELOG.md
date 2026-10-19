@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.27.0 – 2026-10-19
+
+- **The poster corner lists line up with the plates and read more cleanly.** The left lists start where the name plates start and the right ones end where the plates end, a municipality and the same one with a district number ("Prague 2") count as one, counts read "Vienna (7)" instead of "Vienna ×7", and "+ N more" has no dot before it.
+
 ## 2.26.1 – 2026-10-19
 
 - **The poster SVG is about 80 % smaller.** Every letter is stored once and reused wherever it appears; the text is still drawn as curves and looks the same.

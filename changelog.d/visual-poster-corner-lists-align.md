@@ -1,1 +1,0 @@
-- **The poster corner lists line up with the plates and read more cleanly.** The left lists start where the name plates start and the right ones end where the plates end, a municipality and the same one with a district number ("Prague 2") count as one, counts read "Vienna (7)" instead of "Vienna ×7", and "+ N more" has no dot before it.
