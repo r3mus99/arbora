@@ -176,8 +176,6 @@ footer a { color: var(--accent); }
           border-radius: 0 0 var(--radius-lg) var(--radius-lg); overflow: hidden; }
 .mid { border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
 .viewer .tree { border: 0; border-radius: var(--radius); margin: 12px var(--pad); flex: 1; min-height: 0; max-height: none; }
-@media (max-width: 900px) { .panel.chart { height: auto; } .viewer { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; height: auto; } .viewer .tree { flex: none; max-height: max(360px, calc(100vh - 230px)); } .side { display: none; } .detail { max-height: none; }
-}
 /* one sidebar: bar of tools (one icon per panel, the open one highlighted) and the open panel next to it */
 .side { display: flex; align-items: stretch; min-height: 0; border-right: 1px solid var(--border); background: var(--bg); }
 .toolbar { display: flex; flex-direction: column; gap: 4px; padding: calc((var(--head-h) - var(--ctl-h)) / 2); }
@@ -780,4 +778,27 @@ section.check { margin: 0 0 14px; }
 .editor label[data-cap]:has(> input:not(:placeholder-shown))::before {
   content: attr(data-cap); position: absolute; left: 0; top: -8px; z-index: 1; padding: 0 3px 0 0; pointer-events: none;
   font-size: 12px; line-height: 1; font-weight: 600; color: var(--muted);
+}
+
+/* narrow screens (phone, small tablet): the list of people and the detail of one person, one at a time; the chart, the tool
+   bar and the tool panels are not shown. Last in the file so that it wins over the desktop rules above. */
+.back-btn { display: none; }
+@media (max-width: 900px) {
+  main.loaded { padding: 0; }
+  .panel.chart { height: 100dvh; min-height: 0; border-radius: 0; border-left: 0; border-right: 0; }
+  .viewer, .viewer.no-detail, .viewer.has-detail { grid-template-columns: minmax(0, 1fr); }
+  .viewer > .side, .viewer > .detail, .viewer > .check-wide { grid-column: 1; }
+  .edit-layer { grid-column: 1; }
+  .toolbar, .mid, .head-tools .save-btn.poster { display: none; }
+  .side { border-right: 0; }
+  .rail-wrap { width: 100%; border-left: 0; }
+  .viewer.has-detail > .side { display: none; }
+  .back-btn { display: inline-flex; flex: none; margin-left: calc(-1 * var(--pad) / 2); }
+  .detail-head { gap: 4px; }
+  .frame-bar .file-chip, .frame-bar .status { display: none; }
+  .frame-bar { gap: 8px; }
+  .frame-bar h1 { font-size: 24px; }
+  .tools .save-btn { padding: 5px; gap: 0; font-size: 0; }
+  .tools .save-btn .badge { font-size: 12px; }
+  footer { display: none; }
 }

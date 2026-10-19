@@ -31,7 +31,8 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 - **Detail** (right): the selected person, read-only timeline now, editing later. Hidden by a wide panel. The **edit window** (section 7) lies over the tree and the detail without closing them.
 - The frame (top bar included) has **one fixed height** (the window minus a small margin and the footer). Panels never change it; their content
   scrolls inside. Columns are divided by 1px `--border` lines, not by cards or shadows.
-- Mobile layout is out of scope for now.
+- **Narrow screens** (up to 900px, phones and small tablets): only the list of people and the detail of one person, one at a time. The chart, the tool bar
+  and the tool panels are not shown; a back arrow in the detail returns to the list; the edit window fills the width; the poster (SVG) button is hidden.
 
 ## 2. Tokens
 
@@ -184,4 +185,3 @@ When the browser holds a remembered file (IndexedDB, only in this browser; the a
 - The language button shows a flag (flags are the only way to recognise a language); it follows the icon-button size and hover.
 - Tooltips and `aria-label` of GED / PDF differ slightly (the tooltip carries the hint text).
 - The overview tiles keep their 28–34px circular icons.
-- Mobile layout is not designed yet.
