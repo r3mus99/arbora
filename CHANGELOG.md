@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.9.0 – 2026-10-19
+
+- **The tree poster is as high as the family needs.** Only people who exist take room on the poster: each person stands halfway between the parents and the branches of one side are packed as close as the plates allow, so a family with gaps gives a much lower poster, with no empty areas. The person stands in the middle below the two parents, joined to them by one limb that splits in two. The plates and the text keep their size, and the poster no longer has the fixed proportions of A paper.
+
 ## 2.8.0 – 2026-10-19
 
 - **The tree poster has its own number of generations.** The Settings panel has a new "Tree poster" group where you choose 2 to 9 generations for the SVG poster; it no longer follows the generations of the chart. Beyond seven generations the poster grows (each generation doubles its size), while the plates and the text keep their size.
