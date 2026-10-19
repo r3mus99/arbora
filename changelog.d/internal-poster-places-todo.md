@@ -1,1 +1,0 @@
-- **Tree poster todo:** notes on the postponed birth, death and residence places on the plates.

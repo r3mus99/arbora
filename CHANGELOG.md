@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.13.0 – 2026-10-19
+
+- **The tree poster shows the number of children of each couple.** It stands under the year of the marriage, in the language of the poster ("6 children", "3 deti", "5 дітей").
+
+- **Tree poster todo:** notes on the postponed birth, death and residence places on the plates.
+
 ## 2.12.0 – 2026-10-19
 
 - **The tree poster can show 3 to 10 generations.** The setting range moved from 2-9 to 3-10; the default stays 7.
