@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.19.0 – 2026-10-19
+
+Poster: the marriage year and number of children now look for a free spot between the two branches first (in a wider area), and only then above or below them, so they no longer sit on a branch.
+
 ## 2.18.1 – 2026-10-19
 
 Poster: a nameplate whose name wraps to two lines no longer shrinks the names and dates of the single-line plates in its generation.
