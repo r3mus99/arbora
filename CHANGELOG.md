@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.18.1 – 2026-10-19
+
+Poster: a nameplate whose name wraps to two lines no longer shrinks the names and dates of the single-line plates in its generation.
+
 ## 2.18.0 – 2026-10-19
 
 - **A poster setting ends the branch at a repeated person.** With many generations the same ancestor stands on several branches; "End the branch at a repeated person" keeps the whole ancestry only on the first one, so the poster is smaller. Off by default, translated into all 12 languages.
