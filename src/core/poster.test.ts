@@ -224,6 +224,47 @@ describe("poster repeated people", () => {
   });
 });
 
+describe("poster repeated people, the branch ends once", () => {
+  const tags = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => /^\d+\u00D7$/.test(t.text)).length;
+
+  test("with the option a person met again stands as a plate only, and the poster gets smaller", () => {
+    const all = buildPoster(data, ROOT, { generations: 6, lang: "en", posterSeed: 1 });
+    const once = buildPoster(data, ROOT, { generations: 6, lang: "en", posterSeed: 1, posterOnce: true });
+    expect(once.plates.length).toBeLessThan(all.plates.length);
+    expect(once.height).toBeLessThanOrEqual(all.height);
+    // the tags stay on the plates of the repeated people
+    expect(tags(once)).toBeGreaterThan(0);
+    // nothing is lost that is not a repeat: every person of the short poster is on the full one
+    const ids = new Set(all.plates.map((x) => x.id));
+    expect(once.plates.every((x) => ids.has(x.id))).toBe(true);
+  });
+
+  test("the first branch in the layout order keeps the whole ancestry, the later plates end the branch", () => {
+    // the plates counted by hand: father's side first, a person seen again adds its plate and no parents
+    const seen = new Set<string>();
+    const count = (id: string, gen: number, max: number): number => {
+      const person = data.people[id];
+      if (!person) return 0;
+      const again = seen.has(id);
+      seen.add(id);
+      const fam = person.famc.length ? data.families[person.famc[0]] : null;
+      if (gen >= max || !fam || again) return 1;
+      return 1 + [fam.husb, fam.wife].reduce((n, parent) => n + (parent ? count(parent, gen + 1, max) : 0), 0);
+    };
+    for (const gens of [4, 6]) {
+      seen.clear();
+      const once = buildPoster(data, ROOT, { generations: gens, lang: "en", posterSeed: 1, posterOnce: true });
+      expect(once.plates.length).toBe(count(ROOT, 1, gens));
+    }
+  });
+
+  test("without repeats the option changes nothing", () => {
+    const a = buildPoster(data, ROOT, { generations: 3, lang: "en", posterSeed: 1 });
+    const b = buildPoster(data, ROOT, { generations: 3, lang: "en", posterSeed: 1, posterOnce: true });
+    expect(b.plates).toEqual(a.plates);
+  });
+});
+
 describe("poster marriage years", () => {
   const brown = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === "#6b4626" && !/^\d+ generations \u00B7 /.test(t.text));
   const years = (p: ReturnType<typeof buildPoster>) => brown(p).filter((t) => /^\d{4}$/.test(t.text));

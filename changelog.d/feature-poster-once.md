@@ -1,0 +1,1 @@
+- **A poster setting ends the branch at a repeated person.** With many generations the same ancestor stands on several branches; "End the branch at a repeated person" keeps the whole ancestry only on the first one, so the poster is smaller. Off by default, translated into all 12 languages.

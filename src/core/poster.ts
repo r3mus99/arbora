@@ -208,7 +208,9 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     return lines;
   };
   const needed = new Map<number, number>();
+  const surveyed = new Set<string>();
   const survey = (pid: string | null, gen: number) => {
+    if (o.posterOnce && pid) { if (surveyed.has(pid)) return; surveyed.add(pid); }
     const f = pid && gen < gens && data.people[pid]?.famc.length ? data.families[data.people[pid].famc[0]] : null;
     if (!f || !f.husb || !f.wife || !data.people[f.husb] || !data.people[f.wife]) return;
     const widest = Math.max(0, ...marrLines(pid).map((l) => lineW(l, marrSize(gen))));
@@ -232,15 +234,19 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const people = new Map<Plate, Person>();
 
   // y is set below, once the packing of the people is known
+  const placed = new Set<string>();
   const place = (pid: string | null, gen: number, side: -1 | 1): Plate | null => {
     const p = pid ? data.people[pid] : null;
     if (!p) return null;
+    // with `posterOnce` a person met again stands there as a plate only, the branch ends
+    const again = o.posterOnce && placed.has(pid!);
+    placed.add(pid!);
     const plate: Plate = { id: pid!, gen, w: widthOf(gen), h: heightOf(gen), x: W / 2 + side * colX.get(gen)!, y: 0 };
     plates.push(plate);
     people.set(plate, p);
     const fam = p.famc.length ? data.families[p.famc[0]] : null;
     const next: Plate[] = [];
-    if (gen < gens && fam) {
+    if (gen < gens && fam && !again) {
       for (const parent of [fam.husb, fam.wife]) {
         const q = place(parent, gen + 1, side);
         if (q) next.push(q);
