@@ -79,41 +79,42 @@ const firstName = (p: Person) => (p.given || p.name).split(/[\s,]+/)[0];
 /** What follows the given name in the name; empty when the file does not separate the surname. */
 const surnameOf = (p: Person) => p.given && p.name.startsWith(p.given) ? p.name.slice(p.given.length).trim() : "";
 
-/** most values a line names; the rest is counted ("+ 3 more") */
-export const CORNER_MAX_VALUES = 5;
+/** Most values a line names by the generations shown (5 up to 5 generations, 6 up to 7, 7 from 8); the rest is counted ("+ 3 more"). */
+export const cornerMaxValues = (generations: number) => (generations <= 5 ? 5 : generations <= 7 ? 6 : 7);
 
 /**
- * One block per branch that has people and something to say. Each line shows as many values as fit in `maxWidth`;
- * the rest is counted ("+ 3 more").
+ * One block per branch that has people and something to say. Each line is labelled and shows as many values as fit
+ * in `maxWidth`, at most `cornerMaxValues(generations)`; the rest is counted ("+ 3 more").
  */
 export function cornerBlocks(branches: Record<CornerKey, Person[]>, o: ChartOptions, measure: Measure,
-                             maxWidth: (key: CornerKey) => number): Corner[] {
-  const t = TEXTS[o.lang].corners, plural = new Intl.PluralRules(o.lang);
-  const more = (n: number) => `+ ${n} ${t.more[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2]}`;
-  const sep = "  ·  ";
-  const fit = (items: Count[], width: number) => {
-    const shown = (n: number) => items.slice(0, n).map(([v, c]) => (c > 1 ? `${v} (${c})` : v)).join(sep)
+                             maxWidth: (key: CornerKey) => number, generations: number): Corner[] {
+  const t = TEXTS[o.lang], plural = new Intl.PluralRules(o.lang);
+  const form = (forms: string[], n: number) => forms[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2];
+  const more = (n: number) => `+ ${n} ${form(t.corners.more, n)}`;
+  const sep = "  \u00B7  ";
+  const fit = (label: string, items: Count[], width: number) => {
+    const shown = (n: number) => `${label}: ` + items.slice(0, n).map(([v, c]) => (c > 1 ? `${v} (${c})` : v)).join(sep)
       + (n < items.length ? "  " + more(items.length - n) : "");
-    let n = Math.min(items.length, CORNER_MAX_VALUES);
+    let n = Math.min(items.length, cornerMaxValues(generations));
     while (n > 1 && measure(shown(n), CORNER_VALUE_SIZE, false) > width) n--;
     return shown(n);
   };
-  // the head of the branch (the first of its people): "Line: Name  ·  b. 1700", without the birth when it does not fit
-  const heading = (head: Person, width: number) => {
-    const name = head.name || "?", date = head.birth?.date ? formatDate(head.birth.date, o.dates === "full", o.lang) : "";
-    const label = `${TEXTS[o.lang].corners.line}: ${name}`;
-    const full = date ? `${label}  \u00B7  ${TEXTS[o.lang].abbr.birt.trim()} ${date}` : label;
-    return measure(full, CORNER_HEAD_SIZE, true) <= width ? full : label;
+  // the head of the branch (the first of its people): "Line: Name  ·  b. 7 Apr 1939  ·  62 ancestors"; the birth and then the count drop out when it does not fit
+  const heading = (head: Person, count: number, width: number) => {
+    const date = head.birth?.date ? formatDate(head.birth.date, o.dates === "full", o.lang) : "";
+    const parts = [`${t.corners.line}: ${head.name || "?"}`, date ? `${t.abbr.birt.trim()} ${date}` : "", `${count} ${form(t.ancestors, count)}`];
+    return [parts, [parts[0], parts[2]], [parts[0]]].map((c) => c.filter(Boolean).join(sep))
+      .find((x) => measure(x, CORNER_HEAD_SIZE, true) <= width) ?? parts[0];
   };
   return CORNER_KEYS.flatMap((key): Corner[] => {
     const people = branches[key];
     if (!people.length) return [];
-    const lines: Count[][] = [
-      tally(people, municipality),
-      tally(people, firstName),
-      mergeSurnameForms(tally(people, surnameOf)),
+    const lists: [string, Count[]][] = [
+      [t.corners.origin, tally(people, municipality)],
+      [t.corners.given, tally(people, firstName)],
+      [t.corners.surnames, mergeSurnameForms(tally(people, surnameOf))],
     ];
-    const rows = lines.filter((items) => items.length).map((items) => fit(items, maxWidth(key)));
-    return rows.length ? [{ key, heading: heading(people[0], maxWidth(key)), rows }] : [];
+    const rows = lists.filter(([, items]) => items.length).map(([label, items]) => fit(label, items, maxWidth(key)));
+    return rows.length ? [{ key, heading: heading(people[0], people.length, maxWidth(key)), rows }] : [];
   });
 }
