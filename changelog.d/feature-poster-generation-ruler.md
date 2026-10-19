@@ -1,0 +1,1 @@
+- **The tree poster has a ruler with the generations.** Under the title a line like a measuring tape marks "1. generation", "2. generation" and so on over the columns of plates, to both sides, with how many of the possible people of each are known ("12 of 16").

@@ -625,11 +625,19 @@ describe("poster packing of uneven sides", () => {
 });
 
 describe("poster generation ruler", () => {
-  test("every generation has a label and the oldest to youngest birth year of its column", () => {
+  test("every column of plates has a generation label", () => {
     const p = buildPoster(data, ROOT, { generations: 4, lang: "en", dates: "year" });
     const labels = p.texts.filter((t) => /^Generation \d$/.test(t.text));
     expect(labels.map((t) => t.text).sort()).toEqual(["Generation 1", "Generation 2", "Generation 2", "Generation 3", "Generation 3", "Generation 4", "Generation 4"]);
-    expect(p.texts.some((t) => /^\d{4}–\d{4}$/.test(t.text))).toBe(true);
+    expect(p.texts.some((t) => /^\d{4}–\d{4}$/.test(t.text))).toBe(false);
+  });
+
+  test("under each generation the known people are counted out of the possible ones", () => {
+    const p = buildPoster(full(4), ROOT, { generations: 4, lang: "en" });
+    expect(p.texts.filter((t) => /^\d+ of \d+$/.test(t.text)).map((t) => t.text).sort()).toEqual(["1 of 1", "1 of 1", "1 of 1", "2 of 2", "2 of 2", "4 of 4", "4 of 4"]);
+    // person 4 has no parents: of the 4 people the father's side could hold in generation 4, 2 are known
+    const sparse = buildPoster(full(4, (n) => n !== 4), ROOT, { generations: 4, lang: "en" });
+    expect(sparse.texts.some((t) => t.text === "2 of 4")).toBe(true);
   });
 
   test("the ruler stands between the title frame and the plates", () => {
