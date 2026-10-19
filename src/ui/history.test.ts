@@ -171,13 +171,13 @@ describe("chart options", () => {
     expect(storedOptions(undefined)).toEqual(APP_DEFAULTS);
     expect(storedOptions("junk")).toEqual(APP_DEFAULTS);
     expect(APP_DEFAULTS.showPlaces).toBe(true);
-    const kept = storedOptions({ pageSize: "a3", showPlaces: false, dates: "full", showSpouses: false, fontSize: 11 });
-    expect(kept).toMatchObject({ pageSize: "a3", showPlaces: false, dates: "full", showSpouses: false });
+    const kept = storedOptions({ showPlaces: false, dates: "full", showSpouses: false, fontSize: 11 });
+    expect(kept).toMatchObject({ showPlaces: false, dates: "full", showSpouses: false });
     expect(kept).not.toHaveProperty("fontSize");
     // settings saved before places became a checkbox
     expect(storedOptions({ places: "none" }).showPlaces).toBe(false);
     expect(storedOptions({ places: "full" }).showPlaces).toBe(true);
-    const bad = storedOptions({ pageSize: "tabloid", dates: 3, orientation: null, lang: "xx",
+    const bad = storedOptions({ pageSize: "tabloid", dates: 3, orientation: "landscape", lang: "xx",
                                 lineHeight: Number.NaN });
     expect(bad).toEqual(APP_DEFAULTS);
     expect(storedOptions({ chart: "descendants", numbering: "ahnentafel" }).numbering).toBe("daboville");

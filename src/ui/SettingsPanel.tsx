@@ -33,7 +33,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     value: form[key] as string,
     onChange: (e: { target: { value: string } }) => onChange(key, e.target.value as Form[K]),
   });
-  const check = (key: "showSpouses" | "colorPdf" | "showPlaces") => ({
+  const check = (key: "showSpouses" | "showPlaces") => ({
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => onChange(key, e.target.checked),
   });
@@ -69,23 +69,6 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
       <div className="checks">
         <label title={t("showPlacesTip")} {...scoped(CHART)}><input {...check("showPlaces")} /> <span>{t("showPlaces")}</span></label>
         {desc && <label {...scoped(CHART)}><input {...check("showSpouses")} /> <span>{t("showSpouses")}</span></label>}
-      </div>
-    </div>
-    <div className="set-group">
-      <h3 {...scoped(["pdf"])}>{t("setPrint")}</h3>
-      <div className="grid">
-        <label {...scoped(["pdf"])}><span>{t("pageSize")}</span>
-          <select {...sel("pageSize")}>
-            <option value="a4">A4</option><option value="a3">A3</option><option value="a5">A5</option>
-            <option value="letter">Letter</option><option value="legal">Legal</option>
-          </select></label>
-        <label {...scoped(["pdf"])}><span>{t("orientation")}</span>
-          <select {...sel("orientation")}>
-            <option value="portrait">{t("portrait")}</option><option value="landscape">{t("landscape")}</option>
-          </select></label>
-      </div>
-      <div className="checks">
-        <label title={t("colorPdfTip")} {...scoped(["pdf"])}><input {...check("colorPdf")} /> <span>{t("colorPdf")}</span></label>
       </div>
     </div>
     <div className="set-group">

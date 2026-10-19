@@ -10,12 +10,11 @@ import { TEXTS, type Lang } from "./texts";
 
 /** the size the text starts at; it shrinks when a line does not fit the page */
 export const PDF_FONT_SIZE = 8.5;
+/** the font never shrinks below this; a longer line makes the pages landscape */
+export const PDF_MIN_FONT_SIZE = 6;
 
-/** page sizes in points (portrait) */
-const PAGE_SIZES: Record<ChartOptions["pageSize"], [number, number]> = {
-  a4: [595.2756, 841.8898], a3: [841.8898, 1190.5512],
-  a5: [419.5276, 595.2756], letter: [612, 792], legal: [612, 1008],
-};
+/** A4 in points; the PDF has no other paper size (a printer scales it to Letter and the like) */
+const A4: [number, number] = [595.2756, 841.8898];
 
 class Layout {
   top: number;
@@ -57,8 +56,8 @@ function fitLayout(rows: Row[], base: Layout, seeText: string) {
     let size, step;
     if (lay.step > lay.size * 1.8) {
       step = Math.max(lay.size * 1.8, lay.step * 0.92); size = lay.size;
-    } else if (lay.size > 5) {
-      size = Math.max(5, lay.size - 0.25); step = size * 1.8;
+    } else if (lay.size > PDF_MIN_FONT_SIZE) {
+      size = Math.max(PDF_MIN_FONT_SIZE, lay.size - 0.25); step = size * 1.8;
     } else {
       return { lay, fits: false };
     }
@@ -68,7 +67,7 @@ function fitLayout(rows: Row[], base: Layout, seeText: string) {
 }
 
 function render(doc: PDFDocument, rows: Row[], title: string, lang: Lang, lay: Layout,
-                stamp: string, lineWidth: number, colors: boolean): number {
+                stamp: string, lineWidth: number): number {
   const t = TEXTS[lang];
   const total = Math.floor((rows.length - 1) / lay.perPage) + 1;
   rows.forEach((r, i) => { r.page = Math.floor(i / lay.perPage) + 1; });
@@ -121,7 +120,7 @@ function render(doc: PDFDocument, rows: Row[], title: string, lang: Lang, lay: L
       let x = lay.textX(r.gen);
       for (const part of r.parts) {
         const font = lay.fontOf(part.kind);
-        const c = colors ? KIND_COLORS[part.kind] : undefined;
+        const c = KIND_COLORS[part.kind];
         page.drawText(part.text, { x, y, size: lay.size, font, color: c ? rgb(...c) : black });
         x += font.widthOfTextAtSize(part.text, lay.size);
       }
@@ -156,6 +155,8 @@ export interface ChartResult {
   fontSize: number;
   /** the font had to be shrunk noticeably */
   shrunk: boolean;
+  /** not even the smallest font fitted a portrait page, so the pages are landscape */
+  landscape: boolean;
   title: string;
 }
 
@@ -174,19 +175,24 @@ export async function generate(data: GedcomData, rootId: string, options: Partia
   const bold = await doc.embedFont(fonts.bold || fonts.regular, { subset: true });
   const italic = await doc.embedFont(fonts.italic || fonts.regular, { subset: true });
 
-  let [w, h] = PAGE_SIZES[o.pageSize] || PAGE_SIZES.a4;
-  if (o.orientation === "landscape") [w, h] = [Math.max(w, h), Math.min(w, h)];
-  const base = new Layout(w, h, o.margin, font, bold, italic, PDF_FONT_SIZE, PDF_FONT_SIZE * 2.6,
-                          PDF_FONT_SIZE * o.lineHeight);
-  const { lay } = fitLayout(rows, base, fmt(TEXTS[o.lang].see, { page: 99 }));
+  const seeText = fmt(TEXTS[o.lang].see, { page: 99 });
+  const layoutOn = (w: number, h: number) =>
+    fitLayout(rows, new Layout(w, h, o.margin, font, bold, italic, PDF_FONT_SIZE, PDF_FONT_SIZE * 2.6,
+                               PDF_FONT_SIZE * o.lineHeight), seeText);
+  // portrait first, the indent and font shrink as far as they may; landscape only when that is not enough
+  let { lay, fits } = layoutOn(A4[0], A4[1]);
+  if (!fits) {
+    const wide = layoutOn(A4[1], A4[0]);
+    if (wide.fits || wide.lay.size > lay.size) lay = wide.lay;
+  }
   const title = fmt(TEXTS[o.lang][desc ? "titleDesc" : "title"], { name: root.name });
   doc.setTitle(title);
   doc.setCreator("Arbora");
   doc.setProducer("Arbora (pdf-lib)");
-  const pages = render(doc, rows, title, o.lang, lay, `Arbora${version && ` ${version}`}`, 0.6, o.colorPdf);
+  const pages = render(doc, rows, title, o.lang, lay, `Arbora${version && ` ${version}`}`, 0.6);
   const bytes = await doc.save();
   return {
     bytes, pages, rows: rows.length, generations: Math.max(...rows.map((r) => r.gen)),
-    fontSize: lay.size, shrunk: lay.size < PDF_FONT_SIZE * 0.85, title,
+    fontSize: lay.size, shrunk: lay.size < PDF_FONT_SIZE * 0.85, landscape: lay.pageW > lay.pageH, title,
   };
 }
