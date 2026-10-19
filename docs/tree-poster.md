@@ -22,8 +22,9 @@ decorative wall chart. This file records how it works and what is still open.
   grow along them; a shoot that would touch a plate, another shoot or the edge is not drawn. The seed combines the
   person's id with a random number picked at each download, so every download is a new tree; the same seed (the
   `posterSeed` option) always draws the same one, which the tests use.
-- The year of a marriage and the number of children of the couple ("⚭ 1885" and under it "6 children", in the language
-  of the poster, plural by `Intl.PluralRules`; the date is left out when unknown) are a small brown text where the branches of the two parents meet: in the gap between
+- The year of a marriage and the number of children of the couple (two lines, each led by a drawn symbol: two rings
+  before the year, two small figures before the number; the number is left out for an only child, the year when
+  unknown, and nothing needs translating) are a small brown text where the branches of the two parents meet: in the gap between
   a person and the parents, or beside the fork under the main person's parents. It has no plate of its own, its size
   follows the generation of the child (12 units times the plate scale), the gap between two columns is widened to fit
   it, and nothing is shown when a parent is missing. The room is kept free of side shoots before
@@ -49,7 +50,7 @@ decorative wall chart. This file records how it works and what is still open.
    names then touch the border); long place names shrink the line to small type, mostly on the 125 % plates, so a
    long line would have to wrap or the places would be limited to 200 % to 150 %; the residence shows only when it
    differs from the birth and death places. A residence line is better as an opt-in setting.
-6. **More facts on the poster** (Marek liked all five, 2026-10-19; the number of children comes first, see the
+6. **More facts on the poster** (Marek liked all five, 2026-10-19; the number of children is done, see the
    marriage text under "Plates"):
    - the occupation under the name on the big plates (200 % to 125 %), only when known;
    - the title with numbers, e.g. "63 ancestors in 6 generations", maybe the oldest known ancestor and the year;
