@@ -203,7 +203,7 @@ describe("poster plates", () => {
     const date = poster.texts.find((t) => t.text.includes("1865"))!;
     const singleLine = buildPoster(load(`0 HEAD
 0 @I1@ INDI
-    1 NAME Given /Family/
+1 NAME Given /Family/
 1 BIRT
 2 DATE 1865
 1 DEAT
@@ -211,6 +211,37 @@ describe("poster plates", () => {
 0 TRLR
 `), "@I1@", { generations: 6, lang: "en" }, fonts).texts.find((t) => t.text.includes("1865"))!;
     expect(date.size).toBeLessThan(singleLine.size);
+  });
+
+  test("a wrapped name only shrinks its own plate, not the single-line plates of its generation", () => {
+    const family = (motherName: string) => load(`0 HEAD
+0 @I1@ INDI
+1 NAME Child /Test/
+1 FAMC @F1@
+0 @I2@ INDI
+1 NAME Adam /Short/
+1 SEX M
+1 BIRT
+2 DATE 1860
+0 @I3@ INDI
+1 NAME ${motherName}
+1 SEX F
+1 BIRT
+2 DATE 1862
+1 DEAT
+2 DATE 1930
+0 @F1@ FAM
+1 HUSB @I2@
+1 WIFE @I3@
+0 TRLR
+`);
+    const sizes = (name: string, text: string) =>
+      buildPoster(family(name), "@I1@", { generations: 3, lang: "en" }, fonts).texts.find((t) => t.text === text)!.size;
+    const plain = family("Eve /Brief/");
+    const father = buildPoster(plain, "@I1@", { generations: 3, lang: "en" }, fonts).texts.find((t) => t.text === "Adam Short")!;
+    expect(sizes("Maximiliana Konstantina /Longfamilyname-Hohenzollern/", "Adam Short")).toBe(father.size);
+    const wrapped = buildPoster(family("Maximiliana Konstantina /Longfamilyname-Hohenzollern/"), "@I1@", { generations: 3, lang: "en" }, fonts);
+    expect(wrapped.texts.some((t) => t.text === "Maximiliana Konstantina")).toBe(true);
   });
 
   test("every plate has its own hand-cut brown outline, and the name is blue for men and red for women", () => {

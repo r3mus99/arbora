@@ -492,9 +492,12 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const texts: PosterText[] = [];
   const plateShapes: PosterShape[] = [];
   const lines = new Map(plates.map((plate) => [plate, plateLines(plate, people.get(plate)!, o, measure)]));
-  // one size for the names and one for the dates of a generation, so a column reads evenly
+  // one size for the names and one for the dates of a generation, so a column reads evenly; a plate whose name wraps
+  // to two lines keeps its own smaller sizes and does not pull the single-line plates of its generation down
+  const wraps = (ls: Line[]) => ls.filter(([, , bold]) => bold).length > 1;
   const smallest = new Map<string, number>();
   for (const [plate, ls] of lines) {
+    if (wraps(ls)) continue;
     for (const [, size, bold] of ls) {
       const key = `${plate.gen}${bold}`;
       smallest.set(key, Math.min(smallest.get(key) ?? Infinity, size));
@@ -507,7 +510,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h, scaleOf(plate.gen));
     plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 },
                      { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
-    const same = lines.get(plate)!.map(([text, , bold]): Line => [text, smallest.get(`${plate.gen}${bold}`)!, bold]);
+    const own = lines.get(plate)!;
+    const same = own.map(([text, size, bold]): Line => [text, Math.min(size, smallest.get(`${plate.gen}${bold}`) ?? size), bold]);
     texts.push(...stack(plate, same, sex === "M" ? C.male : sex === "F" ? C.female : C.ink));
     // a person who stands on the poster more than once (both lines of the family lead to them) carries a small
     // brown tag with the number of places in the top right corner
