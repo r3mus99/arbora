@@ -311,6 +311,9 @@ h1 .logo { width: .9em; height: .9em; color: var(--accent); stroke-width: 1.6; }
 .finder input { padding-left: 32px; }
 .set-group { padding: var(--pad); }
 .set-group + .set-group { border-top: 1px solid var(--border); }
+.set-panel .panel-body { background: var(--bg); }
+.set-panel .set-group { background: var(--panel); border-bottom: 1px solid var(--border); }
+.set-panel .set-group + .set-group { margin-top: 12px; }
 .set-group h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted);
                 font-weight: 600; margin: 0 0 10px; }
 button.big, .btn.big { font-size: 14px; padding: 12px 24px; }
