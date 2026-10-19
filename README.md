@@ -2,12 +2,38 @@
 
 **Online: https://r3mus99.github.io/arbora/**
 
-A web page to view, check and edit a family tree from a GEDCOM file and turn it
-into a PDF chart of **ancestors** or **descendants**. The edited tree can be
-downloaded again as GEDCOM. Everything runs in your browser; the file is never
-uploaded anywhere.
+A web page to explore, check, edit and print a family tree from a GEDCOM file.
+Everything runs in your browser; the file is never uploaded anywhere.
 
-Current version: **2.0.0**, see [CHANGELOG.md](CHANGELOG.md).
+![The ancestors of Charles I of Austria, with the details of the chosen person](docs/screenshots/viewer.png)
+
+## What it does
+
+- **View** the ancestors or descendants of anyone, as a tree you can collapse,
+  with a searchable list of people, a timeline of each person, recent people and
+  favourites, and a file overview with statistics.
+- **Edit** about 40 GEDCOM tags in one edit window: names, events, occupations
+  and facts, marriages, children, parents, associations, notes, sources and
+  contact details. Add, delete and merge people and families. Everything is one
+  undo step, and the parts of the file you do not touch are written back
+  byte for byte. Download the result as GEDCOM.
+- **Check** the file for broken links, impossible dates and odd surname endings,
+  fix what is safe with one click, and unify spelling variants of surnames,
+  given names and places in bulk.
+- **Browse** every place and every source and note of the file in their own
+  lists.
+- **Print** the tree as a **PDF** chart (A3 to Letter, your own title and font
+  size), or as a decorative **tree poster** in SVG for large-format printing.
+- **12 languages**, light and dark mode, and your data stays on your computer.
+
+![The edit window lies over the tree and the details](docs/screenshots/editor.png)
+
+The screenshots show the built-in sample, the Habsburg family tree from Wikidata
+(see [Test data](#test-data)).
+
+## The charts
+
+The on-screen chart and the PDF are laid out the same way.
 
 ### Ancestors
 
@@ -17,16 +43,16 @@ the name, the years of birth (`*`), the parents' marriage (`∞`) and death (`�
 are in parentheses:
 
 ```
-            ┌ 3. Karol Ľudovít Habsburský (*1833, ∞1862, †1896)
-      ┌ 2. Otto František Jozef Habsburský (*1865, ∞1886, †1906)
-      │     └ 3. Marie Annunziata Neapolsko-Sicilská (*1843, †1871)
-1. Karol I. (*1887, †1922)
-      │     ┌ 3. Jiří I. Saský (*1832, ∞1859, †1904)
-      └ 2. Mária Jozefa Saská (*1867, †1944)
+            ┌ 3. Charles Louis of Austria (*1833, ∞1862, †1896)
+      ┌ 2. Otto Francis of Austria (*1865, ∞1886, †1906)
+      │     └ 3. Maria Annunziata of Bourbon-Two Sicilies (*1843, †1871)
+1. Charles I (*1887, †1922)
+      │     ┌ 3. George of Saxony (*1832, ∞1859, †1904)
+      └ 2. Maria Josepha of Saxony (*1867, †1944)
             └ 3. …
 ```
 
-Sample: [public/sample_ancestors.pdf](public/sample_ancestors.pdf).
+Sample: [public/sample_ancestors.pdf](public/sample_ancestors.pdf) (names as in the Slovak Wikidata labels).
 
 ### Descendants
 
@@ -36,22 +62,22 @@ grandchildren and so on. With several marriages the children are grouped by the
 spouse they had them with:
 
 ```
-1. František I. (*1708, †1765)
-∞1736 Mária Terézia (*1717, †1780)
+1. Francis I (*1708, †1765)
+∞1736 Maria Theresa (*1717, †1780)
    ├ 2. …
-   ├ 2. Leopold II. (*1747, †1792)
-   │  ∞1765 Mária Ludovika Španielska (*1745, †1792)
-   │     ├ 3. František II. (*1768, †1835)
-   │     │  ∞1788 Alžbeta Wilhelmína Württemberská (*1767, †1790)
+   ├ 2. Leopold II (*1747, †1792)
+   │  ∞1765 Maria Luisa of Spain (*1745, †1792)
+   │     ├ 3. Francis II (*1768, †1835)
+   │     │  ∞1788 Elisabeth of Württemberg (*1767, †1790)
    │     │     └ 4. …
-   │     │  ∞1790 Mária Terézia Neapolsko-sicílska (*1772, †1807)
-   │     │     ├ 4. Mária Lujza Habsbursko-lotrinská (*1791, †1847)
-   │     │     └ 4. Ferdinand I. (*1793, †1875)
+   │     │  ∞1790 Maria Theresa of Naples and Sicily (*1772, †1807)
+   │     │     ├ 4. Marie Louise of Austria (*1791, †1847)
+   │     │     └ 4. Ferdinand I (*1793, †1875)
    │     └ 3. …
    └ 2. …
 ```
 
-Sample: [public/sample_descendants.pdf](public/sample_descendants.pdf).
+Sample: [public/sample_descendants.pdf](public/sample_descendants.pdf) (names as in the Slovak Wikidata labels).
 
 A person who appears in the tree more than once (for example after marriages
 between relatives) is written out only once; later occurrences refer to it.
@@ -59,51 +85,71 @@ between relatives) is written out only once; later occurrences refer to it.
 ## Usage
 
 1. Open the page and choose (or drop) your `.ged` file, or try the built-in
-   sample. The page then switches to a compact top bar: the Arbora title, the
-   file name with the number of people (click it or drop a file on it to open
-   another one), the tool buttons and the language. The tools are icons with a
-   tooltip: file overview, file check, undo, redo, download GEDCOM, **PDF**, **SVG** (tree poster) and
-   settings.
-2. After loading, the **file overview** shows the number of people (men and
-   women), families and generations (the longest parent–child line), the years
-   the file covers, the oldest ancestor (click to make them no. 1 of the chart),
-   the number of problems found by the file check, and the most common surnames
-   and places. A surname is a link to the search. The overview closes with the
-   cross and opens again with its icon in the top bar.
-3. The main part of the page is the chart, laid out the same way as the PDF.
-   Switch between **Ancestors** and **Descendants** above it and find person
-   no. 1 by name or ID in the search field of the chart header. At first it is
-   the person chosen last time, otherwise the first person in the file.
-4. Clicking a person shows their details next to the chart (below it on narrow
-   screens), with icons and in the same order as the edit form: birth,
-   christening, religion, parents, marriages with children, occupations, note,
-   death and burial. Relatives are links; the crosshair button makes the person
-   no. 1 of the chart and the pencil opens the edit form.
-5. A repeated ancestor shows a link **see no. X** instead of their branch (with
+   sample. Then the window shows a top bar, an icon rail on the left, a panel
+   next to it, the chart in the middle and the details of a person on the right.
+   The top bar has the Arbora title, the open file with the number of people
+   (click it or drop a file on it to open another one), undo and redo, three
+   downloads (**GED**, **PDF**, **SVG** tree poster), the light/dark switch and
+   the language.
+2. The icon rail opens one tool at a time: the list of **people** with a search
+   by name, place or year; **recent** people and favourites (the star next to a
+   name); the **file overview**; the **file check**; the **bulk fix**; the
+   **changes** made since the file was opened; **sources and notes**; **places**;
+   and **settings**.
+3. The **file overview** shows the number of people (men and women), families
+   and generations (the longest parent–child line), the years the file covers,
+   the oldest ancestor (click to make them no. 1 of the chart), the number of
+   problems found by the file check, and the most common surnames and places.
+   A surname is a link to the search.
+4. The chart is laid out the same way as the PDF. Switch between **Ancestors**
+   and **Descendants** above it and choose the number of generations. At first
+   person no. 1 is the one chosen last time, otherwise the first in the file.
+5. Clicking a person shows their details on the right, with icons: parents,
+   marriages with children, and a timeline of birth, marriages, children,
+   occupations, residences, death and burial with the age at each event.
+   Relatives are links; the crosshair button makes the person no. 1 of the
+   chart and the pencil opens the edit window. Small values (name, sex, date,
+   place, religion, occupation, note) can also be changed in place.
+6. A repeated ancestor shows a link **see no. X** instead of their branch (with
    Ahnentafel or d'Aboville numbering, otherwise **see above / below**) that
    jumps to the written-out branch and highlights it. The arrows next to the
    title (or Alt+← / Alt+→) go back and forward through the people you viewed.
-6. The **−** on the connector before a name collapses that person's branch and
+7. The **−** on the connector before a name collapses that person's branch and
    **+** expands it again; with Shift, the whole generation. The chart and the
    PDF share all settings, so the PDF matches the chart (collapsed branches are
    not carried into the PDF).
-7. The gear icon in the top bar opens the **Settings** window.
-8. **PDF** creates the PDF and downloads it at once.
+8. **PDF** creates the PDF and **SVG** the tree poster; both download at once.
 
 ### Editing and GEDCOM export
 
-The edit form changes the data of existing people, in this order: given name and
-surname (surnames from the file are suggested), other forms of the name ("also
-known as", stored as `NAME` with `TYPE aka`; also shown in small text before the ID in the details and found by
-the search), sex, birth and christening (date
-and place; christening can copy them from birth), religion (values from the file
-are suggested), the date and place of each marriage and whether the couple
-divorced, occupations (each with its own date and place), a note, and last
-**Died**: ticking it shows death and burial (burial can copy date and place from
-death). Ticked without any details it is stored as `1 DEAT Y`; unticking it and
-saving clears death and burial. Place fields suggest the places already in the
-file. **Save** (Ctrl+Enter; also the tick icon at the top right) shows the change at once in the chart and the PDF,
-**Cancel** (Esc) drops it. Adding and deleting people is not possible yet.
+The pencil in the person's details opens one wide **edit window** over the tree
+and the details. It is made of collapsible parts, and the ones that hold data
+open by themselves:
+
+- **Person**: given name, surname (surnames from the file are suggested), sex
+  and other forms of the name ("also known as", stored as `NAME` with
+  `TYPE aka`).
+- **Events**: birth, christening, death, burial and any other event
+  (residence, baptism, emigration…), each with date, place and, behind
+  *Details*, age, cause and agency. Ticking *Deceased* without any details
+  stores `1 DEAT Y`.
+- **Occupation and facts**: occupations and other attributes, each with its own
+  date and place.
+- **Family**: every marriage as its own card with date, place, divorce and
+  details, the spouse and the children (sorted by birth on request). A new
+  child, spouse or parent can be made right there; a child starts with the
+  father's surname in the form that fits the child's sex, and a residence can
+  copy its place from the parents.
+- **Parents and associations**: the kind of relation to each parent and
+  associations with other people.
+- **Notes and sources**: notes and source citations with page and quality.
+- **Other details**: restriction, address, phone, e-mail, web and reference
+  numbers.
+
+A person can also be **added**, **deleted** (every pointer to them is cleaned
+up) and **merged** with a duplicate, choosing the value on every conflict side
+by side. Everything is checked against loops: nobody can become their own
+ancestor. Place fields suggest the places already in the file.
 
 A date can be typed as `14.5.1891`, `5/1891`, `1891`, `~1890`, `<1890`, `>1890`,
 `1890–1895`, with the "about / before / after" words of the page language, or
@@ -111,15 +157,20 @@ directly in GEDCOM form (`ABT 1890`, `14 MAY 1891`). Below the field you see how
 the date will be stored. Any other text is stored as a date phrase in
 parentheses.
 
-The arrows in the top bar (or Ctrl+Z / Ctrl+Y) undo and redo saved changes.
+**Save** (Ctrl+Enter) shows the change at once in the chart and the PDF,
+**Cancel** (Esc) drops it. Every save is one undo step; the arrows in the top
+bar (or Ctrl+Z / Ctrl+Y) undo and redo. The **changes** panel lists the records
+that differ from the opened file, and unsaved edits survive a reload.
+
 **Download GEDCOM** downloads the edited file; while there are changes not yet
-downloaded, a dot on the download button marks "unsaved changes". Changed records are
+downloaded, a dot on the button marks "unsaved changes". Changed records are
 written anew; every other line stays exactly as it was, including tags Arbora
-does not know (sources, notes on events, `_UID`, coordinates…). Even in a
-changed record only the edited lines change. The header records Arbora as the
-program that saved the file (`HEAD SOUR ARBORA` with its version) and the date and
-time of saving (`HEAD DATE`). The file is saved as UTF-8. Before
-you leave the page with unsaved changes, the browser asks.
+does not know (`_UID`, coordinates…). Even in a changed record only the edited
+lines change. The header records Arbora as the program that saved the file
+(`HEAD SOUR ARBORA` with its version) and the date and time of saving
+(`HEAD DATE`). The file is saved as UTF-8. Before you leave the page with
+unsaved changes, the browser asks. This is tested on generated files with
+random edits (add, delete, merge, change, undo, redo).
 
 ### File check
 
@@ -145,8 +196,8 @@ as `12 DEC 1885`, and a surname gets the form that fits the sex when that is cer
 
 ### Bulk data fix
 
-Part of the file check, in its **Surnames** and **Places** tabs: spellings of
-one surname or town that differ only in accents, doubled letters or the old
+Its own tool in the icon rail, with **Surnames**, **Given names** and **Places** tabs: spellings of
+one name or town that differ only in accents, doubled letters or the old
 Hungarian spelling (Pavlovský / Pavlovszký, Kubíček / Kubiček, Lieskovice /
 Lieszkovicz) are shown as groups. The most used spelling is offered; click
 another one or type your own, use × to leave a spelling out, and **Unify**
@@ -185,6 +236,9 @@ The first part of the Settings window applies to both the chart and the PDF:
 | Parents' marriage | for ancestors: next to the father, next to both parents, not shown |
 | Generations | maximum number including the root (0 = all) |
 | Spouses | for descendants: show the spouse with the year of marriage, or blood descendants only |
+| Residence | optionally show the place of the latest residence after the brackets (needs places on) |
+
+The dark mode is switched with the moon icon in the top bar; without a choice it follows the system.
 
 **Print settings** (PDF only): page size (A4, A3, A5, Letter, Legal),
 orientation, font size, custom title and the print date in the header.
@@ -198,7 +252,7 @@ The **SVG** button in the top bar, next to GED and PDF, downloads the ancestors 
 decorative wall chart for large-format printing: the person in the middle below the two parents, joined to them by one limb that splits in two, the father's line unfolding to the left and
 the mother's to the right, with branches and leaves between the name plates. The plates have exact positions, the
 branches are drawn from a seeded random generator, so every download draws a different, unique tree. The number of generations is its own setting (2 to 9, group "Tree poster" in Settings); the title, labels and
-dates follow the other settings. The SVG is vector, with the text set in Alkatra and written as outlines, so it prints sharply at any size and looks the same without the font; the poster is as wide as the generations need and as high as the people need: only people who exist take room, so a family with gaps gives a lower poster than a complete tree, and the plates and the text always keep their size.
+dates follow the other settings. The SVG is vector, with the text set in Alkatra and written as outlines, so it prints sharply at any size and looks the same without the font; the poster is as wide as the generations need and as high as the people need: only people who exist take room, so a family with gaps gives a lower poster than a complete tree, the closest generations get bigger plates (the person at 200 %, the parents at 175 %, and so on down to 100 %), and the border and the name are coloured by sex.
 The plan and the open points are in [docs/tree-poster.md](docs/tree-poster.md).
 
 ### Notes on the data
@@ -206,14 +260,14 @@ The plan and the open points are in [docs/tree-poster.md](docs/tree-poster.md).
 - `ABT`, `EST`, `CAL` dates are shown as "about", `BEF` as "before", `AFT` as
   "after" (in the page language), ranges `BET … AND …` / `FROM … TO …` as
   "1903–1905".
-- A divorce is shown ("∞1991 (div.)") when the family has a `1 DIV` line.
+- A divorce is shown (a ⚮ after the marriage) when the family has a `1 DIV` line.
 - In the chart and the PDF a missing birth falls back to christening
   (`CHR`/`BAPM`) and a missing death to burial (`BURI`/`CREM`).
 - File encoding: UTF-8 (with or without BOM), UTF-16, otherwise Windows-1250.
 
 ## Structure
 
-The page is written in TypeScript with React and built with Vite.
+The page is written in TypeScript with React and built with Vite. The version history is in [CHANGELOG.md](CHANGELOG.md); design rules for the UI are in [docs/design-guidelines.md](docs/design-guidelines.md).
 
 ```
 src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fontkit)
@@ -221,7 +275,9 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   date.ts           GEDCOM dates: their valid form, years, ISO dates
   edit.ts           editing records, typed dates, writing GEDCOM
   check.ts          file check and safe fixes
-  variants.ts       bulk fix: spelling variants of surnames and places
+  variants.ts       bulk fix: spelling variants of surnames, given names and places
+  merge.ts          merging two people; structure.ts / facts.ts / sources.ts: tags, events, citations
+  placelist.ts      the list of places; stats.ts: the file overview
   format.ts         options, dates, places, the text of a person's line
   chart.ts          ancestor and descendant chart rows
   collapse.ts       collapsed branches: which rows stay visible
@@ -230,10 +286,10 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   texts.ts          PDF texts in 12 languages
   *.test.ts         tests on the sample and made-up data
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),
-                    edit form (PersonEditor), file check and bulk fix (CheckPanel, Variants), language
-                    menu, settings dialog, UI translations (i18n.ts) and flags; the logic that
+                    edit window (EditWindow, PersonEditor), icon-rail tools (people, overview, file check,
+                    bulk fix, changes, sources, places, settings), UI translations (i18n.ts) and flags; the logic that
                     needs no DOM is in history.ts (undo, back/forward) and options.ts, with tests
-public/             static files: DejaVu Sans font, sample GEDCOM and PDFs, licenses
+public/             static files: DejaVu Sans and Alkatra fonts, sample GEDCOM and PDFs, licenses
 ```
 
 Development (Node.js 22):
@@ -258,7 +314,7 @@ is *Pages → Source: GitHub Actions*.
 (I1) and the male-line descendants of Francis I of Lorraine (I52) with their
 spouses, 1714 people in all. Nobody in it was born in 1950 or later, and from
 1900 on only people with a known date of death, so there are no living persons.
-Names and places come from the Slovak Wikidata labels, where missing from the
+Names and places currently come from the Slovak Wikidata labels (an English version of the sample is planned), where missing from the
 Czech, German or English ones; every person carries their Wikidata ID
 (`REFN … TYPE Wikidata`). It has approximate dates, several marriages, a divorce
 (e.g. Henry IV, I416), children with an unknown mother and many repeated
