@@ -521,7 +521,25 @@ describe("poster corner lists", () => {
   test("the lines count people: most common first, with the number", () => {
     const on = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
     // father's father is person 4; his branch holds 4, 8, 9 and 16 to 19, born in Town0 (4, 8, 16), Town1 (9, 17), Town2 (18), Town3 (19)
-    expect(on.texts.some((t) => t.text === "Town0 \u00D73  \u00B7  Town1 \u00D72  \u00B7  Town2  \u00B7  Town3")).toBe(true);
+    expect(on.texts.some((t) => t.text === "Town0 (3)  \u00B7  Town1 (2)  \u00B7  Town2  \u00B7  Town3")).toBe(true);
+  });
+
+  test("the last value is not followed by a dot before \"+ N more\"", () => {
+    const on = buildPoster(places(6), ROOT, { generations: 6, lang: "en", posterSeed: 1, posterCorners: true });
+    const cut = lines(on).filter((t) => /\+ \d+ more$/.test(t.text));
+    expect(cut.length).toBeGreaterThan(0);
+    for (const t of cut) expect(t.text).not.toMatch(/\u00B7\s+\+ \d+ more$/);
+  });
+
+  test("the left lists start at the leftmost plate and the right ones end at the rightmost", () => {
+    const p = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
+    const left = Math.min(...p.plates.map((q) => q.x - q.w / 2)), right = Math.max(...p.plates.map((q) => q.x + q.w / 2));
+    const corner = [...heads(p), ...lines(p)];
+    const near = (a: number, b: number) => Math.abs(a - b) < 1;
+    expect(corner.some((t) => t.x < p.width / 2 && near(t.x - textWidth(t.text, t.size, t.bold) / 2, left))).toBe(true);
+    expect(corner.some((t) => t.x > p.width / 2 && near(t.x + textWidth(t.text, t.size, t.bold) / 2, right))).toBe(true);
+    expect(corner.every((t) => t.x - textWidth(t.text, t.size, t.bold) / 2 > left - 1 || t.x > p.width / 2)).toBe(true);
+    expect(corner.every((t) => t.x + textWidth(t.text, t.size, t.bold) / 2 < right + 1 || t.x < p.width / 2)).toBe(true);
   });
 
   test("residences are not listed in the corners", () => {
@@ -589,6 +607,16 @@ describe("poster corner lists: places and surnames", () => {
     expect(born.length).toBeGreaterThan(0);
     for (const t of born) expect(t.text).not.toContain("okres");
     expect(p.texts.some((t) => t.bold && t.text === "Line: Jan Test  \u00B7  b. 1700")).toBe(true);
+  });
+
+  test("a municipality and the same one with a number are one entry", () => {
+    const person = (n: number, place: string, famc = "") => `0 @I${n}@ INDI\n1 NAME P${n} /Test/\n1 BIRT\n2 PLAC ${place}\n${famc}`;
+    const ged = "0 HEAD\n" + person(1, "Elsewhere", "1 FAMC @F1@\n") + person(2, "Elsewhere", "1 FAMC @F2@\n") + person(3, "Elsewhere")
+      + person(4, "Lesná 2, okres Hory", "1 FAMC @F3@\n") + person(5, "Elsewhere") + person(6, "Lesná") + person(7, "Lesná 10")
+      + "0 @F1@ FAM\n1 HUSB @I2@\n1 WIFE @I3@\n1 CHIL @I1@\n0 @F2@ FAM\n1 HUSB @I4@\n1 WIFE @I5@\n1 CHIL @I2@\n"
+      + "0 @F3@ FAM\n1 HUSB @I6@\n1 WIFE @I7@\n1 CHIL @I4@\n0 TRLR\n";
+    const p = buildPoster(load(ged), ROOT, { generations: 4, lang: "en", posterSeed: 1, posterCorners: true });
+    expect(p.texts.some((t) => t.text === "Lesná (3)")).toBe(true);
   });
 
   test("female and male surname forms are one entry, shown in the male form", () => {

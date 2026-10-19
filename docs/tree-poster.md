@@ -47,8 +47,8 @@ decorative wall chart. This file records how it works and what is still open.
   the date is left out when it does not fit) and up to three one-line rows without labels: birth municipalities (the part
   of the place before the first comma), first given names and surnames (only when the file separates them). Female and
   male forms of a surname (Nováková/Novák, Kowalska/Kowalski, Иванова/Иванов) are one entry shown in the male form. A row
-  names the most common values first, at most five, with the number of people ("Vienna ×7  ·  Prague ×5"); the rest
-  is counted ("+ 13 more"). A row without values is left out. The poster grows: the top lists stand beside the title when there is
+  names the most common values first, at most five, with the number of people ("Vienna (7)  ·  Prague (5)"); the rest
+  is counted ("+ 13 more", with no dot before it). A trailing district number ("Prague 2") is dropped, so the municipality and its numbered forms are one entry. The left lists start at the leftmost plate edge and the right ones end at the rightmost. A row without values is left out. The poster grows: the top lists stand beside the title when there is
   room (otherwise above it, and the title moves down), the bottom ones under the lowest plates.
 - Names wrap to two lines when one line would be small; two-line names use a smaller font so the date line stays clear of the plate edge. A generation shares one name size and one date size, taken from its single-line plates; a plate with a wrapped name keeps its own smaller sizes and does not shrink the others.
 - A quiet double border of straight lines with sharp corners runs around the whole poster in a margin outside the tree (`Poster.margin`; the SVG view box starts at `-margin`, so `width` and `height` still describe the tree itself). It is always on.
