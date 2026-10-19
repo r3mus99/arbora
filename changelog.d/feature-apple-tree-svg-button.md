@@ -1,1 +1,1 @@
-- **The poster SVG has an apple tree in the middle.** The poster stays as before; a static apple tree is added behind the plates, standing on the main person.
+- **The poster SVG has an apple tree in the middle.** The poster stays as before, but the main person's own limbs are replaced by the tree: it grows from the person and its two long limbs join the parents. The tree takes the poster's colours and leaf style and scales with the poster.

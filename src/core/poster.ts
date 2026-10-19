@@ -447,15 +447,9 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     limb(curve([child.x + side * child.w / 2, child.y], [parent.x - side * parent.w / 2, parent.y]), gens - parent.gen);
     for (const q of kids.get(parent) || []) grow(parent, q, side);
   };
-  // one limb rises from the person and splits in two, one for each parent
-  if (rootKids.length) {
-    const lowest = Math.max(...rootKids.map(([plate]) => plate.y + plate.h / 2));
-    const fork: Point = [rootPlate.x, lowest + 70];
-    limb(curve([rootPlate.x, rootPlate.y - rootPlate.h / 2], fork, true), gens - 1);
-    for (const [plate, side] of rootKids) {
-      limb(curve(fork, [plate.x - side * plate.w * 0.2, plate.y + plate.h / 2], true), gens - 2);
-      for (const q of kids.get(plate) || []) grow(plate, q, side);
-    }
+  // the person's own limbs are left out: the tree drawn behind the plates joins the person to the parents
+  for (const [plate, side] of rootKids) {
+    for (const q of kids.get(plate) || []) grow(plate, q, side);
   }
 
   const marriages: PosterText[] = [];
