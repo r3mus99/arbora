@@ -4,7 +4,7 @@ import {
   NO_BROWSING, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move, replay, startEdits, stepEdits, unsavedChanges, visit, withRecords,
   applyOp, diffRecords, type Doc,
 } from "./history";
-import { NUMBERING, storedOptions, toForm, toOptions, withOption } from "./options";
+import { APP_DEFAULTS, NUMBERING, storedOptions, toForm, toOptions, withOption } from "./options";
 import { DEFAULTS } from "../core/format";
 
 const doc = (name: string): Doc => ({ records: parseGedcom(`0 @I1@ INDI\n1 NAME ${name}\n`), eol: "\n" });
@@ -150,11 +150,10 @@ describe("browsing history", () => {
 
 describe("chart options", () => {
   test("typed numbers are read and kept within bounds", () => {
-    const form = (generations: string, fontSize: string) => ({ ...toForm(DEFAULTS), generations, fontSize });
-    expect(toOptions(form("3.6", "9"), "en")).toMatchObject({ generations: 4, fontSize: 9, lang: "en" });
-    expect(toOptions(form("-2", "2"), "sk")).toMatchObject({ generations: 0, fontSize: 5 });
-    expect(toOptions(form("x", "99"), "sk")).toMatchObject({ generations: DEFAULTS.generations, fontSize: 20 });
-    expect(toOptions(form("", ""), "sk").fontSize).toBe(DEFAULTS.fontSize);
+    const form = (generations: string) => ({ ...toForm(DEFAULTS), generations });
+    expect(toOptions(form("3.6"), "en")).toMatchObject({ generations: 4, lang: "en" });
+    expect(toOptions(form("-2"), "sk")).toMatchObject({ generations: 0 });
+    expect(toOptions(form("x"), "sk")).toMatchObject({ generations: DEFAULTS.generations });
   });
 
   test("another chart kind gets its own numbering", () => {
@@ -169,13 +168,15 @@ describe("chart options", () => {
   });
 
   test("options kept in the browser: what is valid stays, the rest gets the default", () => {
-    expect(storedOptions(undefined)).toEqual(DEFAULTS);
-    expect(storedOptions("junk")).toEqual(DEFAULTS);
-    const kept = storedOptions({ pageSize: "a3", fontSize: 11, title: "Mine", dates: "full", showSpouses: false });
-    expect(kept).toMatchObject({ pageSize: "a3", fontSize: 11, title: "Mine", dates: "full", showSpouses: false });
-    const bad = storedOptions({ pageSize: "tabloid", fontSize: "big", dates: 3, orientation: null, lang: "xx",
+    expect(storedOptions(undefined)).toEqual(APP_DEFAULTS);
+    expect(storedOptions("junk")).toEqual(APP_DEFAULTS);
+    expect(APP_DEFAULTS.places).toBe("short");
+    const kept = storedOptions({ pageSize: "a3", places: "none", dates: "full", showSpouses: false, fontSize: 11 });
+    expect(kept).toMatchObject({ pageSize: "a3", places: "none", dates: "full", showSpouses: false });
+    expect(kept).not.toHaveProperty("fontSize");
+    const bad = storedOptions({ pageSize: "tabloid", dates: 3, orientation: null, lang: "xx",
                                 lineHeight: Number.NaN });
-    expect(bad).toEqual(DEFAULTS);
+    expect(bad).toEqual(APP_DEFAULTS);
     expect(storedOptions({ chart: "descendants", numbering: "ahnentafel" }).numbering).toBe("daboville");
   });
 

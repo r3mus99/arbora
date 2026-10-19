@@ -189,7 +189,7 @@ export function App() {
       // pdf-lib is large, so it loads only when the first PDF is made
       const { generate } = await import("../core/pdf");
       const opts = toOptions(form, lang);
-      const res = await generate(data, id, opts, f);
+      const res = await generate(data, id, opts, f, version);
       saveFile(new Blob([res.bytes as BlobPart], { type: "application/pdf" }),
                fileName(data.people[id].name, opts.chart));
       setStatus({ key: "done", err: false, vars: {

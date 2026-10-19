@@ -5,7 +5,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  LANGS, applyFamily, applyPerson, checkGedcom, parseDate, validDateValue, decode, familyFields, fixIssue, generate, lineEnding, load, parseGedcom,
+  LANGS, PDF_FONT_SIZE, applyFamily, applyPerson, checkGedcom, parseDate, validDateValue, decode, familyFields, fixIssue, generate, lineEnding, load, parseGedcom,
   personFields, readRecords, renameVariants, variantGroups, writeGedcom, type GedNode, type PersonFields,
 } from "./index";
 
@@ -308,12 +308,12 @@ describe("PDF layout", () => {
   test("a line too long for the page makes the font smaller, down to 5 pt", async () => {
     const long = "Maximilian Ferdinand Leopold Karl Joseph Wenzel Johann Nepomuk Franz Xaver";
     const ged = `0 HEAD\n0 @I1@ INDI\n1 NAME ${long} /von Weidenbaum-Ostbach/\n0 TRLR\n`;
-    const small = await generate(load(ged), "@I1@", { pageSize: "a5", fontSize: 12 }, fonts);
+    const small = await generate(load(ged), "@I1@", { pageSize: "a5" }, fonts);
     expect(small.shrunk).toBe(true);
-    expect(small.fontSize).toBeLessThan(12);
+    expect(small.fontSize).toBeLessThan(PDF_FONT_SIZE);
     expect(small.fontSize).toBeGreaterThanOrEqual(5);
-    const wide = await generate(load(ged), "@I1@", { pageSize: "a3", orientation: "landscape", fontSize: 12 }, fonts);
-    expect(wide).toMatchObject({ shrunk: false, fontSize: 12 });
+    const wide = await generate(load(ged), "@I1@", { pageSize: "a3", orientation: "landscape" }, fonts);
+    expect(wide).toMatchObject({ shrunk: false, fontSize: PDF_FONT_SIZE });
   });
 });
 

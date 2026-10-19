@@ -8,6 +8,9 @@ import { fmt, formatDMY, type ChartOptions, type SegKind } from "./format";
 import type { GedcomData } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
 
+/** the size the text starts at; it shrinks when a line does not fit the page */
+export const PDF_FONT_SIZE = 8.5;
+
 /** page sizes in points (portrait) */
 const PAGE_SIZES: Record<ChartOptions["pageSize"], [number, number]> = {
   a4: [595.2756, 841.8898], a3: [841.8898, 1190.5512],
@@ -65,7 +68,7 @@ function fitLayout(rows: Row[], base: Layout, seeText: string) {
 }
 
 function render(doc: PDFDocument, rows: Row[], title: string, lang: Lang, lay: Layout,
-                showDate: boolean, lineWidth: number, colors: boolean): number {
+                stamp: string, lineWidth: number, colors: boolean): number {
   const t = TEXTS[lang];
   const total = Math.floor((rows.length - 1) / lay.perPage) + 1;
   rows.forEach((r, i) => { r.page = Math.floor(i / lay.perPage) + 1; });
@@ -73,7 +76,7 @@ function render(doc: PDFDocument, rows: Row[], title: string, lang: Lang, lay: L
   const mid = lay.size * 0.32;
   const gap = lay.lineH * 0.45;
   const today = new Date();
-  const dateStr = formatDMY(lang, today.getDate(), today.getMonth() + 1, today.getFullYear());
+  const dateStr = `${stamp} · ${formatDMY(lang, today.getDate(), today.getMonth() + 1, today.getFullYear())}`;
 
   const pageRange = (pg: number) => [lay.y(pg * lay.perPage) + lay.lineH * 0.5,
                                      lay.y(pg * lay.perPage + lay.perPage - 1) - lay.lineH * 0.5];
@@ -98,10 +101,8 @@ function render(doc: PDFDocument, rows: Row[], title: string, lang: Lang, lay: L
     page.drawText(title, { x: (lay.pageW - tw) / 2, y: lay.pageH - lay.margin - ts,
                            size: ts, font: lay.bold, color: black });
     const small = lay.size * 0.85;
-    if (showDate) {
-      page.drawText(dateStr, { x: lay.margin, y: lay.pageH - lay.margin - ts - 6,
-                               size: small, font: lay.font, color: black });
-    }
+    page.drawText(dateStr, { x: lay.margin, y: lay.pageH - lay.margin - ts - 6,
+                             size: small, font: lay.font, color: black });
     const pageText = fmt(t.page, { n: pg + 1, total });
     page.drawText(pageText, {
       x: lay.pageW - lay.margin - lay.font.widthOfTextAtSize(pageText, small),
@@ -160,7 +161,7 @@ export interface ChartResult {
 
 /** Build the chart for rootId as a PDF. */
 export async function generate(data: GedcomData, rootId: string, options: Partial<ChartOptions>,
-                               fonts: Fonts): Promise<ChartResult> {
+                               fonts: Fonts, version = ""): Promise<ChartResult> {
   const o = normalize(options);
   const root = data.people[rootId];
   if (!root) throw new Error(`Person ${rootId} does not exist.`);
@@ -175,17 +176,17 @@ export async function generate(data: GedcomData, rootId: string, options: Partia
 
   let [w, h] = PAGE_SIZES[o.pageSize] || PAGE_SIZES.a4;
   if (o.orientation === "landscape") [w, h] = [Math.max(w, h), Math.min(w, h)];
-  const base = new Layout(w, h, o.margin, font, bold, italic, o.fontSize, o.fontSize * 2.6,
-                          o.fontSize * o.lineHeight);
+  const base = new Layout(w, h, o.margin, font, bold, italic, PDF_FONT_SIZE, PDF_FONT_SIZE * 2.6,
+                          PDF_FONT_SIZE * o.lineHeight);
   const { lay } = fitLayout(rows, base, fmt(TEXTS[o.lang].see, { page: 99 }));
-  const title = o.title || fmt(TEXTS[o.lang][desc ? "titleDesc" : "title"], { name: root.name });
+  const title = fmt(TEXTS[o.lang][desc ? "titleDesc" : "title"], { name: root.name });
   doc.setTitle(title);
   doc.setCreator("Arbora");
   doc.setProducer("Arbora (pdf-lib)");
-  const pages = render(doc, rows, title, o.lang, lay, o.showDate, 0.6, o.colorPdf);
+  const pages = render(doc, rows, title, o.lang, lay, `Arbora${version && ` ${version}`}`, 0.6, o.colorPdf);
   const bytes = await doc.save();
   return {
     bytes, pages, rows: rows.length, generations: Math.max(...rows.map((r) => r.gen)),
-    fontSize: lay.size, shrunk: lay.size < o.fontSize * 0.85, title,
+    fontSize: lay.size, shrunk: lay.size < PDF_FONT_SIZE * 0.85, title,
   };
 }

@@ -283,7 +283,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
 
   const appearances = new Map<string, number>();
   for (const plate of plates) appearances.set(plate.id, (appearances.get(plate.id) ?? 0) + 1);
-  const title = o.title || TEXTS[o.lang].title.replace("{name}", root.name || "?");
+  const title = TEXTS[o.lang].title.replace("{name}", root.name || "?");
   // the title stands in a frame like the plates, with the numbers of the poster under it
   const born = [...people.values()].map((x) => yearOf(x.birth?.date)).filter((y): y is number => y !== null);
   const rootYear = yearOf(root.birth?.date);

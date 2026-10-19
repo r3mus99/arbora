@@ -155,7 +155,8 @@ Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexi
   backdrop dimmed; Esc and the X close it.
 - Scrollbars are the thin global ones.
 
-- **Tree poster**: not a mini-app. Its download is the SVG button in the top bar after GED and PDF (same `.icon-btn.save-btn`, a file-image icon, tooltip = title plus hint). It has no settings of its own: every click draws new branches.
+- **Settings panel** (`SettingsPanel`): one scrolling column of `.set-group`s, ordered from the widest scope to the narrowest: Chart (screen and PDF; dates also drive the SVG), Print settings (PDF only), Tree poster (SVG only). The 12px uppercase heading carries the scope chips on its right (`.scope` holding `.chip` with an `--icon-sm` icon: Monitor = screen, FileText = PDF, FileImage = SVG), so a setting is never mistaken for another output's. A setting that applies to a single output goes into that output's group; the on-screen chart and the PDF share their settings (no duplicate controls). A choice of a few numbers is the segmented switch (generations of the poster), not a select. A checkbox label is a short phrase; its explanation is the tooltip.
+- **Tree poster**: not a mini-app. Its download is the SVG button in the top bar after GED and PDF (same `.icon-btn.save-btn`, a file-image icon, tooltip = title plus hint). Its few settings (generations, end branch at a repeated person, corner lists) are the last group of the settings panel; every click draws new branches.
 
 ## 8. Tree view and detail
 

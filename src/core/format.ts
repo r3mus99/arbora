@@ -15,18 +15,12 @@ export interface ChartOptions {
   /** also print the latest residence, when it differs from the places of birth and death */
   showResidence: boolean;
   numbering: "generation" | "ahnentafel" | "daboville" | "none";
-  /** ancestors: next to which parent the parents' marriage is printed */
-  marriageOn: "father" | "both" | "none";
   /** maximum number of generations including the root, 0 = all */
   generations: number;
   /** descendants: print spouse lines */
   showSpouses: boolean;
-  /** custom title, empty = automatic */
-  title: string;
-  showDate: boolean;
   pageSize: "a4" | "a3" | "a5" | "letter" | "legal";
   orientation: "portrait" | "landscape";
-  fontSize: number;
   lineHeight: number;
   margin: number;
   /** PDF: colour the dates and places like the screen (bold names and italic places are always used) */
@@ -44,8 +38,8 @@ export interface ChartOptions {
 export const DEFAULTS: ChartOptions = {
   generations: 0, lang: "sk", labels: "symbols", dates: "year", places: "none", showResidence: false,
   chart: "ancestors", showSpouses: true,
-  numbering: "generation", marriageOn: "father", title: "", showDate: true, pageSize: "a4", orientation: "portrait",
-  fontSize: 8.5, lineHeight: 1.7, margin: 36, colorPdf: false,
+  numbering: "generation", pageSize: "a4", orientation: "portrait",
+  lineHeight: 1.7, margin: 36, colorPdf: false,
   posterSeed: 0, posterGenerations: 7, posterOnce: false, posterCorners: false,
 };
 
