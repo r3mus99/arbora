@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.31.0 – 2026-10-19
+
+- **The output chips in the settings have a tooltip.** Hovering Screen, PDF or SVG says which output the chip stands for.
+
 ## 2.30.0 – 2026-10-19
 
 - **The poster leaves no empty space beside a shorter family line.** Each side of the poster is as wide as its own generations need, so the main person no longer has to stand in the middle.
