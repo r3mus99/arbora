@@ -1,0 +1,1 @@
+- **The poster plates have straight edges.** Each plate is drawn with a double line and rounded corners, like the border of the poster; the small plates from the 7th generation on have a single line.
