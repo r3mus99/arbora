@@ -19,7 +19,7 @@ export const POSTER_MIN_GENERATIONS = 3;
 export const POSTER_MAX_GENERATIONS = 10;
 /** what 0 ("all") draws */
 export const POSTER_BASE_GENERATIONS = 7;
-/** the fewest generations for which "end the branch at a repeated person" and the corner lists are offered, and applied */
+/** the fewest generations for which the corner lists are offered, and applied */
 export const POSTER_EXTRAS_MIN_GENERATIONS = 5;
 /** Plate size by generation (person, parents, grandparents, great-grandparents): the people the person may still have
  * known stand out; every further generation is 100 %. */
@@ -183,7 +183,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   if (!root) throw new Error(`Person ${rootId} does not exist.`);
   const gens = Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(o.generations) || POSTER_BASE_GENERATIONS));
   const extras = gens >= POSTER_EXTRAS_MIN_GENERATIONS;
-  const once = extras && o.posterOnce, withCorners = extras && o.posterCorners;
+  const withCorners = extras && o.posterCorners;
   const seed = posterSeed(rootId, o.posterSeed);
   const rnd = random(seed);
   const uniform = (a: number, b: number) => a + (b - a) * rnd();
@@ -217,22 +217,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     return lines;
   };
   const needed = new Map<number, number>();
-  // `posterOnce`: a person met again ends the branch only when the plate drawn with the ancestry stands in the same or
-  // an earlier generation, so it shows at least as many ancestors; a person met first in a later generation is not merged
-  const shown = new Map<string, number>();
-  const covered = (pid: string, gen: number) => {
-    const at = shown.get(pid);
-    if (at !== undefined && at <= gen) return true;
-    shown.set(pid, gen);
-    return false;
-  };
-  const surveyed = new Map<string, number>();
   const survey = (pid: string | null, gen: number) => {
-    if (once && pid) {
-      const at = surveyed.get(pid);
-      if (at !== undefined && at <= gen) return;
-      surveyed.set(pid, gen);
-    }
     const f = pid && gen < gens && data.people[pid]?.famc.length ? data.families[data.people[pid].famc[0]] : null;
     if (!f || !f.husb || !f.wife || !data.people[f.husb] || !data.people[f.wife]) return;
     const widest = Math.max(0, ...marrLines(pid).map((l) => lineW(l, marrSize(gen))));
@@ -259,13 +244,12 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const place = (pid: string | null, gen: number, side: -1 | 1): Plate | null => {
     const p = pid ? data.people[pid] : null;
     if (!p) return null;
-    const again = once && covered(pid!, gen);
     const plate: Plate = { id: pid!, gen, w: widthOf(gen), h: heightOf(gen), x: side * colX.get(gen)!, y: 0 };
     plates.push(plate);
     people.set(plate, p);
     const fam = p.famc.length ? data.families[p.famc[0]] : null;
     const next: Plate[] = [];
-    if (gen < gens && fam && !again) {
+    if (gen < gens && fam) {
       for (const parent of [fam.husb, fam.wife]) {
         const q = place(parent, gen + 1, side);
         if (q) next.push(q);

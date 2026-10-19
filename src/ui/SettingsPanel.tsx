@@ -33,7 +33,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     value: form[key] as string,
     onChange: (e: { target: { value: string } }) => onChange(key, e.target.value as Form[K]),
   });
-  const check = (key: "showSpouses" | "colorPdf" | "showResidence" | "posterOnce" | "posterCorners") => ({
+  const check = (key: "showSpouses" | "colorPdf" | "showResidence" | "posterCorners") => ({
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => onChange(key, e.target.checked),
   });
@@ -106,7 +106,6 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
         </div>
       </div>
       {extras && <div className="checks">
-        <label {...scoped(["svg"])}><input {...check("posterOnce")} /> <span>{t("posterOnce")}</span></label>
         <label {...scoped(["svg"])}><input {...check("posterCorners")} /> <span>{t("posterCorners")}</span></label>
       </div>}
     </div>

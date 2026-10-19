@@ -1,0 +1,1 @@
+- **The tree poster always shows repeated people.** The setting "End the branch at a repeated person" is gone, so the statistics in the corners always match the plates on the poster.
