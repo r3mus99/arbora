@@ -208,7 +208,22 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     return lines;
   };
   const needed = new Map<number, number>();
+  // `posterOnce`: a person met again ends the branch only when the plate drawn with the ancestry stands in the same or
+  // an earlier generation, so it shows at least as many ancestors; a person met first in a later generation is not merged
+  const shown = new Map<string, number>();
+  const covered = (pid: string, gen: number) => {
+    const at = shown.get(pid);
+    if (at !== undefined && at <= gen) return true;
+    shown.set(pid, gen);
+    return false;
+  };
+  const surveyed = new Map<string, number>();
   const survey = (pid: string | null, gen: number) => {
+    if (o.posterOnce && pid) {
+      const at = surveyed.get(pid);
+      if (at !== undefined && at <= gen) return;
+      surveyed.set(pid, gen);
+    }
     const f = pid && gen < gens && data.people[pid]?.famc.length ? data.families[data.people[pid].famc[0]] : null;
     if (!f || !f.husb || !f.wife || !data.people[f.husb] || !data.people[f.wife]) return;
     const widest = Math.max(0, ...marrLines(pid).map((l) => lineW(l, marrSize(gen))));
@@ -235,12 +250,13 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const place = (pid: string | null, gen: number, side: -1 | 1): Plate | null => {
     const p = pid ? data.people[pid] : null;
     if (!p) return null;
+    const again = o.posterOnce && covered(pid!, gen);
     const plate: Plate = { id: pid!, gen, w: widthOf(gen), h: heightOf(gen), x: W / 2 + side * colX.get(gen)!, y: 0 };
     plates.push(plate);
     people.set(plate, p);
     const fam = p.famc.length ? data.families[p.famc[0]] : null;
     const next: Plate[] = [];
-    if (gen < gens && fam) {
+    if (gen < gens && fam && !again) {
       for (const parent of [fam.husb, fam.wife]) {
         const q = place(parent, gen + 1, side);
         if (q) next.push(q);

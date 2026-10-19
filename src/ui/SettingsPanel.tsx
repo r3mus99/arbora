@@ -19,7 +19,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     value: form[key] as string,
     onChange: (e: { target: { value: string } }) => onChange(key, e.target.value as Form[K]),
   });
-  const check = (key: "showSpouses" | "showDate" | "colorPdf" | "showResidence") => ({
+  const check = (key: "showSpouses" | "showDate" | "colorPdf" | "showResidence" | "posterOnce") => ({
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => onChange(key, e.target.checked),
   });
@@ -89,6 +89,9 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
                   onChange={(e) => onChange("posterGenerations", Number(e.target.value))}>
             {Array.from({ length: POSTER_MAX_GENERATIONS - POSTER_MIN_GENERATIONS + 1 }, (_, i) => POSTER_MIN_GENERATIONS + i).map((n) => <option key={n} value={n}>{n}</option>)}
           </select></label>
+      </div>
+      <div className="checks">
+        <label><input {...check("posterOnce")} /> <span>{t("posterOnce")}</span></label>
       </div>
     </div>
     </div>

@@ -35,6 +35,8 @@ export interface ChartOptions {
   posterSeed: number;
   /** tree poster: generations including the person, 2 to 7 */
   posterGenerations: number;
+  /** tree poster: a person who stands on several branches keeps the whole ancestry on the first one only; later plates end the branch */
+  posterOnce: boolean;
 }
 
 export const DEFAULTS: ChartOptions = {
@@ -42,7 +44,7 @@ export const DEFAULTS: ChartOptions = {
   chart: "ancestors", showSpouses: true,
   numbering: "generation", marriageOn: "father", title: "", showDate: true, pageSize: "a4", orientation: "portrait",
   fontSize: 8.5, lineHeight: 1.7, margin: 36, colorPdf: false,
-  posterSeed: 0, posterGenerations: 7,
+  posterSeed: 0, posterGenerations: 7, posterOnce: false,
 };
 
 export const fmt = (s: string, vars: Record<string, string | number>) =>
