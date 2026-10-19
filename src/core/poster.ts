@@ -83,15 +83,15 @@ export function posterSeed(rootId: string, seed: number): number {
   return h >>> 0;
 }
 
-type Point = [number, number];
+export type Point = [number, number];
 
-const num = (n: number) => String(Math.round(n * 10) / 10);
+export const num = (n: number) => String(Math.round(n * 10) / 10);
 
 /** Width of a text as the layout assumes it without the poster fonts; the real fonts are narrower, so a line never overflows its plate. */
 export const textWidth = (text: string, size: number, bold: boolean) => text.length * size * (bold ? 0.62 : 0.56);
 
 /** Points of a Catmull-Rom spline through `pts`, `k` per segment. */
-function dense(pts: Point[], k = 6): Point[] {
+export function dense(pts: Point[], k = 6): Point[] {
   const out: Point[] = [];
   for (let i = 0; i < pts.length - 1; i++) {
     const p0 = pts[Math.max(i - 1, 0)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(i + 2, pts.length - 1)];
@@ -116,7 +116,7 @@ function closedDense(pts: Point[], k = 6): Point[] {
  * A hand-cut plate: edges that are slightly uneven and a border whose width changes along the way. Returns the outer
  * shape (drawn in the ink colour) and the inner shape (drawn over it in the paper colour) around the centre (cx, cy); the border grows with the plate (`scale`).
  */
-function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number, scale = 1): [string, string] {
+export function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number, scale = 1): [string, string] {
   const u = (a: number) => (rnd() * 2 - 1) * a;
   const base = 2 + rnd();
   const border = () => Math.max(1.3, base + u(1.1)) * scale;
@@ -148,7 +148,7 @@ const angleAt = (d: Point[], k: number) => {
 };
 
 /** A branch as a filled shape that narrows from width `w0` at its start to `w1` at its end. */
-function tapered(d: Point[], w0: number, w1: number): string {
+export function tapered(d: Point[], w0: number, w1: number): string {
   const left: Point[] = [], right: Point[] = [];
   d.forEach(([x, y], i) => {
     const a = d[Math.max(i - 1, 0)], b = d[Math.min(i + 1, d.length - 1)];
@@ -162,7 +162,7 @@ function tapered(d: Point[], w0: number, w1: number): string {
 }
 
 /** A leaf from its stalk at (x, y), pointing `ang` radians, `s` times the base size; the midrib is part of the path. */
-function leafPath(x: number, y: number, ang: number, s: number): string {
+export function leafPath(x: number, y: number, ang: number, s: number): string {
   const c = Math.cos(ang), sn = Math.sin(ang);
   const p = ([px, py]: Point) => `${num(x + (px * c - py * sn) * s)},${num(y + (px * sn + py * c) * s)}`;
   return `M${p([0, 0])}C${p([4, -9])} ${p([20, -10])} ${p([34, 0])}C${p([20, 10])} ${p([4, 9])} ${p([0, 0])}Z` +
