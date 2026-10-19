@@ -6,7 +6,7 @@
   --c-bapt: #3b82c4; --c-res: #9a7b4f; --c-event: #7b6bb5; --c-child: #17a89c; --c-burial: #8a8f86;
   /* size tokens of the app frame, see docs/design-guidelines.md */
   --head-h: 52px; --ctl-h: 36px; --field-h: 30px; --ctl-h-sm: 28px; --icon: 18px; --icon-sm: 14px;
-  --radius: 6px; --radius-lg: 10px; --radius-pill: 6px; --pad: 14px; --gap: 8px; --panel-w: 320px; --edit-w: 560px;
+  --radius: 10px; --radius-lg: 10px; --radius-pill: 10px; --pad: 14px; --gap: 8px; --panel-w: 320px; --edit-w: 560px;
   /* event colours: the tree, the timeline and (darker) the PDF, see src/core/colors.ts */
   --line: color-mix(in srgb, var(--muted) 50%, var(--bg));
   --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --c-src: #5f7f9a; --zebra: #00000005;
@@ -64,7 +64,7 @@ button.link { border: 0; background: none; color: var(--accent); padding: 0; tex
 /* fields look like the inline edit in the detail: plain text on the page, a faint dashed underline, accent underline when editing */
 input[type=text], input[type=search], input[type=number], select {
   font: inherit; color: var(--text); background: none; border: 0; border-bottom: 1px dashed var(--border);
-  border-radius: 0; padding: 0 4px; min-height: var(--field-h); width: 100%; }
+  border-radius: var(--radius) var(--radius) 0 0; padding: 0 4px; min-height: var(--field-h); width: 100%; }
 input[type=text]:hover, input[type=search]:hover, input[type=number]:hover, select:hover { border-bottom-color: var(--muted); }
 input[type=text]:focus, input[type=search]:focus, input[type=number]:focus, select:focus {
   outline: none; border-bottom: 1px solid var(--accent); background: var(--accent-soft); }
@@ -332,7 +332,7 @@ button.link { display: inline; }
   color: var(--muted); margin-bottom: 6px; }
 .editor input[type=text], .editor textarea {
   font: inherit; color: var(--text); background: none; border: 0; border-bottom: 1px dashed var(--border);
-  border-radius: 0; padding: 0 4px; min-height: var(--field-h); width: 100%; }
+  border-radius: var(--radius) var(--radius) 0 0; padding: 0 4px; min-height: var(--field-h); width: 100%; }
 .editor textarea { border: 1px dashed var(--border); border-radius: var(--radius); padding: 6px 8px; }
 .editor input[type=text]:hover, .editor textarea:hover { border-color: var(--muted); }
 .editor input[type=text]:focus, .editor textarea:focus {
