@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.16.1 – 2026-10-19
+
+- **The release build no longer fails on a slow runner.** The tests of the poster layout have a 30 second limit instead of 5 seconds, so the coverage run on GitHub does not stop the Pages deploy.
+
 ## 2.16.0 – 2026-10-19
 
 - **The poster title shows the years.** Under the title: "6 generations · 62 ancestors · 1722–1887", the range from the oldest known birth to the main person's, with the nouns in the right plural form in all 12 languages.

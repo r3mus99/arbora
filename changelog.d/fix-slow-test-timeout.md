@@ -1,1 +1,0 @@
-- **The release build no longer fails on a slow runner.** The tests of the poster layout have a 30 second limit instead of 5 seconds, so the coverage run on GitHub does not stop the Pages deploy.
