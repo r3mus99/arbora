@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.34.0 – 2026-10-19
+
+- **The tree poster has a ruler with the generations.** Under the title a line like a measuring tape marks "1. generation", "2. generation" and so on over the columns of plates, to both sides, with how many of the possible people of each are known ("12 of 16").
+
 ## 2.33.1 – 2026-10-19
 
 - **The tree poster always shows repeated people.** The setting "End the branch at a repeated person" is gone, so the statistics in the corners always match the plates on the poster.
