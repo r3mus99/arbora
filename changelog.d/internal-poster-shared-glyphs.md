@@ -1,1 +1,0 @@
-- **The poster SVG is about 80 % smaller.** Every letter is stored once and reused wherever it appears; the text is still drawn as curves and looks the same.
