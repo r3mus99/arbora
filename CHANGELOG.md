@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.29.0 – 2026-10-19
+
+- **The settings show which output they change.** A row of Screen, PDF and SVG chips stays at the top of the settings, and the ones a setting affects light up while the pointer is over it. "End the branch at a repeated person" and the corner lists are offered only for posters of five or more generations. The groups are called Display, Text output (PDF) and Graphic output (SVG) and are set apart by a gap.
+
 ## 2.28.0 – 2026-10-19
 
 - **The settings are grouped by what they change.** Chart (screen and PDF), Print settings (PDF) and Tree poster (SVG) each have a heading with chips showing where they apply, and the poster generations are picked with buttons instead of a drop-down. Removed: print date, font size (it fits automatically), custom title and parents' marriage (it is always shown with both parents). Places now start as "town only". The PDF header always shows "Arbora" with the version and the print date.
