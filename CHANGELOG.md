@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.26.0 – 2026-10-19
+
+- **Names that wrap to two lines have tighter line spacing on the poster plates.**
+
 ## 2.25.0 – 2026-10-19
 
 - **The poster plates have straight edges.** Each plate is drawn with a double line and rounded corners, like the border of the poster; the small plates from the 7th generation on have a single line.
