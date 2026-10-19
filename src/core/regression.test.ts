@@ -3,9 +3,10 @@
  * the code inside is reorganised. Only the sample and made-up data are used.
  */
 import { readFileSync } from "node:fs";
+import { PDFDocument } from "pdf-lib";
 import { describe, expect, test } from "vitest";
 import {
-  LANGS, PDF_FONT_SIZE, applyFamily, applyPerson, checkGedcom, parseDate, validDateValue, decode, familyFields, fixIssue, generate, lineEnding, load, parseGedcom,
+  LANGS, PDF_FONT_SIZE, PDF_MIN_FONT_SIZE, applyFamily, applyPerson, checkGedcom, parseDate, validDateValue, decode, familyFields, fixIssue, generate, lineEnding, load, parseGedcom,
   personFields, readRecords, renameVariants, variantGroups, writeGedcom, type GedNode, type PersonFields,
 } from "./index";
 
@@ -305,15 +306,25 @@ describe("unifying spellings", () => {
 });
 
 describe("PDF layout", () => {
-  test("a line too long for the page makes the font smaller, down to 5 pt", async () => {
+  test("a line too long for the page makes the font smaller, down to 6 pt", async () => {
     const long = "Maximilian Ferdinand Leopold Karl Joseph Wenzel Johann Nepomuk Franz Xaver";
-    const ged = `0 HEAD\n0 @I1@ INDI\n1 NAME ${long} /von Weidenbaum-Ostbach/\n0 TRLR\n`;
-    const small = await generate(load(ged), "@I1@", { pageSize: "a5" }, fonts);
-    expect(small.shrunk).toBe(true);
+    const ged = `0 HEAD\n0 @I1@ INDI\n1 NAME ${long} Maria Anton Ignaz Rudolph /von Weidenbaum-Ostbach/\n0 TRLR\n`;
+    const small = await generate(load(ged), "@I1@", {}, fonts);
+    expect(small).toMatchObject({ shrunk: true, landscape: false });
     expect(small.fontSize).toBeLessThan(PDF_FONT_SIZE);
-    expect(small.fontSize).toBeGreaterThanOrEqual(5);
-    const wide = await generate(load(ged), "@I1@", { pageSize: "a3", orientation: "landscape" }, fonts);
-    expect(wide).toMatchObject({ shrunk: false, fontSize: PDF_FONT_SIZE });
+    expect(small.fontSize).toBeGreaterThanOrEqual(PDF_MIN_FONT_SIZE);
+  });
+
+  test("the pages turn landscape only when even the smallest font does not fit a portrait page", async () => {
+    const one = (name: string) => load(`0 HEAD\n0 @I1@ INDI\n1 NAME ${name}\n0 TRLR\n`);
+    const words = (n: number) => Array.from({ length: n }, (_, i) => `Given${i}`).join(" ");
+    const portrait = await generate(one(`${words(16)} /Fictional/`), "@I1@", {}, fonts);
+    expect(portrait).toMatchObject({ landscape: false, shrunk: true });
+    const wide = await generate(one(`${words(22)} /Fictional/`), "@I1@", {}, fonts);
+    expect(wide).toMatchObject({ landscape: true, shrunk: true });
+    expect(wide.fontSize).toBeGreaterThanOrEqual(PDF_MIN_FONT_SIZE);
+    const page = (await PDFDocument.load(wide.bytes)).getPage(0);
+    expect(page.getWidth()).toBeGreaterThan(page.getHeight());
   });
 });
 
