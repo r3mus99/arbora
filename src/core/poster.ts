@@ -17,6 +17,9 @@ export const POSTER_MIN_GENERATIONS = 2;
 export const POSTER_MAX_GENERATIONS = 9;
 /** what 0 ("all") draws */
 export const POSTER_BASE_GENERATIONS = 7;
+/** Plate size by generation (person, parents, grandparents, great-grandparents): the people the person may still have
+ * known stand out; every further generation is 100 %. */
+export const POSTER_PLATE_SCALE = [2, 1.75, 1.5, 1.25];
 
 export interface PosterShape {
   /** SVG path data in poster units, absolute coordinates */
@@ -108,12 +111,12 @@ function closedDense(pts: Point[], k = 6): Point[] {
 
 /**
  * A hand-cut plate: edges that are slightly uneven and a border whose width changes along the way. Returns the outer
- * shape (drawn in the ink colour) and the inner shape (drawn over it in the paper colour) around the centre (cx, cy).
+ * shape (drawn in the ink colour) and the inner shape (drawn over it in the paper colour) around the centre (cx, cy); the border grows with the plate (`scale`).
  */
-function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number): [string, string] {
+function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number, scale = 1): [string, string] {
   const u = (a: number) => (rnd() * 2 - 1) * a;
   const base = 2 + rnd();
-  const border = () => Math.max(1.3, base + u(1.1));
+  const border = () => Math.max(1.3, base + u(1.1)) * scale;
   const wob = h * 0.022;
   const xs = (n: number) => Array.from({ length: n }, (_, i) => w * (i + 0.5) / n);
   const ys = (n: number) => Array.from({ length: n }, (_, i) => h * (i + 0.5) / n);
@@ -180,12 +183,20 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
 
   // ------------------------------------------------------------ plates
   // the plates keep one size; the columns are one generation each and the drawing is as high as the people need
-  const plateH = 66, rowGap = 24;
-  const plateW = gens <= 4 ? 280 : gens <= 6 ? 230 : 200;
-  const rootW = 400;
-  const colStep = plateW + 70;
-  const firstX = plateW / 2 + 40;
-  const W = Math.max(1400, Math.round(2 * (firstX + (gens - 2) * colStep + plateW / 2 + 20)));
+  // The closest generations, whom the person may still have known, get bigger plates (see POSTER_PLATE_SCALE).
+  const baseH = 66, rowGap = 24, colGap = 70;
+  const baseW = gens <= 4 ? 280 : gens <= 6 ? 230 : 200;
+  const scaleOf = (gen: number) => POSTER_PLATE_SCALE[gen - 1] ?? 1;
+  const widthOf = (gen: number) => Math.round(baseW * scaleOf(gen));
+  const heightOf = (gen: number) => Math.round(baseH * scaleOf(gen));
+  // column centres, measured from the middle line: the first column starts 40 away from it
+  const colX = new Map<number, number>();
+  let edge = 40;
+  for (let g = 2; g <= gens; g++) {
+    colX.set(g, edge + widthOf(g) / 2);
+    edge += widthOf(g) + colGap;
+  }
+  const W = Math.max(1400, Math.round(2 * (edge - colGap + 20)));
   const top = 190, bottom = 70;
   const plates: Plate[] = [];
   const kids = new Map<Plate, Plate[]>();
@@ -195,7 +206,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const place = (pid: string | null, gen: number, side: -1 | 1): Plate | null => {
     const p = pid ? data.people[pid] : null;
     if (!p) return null;
-    const plate: Plate = { id: pid!, gen, w: plateW, h: plateH, x: W / 2 + side * (firstX + (gen - 2) * colStep), y: 0 };
+    const plate: Plate = { id: pid!, gen, w: widthOf(gen), h: heightOf(gen), x: W / 2 + side * colX.get(gen)!, y: 0 };
     plates.push(plate);
     people.set(plate, p);
     const fam = p.famc.length ? data.families[p.famc[0]] : null;
@@ -210,7 +221,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     return plate;
   };
 
-  const rootPlate: Plate = { id: rootId, gen: 1, x: W / 2, y: 0, w: rootW, h: Math.min(96, plateH * 1.25) };
+  const rootPlate: Plate = { id: rootId, gen: 1, x: W / 2, y: 0, w: widthOf(1), h: heightOf(1) };
   plates.push(rootPlate);
   people.set(rootPlate, root);
   const fam = root.famc.length ? data.families[root.famc[0]] : null;
@@ -223,20 +234,21 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
 
   // Tidy-tree packing: a person stands halfway between the two parents (or level with a lone parent), and the
   // father's branch is pushed against the mother's just far enough that no two plates of one column touch. Only
-  // people who exist take room, so an incomplete branch no longer leaves a gap.
+  // people who exist take room, so an incomplete branch no longer leaves a gap. A contour holds, for each
+  // generation below a plate, the top and bottom edge of the plates there (plates differ in height).
   type Contour = [low: number, high: number][];
   const offsets = new Map<Plate, number[]>();
-  const sep = plateH + rowGap;
   const pack = (plate: Plate): Contour => {
+    const own: [number, number] = [-plate.h / 2, plate.h / 2];
     const ps = kids.get(plate) || [];
-    if (!ps.length) return [[0, 0]];
+    if (!ps.length) return [own];
     const cs = ps.map(pack);
-    if (cs.length === 1) { offsets.set(plate, [0]); return [[0, 0], ...cs[0]]; }
+    if (cs.length === 1) { offsets.set(plate, [0]); return [own, ...cs[0]]; }
     const [a, b] = cs;
-    let delta = sep;
-    for (let i = 0; i < Math.min(a.length, b.length); i++) delta = Math.max(delta, a[i][1] - b[i][0] + sep);
+    let delta = 0;
+    for (let i = 0; i < Math.min(a.length, b.length); i++) delta = Math.max(delta, a[i][1] - b[i][0] + rowGap);
     offsets.set(plate, [-delta / 2, delta / 2]);
-    const out: Contour = [[0, 0]];
+    const out: Contour = [own];
     for (let i = 0; i < Math.max(a.length, b.length); i++) {
       const lows = [a[i] && a[i][0] - delta / 2, b[i] && b[i][0] + delta / 2].filter((v) => v !== undefined);
       const highs = [a[i] && a[i][1] - delta / 2, b[i] && b[i][1] + delta / 2].filter((v) => v !== undefined);
@@ -251,9 +263,9 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   });
   // the two parents stand level in the middle, the person below them; the rest of each side hangs above and below
   // the parents
-  const levelY = top + plateH / 2 + Math.max(0, ...sides.map((x) => -x.low));
-  const rootY = levelY + plateH / 2 + 140 + rootPlate.h / 2;
-  const H = Math.round(Math.max(levelY + Math.max(0, ...sides.map((x) => x.high)) + plateH / 2, rootY + rootPlate.h / 2) + bottom);
+  const levelY = top + Math.max(0, ...sides.map((x) => -x.low));
+  const rootY = levelY + heightOf(2) / 2 + 140 + rootPlate.h / 2;
+  const H = Math.round(Math.max(levelY + Math.max(0, ...sides.map((x) => x.high)), rootY + rootPlate.h / 2) + bottom);
   const settle = (plate: Plate, y: number) => {
     plate.y = y;
     (kids.get(plate) || []).forEach((q, i) => settle(q, y + offsets.get(plate)![i]));
@@ -308,17 +320,32 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     return true;
   };
 
-  /** A smooth curve from `a` to `b` with a seeded wiggle; it leaves `a` sideways or, with `up`, upwards. */
+  /**
+   * A smooth curve from `a` to `b` with a seeded wiggle; it leaves `a` sideways or, with `up`, upwards. The wiggle
+   * swings across the chord, and the longer the chord, the more it bends (an S), so no long straight run is left.
+   * A bend that would run over a plate is tried again with less swing.
+   */
   const curve = (a: Point, b: Point, up = false): Point[] => {
     const N = 14, [dx, dy] = [b[0] - a[0], b[1] - a[1]];
     const len = Math.hypot(dx, dy) || 1;
-    const phase = uniform(0, Math.PI * 2), freq = uniform(1, 1.8), amp = uniform(0.03, 0.07) * len + 6;
-    const pts: Point[] = [];
-    for (let i = 0; i <= N; i++) {
-      const t = i / N, s = t * t * (3 - 2 * t);
-      const wob = Math.sin(phase + t * freq * Math.PI * 2) * amp * Math.sin(Math.PI * t) ** 0.8;
-      pts.push(up ? [a[0] + dx * s + wob, a[1] + dy * t] : [a[0] + dx * t, a[1] + dy * s + wob]);
-    }
+    const [nx, ny] = [-dy / len, dx / len];
+    const phase = uniform(0, Math.PI * 2), freq = uniform(1, 1.8);
+    const longer = Math.min(1, Math.max(0, (len - 240) / 360));
+    const swing = uniform(0.03, 0.07) * len + 6 + longer * uniform(0.07, 0.11) * len;
+    const build = (amp: number) => {
+      const pts: Point[] = [];
+      for (let i = 0; i <= N; i++) {
+        const t = i / N, s = t * t * (3 - 2 * t);
+        const wob = Math.sin(phase + t * freq * Math.PI * 2) * amp * Math.sin(Math.PI * t) ** 0.8;
+        const [x, y] = up ? [a[0] + dx * s, a[1] + dy * t] : [a[0] + dx * t, a[1] + dy * s];
+        pts.push([x + nx * wob, y + ny * wob]);
+      }
+      return pts;
+    };
+    const overPlate = (pts: Point[]) => pts.slice(2, -2).some(([x, y]) =>
+      plates.some((p) => Math.abs(x - p.x) < p.w / 2 + 8 && Math.abs(y - p.y) < p.h / 2 + 8));
+    let pts = build(swing);
+    for (let k = 1; k <= 4 && overPlate(pts); k++) pts = build(swing * (1 - k * 0.22));
     return pts;
   };
 
@@ -367,11 +394,11 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   }
   for (const plate of plates) {
     const sex = people.get(plate)!.sex;
-    const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h);
-    plateShapes.push({ d: outer, fill: sex === "M" ? C.male : sex === "F" ? C.female : C.branchEdge, stroke: null, strokeWidth: 0 },
+    const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h, scaleOf(plate.gen));
+    plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 },
                      { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
     const same = lines.get(plate)!.map(([text, , bold]): Line => [text, smallest.get(`${plate.gen}${bold}`)!, bold]);
-    texts.push(...stack(plate, same));
+    texts.push(...stack(plate, same, sex === "M" ? C.male : sex === "F" ? C.female : C.ink));
   }
 
   const title = o.title || TEXTS[o.lang].title.replace("{name}", root.name || "?");
@@ -416,12 +443,12 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
 }
 
 /** The lines centred one under the other on the plate. */
-function stack(plate: Plate, lines: Line[]): PosterText[] {
+function stack(plate: Plate, lines: Line[], nameFill: string): PosterText[] {
   const heights = lines.map(([, size]) => size * 1.15);
   let y = plate.y - heights.reduce((a, b) => a + b, 0) / 2;
   return lines.map(([text, size, bold], i) => {
     y += heights[i];
-    return { text, x: plate.x, y: y - size * 0.22, size, bold, fill: POSTER_COLORS.ink };
+    return { text, x: plate.x, y: y - size * 0.22, size, bold, fill: bold ? nameFill : POSTER_COLORS.ink };
   });
 }
 

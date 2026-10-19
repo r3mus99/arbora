@@ -159,13 +159,44 @@ describe("poster output", () => {
 });
 
 describe("poster plates", () => {
-  test("every plate has its own hand-cut outline, coloured by sex", () => {
+  test("every plate has its own hand-cut brown outline, and the name is blue for men and red for women", () => {
     const poster = buildPoster(data, ROOT, { generations: 4, posterSeed: 1 });
-    const outlines = poster.shapes.filter((s) => s.fill === "#2f5f9e" || s.fill === "#a8322a" || s.fill === "#4a2f18");
+    const outlines = poster.shapes.filter((s) => s.fill === "#4a2f18" && !s.stroke);
     expect(outlines.length).toBe(poster.people);
     expect(new Set(outlines.map((s) => s.d)).size).toBe(outlines.length);
-    expect(outlines.some((s) => s.fill === "#2f5f9e")).toBe(true);
-    expect(outlines.some((s) => s.fill === "#a8322a")).toBe(true);
+    const names = poster.texts.filter((t) => t.bold && t.fill !== "#2a1d12");
+    expect(names.some((t) => t.fill === "#2f5f9e")).toBe(true);
+    expect(names.some((t) => t.fill === "#a8322a")).toBe(true);
+    expect(poster.texts.filter((t) => !t.bold).every((t) => t.fill === "#2a1d12")).toBe(true);
+  });
+});
+
+describe("poster plate sizes", () => {
+  test("the closest generations have bigger plates: 200 %, 175 %, 150 %, 125 %, then 100 %", () => {
+    for (const d of [data, full(6)]) {
+      const p = buildPoster(d, ROOT, { generations: 6 });
+      const width = (gen: number) => p.plates.find((q) => q.gen === gen)!.w;
+      const height = (gen: number) => p.plates.find((q) => q.gen === gen)!.h;
+      for (const [gen, scale] of [[1, 2], [2, 1.75], [3, 1.5], [4, 1.25], [5, 1], [6, 1]]) {
+        expect(width(gen) / width(5), `width ${gen}`).toBeCloseTo(scale, 1);
+        expect(height(gen) / height(5), `height ${gen}`).toBeCloseTo(scale, 1);
+      }
+    }
+  });
+
+  test("bigger plates never overlap, and the text is bigger with them", () => {
+    const p = buildPoster(full(6), ROOT, { generations: 6 });
+    const hits: string[] = [];
+    for (const a of p.plates) {
+      for (const b of p.plates) {
+        if (a.id < b.id && Math.abs(a.x - b.x) < (a.w + b.w) / 2 && Math.abs(a.y - b.y) < (a.h + b.h) / 2) hits.push(`${a.id} ${b.id}`);
+      }
+    }
+    expect(hits).toEqual([]);
+    const size = (id: string) => p.texts.find((t) => t.text === `P${id.replace(/\D/g, "")} Full`)!.size;
+    expect(size("@I1@")).toBeGreaterThan(size("@I2@"));
+    expect(size("@I2@")).toBeGreaterThan(size("@I4@"));
+    expect(size("@I4@")).toBeGreaterThan(size("@I32@"));
   });
 });
 
