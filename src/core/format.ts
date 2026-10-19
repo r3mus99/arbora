@@ -24,9 +24,6 @@ export interface ChartOptions {
   posterSeed: number;
   /** tree poster: generations including the person, 2 to 7 */
   posterGenerations: number;
-  /** tree poster: a person who stands on several branches keeps the whole ancestry on the first one only; later plates end the branch */
-  /** tree poster: lists in the four corners, for each grandparent's line the most common places, names and surnames */
-  posterCorners: boolean;
 }
 
 export const DEFAULTS: ChartOptions = {
@@ -34,7 +31,7 @@ export const DEFAULTS: ChartOptions = {
   chart: "ancestors", showSpouses: true,
   numbering: "generation",
   lineHeight: 1.7, margin: 36,
-  posterSeed: 0, posterGenerations: 7, posterCorners: false,
+  posterSeed: 0, posterGenerations: 7,
 };
 
 export const fmt = (s: string, vars: Record<string, string | number>) =>

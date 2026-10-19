@@ -181,6 +181,8 @@ describe("chart options", () => {
                                 lineHeight: Number.NaN });
     expect(bad).toEqual(APP_DEFAULTS);
     expect(storedOptions({ chart: "descendants", numbering: "ahnentafel" }).numbering).toBe("daboville");
+    // the corner statistics checkbox is gone; a stored value is dropped
+    expect(storedOptions({ posterCorners: true })).toEqual(APP_DEFAULTS);
   });
 
   test("the poster has its own number of generations, kept within 3 to 10", () => {

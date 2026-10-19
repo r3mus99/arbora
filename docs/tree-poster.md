@@ -35,8 +35,8 @@ decorative wall chart. This file records how it works and what is still open.
   person once.
 - Repeated people are always drawn in full (there is no setting to hide them), so the numbers in the corners and the
   count of known ancestors always agree with what is on the poster.
-- The setting "Places and name statistics in the corners" (`posterCorners`, off by default; `core/posterCorners.ts`) puts a
-  list in each corner, one per main branch: top left the father's father line, bottom left the father's mother line,
+- Places and name statistics in the corners (`core/posterCorners.ts`) are always drawn once the poster really reaches 5 generations (`POSTER_CORNERS_MIN_GENERATIONS`; counted from the deepest plate, not from the number asked for, so a shallow tree asked for 8 generations gets none). A branch with fewer than 5 people (`CORNER_MIN_PEOPLE`) gets no block. There is no setting; a "no statistics" checkbox may come later. Each corner has a
+  list, one per main branch: top left the father's father line, bottom left the father's mother line,
   top right the mother's father line, bottom right the mother's mother line (the people of that branch on the poster,
   each counted once). A list is a heading with the name and birth date of the head of the branch ("Line: Name  ·  b. 7 Apr 1700  ·  62 ancestors", the date format follows the Dates setting;
   the birth and then the count are left out when they do not fit) and up to three labelled one-line rows ("Origin:", "First names:", "Surnames:"): birth municipalities (the part

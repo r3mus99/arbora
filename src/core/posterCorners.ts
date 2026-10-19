@@ -13,6 +13,9 @@ import { TEXTS } from "./texts";
 export const CORNER_KEYS = ["fatherFather", "fatherMother", "motherFather", "motherMother"] as const;
 export type CornerKey = (typeof CORNER_KEYS)[number];
 
+/** a branch with fewer people than this gets no block: its counts would say next to nothing */
+export const CORNER_MIN_PEOPLE = 5;
+
 export const CORNER_HEAD_SIZE = 34, CORNER_VALUE_SIZE = 24;
 /** the baseline of the heading and of the first line under the top of a block, and the distance between lines */
 export const CORNER_HEAD_Y = 36, CORNER_FIRST_Y = 84, CORNER_STEP = 40;
@@ -83,7 +86,7 @@ const surnameOf = (p: Person) => p.given && p.name.startsWith(p.given) ? p.name.
 export const cornerMaxValues = (generations: number) => (generations <= 5 ? 5 : generations <= 7 ? 6 : 7);
 
 /**
- * One block per branch that has people and something to say. Each line is labelled and shows as many values as fit
+ * One block per branch that has at least `CORNER_MIN_PEOPLE` people and something to say. Each line is labelled and shows as many values as fit
  * in `maxWidth`, at most `cornerMaxValues(generations)`; the rest is counted ("+ 3 more").
  */
 export function cornerBlocks(branches: Record<CornerKey, Person[]>, o: ChartOptions, measure: Measure,
@@ -108,7 +111,7 @@ export function cornerBlocks(branches: Record<CornerKey, Person[]>, o: ChartOpti
   };
   return CORNER_KEYS.flatMap((key): Corner[] => {
     const people = branches[key];
-    if (!people.length) return [];
+    if (people.length < CORNER_MIN_PEOPLE) return [];
     const lists: [string, Count[]][] = [
       [t.corners.origin, tally(people, municipality)],
       [t.corners.given, tally(people, firstName)],

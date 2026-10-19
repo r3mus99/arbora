@@ -1,6 +1,6 @@
 import { FileImage, FileText, Monitor } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import { POSTER_EXTRAS_MIN_GENERATIONS, POSTER_MAX_GENERATIONS, POSTER_MIN_GENERATIONS } from "../core/poster";
+import { POSTER_MAX_GENERATIONS, POSTER_MIN_GENERATIONS } from "../core/poster";
 import { TEXTS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
@@ -33,13 +33,12 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     value: form[key] as string,
     onChange: (e: { target: { value: string } }) => onChange(key, e.target.value as Form[K]),
   });
-  const check = (key: "showSpouses" | "showPlaces" | "posterCorners") => ({
+  const check = (key: "showSpouses" | "showPlaces") => ({
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => onChange(key, e.target.checked),
   });
   const chip = (scope: Scope, icon: ReactNode, text: string, tip: string) =>
     <span className={`chip${hot.includes(scope) ? " on" : ""}`} title={tip}>{icon}{text}</span>;
-  const extras = form.posterGenerations >= POSTER_EXTRAS_MIN_GENERATIONS;
 
   return (
   <section className="panel-col set-panel" aria-label={t("settings")}>
@@ -83,9 +82,6 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
           ))}
         </div>
       </div>
-      {extras && <div className="checks">
-        <label {...scoped(["svg"])}><input {...check("posterCorners")} /> <span>{t("posterCorners")}</span></label>
-      </div>}
     </div>
     </div>
   </section>
