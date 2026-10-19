@@ -11,6 +11,19 @@ const fonts = posterFonts(
   [file("Alkatra-Latin-Bold.woff"), file("Alkatra-LatinExt-Bold.woff"), file("DejaVuSans-Bold.ttf")]);
 const ROOT = "@I1@";
 
+// a complete tree: person n has parents 2n and 2n+1, down to `gens` generations
+const full = (gens: number) => {
+  let ged = "0 HEAD\n";
+  const last = 2 ** gens - 1;
+  for (let n = 1; n <= last; n++) {
+    ged += `0 @I${n}@ INDI\n1 NAME P${n} /Full/\n1 SEX ${n % 2 ? "F" : "M"}\n`;
+    if (n < 2 ** (gens - 1)) ged += `1 FAMC @F${n}@\n`;
+  }
+  for (let n = 1; n < 2 ** (gens - 1); n++) ged += `0 @F${n}@ FAM\n1 HUSB @I${2 * n}@\n1 WIFE @I${2 * n + 1}@\n1 CHIL @I${n}@\n`;
+  return load(ged + "0 TRLR\n");
+};
+
+
 describe("seeded random", () => {
   test("the same seed gives the same sequence, another seed another one", () => {
     const a = random(5), b = random(5), c = random(6);
@@ -47,8 +60,8 @@ describe("poster layout", () => {
     }
   });
 
-  test("the generations are limited to 2..7 and a person without parents has just the plate", () => {
-    expect(buildPoster(data, ROOT, { generations: 99 }).generations).toBe(7);
+  test("the generations are limited to 2..9 and a person without parents has just the plate", () => {
+    expect(buildPoster(full(3), ROOT, { generations: 99 }).generations).toBe(9);
     expect(buildPoster(data, ROOT, { generations: 1 }).generations).toBe(2);
     expect(buildPoster(data, ROOT, { generations: 0 }).generations).toBe(7);
     const lone = Object.values(data.people).find((x) => !x.famc.length)!;
@@ -126,4 +139,18 @@ describe("poster plates", () => {
     expect(outlines.some((s) => s.fill === "#2f5f9e")).toBe(true);
     expect(outlines.some((s) => s.fill === "#a8322a")).toBe(true);
   });
+});
+
+describe("poster beyond seven generations", () => {
+  test("a bigger poster keeps the size of the plates and of the text", () => {
+    const seven = buildPoster(full(7), "@I1@", { generations: 7 });
+    const nine = buildPoster(full(9), "@I1@", { generations: 9 });
+    expect(nine.generations).toBe(9);
+    expect(nine.people).toBe(2 ** 9 - 1);
+    expect(nine.width).toBe(seven.width * 4);
+    expect(nine.width / nine.height).toBeCloseTo(Math.SQRT2, 2);
+    // the names of the last generation are as big as on the base poster
+    expect(Math.min(...nine.texts.slice(0, -1).map((t) => t.size))).toBeGreaterThanOrEqual(
+      Math.min(...seven.texts.slice(0, -1).map((t) => t.size)));
+  }, 60000);
 });
