@@ -10,7 +10,7 @@ decorative wall chart. This file records how it works and what is still open.
   only export, next to GED and PDF in the top bar). The list is output-neutral, so PDF or PNG can be added later.
 - Plates are hand-cut labels (uneven edges, border width varies, brown border, the name blue for men and red for women). The people the person may still have known
   stand out: the person is drawn at 200 %, the parents at 175 %, the grandparents at 150 %, the great-grandparents at 125 %,
-  every further generation at 100 % (`POSTER_PLATE_SCALE`); the text grows with the plate, and the packing and the column
+  every further generation at 100 % (`POSTER_PLATE_SCALE`); the text and the border grow with the plate, and the packing and the column
   widths take the plate sizes into account. The person is in the centre below the two parents (one limb rises from them and splits in two; the parents are level and close to the middle, which keeps the poster narrow), the father's line left, the mother's right, one column per
   generation. Within a side the people are packed like a tidy tree (Reingold-Tilford): each plate sits halfway between its
   two parents (level with a lone parent), and the father's branch is pushed against the mother's only as far as plates of

@@ -111,12 +111,12 @@ function closedDense(pts: Point[], k = 6): Point[] {
 
 /**
  * A hand-cut plate: edges that are slightly uneven and a border whose width changes along the way. Returns the outer
- * shape (drawn in the ink colour) and the inner shape (drawn over it in the paper colour) around the centre (cx, cy).
+ * shape (drawn in the ink colour) and the inner shape (drawn over it in the paper colour) around the centre (cx, cy); the border grows with the plate (`scale`).
  */
-function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number): [string, string] {
+function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number, scale = 1): [string, string] {
   const u = (a: number) => (rnd() * 2 - 1) * a;
   const base = 2 + rnd();
-  const border = () => Math.max(1.3, base + u(1.1));
+  const border = () => Math.max(1.3, base + u(1.1)) * scale;
   const wob = h * 0.022;
   const xs = (n: number) => Array.from({ length: n }, (_, i) => w * (i + 0.5) / n);
   const ys = (n: number) => Array.from({ length: n }, (_, i) => h * (i + 0.5) / n);
@@ -394,7 +394,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   }
   for (const plate of plates) {
     const sex = people.get(plate)!.sex;
-    const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h);
+    const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h, scaleOf(plate.gen));
     plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 },
                      { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
     const same = lines.get(plate)!.map(([text, , bold]): Line => [text, smallest.get(`${plate.gen}${bold}`)!, bold]);
