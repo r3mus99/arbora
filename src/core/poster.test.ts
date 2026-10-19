@@ -205,6 +205,25 @@ describe("poster age and title", () => {
   });
 });
 
+describe("poster repeated people", () => {
+  test("a person on two branches keeps both plates, each with a tag of the count, and is counted once in the title", () => {
+    const p = buildPoster(data, ROOT, { generations: 5, lang: "en" });
+    const ids = p.plates.map((x) => x.id), unique = new Set(ids).size;
+    expect(unique).toBeLessThan(ids.length); // the Habsburgs marry within the family
+    const repeated = ids.filter((id, i) => ids.indexOf(id) !== i);
+    const tags = p.texts.filter((t) => /^\d+\u00D7$/.test(t.text));
+    expect(tags).toHaveLength(ids.filter((id) => ids.indexOf(id) !== ids.lastIndexOf(id)).length);
+    expect(repeated.length).toBeGreaterThan(0);
+    expect(p.texts.some((t) => t.text.startsWith(`5 generations \u00B7 ${unique - 1} ancestors`))).toBe(true);
+  });
+
+  test("a tree without repeats has no tags", () => {
+    const p = buildPoster(data, ROOT, { generations: 3, lang: "en" });
+    expect(new Set(p.plates.map((x) => x.id)).size).toBe(p.plates.length);
+    expect(p.texts.filter((t) => /^\d+\u00D7$/.test(t.text))).toHaveLength(0);
+  });
+});
+
 describe("poster marriage years", () => {
   const brown = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === "#6b4626" && !/^\d+ generations \u00B7 /.test(t.text));
   const years = (p: ReturnType<typeof buildPoster>) => brown(p).filter((t) => /^\d{4}$/.test(t.text));

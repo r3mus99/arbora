@@ -1,0 +1,1 @@
+- **The poster marks people who appear more than once.** When the family married within itself, the same ancestor stands on several branches; each of those plates gets a small tag ("2×"), and the title counts every person only once.
