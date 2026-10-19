@@ -96,6 +96,8 @@ export function posterSeed(rootId: string, seed: number): number {
 type Point = [number, number];
 
 const num = (n: number) => String(Math.round(n * 10) / 10);
+/** A glyph scale (about 0.01) needs more digits than a coordinate. */
+const scale = (n: number) => String(Math.round(n * 1e5) / 1e5);
 
 /** Width of a text as the layout assumes it without the poster fonts; the real fonts are narrower, so a line never overflows its plate. */
 export const textWidth = (text: string, size: number, bold: boolean) => text.length * size * (bold ? 0.62 : 0.56);
@@ -667,10 +669,17 @@ export function posterSvg(poster: Poster, fonts?: PosterFonts): string {
     out.push(`<path d="${s.d}"${s.fill ? ` fill="${s.fill}"` : ' fill="none"'}${s.stroke ? ` stroke="${s.stroke}" stroke-width="${s.strokeWidth}" stroke-linejoin="round"` : ""}/>`);
   }
   if (fonts) {
-    out.push("<g>");
+    // every letter is drawn once in <defs> and placed wherever it is used, which keeps the file a fraction of the size
+    const body: string[] = [], ids = new Map<string, number>();
     for (const t of poster.texts) {
-      out.push(`<path d="${fonts.outline(t.text, t.size, t.bold, t.x, t.y)}" fill="${t.fill}"><title>${esc(t.text)}</title></path>`);
+      body.push(`<g fill="${t.fill}"><title>${esc(t.text)}</title>`);
+      for (const g of fonts.place(t.text, t.size, t.bold, t.x, t.y)) {
+        if (!ids.has(g.id)) ids.set(g.id, ids.size);
+        body.push(`<use href="#g${ids.get(g.id)}" transform="matrix(${scale(g.scale)} 0 0 ${scale(-g.scale)} ${num(g.x)} ${num(g.y)})"/>`);
+      }
+      body.push("</g>");
     }
+    out.push("<defs>", ...[...ids].map(([id, n]) => `<path id="g${n}" d="${fonts.glyph(id)}"/>`), "</defs>", "<g>", ...body);
   } else {
     out.push('<g font-family="DejaVu Sans, Verdana, Arial, sans-serif" text-anchor="middle">');
     for (const t of poster.texts) {
