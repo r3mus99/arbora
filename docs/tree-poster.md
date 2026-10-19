@@ -40,7 +40,7 @@ decorative wall chart. This file records how it works and what is still open.
   generation is not merged: the later plate has more generations of ancestors to show, so it keeps its whole branch
   (the father's side is walked first, depth first). The layout packs only the plates that remain, so the poster
   gets lower.
-- Names wrap to two lines when one line would be small; a generation shares one name size and one date size.
+- Names wrap to two lines when one line would be small; two-line names use a smaller font so the date line stays clear of the plate edge. A generation shares one name size and one date size.
 - Text widths come from the real fonts (`posterFonts`), so plates and text fit exactly; without fonts (tests) an estimate is used.
 
 ## Open points
