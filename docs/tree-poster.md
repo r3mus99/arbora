@@ -41,7 +41,13 @@ decorative wall chart. This file records how it works and what is still open.
    the person's children. They need drawn vectors; the branches stay generated.
 3. **Leaf shape:** one drawn leaf (a plain path) would replace the generic one.
 4. **Fonts:** the text is set in Alkatra (OFL, `public/fonts/Alkatra-*.woff`, Latin and Latin Extended) and written as outlines, so a print shop sees the same letters; what Alkatra lacks (Cyrillic) falls back to DejaVu Sans per character (`core/posterFont.ts`). Open: a Cyrillic font that matches Alkatra, kerning, and smaller files (the outlines make an SVG about 1 MB at five generations).
-5. **Places, sources and residence on plates** (the poster ignores places for now).
+5. **Places, sources and residence on plates** (the poster ignores places for now). Tried as a preview and postponed
+   (Marek, 2026-10-19): an extra small line inside the plate, `* Graz  ⌂ Prague  † Vienna` (birth place, residence,
+   death place, only what is known), only for the generations with the big plates (200 % to 125 %), none for the
+   100 % ones. Findings: the plates need to be about 30 % higher (a separate residence line needs 55 % and two-line
+   names then touch the border); long place names shrink the line to small type, mostly on the 125 % plates, so a
+   long line would have to wrap or the places would be limited to 200 % to 150 %; the residence shows only when it
+   differs from the birth and death places. A residence line is better as an opt-in setting.
 6. **Density of side shoots:** an option (sparse, normal, dense).
 7. **Colour themes** (paper, branch and leaf colours; black and white for a laser printer).
 8. **A poster for descendants,** and more than ten generations (the width grows by one column per generation).
