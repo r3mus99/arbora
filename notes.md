@@ -1,1 +1,1 @@
-- **The poster shows the age at death and a framed title.** Nameplates read "*1907 †1986, 79 y." when both years are known, and the title stands in a hand-cut frame with the numbers of ancestors and generations under it, in all 12 languages.
+- **The poster title shows the years.** Under the title: "6 generations · 62 ancestors · 1722–1887", the range from the oldest known birth to the main person's, with the nouns in the right plural form in all 12 languages.

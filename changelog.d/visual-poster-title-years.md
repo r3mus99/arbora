@@ -1,1 +1,0 @@
-- **The poster title shows the years.** Under the title: "6 generations · 62 ancestors · 1722–1887", the range from the oldest known birth to the main person's, with the nouns in the right plural form in all 12 languages.
