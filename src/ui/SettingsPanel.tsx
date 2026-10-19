@@ -53,7 +53,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     <div className="set-group">
       <h3 {...scoped(CHART)}>{t("setChart")}</h3>
       <div className="grid">
-        <label {...scoped(CHART)}><span>{t("labels")}</span>
+        <label {...scoped(EVERYWHERE)}><span>{t("labels")}</span>
           <select {...sel("labels")}>
             <option value="symbols">{`${t("symbols")}  * ∞ †`}</option>
             <option value="abbr">{`${t("abbr")}  ${ab.birt}${ab.marr}${ab.deat}`.trim()}</option>
