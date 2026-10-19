@@ -1,1 +1,1 @@
-- **The output chips in the settings have a tooltip.** Hovering Screen, PDF or SVG says which output the chip stands for.
+- **The corner lists of the tree poster say more.** The heading of each branch now ends with the number of ancestors on it, the rows are labelled again (Origin, First names, Surnames), and a list names 5 values up to 5 generations, 6 up to 7 generations and 7 from 8 generations.
