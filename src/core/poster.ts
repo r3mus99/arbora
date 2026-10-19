@@ -644,9 +644,9 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
   return lines;
 }
 
-/** The lines centred one under the other on the plate. */
+/** The lines centred one under the other on the plate; the second line of a wrapped name sits closer to the first. */
 function stack(plate: Plate, lines: Line[], spacing: number, nameFill: string): PosterText[] {
-  const heights = lines.map(([, size]) => size * spacing);
+  const heights = lines.map(([, size, bold], i) => size * (bold && lines[i - 1]?.[2] ? spacing - 0.22 : spacing));
   let y = plate.y - heights.reduce((a, b) => a + b, 0) / 2;
   return lines.map(([text, size, bold], i) => {
     y += heights[i];

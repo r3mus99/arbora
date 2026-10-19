@@ -1,0 +1,1 @@
+- **Names that wrap to two lines have tighter line spacing on the poster plates.**
