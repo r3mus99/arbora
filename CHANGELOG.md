@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.21.0 – 2026-10-19
+
+- **The tree poster can list places and name statistics in its corners.** A new setting (off by default) adds a list in each corner for the four grandparent lines: the most common birth places (and residences, with the residence setting), given names and surnames, each with the number of people.
+
 ## 2.20.0 – 2026-10-19
 
 Poster: a quiet hand-cut double border with softly rounded corners now frames the whole poster.
