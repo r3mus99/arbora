@@ -22,6 +22,7 @@ export const POSTER_BASE_GENERATIONS = 7;
  * known stand out; every further generation is 100 %. */
 /** The most a branch swings sideways from the straight line between its ends, in drawing units. */
 const POSTER_MAX_SWING = 24;
+const POSTER_BRANCH_OVERLAP = 6;
 export const POSTER_PLATE_SCALE = [2, 1.75, 1.5, 1.25];
 
 export interface PosterShape {
@@ -424,10 +425,18 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   };
 
   /** A limb along `pts` of the given thickness class, with side shoots and leaves. */
-  const limb = (pts: Point[], thick: number) => {
+  const limb = (pts: Point[], thick: number, extendStart = false, extendEnd = false) => {
     const d = dense(pts);
     limbPts.push(...dense(pts, 3));
-    branch(tapered(d, 5 + 2.2 * thick, 2.5 + 1.2 * thick), 1);
+    const path = [...d];
+    const extend = (a: Point, b: Point): Point => {
+      const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+      return [b[0] + (b[0] - a[0]) / len * POSTER_BRANCH_OVERLAP,
+        b[1] + (b[1] - a[1]) / len * POSTER_BRANCH_OVERLAP];
+    };
+    if (extendStart) path.unshift(extend(d[1], d[0]));
+    if (extendEnd) path.push(extend(d[d.length - 2], d[d.length - 1]));
+    branch(tapered(path, 5 + 2.2 * thick, 2.5 + 1.2 * thick), 1);
     const [a, b] = [pts[0], pts[pts.length - 1]];
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const count = Math.max(2, Math.round(len / 95));
@@ -444,16 +453,16 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   };
 
   const grow = (child: Plate, parent: Plate, side: -1 | 1) => {
-    limb(curve([child.x + side * child.w / 2, child.y], [parent.x - side * parent.w / 2, parent.y]), gens - parent.gen);
+    limb(curve([child.x + side * child.w / 2, child.y], [parent.x - side * parent.w / 2, parent.y]), gens - parent.gen, true, true);
     for (const q of kids.get(parent) || []) grow(parent, q, side);
   };
   // one limb rises from the person and splits in two, one for each parent
   if (rootKids.length) {
     const lowest = Math.max(...rootKids.map(([plate]) => plate.y + plate.h / 2));
     const fork: Point = [rootPlate.x, lowest + 70];
-    limb(curve([rootPlate.x, rootPlate.y - rootPlate.h / 2], fork, true), gens - 1);
+    limb(curve([rootPlate.x, rootPlate.y - rootPlate.h / 2], fork, true), gens - 1, true);
     for (const [plate, side] of rootKids) {
-      limb(curve(fork, [plate.x - side * plate.w * 0.2, plate.y + plate.h / 2], true), gens - 2);
+      limb(curve(fork, [plate.x - side * plate.w * 0.2, plate.y + plate.h / 2], true), gens - 2, false, true);
       for (const q of kids.get(plate) || []) grow(plate, q, side);
     }
   }
