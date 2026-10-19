@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.41.0 – 2026-10-19
+
+- **Keyboard shortcuts and small transitions.** ⌘F (Ctrl+F) searches the list of people, ⌘S downloads the GED, ⌘, opens the settings and ⌘Z / ⇧⌘Z undoes and redoes; the shortcut is shown in the button tooltips. Panels slide in and the detail fades in when another person is chosen; with "reduce motion" set in the system there is no animation.
+
 ## 2.40.0 – 2026-10-19
 
 - **The person detail is made of cards.** The sections (parents, timeline, …) are inset cards, like the parts of the edit window.
