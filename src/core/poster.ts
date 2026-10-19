@@ -48,6 +48,8 @@ export interface Poster {
   /** drawing area in poster units; the paper has the same proportions */
   width: number;
   height: number;
+  /** The border drawn outside the width and height (0 without a frame). */
+  margin: number;
   /** drawn in this order: background, branches, leaves, plates */
   shapes: PosterShape[];
   texts: PosterText[];
@@ -117,20 +119,20 @@ function closedDense(pts: Point[], k = 6): Point[] {
  * A hand-cut plate: edges that are slightly uneven and a border whose width changes along the way. Returns the outer
  * shape (drawn in the ink colour) and the inner shape (drawn over it in the paper colour) around the centre (cx, cy); the border grows with the plate (`scale`).
  */
-function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number, scale = 1): [string, string] {
+function plateOutline(rnd: () => number, cx: number, cy: number, w: number, h: number, scale = 1, wobbleH = h): [string, string] {
   const u = (a: number) => (rnd() * 2 - 1) * a;
   const base = 2 + rnd();
   const border = () => Math.max(1.3, base + u(1.1)) * scale;
-  const wob = h * 0.022;
+  const wob = wobbleH * 0.022;
   const xs = (n: number) => Array.from({ length: n }, (_, i) => w * (i + 0.5) / n);
   const ys = (n: number) => Array.from({ length: n }, (_, i) => h * (i + 0.5) / n);
   // clockwise from the top left corner: [x, y, inward x, inward y]
   const seq: [number, number, number, number][] = [[u(wob), u(wob), 1, 1]];
-  for (const x of xs(4)) seq.push([x, u(wob * 1.3) + h * 0.01 * Math.sin(x / w * 6), 0, 1]);
+  for (const x of xs(4)) seq.push([x, u(wob * 1.3) + wobbleH * 0.01 * Math.sin(x / w * 6), 0, 1]);
   seq.push([w + u(wob), u(wob), -1, 1]);
   for (const y of ys(2)) seq.push([w + u(wob * 1.3), y, -1, 0]);
   seq.push([w + u(wob), h + u(wob), -1, -1]);
-  for (const x of xs(4).reverse()) seq.push([x, h + u(wob * 1.3) + h * 0.015 * Math.sin(x / w * 5 + 1), 0, -1]);
+  for (const x of xs(4).reverse()) seq.push([x, h + u(wob * 1.3) + wobbleH * 0.015 * Math.sin(x / w * 5 + 1), 0, -1]);
   seq.push([u(wob), h + u(wob), 1, -1]);
   for (const y of ys(2).reverse()) seq.push([u(wob * 1.3), y, 1, 0]);
   const outer: Point[] = [], inner: Point[] = [];
@@ -545,9 +547,22 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   texts.push(...marriages, { text: title, x: W / 2, y: frameY - 4, size: 58, bold: true, fill: C.ink },
              { text: stats, x: W / 2, y: frameY + 40, size: 26, bold: false, fill: C.branch });
 
-  shapes.push({ d: `M0,0L${W},0L${W},${H}L0,${H}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
-              ...branches, ...leaves, ...symbols, ...plateShapes);
-  return { width: W, height: H, shapes, texts, generations: gens, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
+  // a quiet double border with softly rounded corners around the whole poster, in the margin outside the tree
+  const margin = 84, inset = 54, gap = 16;
+  const [out, mid] = plateOutline(rnd, W / 2, H / 2, W + 2 * (margin - inset), H + 2 * (margin - inset), 2.4, 50);
+  const [out2, mid2] = plateOutline(rnd, W / 2, H / 2, W + 2 * (margin - inset - gap), H + 2 * (margin - inset - gap), 1.2, 50);
+  const ring = (a: string, b: string) => a + reversePath(b);
+  const frameShapes: PosterShape[] = [{ d: ring(out, mid), fill: C.branchEdge, stroke: null, strokeWidth: 0 },
+                                      { d: ring(out2, mid2), fill: C.branchEdge, stroke: null, strokeWidth: 0 }];
+  shapes.push({ d: `M${-margin},${-margin}L${W + margin},${-margin}L${W + margin},${H + margin}L${-margin},${H + margin}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
+              ...frameShapes, ...branches, ...leaves, ...symbols, ...plateShapes);
+  return { width: W, height: H, margin, shapes, texts, generations: gens, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
+}
+
+/** The same closed polygon path walked the other way round, so that appended to another it cuts a hole. */
+function reversePath(d: string): string {
+  const pts = d.slice(1, -1).split("L");
+  return "M" + pts.reverse().join("L") + "Z";
 }
 
 type Line = [text: string, size: number, bold: boolean];
@@ -605,7 +620,7 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
  * computer; without them it stays text in DejaVu Sans (or a similar font of the viewer).
  */
 export function posterSvg(poster: Poster, fonts?: PosterFonts): string {
-  const out = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${poster.width} ${poster.height}" width="${poster.width}" height="${poster.height}">`,
+  const out = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${-poster.margin} ${-poster.margin} ${poster.width + 2 * poster.margin} ${poster.height + 2 * poster.margin}" width="${poster.width + 2 * poster.margin}" height="${poster.height + 2 * poster.margin}">`,
     `<title>${esc(poster.title)}</title>`];
   for (const s of poster.shapes) {
     out.push(`<path d="${s.d}"${s.fill ? ` fill="${s.fill}"` : ' fill="none"'}${s.stroke ? ` stroke="${s.stroke}" stroke-width="${s.strokeWidth}" stroke-linejoin="round"` : ""}/>`);
