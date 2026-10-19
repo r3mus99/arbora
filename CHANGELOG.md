@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.18.0 – 2026-10-19
+
+- **A poster setting ends the branch at a repeated person.** With many generations the same ancestor stands on several branches; "End the branch at a repeated person" keeps the whole ancestry only on the first one, so the poster is smaller. Off by default, translated into all 12 languages.
+
 ## 2.17.0 – 2026-10-19
 
 - **The poster marks people who appear more than once.** When the family married within itself, the same ancestor stands on several branches; each of those plates gets a small tag ("2×"), and the title counts every person only once.
