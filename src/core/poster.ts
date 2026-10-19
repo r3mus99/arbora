@@ -312,7 +312,13 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   }
   const sideRoom = (W - frameW) / 2 - 100, beside = sideRoom >= 520;
   const isTop = (key: CornerKey) => key.endsWith("Father");
-  const corners = o.posterCorners ? cornerBlocks(branchOf, o, measure, (key) => isTop(key) && beside ? sideRoom : W / 2 - 100) : [];
+  // the lists start where the plates start: the left ones at the leftmost plate edge, the right ones end at the rightmost
+  const plateLeft = Math.min(...plates.map((p) => p.x - p.w / 2)), plateRight = Math.max(...plates.map((p) => p.x + p.w / 2));
+  const cornerEdge = (key: CornerKey) => key.startsWith("father") ? plateLeft : plateRight;
+  const corners = o.posterCorners ? cornerBlocks(branchOf, o, measure, (key) => {
+    const room = isTop(key) && beside ? sideRoom : W / 2 - 100;
+    return room - (key.startsWith("father") ? plateLeft - 60 : W - 60 - plateRight);
+  }) : [];
   const bandH = (top: boolean) => Math.max(0, ...corners.filter((c) => isTop(c.key) === top).map((c) => cornerHeight(c.rows.length)));
   const topH = bandH(true), bottomH = bandH(false);
   // title and plates move down when the lists need room above them
@@ -579,7 +585,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   texts.push(...marriages, { text: title, x: W / 2, y: frameY - 4, size: 58, bold: true, fill: C.ink },
              { text: stats, x: W / 2, y: frameY + 40, size: 26, bold: false, fill: C.branch });
   for (const { key, heading, rows } of corners) {
-    const left = key.startsWith("father"), x = left ? 60 : W - 60;
+    const left = key.startsWith("father"), x = cornerEdge(key);
     const y0 = isTop(key) ? 50 : H - bottom + 30;
     const put = (text: string, size: number, bold: boolean, y: number, fill: string, edge: number) => {
       const w = measure(text, size, bold);

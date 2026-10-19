@@ -1,7 +1,7 @@
 /**
  * The lists in the four corners of the tree poster: for each of the four main branches (the grandparents' lines) the
  * most common birth municipalities, given names and surnames of the people on that branch, each as one line
- * ("Vienna ×7  ·  Prague ×5  ·  + 3 more"). The layout lives in `buildPoster`; this file only decides what is
+ * ("Vienna (7)  ·  Prague (5)  + 3 more"). The layout lives in `buildPoster`; this file only decides what is
  * said and how much of it fits a width.
  */
 
@@ -34,8 +34,8 @@ function tally(people: Person[], pick: (p: Person) => string | undefined): Count
   return [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
 
-/** The municipality of a place: what stands before the first comma. */
-const municipality = (p: Person) => p.birth?.place?.split(",")[0];
+/** The municipality of a place: what stands before the first comma, without a trailing district number ("Prague 2" is "Prague"). */
+const municipality = (p: Person) => p.birth?.place?.split(",")[0].replace(/(?<=\p{L})\s+\d+\.?\s*$/u, "");
 
 /** Endings of female surname forms (Slovak/Czech -ová, -á; Polish -ska/-cka; Russian/Ukrainian -ова/-ева/-ина/-ская/-ська). */
 const FEMALE = /(ová|á|(?:sk|ck|dzk)a|ова|ева|ина|іна|ая|ська|цька)$/i;
@@ -92,8 +92,8 @@ export function cornerBlocks(branches: Record<CornerKey, Person[]>, o: ChartOpti
   const more = (n: number) => `+ ${n} ${t.more[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2]}`;
   const sep = "  ·  ";
   const fit = (items: Count[], width: number) => {
-    const shown = (n: number) => items.slice(0, n).map(([v, c]) => (c > 1 ? `${v} ×${c}` : v)).join(sep)
-      + (n < items.length ? sep + more(items.length - n) : "");
+    const shown = (n: number) => items.slice(0, n).map(([v, c]) => (c > 1 ? `${v} (${c})` : v)).join(sep)
+      + (n < items.length ? "  " + more(items.length - n) : "");
     let n = Math.min(items.length, CORNER_MAX_VALUES);
     while (n > 1 && measure(shown(n), CORNER_VALUE_SIZE, false) > width) n--;
     return shown(n);
