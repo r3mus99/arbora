@@ -10,6 +10,8 @@ export interface PdfTexts {
   corners: { line: string; origin: string; given: string; surnames: string; more: [one: string, few: string, many: string] };
   /** years of age after the death year on the poster, e.g. "79 y." */
   ageAbbr: string;
+  /** the label on the generation ruler of the poster, {n} is the number */
+  generation: string;
   page: string;
   see: string;
   abbr: { birt: string; marr: string; deat: string; resi: string };
@@ -30,6 +32,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["predok", "predkovia", "predkov"], generations: ["generácia", "generácie", "generácií"],
     corners: { line: "Línia", origin: "Pôvod", given: "Krstné mená", surnames: "Priezviská", more: ["ďalšie", "ďalšie", "ďalších"] },
     ageAbbr: "r.",
+    generation: "{n}. generácia",
     page: "Strana {n} z {total}", see: "pozri str. {page}",
     abbr: { birt: "nar. ", marr: "sob. ", deat: "zom. ", resi: "bydl. " },
     qual: { ABT: "cca {d}", BEF: "pred {d}", AFT: "po {d}" },
@@ -41,6 +44,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["předek", "předci", "předků"], generations: ["generace", "generace", "generací"],
     corners: { line: "Linie", origin: "Původ", given: "Křestní jména", surnames: "Příjmení", more: ["další", "další", "dalších"] },
     ageAbbr: "l.",
+    generation: "{n}. generace",
     page: "Strana {n} z {total}", see: "viz str. {page}",
     abbr: { birt: "nar. ", marr: "odd. ", deat: "zem. ", resi: "bydl. " },
     qual: { ABT: "asi {d}", BEF: "před {d}", AFT: "po {d}" },
@@ -52,6 +56,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["przodek", "przodkowie", "przodków"], generations: ["pokolenie", "pokolenia", "pokoleń"],
     corners: { line: "Linia", origin: "Pochodzenie", given: "Imiona", surnames: "Nazwiska", more: ["inne", "inne", "innych"] },
     ageAbbr: "l.",
+    generation: "{n}. pokolenie",
     page: "Strona {n} z {total}", see: "zob. s. {page}",
     abbr: { birt: "ur. ", marr: "śl. ", deat: "zm. ", resi: "zam. " },
     qual: { ABT: "ok. {d}", BEF: "przed {d}", AFT: "po {d}" },
@@ -63,6 +68,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["felmenő", "felmenő", "felmenő"], generations: ["nemzedék", "nemzedék", "nemzedék"],
     corners: { line: "Ág", origin: "Származás", given: "Keresztnevek", surnames: "Vezetéknevek", more: ["további", "további", "további"] },
     ageAbbr: "é.",
+    generation: "{n}. nemzedék",
     page: "{n}/{total}. oldal", see: "lásd {page}. old.",
     abbr: { birt: "szül. ", marr: "házas. ", deat: "megh. ", resi: "lakh. " },
     qual: { ABT: "kb. {d}", BEF: "{d} előtt", AFT: "{d} után" },
@@ -74,6 +80,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["Vorfahre", "Vorfahren", "Vorfahren"], generations: ["Generation", "Generationen", "Generationen"],
     corners: { line: "Linie", origin: "Herkunft", given: "Vornamen", surnames: "Familiennamen", more: ["weitere", "weitere", "weitere"] },
     ageAbbr: "J.",
+    generation: "{n}. Generation",
     page: "Seite {n} von {total}", see: "siehe S. {page}",
     abbr: { birt: "geb. ", marr: "verh. ", deat: "gest. ", resi: "wohnh. " },
     qual: { ABT: "um {d}", BEF: "vor {d}", AFT: "nach {d}" },
@@ -85,6 +92,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["ancestor", "ancestors", "ancestors"], generations: ["generation", "generations", "generations"],
     corners: { line: "Line", origin: "Origin", given: "First names", surnames: "Surnames", more: ["more", "more", "more"] },
     ageAbbr: "y.",
+    generation: "Generation {n}",
     page: "Page {n} of {total}", see: "see p. {page}",
     abbr: { birt: "b. ", marr: "m. ", deat: "d. ", resi: "res. " },
     qual: { ABT: "abt {d}", BEF: "bef {d}", AFT: "aft {d}" },
@@ -96,6 +104,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["ancêtre", "ancêtres", "ancêtres"], generations: ["génération", "générations", "générations"],
     corners: { line: "Lignée", origin: "Origine", given: "Prénoms", surnames: "Noms de famille", more: ["autre", "autres", "autres"] },
     ageAbbr: "a.",
+    generation: "Génération {n}",
     page: "Page {n} sur {total}", see: "voir p. {page}",
     abbr: { birt: "n. ", marr: "mar. ", deat: "déc. ", resi: "rés. " },
     qual: { ABT: "vers {d}", BEF: "av. {d}", AFT: "ap. {d}" },
@@ -108,6 +117,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["antenato", "antenati", "antenati"], generations: ["generazione", "generazioni", "generazioni"],
     corners: { line: "Linea", origin: "Origine", given: "Nomi", surnames: "Cognomi", more: ["altro", "altri", "altri"] },
     ageAbbr: "a.",
+    generation: "{n}ª generazione",
     page: "Pagina {n} di {total}", see: "vedi p. {page}",
     abbr: { birt: "n. ", marr: "sp. ", deat: "m. ", resi: "res. " },
     qual: { ABT: "ca. {d}", BEF: "ante {d}", AFT: "post {d}" },
@@ -119,6 +129,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["antepasado", "antepasados", "antepasados"], generations: ["generación", "generaciones", "generaciones"],
     corners: { line: "Línea", origin: "Origen", given: "Nombres", surnames: "Apellidos", more: ["más", "más", "más"] },
     ageAbbr: "a.",
+    generation: "Generación {n}",
     page: "Página {n} de {total}", see: "ver p. {page}",
     abbr: { birt: "n. ", marr: "c. ", deat: "f. ", resi: "res. " },
     qual: { ABT: "h. {d}", BEF: "antes de {d}", AFT: "después de {d}" },
@@ -130,6 +141,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["antepassado", "antepassados", "antepassados"], generations: ["geração", "gerações", "gerações"],
     corners: { line: "Linha", origin: "Origem", given: "Nomes próprios", surnames: "Apelidos", more: ["mais", "mais", "mais"] },
     ageAbbr: "a.",
+    generation: "Geração {n}",
     page: "Página {n} de {total}", see: "ver p. {page}",
     abbr: { birt: "n. ", marr: "c. ", deat: "f. ", resi: "res. " },
     qual: { ABT: "cerca de {d}", BEF: "antes de {d}", AFT: "depois de {d}" },
@@ -141,6 +153,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["voorouder", "voorouders", "voorouders"], generations: ["generatie", "generaties", "generaties"],
     corners: { line: "Lijn", origin: "Herkomst", given: "Voornamen", surnames: "Achternamen", more: ["meer", "meer", "meer"] },
     ageAbbr: "j.",
+    generation: "Generatie {n}",
     page: "Pagina {n} van {total}", see: "zie p. {page}",
     abbr: { birt: "geb. ", marr: "tr. ", deat: "ovl. ", resi: "won. " },
     qual: { ABT: "ca. {d}", BEF: "voor {d}", AFT: "na {d}" },
@@ -152,6 +165,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     ancestors: ["предок", "предки", "предків"], generations: ["покоління", "покоління", "поколінь"],
     corners: { line: "Лінія", origin: "Походження", given: "Імена", surnames: "Прізвища", more: ["ще", "ще", "ще"] },
     ageAbbr: "р.",
+    generation: "{n}-те покоління",
     page: "Сторінка {n} з {total}", see: "див. с. {page}",
     abbr: { birt: "нар. ", marr: "шл. ", deat: "пом. ", resi: "про. " },
     qual: { ABT: "бл. {d}", BEF: "до {d}", AFT: "після {d}" },

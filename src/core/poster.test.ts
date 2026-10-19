@@ -256,7 +256,7 @@ describe("poster plates", () => {
   test("every plate has its own brown outline, and the name is blue for men and red for women", () => {
     const poster = buildPoster(data, ROOT, { generations: 4, posterSeed: 1 });
     const outlines = poster.shapes.filter((s) => s.fill === "#4a2f18" && !s.stroke);
-    expect(outlines.length).toBe(poster.people + 3); // the frame of the title and the two rings of the border
+    expect(outlines.length).toBe(poster.people + 4); // the frame of the title, the two rings of the border and the ruler
     expect(new Set(outlines.map((s) => s.d)).size).toBeGreaterThan(1);
     const names = poster.texts.filter((t) => t.bold && t.fill !== "#2a1d12");
     expect(names.some((t) => t.fill === "#2f5f9e")).toBe(true);
@@ -662,5 +662,25 @@ describe("poster packing of uneven sides", () => {
     const root = uneven.plates.find((p) => p.id === ROOT)!;
     expect(root.x).toBeLessThan(uneven.width / 2);
     expect(Math.min(...uneven.plates.map((p) => p.x - p.w / 2))).toBeLessThan(60);
+  });
+});
+
+describe("poster generation ruler", () => {
+  test("every generation has a label and the oldest to youngest birth year of its column", () => {
+    const p = buildPoster(data, ROOT, { generations: 4, lang: "en", dates: "year" });
+    const labels = p.texts.filter((t) => /^Generation \d$/.test(t.text));
+    expect(labels.map((t) => t.text).sort()).toEqual(["Generation 1", "Generation 2", "Generation 2", "Generation 3", "Generation 3", "Generation 4", "Generation 4"]);
+    expect(p.texts.some((t) => /^\d{4}–\d{4}$/.test(t.text))).toBe(true);
+  });
+
+  test("the ruler stands between the title frame and the plates", () => {
+    const p = buildPoster(data, ROOT, { generations: 4, lang: "en" });
+    const label = p.texts.find((t) => t.text === "Generation 1")!, title = p.texts.find((t) => t.text === p.title)!;
+    expect(label.y).toBeGreaterThan(title.y + 75);
+    expect(label.y).toBeLessThan(Math.min(...p.plates.map((q) => q.y - q.h / 2)));
+  });
+
+  test("all languages have a label with the number", () => {
+    for (const lang of LANGS) expect(TEXTS[lang].generation).toContain("{n}");
   });
 });
