@@ -12,6 +12,7 @@ import { formatDate, formatEvent, type ChartOptions } from "./format";
 import { normalize } from "./chart";
 import { yearOf } from "./date";
 import { TEXTS } from "./texts";
+import { CORNER_FIRST_Y, CORNER_HEAD_SIZE, CORNER_HEAD_Y, CORNER_LABEL_SIZE, CORNER_STEP, CORNER_VALUE_SIZE, cornerBlocks, cornerHeight, type CornerKey } from "./posterCorners";
 import type { PosterFonts } from "./posterFont";
 
 export const POSTER_MIN_GENERATIONS = 3;
@@ -244,7 +245,6 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     edge += widthOf(g) + gapAfter(g);
   }
   const W = Math.max(1400, Math.round(2 * (edge - gapAfter(gens) + 20)));
-  const top = 190, bottom = 70;
   const plates: Plate[] = [];
   const kids = new Map<Plate, Plate[]>();
   const people = new Map<Plate, Person>();
@@ -279,6 +279,48 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     if (f) rootKids.push([f, -1]);
     if (m) rootKids.push([m, 1]);
   }
+
+  const appearances = new Map<string, number>();
+  for (const plate of plates) appearances.set(plate.id, (appearances.get(plate.id) ?? 0) + 1);
+  const title = o.title || TEXTS[o.lang].title.replace("{name}", root.name || "?");
+  // the title stands in a hand-cut frame like the plates, with the numbers of the poster under it
+  const born = [...people.values()].map((x) => yearOf(x.birth?.date)).filter((y): y is number => y !== null);
+  const rootYear = yearOf(root.birth?.date);
+  const plural = new Intl.PluralRules(o.lang);
+  const counted = (n: number, forms: string[]) => `${n} ${forms[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2]}`;
+  // "6 generations · 62 ancestors · 1722–1887": the range runs from the oldest birth to the main person's
+  const stats = [counted(gens, TEXTS[o.lang].generations), counted(appearances.size - 1, TEXTS[o.lang].ancestors),
+    rootYear !== null && born.length > 1 ? `${Math.min(...born)}\u2013${rootYear}` : ""].filter(Boolean).join(" \u00B7 ");
+  const frameW = Math.max(measure(title, 58, true), measure(stats, 26, false)) + 120, frameH = 150;
+
+  // The lists in the corners (option `posterCorners`): the top ones stand beside the title when there is room for
+  // them there, otherwise above it; the bottom ones under the lowest plates. The poster grows by their height.
+  const branchPeople = (q: Plate) => {
+    const out = new Map<string, Person>();
+    const walk = (x: Plate) => { out.set(x.id, people.get(x)!); (kids.get(x) || []).forEach(walk); };
+    walk(q);
+    return [...out.values()];
+  };
+  const branchOf: Record<CornerKey, Person[]> = { fatherFather: [], fatherMother: [], motherFather: [], motherMother: [] };
+  for (const [parent, side] of rootKids) {
+    const pf = data.people[parent.id].famc.length ? data.families[data.people[parent.id].famc[0]] : null;
+    for (const q of kids.get(parent) || []) {
+      const key = `${side < 0 ? "father" : "mother"}${pf && pf.husb === q.id ? "Father" : "Mother"}` as CornerKey;
+      branchOf[key] = branchPeople(q);
+    }
+  }
+  const sideRoom = (W - frameW) / 2 - 100, beside = sideRoom >= 520;
+  const isTop = (key: CornerKey) => key.endsWith("Father");
+  const corners = o.posterCorners ? cornerBlocks(branchOf, o, measure, (key) => isTop(key) && beside ? sideRoom : W / 2 - 100) : [];
+  const bandH = (top: boolean) => Math.max(0, ...corners.filter((c) => isTop(c.key) === top).map((c) => cornerHeight(c.rows.length)));
+  const topH = bandH(true), bottomH = bandH(false);
+  // title and plates move down when the lists need room above them
+  let top = 190, frameY = 100;
+  if (topH) {
+    if (beside) top = Math.max(top, 50 + topH + 30);
+    else { frameY += topH + 35; top += topH + 35; }
+  }
+  const bottom = bottomH ? 30 + bottomH + 40 : 70;
 
   // Tidy-tree packing: a person stands halfway between the two parents (or level with a lone parent), and the
   // father's branch is pushed against the mother's just far enough that no two plates of one column touch. Only
@@ -512,8 +554,6 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
       smallest.set(key, Math.min(smallest.get(key) ?? Infinity, size));
     }
   }
-  const appearances = new Map<string, number>();
-  for (const plate of plates) appearances.set(plate.id, (appearances.get(plate.id) ?? 0) + 1);
   for (const plate of plates) {
     const sex = people.get(plate)!.sex;
     const [outer, inner] = plateOutline(rnd, plate.x, plate.y, plate.w, plate.h, scaleOf(plate.gen));
@@ -532,20 +572,31 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     }
   }
 
-  const title = o.title || TEXTS[o.lang].title.replace("{name}", root.name || "?");
-  // the title stands in a hand-cut frame like the plates, with the numbers of the poster under it
-  const born = [...people.values()].map((x) => yearOf(x.birth?.date)).filter((y): y is number => y !== null);
-  const rootYear = yearOf(root.birth?.date);
-  const plural = new Intl.PluralRules(o.lang);
-  const counted = (n: number, forms: string[]) => `${n} ${forms[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2]}`;
-  // "6 generations · 62 ancestors · 1722–1887": the range runs from the oldest birth to the main person's
-  const stats = [counted(gens, TEXTS[o.lang].generations), counted(appearances.size - 1, TEXTS[o.lang].ancestors),
-    rootYear !== null && born.length > 1 ? `${Math.min(...born)}\u2013${rootYear}` : ""].filter(Boolean).join(" \u00B7 ");
-  const frameW = Math.max(measure(title, 58, true), measure(stats, 26, false)) + 120, frameH = 150, frameY = 100;
   const [frameOuter, frameInner] = plateOutline(rnd, W / 2, frameY, frameW, frameH, 2);
   plateShapes.push({ d: frameOuter, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: frameInner, fill: C.plate, stroke: null, strokeWidth: 0 });
   texts.push(...marriages, { text: title, x: W / 2, y: frameY - 4, size: 58, bold: true, fill: C.ink },
              { text: stats, x: W / 2, y: frameY + 40, size: 26, bold: false, fill: C.branch });
+  for (const { key, heading, rows } of corners) {
+    const left = key.startsWith("father"), x = left ? 60 : W - 60;
+    const y0 = isTop(key) ? 50 : H - bottom + 30;
+    const put = (text: string, size: number, bold: boolean, y: number, fill: string, edge: number) => {
+      const w = measure(text, size, bold);
+      texts.push({ text, x: left ? edge + w / 2 : edge - w / 2, y, size, bold, fill });
+      return w;
+    };
+    put(heading, CORNER_HEAD_SIZE, true, y0 + CORNER_HEAD_Y, C.branchEdge, x);
+    rows.forEach(({ label, value }, n) => {
+      const y = y0 + CORNER_FIRST_Y + n * CORNER_STEP, gap = measure("  ", CORNER_VALUE_SIZE, false);
+      // the label first, then the values; on the right side the line ends at the edge, so the values are set first
+      if (left) {
+        put(label, CORNER_LABEL_SIZE, true, y, C.branchEdge, x);
+        put(value, CORNER_VALUE_SIZE, false, y, C.ink, x + measure(label, CORNER_LABEL_SIZE, true) + gap);
+      } else {
+        const valueW = put(value, CORNER_VALUE_SIZE, false, y, C.ink, x);
+        put(label, CORNER_LABEL_SIZE, true, y, C.branchEdge, x - valueW - gap);
+      }
+    });
+  }
 
   // a quiet double border with softly rounded corners around the whole poster, in the margin outside the tree
   const margin = 84, inset = 54, gap = 16;

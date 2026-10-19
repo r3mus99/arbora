@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  buildPoster, load, posterFonts, posterSeed, posterSvg, random, textWidth,
+  buildPoster, load, posterFonts, posterSeed, posterSvg, random, textWidth, LANGS, TEXTS,
 } from "./index";
 
 const data = load(readFileSync(new URL("../../public/sample.ged", import.meta.url)));
@@ -460,4 +460,82 @@ describe("poster beyond seven generations", () => {
     expect(Math.min(...ten.texts.slice(0, -1).map((t) => t.size))).toBeGreaterThanOrEqual(
       Math.min(...seven.texts.slice(0, -1).map((t) => t.size)));
   }, 60000);
+});
+
+describe("poster corner lists", () => {
+  // a complete tree: person n has parents 2n and 2n+1; every person has a given name, a surname, a birth place and a residence
+  const places = (gens: number) => {
+    let ged = "0 HEAD\n";
+    const last = 2 ** gens - 1;
+    for (let n = 1; n <= last; n++) {
+      ged += `0 @I${n}@ INDI\n1 NAME ${n % 3 ? "Anna" : "Jan"}${n} /Branch${n % 2}/\n1 SEX ${n % 2 ? "F" : "M"}\n1 BIRT\n2 PLAC Town${n % 4}\n1 RESI\n2 PLAC Farm${n}\n`;
+      if (n < 2 ** (gens - 1)) ged += `1 FAMC @F${n}@\n`;
+    }
+    for (let n = 1; n < 2 ** (gens - 1); n++) ged += `0 @F${n}@ FAM\n1 HUSB @I${2 * n}@\n1 WIFE @I${2 * n + 1}@\n1 CHIL @I${n}@\n`;
+    return load(ged + "0 TRLR\n");
+  };
+  const d = places(5);
+  const corner = (p: ReturnType<typeof buildPoster>, label: string) => p.texts.filter((t) => t.text === label);
+
+  test("they are off by default", () => {
+    const p = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1 });
+    expect(corner(p, "Born in")).toHaveLength(0);
+    expect(p.texts.some((t) => t.text.endsWith(" line"))).toBe(false);
+  });
+
+  test("each of the four branches gets a heading and lines of places, names and surnames, and the poster grows", () => {
+    const off = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1 });
+    const on = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
+    expect(on.texts.filter((t) => t.text.endsWith(" line")).map((t) => t.text).sort())
+      .toEqual(["Father's father line", "Father's mother line", "Mother's father line", "Mother's mother line"]);
+    for (const label of ["Born in", "Names", "Surnames"]) expect(corner(on, label)).toHaveLength(4);
+    expect(corner(on, "Lived in")).toHaveLength(0); // residences only with the residence setting
+    expect(on.height).toBeGreaterThan(off.height);
+    expect(on.width).toBe(off.width);
+  });
+
+  test("the lines count people: most common first, with the number", () => {
+    const on = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true });
+    // father's father is person 4; his branch holds 4, 8, 9 and 16 to 19, born in Town0 (4, 8, 16), Town1 (9, 17), Town2 (18), Town3 (19)
+    expect(on.texts.some((t) => t.text === "Town0 \u00D73  \u00B7  Town1 \u00D72  \u00B7  Town2  \u00B7  Town3")).toBe(true);
+  });
+
+  test("residences are listed when the setting is on", () => {
+    const on = buildPoster(d, ROOT, { generations: 5, lang: "en", posterSeed: 1, posterCorners: true, showResidence: true });
+    expect(corner(on, "Lived in")).toHaveLength(4);
+  });
+
+  test("what does not fit is counted as \"+ N more\"", () => {
+    const on = buildPoster(places(6), ROOT, { generations: 6, lang: "en", posterSeed: 1, posterCorners: true, showResidence: true });
+    const lived = on.texts.filter((t) => t.text.startsWith("Farm"));
+    expect(lived).toHaveLength(4);
+    expect(lived.every((t) => /\+ \d+ more$/.test(t.text))).toBe(true);
+  });
+
+  test("the corner text stays clear of every plate and inside the poster", () => {
+    for (const gens of [3, 4, 6]) {
+      const p = buildPoster(places(gens), ROOT, { generations: gens, lang: "en", posterSeed: 1, posterCorners: true, showResidence: true });
+      const cornerTexts = p.texts.filter((t) => ["Born in", "Lived in", "Names", "Surnames"].includes(t.text) || t.text.endsWith(" line"));
+      for (const t of cornerTexts) {
+        const w = textWidth(t.text, t.size, t.bold);
+        expect(t.x - w / 2).toBeGreaterThanOrEqual(0);
+        expect(t.x + w / 2).toBeLessThanOrEqual(p.width);
+        const hit = p.plates.some((q) => t.x + w / 2 > q.x - q.w / 2 && t.x - w / 2 < q.x + q.w / 2 && t.y + 4 > q.y - q.h / 2 && t.y - t.size < q.y + q.h / 2);
+        expect(hit, `${gens} generations, ${t.text}`).toBe(false);
+      }
+    }
+  });
+
+  test("a file without separate surnames has no surname line", () => {
+    const p = buildPoster(data, ROOT, { generations: 4, lang: "en", posterSeed: 1, posterCorners: true });
+    expect(corner(p, "Surnames")).toHaveLength(0);
+    expect(corner(p, "Born in").length).toBeGreaterThan(0);
+  });
+
+  test("every language has the corner texts", () => {
+    for (const lang of LANGS) {
+      const t = TEXTS[lang].corners;
+      expect([...t.lines, t.born, t.lived, t.names, t.surnames, ...t.more].every(Boolean), lang).toBe(true);
+    }
+  });
 });

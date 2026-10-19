@@ -40,6 +40,14 @@ decorative wall chart. This file records how it works and what is still open.
   generation is not merged: the later plate has more generations of ancestors to show, so it keeps its whole branch
   (the father's side is walked first, depth first). The layout packs only the plates that remain, so the poster
   gets lower.
+- The setting "Places and name statistics in the corners" (`posterCorners`, off by default; `core/posterCorners.ts`) puts a
+  list in each corner, one per main branch: top left the father's father line, bottom left the father's mother line,
+  top right the mother's father line, bottom right the mother's mother line (the people of that branch on the poster,
+  each counted once). A list is a heading and up to four one-line rows, "Born in", "Lived in" (only with the residence
+  setting), "Names" (first given names) and "Surnames" (only when the file separates them), each row with the most
+  common values first and the number of people ("Vienna ×7 · Prague ×5"); what does not fit the width is counted
+  ("+ 13 more"). A row without values is left out. The poster grows: the top lists stand beside the title when there is
+  room (otherwise above it, and the title moves down), the bottom ones under the lowest plates.
 - Names wrap to two lines when one line would be small; two-line names use a smaller font so the date line stays clear of the plate edge. A generation shares one name size and one date size, taken from its single-line plates; a plate with a wrapped name keeps its own smaller sizes and does not shrink the others.
 - A quiet double border with softly rounded corners, hand-cut like the plates, runs around the whole poster in a margin outside the tree (`Poster.margin`; the SVG view box starts at `-margin`, so `width` and `height` still describe the tree itself). It is always on.
 - Text widths come from the real fonts (`posterFonts`), so plates and text fit exactly; without fonts (tests) an estimate is used.
