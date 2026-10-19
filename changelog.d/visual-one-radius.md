@@ -1,0 +1,1 @@
+- **Every corner is rounded the same.** Fields, buttons, chips, switches and cards all use one 10 px radius; fields are rounded at the top so their underline stays straight.
