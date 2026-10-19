@@ -458,9 +458,8 @@ describe("poster beyond seven generations", () => {
     expect(size(64)).toBeLessThan(size(32) * 0.6);
     expect(size(64)).toBeGreaterThanOrEqual(5.5);
     // a plate still holds its text and no two plates of a column touch
-    for (const a of p.plates) for (const b of p.plates) {
-      if (a.id < b.id && Math.abs(a.x - b.x) < (a.w + b.w) / 2) expect(Math.abs(a.y - b.y)).toBeGreaterThanOrEqual((a.h + b.h) / 2);
-    }
+    const touching = p.plates.flatMap((a) => p.plates.filter((b) => a.id < b.id && Math.abs(a.x - b.x) < (a.w + b.w) / 2 && Math.abs(a.y - b.y) < (a.h + b.h) / 2));
+    expect(touching).toEqual([]);
     const before = buildPoster(full(9), ROOT, { generations: 6 });
     expect(p.height).toBeLessThan(before.height * 2 ** 3 * 0.6);
   }, 60000);
