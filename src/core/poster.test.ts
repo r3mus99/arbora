@@ -186,6 +186,18 @@ describe("poster plates", () => {
     }
   });
 
+  test("two-line names use a smaller font so the date line stays clear of the plate edge", () => {
+    const person = load(`0 HEAD
+0 @I1@ INDI
+1 NAME Veronika /Žideková Benková/
+0 TRLR
+`);
+    const poster = buildPoster(person, "@I1@", { generations: 6 }, fonts);
+    const names = poster.texts.filter((t) => t.text === "Veronika" || t.text === "Žideková Benková");
+    expect(names.map((t) => t.text)).toEqual(["Veronika", "Žideková Benková"]);
+    expect(names.every((t) => t.size < 40)).toBe(true);
+  });
+
   test("every plate has its own hand-cut brown outline, and the name is blue for men and red for women", () => {
     const poster = buildPoster(data, ROOT, { generations: 4, posterSeed: 1 });
     const outlines = poster.shapes.filter((s) => s.fill === "#4a2f18" && !s.stroke);

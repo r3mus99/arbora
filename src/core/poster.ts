@@ -568,7 +568,7 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
       if (d < diff) { diff = d; best = i; }
     }
     const halves = [words.slice(0, best).join(" "), words.slice(best).join(" ")];
-    nameSize = Math.min(fit(halves[0], base * 1.1, true), fit(halves[1], base * 1.1, true));
+    nameSize = Math.min(fit(halves[0], base, true), fit(halves[1], base, true));
     lines.push([halves[0], nameSize, true], [halves[1], nameSize, true]);
   }
   if (dates) lines.push([dates + age, fit(dates + age, base * 0.95, false), false]);
