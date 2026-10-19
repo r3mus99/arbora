@@ -189,13 +189,28 @@ describe("poster plates", () => {
   test("two-line names use a smaller font so the date line stays clear of the plate edge", () => {
     const person = load(`0 HEAD
 0 @I1@ INDI
-1 NAME Veronika /Žideková Benková/
+1 NAME Longgivenname /Longfamilyname/
+1 BIRT
+2 DATE 1865
+1 DEAT
+2 DATE 1936
 0 TRLR
 `);
-    const poster = buildPoster(person, "@I1@", { generations: 6 }, fonts);
-    const names = poster.texts.filter((t) => t.text === "Veronika" || t.text === "Žideková Benková");
-    expect(names.map((t) => t.text)).toEqual(["Veronika", "Žideková Benková"]);
+    const poster = buildPoster(person, "@I1@", { generations: 6, lang: "en" }, fonts);
+    const names = poster.texts.filter((t) => t.text === "Longgivenname" || t.text === "Longfamilyname");
+    expect(names.map((t) => t.text)).toEqual(["Longgivenname", "Longfamilyname"]);
     expect(names.every((t) => t.size < 40)).toBe(true);
+    const date = poster.texts.find((t) => t.text.includes("1865"))!;
+    const singleLine = buildPoster(load(`0 HEAD
+0 @I1@ INDI
+    1 NAME Given /Family/
+1 BIRT
+2 DATE 1865
+1 DEAT
+2 DATE 1936
+0 TRLR
+`), "@I1@", { generations: 6, lang: "en" }, fonts).texts.find((t) => t.text.includes("1865"))!;
+    expect(date.size).toBeLessThan(singleLine.size);
   });
 
   test("every plate has its own hand-cut brown outline, and the name is blue for men and red for women", () => {
