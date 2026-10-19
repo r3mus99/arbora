@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.38.0 – 2026-10-19
+
+- **On a phone, Arbora shows the list of people and one person at a time.** The chart is hidden on narrow screens; tap a person to see the detail, use the back arrow to return to the list.
+
 ## 2.37.0 – 2026-10-19
 
 - **The tree poster shows the corner statistics on its own.** The "Places and name statistics in the corners" checkbox is gone: from 5 generations that are really on the poster each of the four main branches gets its list of places, first names and surnames, as long as the branch has at least 5 people.
