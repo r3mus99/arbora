@@ -240,7 +240,7 @@ The first part of the Settings window applies to both the chart and the PDF:
 
 The dark mode is switched with the moon icon in the top bar; without a choice it follows the system.
 
-**Print settings** (PDF only): page size (A4, A3, A5, Letter, Legal),
+**Print settings (PDF)**: page size (A4, A3, A5, Letter, Legal),
 orientation, font size, custom title and the print date in the header.
 
 If the longest line does not fit the page width, the generation indent and then
@@ -251,7 +251,7 @@ the font size are reduced automatically.
 The **SVG** button in the top bar, next to GED and PDF, downloads the ancestors of the chart's root person as a
 decorative wall chart for large-format printing: the person in the middle below the two parents, joined to them by one limb that splits in two, the father's line unfolding to the left and
 the mother's to the right, with branches and leaves between the name plates. The plates have exact positions, the
-branches are drawn from a seeded random generator, so every download draws a different, unique tree. The number of generations is its own setting (3 to 10, group "Tree poster" in Settings); the title, labels and
+branches are drawn from a seeded random generator, so every download draws a different, unique tree. The number of generations is its own setting (3 to 10, group "Tree poster (SVG)" in Settings); the title, labels and
 dates follow the other settings. The SVG is vector, with the text set in Alkatra and written as outlines, so it prints sharply at any size and looks the same without the font; the poster is as wide as the generations need and as high as the people need: only people who exist take room, so a family with gaps gives a lower poster than a complete tree, the closest generations get bigger plates (the person at 200 %, the parents at 175 %, and so on down to 100 %), and the border and the name are coloured by sex.
 The plan and the open points are in [docs/tree-poster.md](docs/tree-poster.md).
 

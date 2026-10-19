@@ -1,0 +1,1 @@
+- **The print and poster settings say which file they are for.** The settings groups and the top-bar button are now called "Print settings (PDF)" and "Tree poster (SVG)" in all 12 languages.
