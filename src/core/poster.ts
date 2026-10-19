@@ -8,7 +8,7 @@
  */
 
 import type { GedcomData, Person } from "./gedcom";
-import { formatEvent, type ChartOptions } from "./format";
+import { formatDate, formatEvent, type ChartOptions } from "./format";
 import { normalize } from "./chart";
 import { TEXTS } from "./texts";
 import type { PosterFonts } from "./posterFont";
@@ -186,19 +186,38 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // ------------------------------------------------------------ plates
   // the plates keep one size; the columns are one generation each and the drawing is as high as the people need
   // The closest generations, whom the person may still have known, get bigger plates (see POSTER_PLATE_SCALE).
-  const baseH = 66, rowGap = 24, colGap = 70;
+  const baseH = 66, rowGap = 24, minGap = 70;
   const baseW = gens <= 4 ? 280 : gens <= 6 ? 230 : 200;
   const scaleOf = (gen: number) => POSTER_PLATE_SCALE[gen - 1] ?? 1;
   const widthOf = (gen: number) => Math.round(baseW * scaleOf(gen));
   const heightOf = (gen: number) => Math.round(baseH * scaleOf(gen));
+  // The year of a marriage is a small brown text where the branches of the two parents meet; its size follows the
+  // generation of the child, and the gap between the child's column and the parents' is wide enough for it.
+  const marrSize = (gen: number) => 12 * scaleOf(gen);
+  const marrText = (pid: string | null): string => {
+    const f = pid && data.people[pid]?.famc.length ? data.families[data.people[pid].famc[0]] : null;
+    const date = f?.marriage ? formatDate(f.marriage.date, o.dates === "full", o.lang) : "";
+    return date ? `\u26AD ${date}` : "";
+  };
+  const needed = new Map<number, number>();
+  const survey = (pid: string | null, gen: number) => {
+    const f = pid && gen < gens && data.people[pid]?.famc.length ? data.families[data.people[pid].famc[0]] : null;
+    if (!f || !f.husb || !f.wife || !data.people[f.husb] || !data.people[f.wife]) return;
+    const text = marrText(pid);
+    if (text && gen > 1) needed.set(gen, Math.max(needed.get(gen) ?? 0, measure(text, marrSize(gen), false)));
+    survey(f.husb, gen + 1);
+    survey(f.wife, gen + 1);
+  };
+  survey(rootId, 1);
+  const gapAfter = (gen: number) => Math.max(minGap, Math.ceil((needed.get(gen) ?? 0) + 80));
   // column centres, measured from the middle line: the first column starts 40 away from it
   const colX = new Map<number, number>();
   let edge = 40;
   for (let g = 2; g <= gens; g++) {
     colX.set(g, edge + widthOf(g) / 2);
-    edge += widthOf(g) + colGap;
+    edge += widthOf(g) + gapAfter(g);
   }
-  const W = Math.max(1400, Math.round(2 * (edge - colGap + 20)));
+  const W = Math.max(1400, Math.round(2 * (edge - gapAfter(gens) + 20)));
   const top = 190, bottom = 70;
   const plates: Plate[] = [];
   const kids = new Map<Plate, Plate[]>();
@@ -281,14 +300,43 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const branches: PosterShape[] = [], leaves: PosterShape[] = [];
   const occupied: Point[] = [];
 
+  const limbPts: Point[] = [], leafPts: Point[] = [];
+
+  // The marriage years: a small brown text where the branches of the two parents meet, in the gap between the
+  // person and the parents (beside the fork for the main person). The room is kept free of shoots before they grow;
+  // afterwards the spot closest to the usual one that touches no plate, branch, shoot or leaf is taken.
+  const labels = plates.flatMap((plate) => {
+    if ((plate === rootPlate ? rootKids : kids.get(plate) || []).length !== 2) return [];
+    const text = marrText(plate.id);
+    if (!text) return [];
+    const size = marrSize(plate.gen), width = measure(text, size, false), height = size * 1.1;
+    let x: number, y: number;
+    if (plate === rootPlate) {
+      x = plate.x + 30 + width / 2;
+      y = Math.max(...rootKids.map(([q]) => q.y + q.h / 2)) + 70 + 40;
+    } else {
+      const side = Math.sign(plate.x - W / 2);
+      x = plate.x + side * (plate.w / 2 + gapAfter(plate.gen) * 0.6);
+      y = plate.y;
+    }
+    for (let px = x - width / 2; px <= x + width / 2; px += 6) {
+      for (let py = y - height / 2; py <= y + height / 2; py += 6) occupied.push([px, py]);
+    }
+    return [{ text, size, width, height, x, y }];
+  });
+  const reserved = occupied.length;
+
+
   const blocked = (pts: Point[], radius: number) => pts.slice(1).some(([x, y]) =>
     x < 20 || x > W - 20 || y < 20 || y > H - 20 ||
     plates.some((p) => Math.abs(x - p.x) < p.w / 2 + 12 && Math.abs(y - p.y) < p.h / 2 + 12) ||
     occupied.some(([ox, oy]) => (x - ox) ** 2 + (y - oy) ** 2 < radius * radius));
 
   const branch = (d: string, width: number) => branches.push({ d, fill: C.branch, stroke: C.branchEdge, strokeWidth: width });
-  const leaf = (x: number, y: number, ang: number, s: number) =>
+  const leaf = (x: number, y: number, ang: number, s: number) => {
+    leafPts.push([x, y]);
     leaves.push({ d: leafPath(x, y, ang, s), fill: pick(C.leaves), stroke: C.leafEdge, strokeWidth: 1.2 });
+  };
 
   /** A side shoot with its own shoots and leaves; false (nothing drawn) when it would touch something. */
   const twig = (x: number, y: number, ang: number, length: number, width: number, depth: number): boolean => {
@@ -354,6 +402,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   /** A limb along `pts` of the given thickness class, with side shoots and leaves. */
   const limb = (pts: Point[], thick: number) => {
     const d = dense(pts);
+    limbPts.push(...dense(pts, 3));
     branch(tapered(d, 5 + 2.2 * thick, 2.5 + 1.2 * thick), 1);
     const [a, b] = [pts[0], pts[pts.length - 1]];
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -385,6 +434,21 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     }
   }
 
+  const marriages: PosterText[] = [];
+  const free = (x: number, y: number, w: number, h: number) =>
+    !plates.some((q) => Math.abs(x - q.x) < q.w / 2 + w / 2 + 6 && Math.abs(y - q.y) < q.h / 2 + h / 2 + 6) &&
+    !limbPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10) &&
+    !leafPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10);
+  for (const label of labels) {
+    const { text, size, width, height, x, y } = label;
+    const near: [number, number, number][] = [];
+    for (let dx = -40; dx <= 40; dx += 4) for (let dy = -30; dy <= 30; dy += 4) near.push([x + dx, y + dy, Math.abs(dx) + 2 * Math.abs(dy)]);
+    near.sort((a, b) => a[2] - b[2]);
+    const spot = near.find(([px, py]) => free(px, py, width, height) && !occupied.slice(reserved).some(([ox, oy]) =>
+      Math.abs(ox - px) < width / 2 + 6 && Math.abs(oy - py) < height / 2 + 6)) ?? [x, y];
+    marriages.push({ text, x: spot[0], y: spot[1] + size * 0.3, size, bold: false, fill: C.branch });
+  }
+
   // ------------------------------------------------------------ plates and texts
   const texts: PosterText[] = [];
   const plateShapes: PosterShape[] = [];
@@ -407,7 +471,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   }
 
   const title = o.title || TEXTS[o.lang].title.replace("{name}", root.name || "?");
-  texts.push({ text: title, x: W / 2, y: 92, size: 58, bold: true, fill: C.ink });
+  texts.push(...marriages, { text: title, x: W / 2, y: 92, size: 58, bold: true, fill: C.ink });
 
   shapes.push({ d: `M0,0L${W},0L${W},${H}L0,${H}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
               ...branches, ...leaves, ...plateShapes);
