@@ -453,6 +453,9 @@ describe("poster beyond seven generations", () => {
     const high = (gen: number) => p.plates.find((q) => q.gen === gen)!.h;
     expect(high(7) / high(6)).toBeCloseTo(0.5, 1);
     expect(high(9)).toBe(high(7));
+    const wide = (gen: number) => p.plates.find((q) => q.gen === gen)!.w;
+    expect(wide(7) / wide(6)).toBeCloseTo(0.7, 2);
+    expect(wide(9)).toBe(wide(7));
     const size = (n: number) => p.texts.find((t) => t.text === `P${n} Full`)!.size;
     // P64 is generation 7, P32 generation 6
     expect(size(64)).toBeLessThan(size(32) * 0.6);

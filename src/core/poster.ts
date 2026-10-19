@@ -27,6 +27,9 @@ export const POSTER_PLATE_SCALE = [2, 1.75, 1.5, 1.25];
 /** From this generation on (the person is generation 1) the plates are only this tall (text, spacing and border shrink with them), so a big poster does not grow so fast in height. */
 export const POSTER_SMALL_FROM = 7;
 export const POSTER_SMALL_HEIGHT = 0.5;
+/** The small plates are also narrower, and the branches between them shorter (the gap between two small columns). */
+export const POSTER_SMALL_WIDTH = 0.7;
+const POSTER_SMALL_GAP = 45;
 
 export interface PosterShape {
   /** SVG path data in poster units, absolute coordinates */
@@ -196,7 +199,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const baseH = 66, rowGap = 24, minGap = 70;
   const baseW = gens <= 4 ? 280 : gens <= 6 ? 230 : 200;
   const scaleOf = (gen: number) => POSTER_PLATE_SCALE[gen - 1] ?? 1;
-  const widthOf = (gen: number) => Math.round(baseW * scaleOf(gen));
+  const widthOf = (gen: number) => Math.round(baseW * scaleOf(gen) * (gen >= POSTER_SMALL_FROM ? POSTER_SMALL_WIDTH : 1));
   const small = (gen: number) => gen >= POSTER_SMALL_FROM;
   const heightOf = (gen: number) => Math.round(baseH * scaleOf(gen) * (small(gen) ? POSTER_SMALL_HEIGHT : 1));
   // the border and the tag of a plate follow its height
@@ -241,7 +244,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     survey(f.wife, gen + 1);
   };
   survey(rootId, 1);
-  const gapAfter = (gen: number) => Math.max(minGap, Math.ceil((needed.get(gen) ?? 0) + 80));
+  const gapAfter = (gen: number) => gen >= POSTER_SMALL_FROM ? Math.max(POSTER_SMALL_GAP, Math.ceil((needed.get(gen) ?? 0) + 40)) : Math.max(minGap, Math.ceil((needed.get(gen) ?? 0) + 80));
   // column centres, measured from the middle line: the first column starts 40 away from it
   const colX = new Map<number, number>();
   let edge = 40;
