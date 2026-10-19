@@ -14,7 +14,7 @@ interface PathLike { transform(a: number, b: number, c: number, d: number, e: nu
 interface Glyphs {
   scale: number;
   /** [x of the glyph's origin, path in font units] for each glyph of a run */
-  items: { x: number; path: PathLike }[];
+  items: { x: number; path: PathLike; id: string }[];
   width: number;
 }
 
@@ -23,6 +23,12 @@ export interface PosterFonts {
   width: (text: string, size: number, bold: boolean) => number;
   /** the outline of a line, centred on `x` with its baseline at `y`, as SVG path data */
   outline: (text: string, size: number, bold: boolean, x: number, y: number) => string;
+  /**
+   * The same line as glyphs to place: each is the id of a glyph (the same for every use of the letter), where it goes
+   * and its scale; `glyph(id)` gives the outline once, in font units with the y axis pointing up.
+   */
+  place: (text: string, size: number, bold: boolean, x: number, y: number) => { id: string; x: number; y: number; scale: number }[];
+  glyph: (id: string) => string;
 }
 
 const round = (d: string) => d.replace(/-?\d+\.\d+/g, (n) => String(Math.round(parseFloat(n) * 10) / 10));
@@ -35,23 +41,26 @@ export function posterFonts(regular: Source[], bold: Source[]): PosterFonts {
   /** the characters of `text` grouped into runs that one font sets */
   function runs(text: string, isBold: boolean) {
     const fonts = chains[isBold ? "bold" : "regular"];
-    const out: { font: (typeof fonts)[number]; text: string }[] = [];
+    const out: { font: (typeof fonts)[number]; text: string; key: string }[] = [];
     for (const ch of text) {
       const font = fonts.find((f) => f.hasGlyphForCodePoint(ch.codePointAt(0)!)) || fonts[fonts.length - 1];
       const last = out[out.length - 1];
       if (last && last.font === font) last.text += ch;
-      else out.push({ font, text: ch });
+      else out.push({ font, text: ch, key: `${isBold ? "b" : "r"}${fonts.indexOf(font)}` });
     }
     return out;
   }
 
+  const paths = new Map<string, PathLike>();
+
   function set(text: string, size: number, isBold: boolean): Glyphs[] {
-    return runs(text, isBold).map(({ font, text: run }) => {
+    return runs(text, isBold).map(({ font, text: run, key }) => {
       const scale = size / font.unitsPerEm;
       const { glyphs, positions } = font.layout(run);
       let x = 0;
       const items = glyphs.map((g, i) => {
-        const item = { x: x + positions[i].xOffset * scale, path: g.path as unknown as PathLike };
+        const item = { x: x + positions[i].xOffset * scale, path: g.path as unknown as PathLike, id: `${key}-${g.id}` };
+        paths.set(item.id, g.path as unknown as PathLike);
         x += positions[i].xAdvance * scale;
         return item;
       });
@@ -71,5 +80,16 @@ export function posterFonts(regular: Source[], bold: Source[]): PosterFonts {
       }
       return d.join("");
     },
+    place(text, size, isBold, x, y) {
+      const parts = set(text, size, isBold);
+      let at = x - parts.reduce((sum, r) => sum + r.width, 0) / 2;
+      const out: { id: string; x: number; y: number; scale: number }[] = [];
+      for (const run of parts) {
+        for (const g of run.items) out.push({ id: g.id, x: at + g.x, y, scale: run.scale });
+        at += run.width;
+      }
+      return out;
+    },
+    glyph: (id) => round(paths.get(id)!.transform(1, 0, 0, 1, 0, 0).toSVG()),
   };
 }

@@ -142,7 +142,11 @@ describe("poster output", () => {
     const p = buildPoster(data, ROOT, { generations: 7 }, fonts);
     const svg = posterSvg(p, fonts);
     expect(svg).not.toContain("<text");
-    expect(svg.match(/<path /g)).toHaveLength(p.shapes.length + p.texts.length);
+    // the letters are drawn once each and placed with <use>, so the file stays small
+    expect(svg.match(/<g fill=/g)).toHaveLength(p.texts.length);
+    const defs = svg.match(/<path id="g\d+"/g)!.length;
+    expect(svg.match(/<use /g)!.length).toBeGreaterThan(5 * defs);
+    expect(svg.match(/<path /g)).toHaveLength(p.shapes.length + defs);
     for (const t of p.texts) {
       const w = fonts.width(t.text, t.size, t.bold);
       expect(t.x - w / 2, t.text).toBeGreaterThanOrEqual(-1);
