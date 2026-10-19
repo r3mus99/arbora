@@ -6,9 +6,8 @@ export interface PdfTexts {
   /** the nouns after the numbers of ancestors and generations under the poster title: one, few, many (Intl.PluralRules: one, few, other) */
   ancestors: [one: string, few: string, many: string];
   generations: [one: string, few: string, many: string];
-  /** the lists in the corners of the poster: the headings of the four branches (father's father, father's mother,
-   *  mother's father, mother's mother), the labels of the lines, and the word after "+ 3" for what did not fit (one, few, many) */
-  corners: { lines: [string, string, string, string]; born: string; lived: string; names: string; surnames: string; more: [one: string, few: string, many: string] };
+  /** the lists in the corners of the poster: the word after "+ 3" for what did not fit (one, few, many) */
+  corners: { line: string; more: [one: string, few: string, many: string] };
   /** years of age after the death year on the poster, e.g. "79 y." */
   ageAbbr: string;
   page: string;
@@ -29,7 +28,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   sk: {
     title: "Predkovia: {name}", titleDesc: "Potomkovia: {name}",
     ancestors: ["predok", "predkovia", "predkov"], generations: ["generácia", "generácie", "generácií"],
-    corners: { lines: ["Línia: otec otca", "Línia: matka otca", "Línia: otec matky", "Línia: matka matky"], born: "Narodení v", lived: "Bývali v", names: "Mená", surnames: "Priezviská", more: ["ďalšie", "ďalšie", "ďalších"] },
+    corners: { line: "Línia", more: ["ďalšie", "ďalšie", "ďalších"] },
     ageAbbr: "r.",
     page: "Strana {n} z {total}", see: "pozri str. {page}",
     abbr: { birt: "nar. ", marr: "sob. ", deat: "zom. ", resi: "bydl. " },
@@ -40,7 +39,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   cs: {
     title: "Předkové: {name}", titleDesc: "Potomci: {name}",
     ancestors: ["předek", "předci", "předků"], generations: ["generace", "generace", "generací"],
-    corners: { lines: ["Linie: otec otce", "Linie: matka otce", "Linie: otec matky", "Linie: matka matky"], born: "Narozeni v", lived: "Bydleli v", names: "Jména", surnames: "Příjmení", more: ["další", "další", "dalších"] },
+    corners: { line: "Linie", more: ["další", "další", "dalších"] },
     ageAbbr: "l.",
     page: "Strana {n} z {total}", see: "viz str. {page}",
     abbr: { birt: "nar. ", marr: "odd. ", deat: "zem. ", resi: "bydl. " },
@@ -51,7 +50,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   pl: {
     title: "Przodkowie: {name}", titleDesc: "Potomkowie: {name}",
     ancestors: ["przodek", "przodkowie", "przodków"], generations: ["pokolenie", "pokolenia", "pokoleń"],
-    corners: { lines: ["Linia: ojciec ojca", "Linia: matka ojca", "Linia: ojciec matki", "Linia: matka matki"], born: "Urodzeni w", lived: "Mieszkali w", names: "Imiona", surnames: "Nazwiska", more: ["inne", "inne", "innych"] },
+    corners: { line: "Linia", more: ["inne", "inne", "innych"] },
     ageAbbr: "l.",
     page: "Strona {n} z {total}", see: "zob. s. {page}",
     abbr: { birt: "ur. ", marr: "śl. ", deat: "zm. ", resi: "zam. " },
@@ -62,7 +61,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   hu: {
     title: "{name} felmenői", titleDesc: "{name} leszármazottai",
     ancestors: ["felmenő", "felmenő", "felmenő"], generations: ["nemzedék", "nemzedék", "nemzedék"],
-    corners: { lines: ["Apai nagyapa ága", "Apai nagyanya ága", "Anyai nagyapa ága", "Anyai nagyanya ága"], born: "Született", lived: "Lakott", names: "Keresztnevek", surnames: "Vezetéknevek", more: ["további", "további", "további"] },
+    corners: { line: "Ág", more: ["további", "további", "további"] },
     ageAbbr: "é.",
     page: "{n}/{total}. oldal", see: "lásd {page}. old.",
     abbr: { birt: "szül. ", marr: "házas. ", deat: "megh. ", resi: "lakh. " },
@@ -73,7 +72,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   de: {
     title: "Vorfahren von {name}", titleDesc: "Nachkommen von {name}",
     ancestors: ["Vorfahre", "Vorfahren", "Vorfahren"], generations: ["Generation", "Generationen", "Generationen"],
-    corners: { lines: ["Linie: Vater des Vaters", "Linie: Mutter des Vaters", "Linie: Vater der Mutter", "Linie: Mutter der Mutter"], born: "Geboren in", lived: "Gelebt in", names: "Vornamen", surnames: "Nachnamen", more: ["weitere", "weitere", "weitere"] },
+    corners: { line: "Linie", more: ["weitere", "weitere", "weitere"] },
     ageAbbr: "J.",
     page: "Seite {n} von {total}", see: "siehe S. {page}",
     abbr: { birt: "geb. ", marr: "verh. ", deat: "gest. ", resi: "wohnh. " },
@@ -84,7 +83,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   en: {
     title: "Ancestors of {name}", titleDesc: "Descendants of {name}",
     ancestors: ["ancestor", "ancestors", "ancestors"], generations: ["generation", "generations", "generations"],
-    corners: { lines: ["Father's father line", "Father's mother line", "Mother's father line", "Mother's mother line"], born: "Born in", lived: "Lived in", names: "Names", surnames: "Surnames", more: ["more", "more", "more"] },
+    corners: { line: "Line", more: ["more", "more", "more"] },
     ageAbbr: "y.",
     page: "Page {n} of {total}", see: "see p. {page}",
     abbr: { birt: "b. ", marr: "m. ", deat: "d. ", resi: "res. " },
@@ -95,7 +94,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   fr: {
     title: "Ascendance de {name}", titleDesc: "Descendance de {name}",
     ancestors: ["ancêtre", "ancêtres", "ancêtres"], generations: ["génération", "générations", "générations"],
-    corners: { lines: ["Lignée : père du père", "Lignée : mère du père", "Lignée : père de la mère", "Lignée : mère de la mère"], born: "Nés à", lived: "Vécu à", names: "Prénoms", surnames: "Noms", more: ["autre", "autres", "autres"] },
+    corners: { line: "Lignée", more: ["autre", "autres", "autres"] },
     ageAbbr: "a.",
     page: "Page {n} sur {total}", see: "voir p. {page}",
     abbr: { birt: "n. ", marr: "mar. ", deat: "déc. ", resi: "rés. " },
@@ -107,7 +106,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   it: {
     title: "Antenati di {name}", titleDesc: "Discendenti di {name}",
     ancestors: ["antenato", "antenati", "antenati"], generations: ["generazione", "generazioni", "generazioni"],
-    corners: { lines: ["Linea: padre del padre", "Linea: madre del padre", "Linea: padre della madre", "Linea: madre della madre"], born: "Nati a", lived: "Vissuti a", names: "Nomi", surnames: "Cognomi", more: ["altro", "altri", "altri"] },
+    corners: { line: "Linea", more: ["altro", "altri", "altri"] },
     ageAbbr: "a.",
     page: "Pagina {n} di {total}", see: "vedi p. {page}",
     abbr: { birt: "n. ", marr: "sp. ", deat: "m. ", resi: "res. " },
@@ -118,7 +117,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   es: {
     title: "Antepasados de {name}", titleDesc: "Descendientes de {name}",
     ancestors: ["antepasado", "antepasados", "antepasados"], generations: ["generación", "generaciones", "generaciones"],
-    corners: { lines: ["Línea: padre del padre", "Línea: madre del padre", "Línea: padre de la madre", "Línea: madre de la madre"], born: "Nacidos en", lived: "Vivieron en", names: "Nombres", surnames: "Apellidos", more: ["más", "más", "más"] },
+    corners: { line: "Línea", more: ["más", "más", "más"] },
     ageAbbr: "a.",
     page: "Página {n} de {total}", see: "ver p. {page}",
     abbr: { birt: "n. ", marr: "c. ", deat: "f. ", resi: "res. " },
@@ -129,7 +128,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   pt: {
     title: "Antepassados de {name}", titleDesc: "Descendentes de {name}",
     ancestors: ["antepassado", "antepassados", "antepassados"], generations: ["geração", "gerações", "gerações"],
-    corners: { lines: ["Linha: pai do pai", "Linha: mãe do pai", "Linha: pai da mãe", "Linha: mãe da mãe"], born: "Nascidos em", lived: "Viveram em", names: "Nomes", surnames: "Apelidos", more: ["mais", "mais", "mais"] },
+    corners: { line: "Linha", more: ["mais", "mais", "mais"] },
     ageAbbr: "a.",
     page: "Página {n} de {total}", see: "ver p. {page}",
     abbr: { birt: "n. ", marr: "c. ", deat: "f. ", resi: "res. " },
@@ -140,7 +139,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   nl: {
     title: "Voorouders van {name}", titleDesc: "Nakomelingen van {name}",
     ancestors: ["voorouder", "voorouders", "voorouders"], generations: ["generatie", "generaties", "generaties"],
-    corners: { lines: ["Lijn: vader van vader", "Lijn: moeder van vader", "Lijn: vader van moeder", "Lijn: moeder van moeder"], born: "Geboren in", lived: "Woonden in", names: "Voornamen", surnames: "Achternamen", more: ["meer", "meer", "meer"] },
+    corners: { line: "Lijn", more: ["meer", "meer", "meer"] },
     ageAbbr: "j.",
     page: "Pagina {n} van {total}", see: "zie p. {page}",
     abbr: { birt: "geb. ", marr: "tr. ", deat: "ovl. ", resi: "won. " },
@@ -151,7 +150,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
   uk: {
     title: "Предки: {name}", titleDesc: "Нащадки: {name}",
     ancestors: ["предок", "предки", "предків"], generations: ["покоління", "покоління", "поколінь"],
-    corners: { lines: ["Лінія: батько батька", "Лінія: мати батька", "Лінія: батько матері", "Лінія: мати матері"], born: "Народилися в", lived: "Жили в", names: "Імена", surnames: "Прізвища", more: ["ще", "ще", "ще"] },
+    corners: { line: "Лінія", more: ["ще", "ще", "ще"] },
     ageAbbr: "р.",
     page: "Сторінка {n} з {total}", see: "див. с. {page}",
     abbr: { birt: "нар. ", marr: "шл. ", deat: "пом. ", resi: "про. " },
