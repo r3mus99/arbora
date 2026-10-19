@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.30.0 – 2026-10-19
+
+- **The poster leaves no empty space beside a shorter family line.** Each side of the poster is as wide as its own generations need, so the main person no longer has to stand in the middle.
+
 ## 2.29.1 – 2026-10-19
 
 - **The settings legend shows that Labels also change the SVG tree poster.** Hovering the Labels setting now lights the SVG output as well as the screen and the PDF.
