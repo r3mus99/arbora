@@ -162,7 +162,7 @@ describe("poster plates", () => {
   test("every plate has its own hand-cut brown outline, and the name is blue for men and red for women", () => {
     const poster = buildPoster(data, ROOT, { generations: 4, posterSeed: 1 });
     const outlines = poster.shapes.filter((s) => s.fill === "#4a2f18" && !s.stroke);
-    expect(outlines.length).toBe(poster.people);
+    expect(outlines.length).toBe(poster.people + 1); // one more for the frame of the title
     expect(new Set(outlines.map((s) => s.d)).size).toBe(outlines.length);
     const names = poster.texts.filter((t) => t.bold && t.fill !== "#2a1d12");
     expect(names.some((t) => t.fill === "#2f5f9e")).toBe(true);
@@ -171,8 +171,35 @@ describe("poster plates", () => {
   });
 });
 
+describe("poster age and title", () => {
+  const one = (birth: string, death: string) => load(`0 HEAD
+0 @I1@ INDI
+1 NAME Ann /Poe/
+1 BIRT
+2 DATE ${birth}
+1 DEAT
+2 DATE ${death}
+0 TRLR
+`);
+  const dates = (birth: string, death: string, lang: "en" | "sk" = "en") =>
+    buildPoster(one(birth, death), "@I1@", { generations: 2, lang }).texts.find((t) => t.text.includes("\u2020") || t.text.includes("1"))!.text;
+
+  test("the age at death follows the years, in the language of the poster, only when both years are known", () => {
+    expect(dates("1907", "1986")).toContain(", 79 y.");
+    expect(dates("1907", "1986", "sk")).toContain(", 79 r.");
+    expect(dates("ABT 1907", "12 MAR 1986")).toContain(", 79 y.");
+    expect(dates("1907", "1900")).not.toContain(" y.");
+    expect(dates("1907", "")).not.toContain(" y.");
+  });
+
+  test("the title stands in its own frame with the number of ancestors and generations under it", () => {
+    const p = buildPoster(data, ROOT, { generations: 4, lang: "en" });
+    expect(p.texts.some((t) => t.text === `Ancestors: ${p.people - 1} \u00B7 Generations: 4`)).toBe(true);
+  });
+});
+
 describe("poster marriage years", () => {
-  const brown = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === "#6b4626");
+  const brown = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === "#6b4626" && !t.text.startsWith("Ancestors:"));
   const years = (p: ReturnType<typeof buildPoster>) => brown(p).filter((t) => /^\d{4}$/.test(t.text));
 
   test("a marriage year stands at each couple, bigger for the closer generations, and nothing without a date", () => {
@@ -204,7 +231,7 @@ describe("poster marriage years", () => {
 ${Array.from({ length: n }, (_, i) => `1 CHIL @I${i === 0 ? 1 : 10 + i}@`).join("\n")}
 0 TRLR
 `);
-    const poster = (n: number) => buildPoster(families(n), "@I1@", { generations: 2 });
+    const poster = (n: number) => buildPoster(families(n), "@I1@", { generations: 2, lang: "en" });
     const counts = (n: number) => brown(poster(n)).map((t) => t.text);
     expect(counts(1)).toEqual(["1885"]);
     expect(counts(2)).toEqual(["1885", "2"]);
