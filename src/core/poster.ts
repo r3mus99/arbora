@@ -12,7 +12,7 @@ import { formatDate, formatEvent, type ChartOptions } from "./format";
 import { normalize } from "./chart";
 import { yearOf } from "./date";
 import { TEXTS } from "./texts";
-import { CORNER_FIRST_Y, CORNER_HEAD_SIZE, CORNER_HEAD_Y, CORNER_LABEL_SIZE, CORNER_STEP, CORNER_VALUE_SIZE, cornerBlocks, cornerHeight, type CornerKey } from "./posterCorners";
+import { CORNER_FIRST_Y, CORNER_HEAD_SIZE, CORNER_HEAD_Y, CORNER_STEP, CORNER_VALUE_SIZE, cornerBlocks, cornerHeight, type CornerKey } from "./posterCorners";
 import type { PosterFonts } from "./posterFont";
 
 export const POSTER_MIN_GENERATIONS = 3;
@@ -595,17 +595,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
       return w;
     };
     put(heading, CORNER_HEAD_SIZE, true, y0 + CORNER_HEAD_Y, C.branchEdge, x);
-    rows.forEach(({ label, value }, n) => {
-      const y = y0 + CORNER_FIRST_Y + n * CORNER_STEP, gap = measure("  ", CORNER_VALUE_SIZE, false);
-      // the label first, then the values; on the right side the line ends at the edge, so the values are set first
-      if (left) {
-        put(label, CORNER_LABEL_SIZE, true, y, C.branchEdge, x);
-        put(value, CORNER_VALUE_SIZE, false, y, C.ink, x + measure(label, CORNER_LABEL_SIZE, true) + gap);
-      } else {
-        const valueW = put(value, CORNER_VALUE_SIZE, false, y, C.ink, x);
-        put(label, CORNER_LABEL_SIZE, true, y, C.branchEdge, x - valueW - gap);
-      }
-    });
+    rows.forEach((value, n) => put(value, CORNER_VALUE_SIZE, false, y0 + CORNER_FIRST_Y + n * CORNER_STEP, C.ink, x));
   }
 
   // a quiet double border of straight lines around the whole poster, in the margin outside the tree

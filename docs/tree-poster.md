@@ -43,10 +43,12 @@ decorative wall chart. This file records how it works and what is still open.
 - The setting "Places and name statistics in the corners" (`posterCorners`, off by default; `core/posterCorners.ts`) puts a
   list in each corner, one per main branch: top left the father's father line, bottom left the father's mother line,
   top right the mother's father line, bottom right the mother's mother line (the people of that branch on the poster,
-  each counted once). A list is a heading and up to four one-line rows, "Born in", "Lived in" (only with the residence
-  setting), "Names" (first given names) and "Surnames" (only when the file separates them), each row with the most
-  common values first and the number of people ("Vienna ×7 · Prague ×5"); what does not fit the width is counted
-  ("+ 13 more"). A row without values is left out. The poster grows: the top lists stand beside the title when there is
+  each counted once). A list is a heading with the name and birth date of the head of the branch ("Name  ·  b. 1700";
+  the date is left out when it does not fit) and up to three one-line rows without labels: birth municipalities (the part
+  of the place before the first comma), first given names and surnames (only when the file separates them). Female and
+  male forms of a surname (Nováková/Novák, Kowalska/Kowalski, Иванова/Иванов) are one entry shown in the male form. A row
+  names the most common values first, at most five, with the number of people ("Vienna ×7  ·  Prague ×5"); the rest
+  is counted ("+ 13 more"). A row without values is left out. The poster grows: the top lists stand beside the title when there is
   room (otherwise above it, and the title moves down), the bottom ones under the lowest plates.
 - Names wrap to two lines when one line would be small; two-line names use a smaller font so the date line stays clear of the plate edge. A generation shares one name size and one date size, taken from its single-line plates; a plate with a wrapped name keeps its own smaller sizes and does not shrink the others.
 - A quiet double border of straight lines with sharp corners runs around the whole poster in a margin outside the tree (`Poster.margin`; the SVG view box starts at `-margin`, so `width` and `height` still describe the tree itself). It is always on.
