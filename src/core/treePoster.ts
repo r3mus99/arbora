@@ -4,9 +4,7 @@
  */
 
 import treeSvg from "../assets/apple-tree.svg?raw";
-import type { GedcomData, Person } from "./gedcom";
-import { yearOf } from "./date";
-import { POSTER_COLORS as C, plateOutline, random, textWidth } from "./poster";
+import { POSTER_COLORS as C, plateOutline, random, textWidth, type Poster } from "./poster";
 
 export interface MockPerson { name: string; dates: string; sex: "M" | "F" }
 
@@ -36,17 +34,16 @@ export function mockTreePoster(people = DUMMY_PEOPLE): string {
   return treeSvg.replace("</svg>", `<g>${plates}</g></svg>`);
 }
 
-const mockOf = (p: Person | null, fallback: string, sex: "M" | "F"): MockPerson => {
-  const b = yearOf(p?.birth?.date), d = yearOf(p?.death?.date);
-  const dates = [b ? `*${b}` : "", d ? `\u2020${d}` : ""].filter(Boolean).join(" ");
-  return { name: p?.name || fallback, dates, sex: p ? (p.sex === "F" ? "F" : p.sex === "M" ? "M" : sex) : sex };
-};
-
-/** The tree poster of one real person: their name on the trunk, the father and the mother on the two long limbs. */
-export function treePosterFor(data: GedcomData, id: string): string {
-  const person = data.people[id];
-  const fam = data.families[person.famc[0]];
-  const father = fam?.husb ? data.people[fam.husb] : null;
-  const mother = fam?.wife ? data.people[fam.wife] : null;
-  return mockTreePoster({ main: mockOf(person, "", "M"), father: mockOf(father, "?", "M"), mother: mockOf(mother, "?", "F") });
+/**
+ * Puts the apple tree into the middle of a finished poster SVG, behind the branches and plates. The foot of the trunk
+ * stands at the main person's plate and the crown rises above it; the poster itself is not changed.
+ */
+export function addTreeToPoster(svg: string, poster: Poster): string {
+  const root = poster.plates.find((p) => p.gen === 1);
+  if (!root) return svg;
+  const inner = treeSvg.slice(treeSvg.indexOf(">") + 1, treeSvg.lastIndexOf("</svg>"));
+  const k = Math.min(poster.width * 0.42, poster.height * 0.8) / 1050;
+  const tx = poster.width / 2 - 555 * k, ty = root.y - 1050 * k;
+  const cut = svg.indexOf("/>") + 2;
+  return `${svg.slice(0, cut)}\n<g transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) scale(${k.toFixed(4)})">${inner}</g>${svg.slice(cut)}`;
 }

@@ -31,6 +31,7 @@ import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./t
 import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
 import { PlacesPanel } from "./PlacesPanel";
+import { buildPoster, posterSvg } from "../core/poster";
 import { PersonDetail } from "./PersonDetail";
 import { EditWindow } from "./EditWindow";
 import { PersonRail } from "./PersonRail";
@@ -69,6 +70,18 @@ async function loadFonts(): Promise<Fonts> {
   const [regular, bold, italic] = await Promise.all([get("fonts/DejaVuSans.ttf"), get("fonts/DejaVuSans-Bold.ttf"),
                                                       get("fonts/DejaVuSans-Oblique.ttf")]);
   return { regular, bold, italic };
+}
+
+/** The font of the tree poster text: Latin and Latin Extended of Alkatra, then DejaVu Sans for what it lacks. */
+async function loadAlkatra() {
+  const get = async (p: string) => {
+    const r = await fetch(import.meta.env.BASE_URL + p);
+    if (!r.ok) throw new Error(p);
+    return r.arrayBuffer();
+  };
+  const [lr, er, lb, eb] = await Promise.all(["Latin-Regular", "LatinExt-Regular", "Latin-Bold", "LatinExt-Bold"]
+    .map((n) => get(`fonts/Alkatra-${n}.woff`)));
+  return { regular: [lr, er], bold: [lb, eb] };
 }
 
 export function App() {
@@ -190,18 +203,25 @@ export function App() {
     }
   }
 
-  /** The apple tree poster of the selected person (and their parents) as an SVG file. */
+  /** The tree poster of the chart's root person as an SVG file with the text as outlines. */
   async function createPoster(id = selectedId) {
     if (!data || !id || busy) return;
     setBusy(true);
     setStatus({ key: "posterWorking", vars: {}, err: false });
     try {
-      const { treePosterFor } = await import("../core/treePoster");
-      saveFile(new Blob([treePosterFor(data, id)], { type: "image/svg+xml" }),
+      const [dejavu, alkatra, { posterFonts }] = await Promise.all([
+        fonts.current || (fonts.current = loadFonts()), loadAlkatra(), import("../core/posterFont")]);
+      const pf = posterFonts([...alkatra.regular, dejavu.regular], [...alkatra.bold, dejavu.bold || dejavu.regular]);
+      // every download draws new branches
+      const opts = toOptions(form, lang);
+      const poster = buildPoster(data, id, { ...opts, generations: opts.posterGenerations, posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf);
+      const { addTreeToPoster } = await import("../core/treePoster");
+      saveFile(new Blob([addTreeToPoster(posterSvg(poster, pf), poster)], { type: "image/svg+xml" }),
                `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}.svg`);
       setStatus(null);
     } catch (e) {
       console.error(e);
+      fonts.current = null;
       setStatus({ key: "posterErr", vars: { msg: (e as Error).message }, err: true });
     } finally {
       setBusy(false);

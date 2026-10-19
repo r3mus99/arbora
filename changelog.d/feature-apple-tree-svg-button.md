@@ -1,1 +1,1 @@
-- **The SVG button draws the apple tree poster.** The selected person stands on the trunk and the parents on the two long limbs (a first static version; further ancestors are not drawn yet).
+- **The poster SVG has an apple tree in the middle.** The poster stays as before; a static apple tree is added behind the plates, standing on the main person.
