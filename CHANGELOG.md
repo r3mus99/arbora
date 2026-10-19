@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.39.0 – 2026-10-19
+
+- **"Deceased" and "Divorced" are iOS-style switches, and cards and dialogs have rounder corners.** The system font stack now names SF Pro explicitly on Apple devices.
+
 ## 2.38.1 – 2026-10-19
 
 Spouses are always shown in the descendants chart and the PDF; the "Show spouses" setting is gone.
