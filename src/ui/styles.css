@@ -2,11 +2,11 @@
   --bg: #f6f5f1; --panel: #ffffff; --text: #1d1f1c; --muted: #62675f;
   --border: #dcdad2; --accent: #2f6b4f; --accent-text: #ffffff; --accent-soft: #e3efe8;
   --danger: #a3341f; --focus: #2f6b4f55; --warn: #b7791f; --warn-soft: #f3e3c3; --warn-text: #7a4f0e; --warn-on: #fff;
-  --sex-M: #3f6fa8; --sex-F: #b0507a; --star: #c58a12;
+  --sex-M: #3f6fa8; --sex-F: #b0507a; --star: #c58a12; --switch-on: #34c759;
   --c-bapt: #3b82c4; --c-res: #9a7b4f; --c-event: #7b6bb5; --c-child: #17a89c; --c-burial: #8a8f86;
   /* size tokens of the app frame, see docs/design-guidelines.md */
   --head-h: 52px; --ctl-h: 36px; --field-h: 30px; --ctl-h-sm: 28px; --icon: 18px; --icon-sm: 14px;
-  --radius: 6px; --radius-lg: 6px; --radius-pill: 6px; --pad: 14px; --gap: 8px; --panel-w: 320px; --edit-w: 560px;
+  --radius: 6px; --radius-lg: 10px; --radius-pill: 6px; --pad: 14px; --gap: 8px; --panel-w: 320px; --edit-w: 560px;
   /* event colours: the tree, the timeline and (darker) the PDF, see src/core/colors.ts */
   --line: color-mix(in srgb, var(--muted) 50%, var(--bg));
   --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --c-src: #5f7f9a; --zebra: #00000005;
@@ -17,7 +17,7 @@
     --bg: #151714; --panel: #1f221e; --text: #e8eae4; --muted: #a0a69b;
     --border: #363a33; --accent: #6fbf95; --accent-text: #0f1a14; --accent-soft: #24352b;
     --danger: #f08a73; --focus: #6fbf9566; --warn: #d9a441; --warn-soft: #4a3a1c; --warn-text: #f1cf8a; --warn-on: #1b1b1b;
-    --sex-M: #7aa3d6; --sex-F: #d98aae; --star: #e0b04a;
+    --sex-M: #7aa3d6; --sex-F: #d98aae; --star: #e0b04a; --switch-on: #30d158;
     --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --c-src: #8fb0cc; --zebra: #ffffff05;
     color-scheme: dark;
   }
@@ -26,7 +26,7 @@
   --bg: #151714; --panel: #1f221e; --text: #e8eae4; --muted: #a0a69b;
   --border: #363a33; --accent: #6fbf95; --accent-text: #0f1a14; --accent-soft: #24352b;
   --danger: #f08a73; --focus: #6fbf9566; --warn: #d9a441; --warn-soft: #4a3a1c; --warn-text: #f1cf8a; --warn-on: #1b1b1b;
-    --sex-M: #7aa3d6; --sex-F: #d98aae; --star: #e0b04a;
+    --sex-M: #7aa3d6; --sex-F: #d98aae; --star: #e0b04a; --switch-on: #30d158;
   --c-birth: #6fcf9f; --c-marr: #bfa664; --c-death: #b27a55; --c-src: #8fb0cc; --zebra: #ffffff05;
   color-scheme: dark;
 }
@@ -38,7 +38,8 @@
 ::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted) 70%, transparent); }
 [hidden] { display: none !important; }
 body { margin: 0; background: var(--bg); color: var(--text);
-       font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+       font: 15px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+       -webkit-font-smoothing: antialiased; }
 main { max-width: 980px; margin: 0 auto; padding: 16px 16px 0; }
 .lead { color: var(--muted); margin: 0; text-align: center; }
 .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
@@ -346,7 +347,17 @@ button.link { display: inline; }
                           font-size: 14px; cursor: pointer; }
 .editor .check > span { display: inline; margin: 0; font-size: 14px; font-weight: 400; letter-spacing: 0;
                                  text-transform: none; color: var(--text); }
-.editor .check input { width: 17px; height: 17px; accent-color: var(--accent); }
+/* iOS-style switch: a state of the person or the marriage (deceased, divorced) that turns on at once */
+.editor .check { justify-content: space-between; min-height: var(--field-h); }
+.editor .check input { order: 2; appearance: none; flex: none; width: 44px; height: 26px; margin: 0; border-radius: 13px; position: relative;
+                       background: color-mix(in srgb, var(--muted) 40%, transparent); transition: background .15s; cursor: inherit; }
+.editor .check input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%;
+                              background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.3); transition: transform .15s; }
+.editor .check input:checked { background: var(--switch-on); }
+.editor .check input:checked::after { transform: translateX(18px); }
+.editor .check input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.editor .check input:disabled { opacity: .5; }
+@media (prefers-reduced-motion: reduce) { .editor .check input, .editor .check input::after { transition: none; } }
 .editor .hint { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
 .editor .hint.warn { color: var(--danger); }
 .editor .actions { display: flex; gap: 8px; margin-top: 4px; }

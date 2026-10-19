@@ -443,7 +443,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
               </div>
               <div className="kid-death">
                 <label className="check" title={t("tipDeceased")}>
-                  <input type="checkbox" checked={kid.deceased} onChange={(e) => setKid({ ...kid, deceased: e.target.checked })} />
+                  <input type="checkbox" role="switch" checked={kid.deceased} onChange={(e) => setKid({ ...kid, deceased: e.target.checked })} />
                   <span>{t(kid.sex === "M" ? "deceasedM" : kid.sex === "F" ? "deceasedF" : "deceased")}</span></label>
                 {kid.deceased && <DateField value={kid.death} shown="" lang={lang} t={t} onChange={(v) => setKid({ ...kid, death: v })} label={t(EVENT_LABEL.death)} />}
               </div>
@@ -557,7 +557,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {/* the death (and burial) only for someone who died; unticking hides them and saving clears them,
           ticking again before saving brings them back */}
       <label className="check" title={t("tipDeceased")}>
-        <input type="checkbox" checked={form.deceased}
+        <input type="checkbox" role="switch" checked={form.deceased}
                onChange={(e) => set("deceased", e.target.checked)} />
         <span>{t(form.sex === "M" ? "deceasedM" : form.sex === "F" ? "deceasedF" : "deceased")}</span></label>
       {form.deceased && event("death")}
@@ -658,7 +658,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                   {DETAILS.map(([k, label, tip]) => <label key={k} title={t(tip)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={f.details.marriage[k]}
                            onChange={(e) => setFamDetails(i, "marriage", { [k]: e.target.value })} /></label>)}
                 </div>
-                <label className="check" title={t("tipDivorced")}><input type="checkbox" checked={f.divorced}
+                <label className="check" title={t("tipDivorced")}><input type="checkbox" role="switch" checked={f.divorced}
                          onChange={(e) => setFam(i, { divorced: e.target.checked })} />
                   <span>{t("divorcedLabel")}</span></label>
                 {f.divorced && <fieldset className="sub">

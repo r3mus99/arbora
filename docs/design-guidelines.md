@@ -46,7 +46,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 | `--icon` | 18px | icons in controls, headers, rail and top bar |
 | `--icon-sm` | 14px (new) | icons inside text lines, chips, badges, links |
 | `--radius` | 6px | corners of controls, inputs, switches, tree selection |
-| `--radius-lg` | 6px (same as `--radius`) | corners of the frame, dialogs' inner cards, tiles |
+| `--radius-lg` | 10px | corners of the frame, panels, dialogs, cards, tiles (controls keep `--radius` 6px) |
 | `--radius-pill` | 6px | chips, count badges only (square-ish like everything else, no full pills) |
 | `--pad` | 14px | side padding of a panel and gap between blocks inside it |
 | `--star` | #c58a12 / #e0b04a dark | the favourite star, nothing else |
@@ -60,7 +60,7 @@ No other radius, height or padding number is used for a control. Dialogs use `--
   inside the app frame. Line height 1.5 for text, controls centre their text.
 - Exceptions: the app name (Spectral 28px, top bar), the person name in the detail (Spectral 19px), the large
   numbers of the overview tiles (19px, 600). The welcome screen has its own larger scale.
-- Fonts: Spectral only for the app name and names of people used as a heading; everything else is the system font.
+- Fonts: the system font stack (SF Pro on Apple devices); Spectral only for the app name and names of people used as a heading; everything else is the system font.
 - Weights: 400 body, 600 for emphasis (names in the tree, active switch, section titles, buttons that act). Never 700 + 650 mixes.
 - Section titles and form labels: 12px, 600, uppercase, letter-spacing .04em, `--muted`.
 - Numbers (years, counts, ages) use `font-variant-numeric: tabular-nums`.
@@ -106,7 +106,8 @@ Text buttons and text fields are all `--field-h` high, `--radius`, 14px text, 1p
 | Primary button | accent fill, `--accent-text`, 600. One per view at most (e.g. Apply in a dialog, Save in an editor). |
 | Switch (segmented) | one component for Ancestors/Descendants, generations, sex choice in the editor: border + `--radius`, 1px dividers, chosen segment `--accent-soft` + `--accent` + 600. |
 | Input, select, textarea | Same look as the inline edit in the detail: `--field-h`, no box and no fill, 1px dashed `--border` underline (`--muted` on hover), padding `0 4px`; focus = solid `--accent` underline + `--accent-soft` fill, no ring. A multi-line textarea keeps a dashed box (`--radius`). The editor uses the same fields. |
-| Checkbox / radio | 16px, `accent-color: var(--accent)`, label 14px. |
+| Checkbox / radio | 16px, `accent-color: var(--accent)`, label 14px. For a choice in a list or a table and for options of an output. |
+| Switch (iOS style) | `.check` label with `role="switch"` in the edit window: 44×26px, `--switch-on` green when on, label left, switch right. Only for a state of the person or marriage that is on or off (deceased, divorced); never for a setting or a row selection. |
 | Chip / count badge | `--ctl-h-sm`, pill, 12px. Picked: accent border + `--accent-soft`. |
 | Notification badge (`.badge`) | iOS-style counter on the corner of an icon or button in the top bar and rail: `--warn` pill, white 12px bold number, 17px high, 2px ring in `--bg`, pinned to the top-right corner (`top -4px, right -6px`) so it never changes the layout. Hidden at 0, "99+" above 99. Used for the number of problems (check) and of unsaved changes (GED save button); its tooltip text describes the number ("unsaved changes: 3"). |
 | Tabs (vertical, in a wide panel) | rail-like rows: `--field-h`, `--radius`, active = `--accent-soft` + `--accent`. Count badge on the right (`--ctl-h-sm` pill, `--warn-soft`; grey at 0). |
