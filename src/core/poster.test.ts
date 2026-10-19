@@ -12,14 +12,14 @@ const fonts = posterFonts(
 const ROOT = "@I1@";
 
 // a complete tree: person n has parents 2n and 2n+1, down to `gens` generations
-const full = (gens: number) => {
+const full = (gens: number, hasParents: (n: number) => boolean = () => true) => {
   let ged = "0 HEAD\n";
   const last = 2 ** gens - 1;
   for (let n = 1; n <= last; n++) {
     ged += `0 @I${n}@ INDI\n1 NAME P${n} /Full/\n1 SEX ${n % 2 ? "F" : "M"}\n`;
-    if (n < 2 ** (gens - 1)) ged += `1 FAMC @F${n}@\n`;
+    if (n < 2 ** (gens - 1) && hasParents(n)) ged += `1 FAMC @F${n}@\n`;
   }
-  for (let n = 1; n < 2 ** (gens - 1); n++) ged += `0 @F${n}@ FAM\n1 HUSB @I${2 * n}@\n1 WIFE @I${2 * n + 1}@\n1 CHIL @I${n}@\n`;
+  for (let n = 1; n < 2 ** (gens - 1); n++) if (hasParents(n)) ged += `0 @F${n}@ FAM\n1 HUSB @I${2 * n}@\n1 WIFE @I${2 * n + 1}@\n1 CHIL @I${n}@\n`;
   return load(ged + "0 TRLR\n");
 };
 
@@ -77,9 +77,32 @@ describe("poster layout", () => {
     expect(p.people).toBeLessThan(buildPoster(data, child.id, { generations: 3 }).people);
   });
 
-  test("the drawing has the proportions of A paper", () => {
-    const p = buildPoster(data, ROOT, {});
-    expect(p.width / p.height).toBeCloseTo(Math.SQRT2, 2);
+  test("a person stands halfway between the parents and no two plates of a column touch", () => {
+    for (const d of [data, full(6)]) {
+      const p = buildPoster(d, ROOT, { generations: 6 });
+      const at = new Map(p.plates.map((q) => [q.id, q]));
+      const touching: string[] = [], off: string[] = [];
+      for (const q of p.plates) {
+        const fam = d.people[q.id].famc[0] && d.families[d.people[q.id].famc[0]];
+        const [a, b] = fam ? [fam.husb, fam.wife].map((id) => id && at.get(id)) : [];
+        // (the Habsburgs repeat people, so only the made-up tree tells which plate is whose parent)
+        if (d !== data && q.gen < 6 && q.gen > 1 && a && b && Math.abs(q.y - (a.y + b.y) / 2) > 1e-6) off.push(q.id);
+        for (const r of p.plates) {
+          const sameColumn = r !== q && r.gen === q.gen && Math.sign(r.x - p.width / 2) === Math.sign(q.x - p.width / 2);
+          if (sameColumn && Math.abs(r.y - q.y) < q.h + 20) touching.push(`${q.id} ${r.id}`);
+        }
+      }
+      expect(touching).toEqual([]);
+      expect(off).toEqual([]);
+    }
+  });
+
+  test("only the people who exist take room: a sparse tree is much lower than a full one", () => {
+    const sparse = full(6, (n) => n % 3 !== 0 || n < 8);
+    const a = buildPoster(sparse, ROOT, { generations: 6 }), b = buildPoster(full(6), ROOT, { generations: 6 });
+    expect(a.people).toBeLessThan(b.people);
+    expect(a.height).toBeLessThan(b.height * 0.8);
+    expect(b.width).toBe(a.width);
   });
 
   test("one seed always draws the same tree, another seed another one", () => {
@@ -147,9 +170,10 @@ describe("poster beyond seven generations", () => {
     const nine = buildPoster(full(9), "@I1@", { generations: 9 });
     expect(nine.generations).toBe(9);
     expect(nine.people).toBe(2 ** 9 - 1);
-    expect(nine.width).toBe(seven.width * 4);
-    expect(nine.width / nine.height).toBeCloseTo(Math.SQRT2, 2);
-    // the names of the last generation are as big as on the base poster
+    expect(nine.width).toBeGreaterThan(seven.width);
+    expect(nine.plates[1].w).toBe(seven.plates[1].w);
+    expect(nine.plates[1].h).toBe(seven.plates[1].h);
+    // the names of the last generation are as big as on the smaller poster
     expect(Math.min(...nine.texts.slice(0, -1).map((t) => t.size))).toBeGreaterThanOrEqual(
       Math.min(...seven.texts.slice(0, -1).map((t) => t.size)));
   }, 60000);

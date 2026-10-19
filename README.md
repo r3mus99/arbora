@@ -198,7 +198,7 @@ The **SVG** button in the top bar, next to GED and PDF, downloads the ancestors 
 decorative wall chart for large-format printing: the person at the bottom, the father's line unfolding to the left and
 the mother's to the right, with branches and leaves between the name plates. The plates have exact positions, the
 branches are drawn from a seeded random generator, so every download draws a different, unique tree. The number of generations is its own setting (2 to 9, group "Tree poster" in Settings); the title, labels and
-dates follow the other settings. The SVG is vector, with the text set in Alkatra and written as outlines, so it prints sharply at any size and looks the same without the font; its proportions are those of A paper. Beyond seven generations the poster grows (each one doubles its size) and the plates and the text keep their size.
+dates follow the other settings. The SVG is vector, with the text set in Alkatra and written as outlines, so it prints sharply at any size and looks the same without the font; the poster is as wide as the generations need and as high as the people need: only people who exist take room, so a family with gaps gives a lower poster than a complete tree, and the plates and the text always keep their size.
 The plan and the open points are in [docs/tree-poster.md](docs/tree-poster.md).
 
 ### Notes on the data
