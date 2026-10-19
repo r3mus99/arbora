@@ -13,8 +13,8 @@ import { normalize } from "./chart";
 import { TEXTS } from "./texts";
 import type { PosterFonts } from "./posterFont";
 
-export const POSTER_MIN_GENERATIONS = 2;
-export const POSTER_MAX_GENERATIONS = 9;
+export const POSTER_MIN_GENERATIONS = 3;
+export const POSTER_MAX_GENERATIONS = 10;
 /** what 0 ("all") draws */
 export const POSTER_BASE_GENERATIONS = 7;
 /** Plate size by generation (person, parents, grandparents, great-grandparents): the people the person may still have

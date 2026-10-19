@@ -65,9 +65,9 @@ describe("poster layout", () => {
     }
   });
 
-  test("the generations are limited to 2..9 and a person without parents has just the plate", () => {
-    expect(buildPoster(full(3), ROOT, { generations: 99 }).generations).toBe(9);
-    expect(buildPoster(data, ROOT, { generations: 1 }).generations).toBe(2);
+  test("the generations are limited to 3..10 and a person without parents has just the plate", () => {
+    expect(buildPoster(full(3), ROOT, { generations: 99 }).generations).toBe(10);
+    expect(buildPoster(data, ROOT, { generations: 1 }).generations).toBe(3);
     expect(buildPoster(data, ROOT, { generations: 0 }).generations).toBe(7);
     const lone = Object.values(data.people).find((x) => !x.famc.length)!;
     const p = buildPoster(data, lone.id, { generations: 5 });
@@ -203,14 +203,14 @@ describe("poster plate sizes", () => {
 describe("poster beyond seven generations", () => {
   test("a bigger poster keeps the size of the plates and of the text", () => {
     const seven = buildPoster(full(7), "@I1@", { generations: 7 });
-    const nine = buildPoster(full(9), "@I1@", { generations: 9 });
-    expect(nine.generations).toBe(9);
-    expect(nine.people).toBe(2 ** 9 - 1);
-    expect(nine.width).toBeGreaterThan(seven.width);
-    expect(nine.plates[1].w).toBe(seven.plates[1].w);
-    expect(nine.plates[1].h).toBe(seven.plates[1].h);
+    const ten = buildPoster(full(10), "@I1@", { generations: 10 });
+    expect(ten.generations).toBe(10);
+    expect(ten.people).toBe(2 ** 10 - 1);
+    expect(ten.width).toBeGreaterThan(seven.width);
+    expect(ten.plates[1].w).toBe(seven.plates[1].w);
+    expect(ten.plates[1].h).toBe(seven.plates[1].h);
     // the names of the last generation are as big as on the smaller poster
-    expect(Math.min(...nine.texts.slice(0, -1).map((t) => t.size))).toBeGreaterThanOrEqual(
+    expect(Math.min(...ten.texts.slice(0, -1).map((t) => t.size))).toBeGreaterThanOrEqual(
       Math.min(...seven.texts.slice(0, -1).map((t) => t.size)));
   }, 60000);
 });

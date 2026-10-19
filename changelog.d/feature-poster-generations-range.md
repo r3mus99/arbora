@@ -1,0 +1,1 @@
+- **The tree poster can show 3 to 10 generations.** The setting range moved from 2-9 to 3-10; the default stays 7.
