@@ -1,1 +1,0 @@
-- **The tree poster shows the year of each marriage.** A small brown "⚭ 1885" stands where the branches of the two parents meet; nothing is shown when the date is unknown.
