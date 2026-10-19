@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.36.0 – 2026-10-19
+
+- **The PDF is always A4, in colour, and turns landscape on its own.** The page size, orientation and colour settings are gone; the font shrinks down to 6 pt and the pages become landscape only when even that does not fit a portrait page. A printer can scale the A4 PDF to Letter and other papers.
+
 ## 2.35.0 – 2026-10-19
 
 - **Places are one checkbox.** "Show places" prints the municipality of birth, marriage and death and, when it differs, the residence. The "full place" choice and the separate residence checkbox are gone; settings saved earlier are converted.
