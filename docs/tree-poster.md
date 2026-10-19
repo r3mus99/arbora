@@ -28,7 +28,7 @@ decorative wall chart. This file records how it works and what is still open.
   a person and the parents, or beside the fork under the main person's parents. It has no plate of its own, its size
   follows the generation of the child (12 units times the plate scale), the gap between two columns is widened to fit
   it, and nothing is shown when a parent is missing. The room is kept free of side shoots before
-  they grow, and afterwards the spot nearest the usual one that touches no plate, branch, shoot or leaf is taken.
+  they grow, and afterwards the spot nearest the usual one that touches no plate, branch, shoot or leaf is taken, searched up to 70 units sideways and 120 up or down: a spot between the two branches is preferred, one above or below them is the last resort.
 - A person who is an ancestor on more than one branch (the family married within itself) keeps a plate on every
   branch, so the tree stays clean and symmetrical; each of those plates carries a small brown tag with the count ("2×")
   in its top right corner, drawn with the same hand-cut outline as the plates (not a circle), and the title counts every

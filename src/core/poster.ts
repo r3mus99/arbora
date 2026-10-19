@@ -347,7 +347,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     for (let px = x - width / 2; px <= x + width / 2; px += 6) {
       for (let py = y - height / 2; py <= y + height / 2; py += 6) occupied.push([px, py]);
     }
-    return [{ lines, size, width, height, x, y }];
+    const parents = (plate === rootPlate ? rootKids.map(([q]) => q) : kids.get(plate) || []).map((q) => q.y);
+    return [{ lines, size, width, height, x, y, top: Math.min(...parents), bottom: Math.max(...parents) }];
   });
   const reserved = occupied.length;
 
@@ -474,9 +475,15 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     !limbPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10) &&
     !leafPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10);
   for (const label of labels) {
-    const { lines, size, width, height, x, y } = label;
+    const { lines, size, width, height, x, y, top, bottom } = label;
+    // the room between the two branches is preferred; a spot above or below them is the last resort
     const near: [number, number, number][] = [];
-    for (let dx = -40; dx <= 40; dx += 4) for (let dy = -30; dy <= 30; dy += 4) near.push([x + dx, y + dy, Math.abs(dx) + 2 * Math.abs(dy)]);
+    for (let dx = -70; dx <= 70; dx += 4) {
+      for (let dy = -120; dy <= 120; dy += 4) {
+        const outside = y + dy < top || y + dy > bottom;
+        near.push([x + dx, y + dy, Math.abs(dx) + 2 * Math.abs(dy) + (outside ? 1000 : 0)]);
+      }
+    }
     near.sort((a, b) => a[2] - b[2]);
     const spot = near.find(([px, py]) => free(px, py, width, height) && !occupied.slice(reserved).some(([ox, oy]) =>
       Math.abs(ox - px) < width / 2 + 6 && Math.abs(oy - py) < height / 2 + 6)) ?? [x, y];
