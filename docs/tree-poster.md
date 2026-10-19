@@ -48,10 +48,16 @@ decorative wall chart. This file records how it works and what is still open.
    names then touch the border); long place names shrink the line to small type, mostly on the 125 % plates, so a
    long line would have to wrap or the places would be limited to 200 % to 150 %; the residence shows only when it
    differs from the birth and death places. A residence line is better as an opt-in setting.
-6. **Density of side shoots:** an option (sparse, normal, dense).
-7. **Colour themes** (paper, branch and leaf colours; black and white for a laser printer).
-8. **A poster for descendants,** and more than ten generations (the width grows by one column per generation).
-9. **Fixed paper size:** the poster now has the proportions of its content, not of A paper. A choice of paper (fit or pad to A3/A2/A1) and a print margin could be added.
-10. **Pedigree collapse:** a repeated ancestor is drawn twice; mark the second plate or link them.
-11. **Other outputs** (PDF via pdf-lib `drawSvgPath`, PNG via a canvas `Path2D`) were built and dropped; the SVG is enough for now.
-12. **A preview** of the poster before the download.
+6. **More facts on the poster** (Marek liked all five, 2026-10-19; the number of children comes first, see the
+   marriage text under "Plates"):
+   - the occupation under the name on the big plates (200 % to 125 %), only when known;
+   - the title with numbers, e.g. "63 ancestors in 6 generations", maybe the oldest known ancestor and the year;
+   - the age at death next to the years (*1907 †1986, 79 y.);
+   - a footer with the date of creation and the author's name, for print.
+7. **Density of side shoots:** an option (sparse, normal, dense).
+8. **Colour themes** (paper, branch and leaf colours; black and white for a laser printer).
+9. **A poster for descendants,** and more than ten generations (the width grows by one column per generation).
+10. **Fixed paper size:** the poster now has the proportions of its content, not of A paper. A choice of paper (fit or pad to A3/A2/A1) and a print margin could be added.
+11. **Pedigree collapse:** a repeated ancestor is drawn twice; mark the second plate or link them.
+12. **Other outputs** (PDF via pdf-lib `drawSvgPath`, PNG via a canvas `Path2D`) were built and dropped; the SVG is enough for now.
+13. **A preview** of the poster before the download.
