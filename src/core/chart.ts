@@ -151,7 +151,7 @@ export function buildDescRows(rootId: string, people: Record<string, Person>,
       const spouse = (spouseId && people[spouseId]) || null;
       const kids = byBirth(fam.children.filter((c) => c in people), people);
       let anchor = self;
-      if (o.showSpouses && (spouse || (kids.length && withKids.length > 1))) {
+      if ((spouse || (kids.length && withKids.length > 1))) {
         const sp = spouseParts(fam, spouse, o);
         rows.push({ gen, text: joined(sp), parts: sp, personId: null,
                     dup: false, tick: false, links: [], page: 0, target: null,
@@ -160,18 +160,12 @@ export function buildDescRows(rootId: string, people: Record<string, Person>,
         anchor = rows.length - 1;
       }
       if (!kids.length) continue;
-      // without spouse lines all children hang on one line from the person
-      if (!o.showSpouses && row.links.length) anchor = row.links[row.links.length - 1].b;
       let lastKid = SELF;
       for (const kid of kids) {
         childNo += 1;
         lastKid = visit(kid, gen + 1, `${dab}.${childNo}`, anc);
       }
-      if (!o.showSpouses && row.links.length) {
-        row.links[row.links.length - 1].b = lastKid;
-      } else {
-        row.links.push({ gen: gen + 1, a: anchor, b: lastKid, trimA: true });
-      }
+      row.links.push({ gen: gen + 1, a: anchor, b: lastKid, trimA: true });
     }
     return self;
   }
