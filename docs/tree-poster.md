@@ -5,11 +5,14 @@ decorative wall chart. This file records how it works and what is still open.
 
 ## How it works
 
-- `buildPoster()` returns a flat drawing: shapes (SVG path data with fill and stroke) and centred text lines, in a fixed
-  3000-unit-wide area with the proportions of A paper. `posterSvg` writes it as SVG (Marek decided in the thread that SVG is the
+- `buildPoster()` returns a flat drawing: shapes (SVG path data with fill and stroke) and centred text lines, in an area
+  sized by the content. `posterSvg` writes it as SVG (Marek decided in the thread that SVG is the
   only export, next to GED and PDF in the top bar). The list is output-neutral, so PDF or PNG can be added later.
-- Plates are hand-cut labels (uneven edges, border width varies, blue/red by sex) and sit in fixed rows: the person at the bottom centre, the father's line left, the mother's right, one column per
-  generation, each plate halfway between its two parents. A missing ancestor leaves its place empty.
+- Plates are hand-cut labels (uneven edges, border width varies, blue/red by sex) and keep one size. The person is in the centre below the two parents (one limb rises from them and splits in two; the parents are level and close to the middle, which keeps the poster narrow), the father's line left, the mother's right, one column per
+  generation. Within a side the people are packed like a tidy tree (Reingold-Tilford): each plate sits halfway between its
+  two parents (level with a lone parent), and the father's branch is pushed against the mother's only as far as plates of
+  one column need to stay apart. Only people who exist take room, so the poster height follows the family, not the
+  generations; a missing ancestor leaves no gap.
 - Branches are tapered filled shapes along a smooth curve with a seeded wiggle. Side shoots (two levels) and leaves
   grow along them; a shoot that would touch a plate, another shoot or the edge is not drawn. The seed combines the
   person's id with a random number picked at each download, so every download is a new tree; the same seed (the
@@ -31,8 +34,8 @@ decorative wall chart. This file records how it works and what is still open.
 5. **Places, sources and residence on plates** (the poster ignores places for now).
 6. **Density of side shoots:** an option (sparse, normal, dense).
 7. **Colour themes** (paper, branch and leaf colours; black and white for a laser printer).
-8. **A poster for descendants,** and more than nine generations (each generation beyond seven doubles the poster, so nine is already 12000 units wide).
-9. **Custom paper size** and a print margin.
+8. **A poster for descendants,** and more than nine generations (the width grows by one column per generation).
+9. **Fixed paper size:** the poster now has the proportions of its content, not of A paper. A choice of paper (fit or pad to A3/A2/A1) and a print margin could be added.
 10. **Pedigree collapse:** a repeated ancestor is drawn twice; mark the second plate or link them.
 11. **Other outputs** (PDF via pdf-lib `drawSvgPath`, PNG via a canvas `Path2D`) were built and dropped; the SVG is enough for now.
 12. **A preview** of the poster before the download.
