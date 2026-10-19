@@ -448,6 +448,25 @@ describe("poster plate sizes", () => {
 });
 
 describe("poster beyond seven generations", () => {
+  test("from the 7th generation on the plates are half as tall, with smaller text, so the poster grows less in height", () => {
+    const p = buildPoster(full(9), ROOT, { generations: 9 });
+    const high = (gen: number) => p.plates.find((q) => q.gen === gen)!.h;
+    expect(high(7) / high(6)).toBeCloseTo(0.5, 1);
+    expect(high(9)).toBe(high(7));
+    const wide = (gen: number) => p.plates.find((q) => q.gen === gen)!.w;
+    expect(wide(7) / wide(6)).toBeCloseTo(0.7, 2);
+    expect(wide(9)).toBe(wide(7));
+    const size = (n: number) => p.texts.find((t) => t.text === `P${n} Full`)!.size;
+    // P64 is generation 7, P32 generation 6
+    expect(size(64)).toBeLessThan(size(32) * 0.6);
+    expect(size(64)).toBeGreaterThanOrEqual(5.5);
+    // a plate still holds its text and no two plates of a column touch
+    const touching = p.plates.flatMap((a) => p.plates.filter((b) => a.id < b.id && Math.abs(a.x - b.x) < (a.w + b.w) / 2 && Math.abs(a.y - b.y) < (a.h + b.h) / 2));
+    expect(touching).toEqual([]);
+    const before = buildPoster(full(9), ROOT, { generations: 6 });
+    expect(p.height).toBeLessThan(before.height * 2 ** 3 * 0.6);
+  }, 60000);
+
   test("a bigger poster keeps the size of the plates and of the text", () => {
     const seven = buildPoster(full(7), "@I1@", { generations: 7 });
     const ten = buildPoster(full(10), "@I1@", { generations: 10 });
@@ -456,6 +475,7 @@ describe("poster beyond seven generations", () => {
     expect(ten.width).toBeGreaterThan(seven.width);
     expect(ten.plates[1].w).toBe(seven.plates[1].w);
     expect(ten.plates[1].h).toBe(seven.plates[1].h);
+    expect(ten.plates[ten.plates.length - 1].h).toBe(seven.plates[seven.plates.length - 1].h);
     // the names of the last generation are as big as on the smaller poster
     expect(Math.min(...ten.texts.slice(0, -1).map((t) => t.size))).toBeGreaterThanOrEqual(
       Math.min(...seven.texts.slice(0, -1).map((t) => t.size)));
