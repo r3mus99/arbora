@@ -192,23 +192,25 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const widthOf = (gen: number) => Math.round(baseW * scaleOf(gen));
   const heightOf = (gen: number) => Math.round(baseH * scaleOf(gen));
   // The year of a marriage and the number of children of the couple are a small brown text where the branches of the
-  // two parents meet; its size follows the generation of the child, and the gap between the child's column and the
-  // parents' is wide enough for it.
+  // two parents meet, each line led by a drawn symbol (two rings, two figures); its size follows the generation of the
+  // child, and the gap between the child's column and the parents' is wide enough for it.
   const marrSize = (gen: number) => 12 * scaleOf(gen);
-  const plural = new Intl.PluralRules(o.lang);
-  const marrLines = (pid: string | null): string[] => {
+  const symbolW = (size: number) => size * 1.14;
+  const lineW = ({ text }: MarrLine, size: number) => symbolW(size) + size * 0.3 + measure(text, size, false);
+  const marrLines = (pid: string | null): MarrLine[] => {
     const f = pid && data.people[pid]?.famc.length ? data.families[data.people[pid].famc[0]] : null;
     if (!f) return [];
     const date = f.marriage ? formatDate(f.marriage.date, o.dates === "full", o.lang) : "";
-    const n = f.children.length, forms = TEXTS[o.lang].children;
-    const kind = plural.select(n);
-    return [date && `\u26AD ${date}`, n > 0 && `${n} ${forms[kind === "one" ? 0 : kind === "few" ? 1 : 2]}`].filter((x): x is string => !!x);
+    const lines: MarrLine[] = [];
+    if (date) lines.push({ symbol: "rings", text: date });
+    if (f.children.length > 1) lines.push({ symbol: "children", text: String(f.children.length) });
+    return lines;
   };
   const needed = new Map<number, number>();
   const survey = (pid: string | null, gen: number) => {
     const f = pid && gen < gens && data.people[pid]?.famc.length ? data.families[data.people[pid].famc[0]] : null;
     if (!f || !f.husb || !f.wife || !data.people[f.husb] || !data.people[f.wife]) return;
-    const widest = Math.max(0, ...marrLines(pid).map((t) => measure(t, marrSize(gen), false)));
+    const widest = Math.max(0, ...marrLines(pid).map((l) => lineW(l, marrSize(gen))));
     if (widest && gen > 1) needed.set(gen, Math.max(needed.get(gen) ?? 0, widest));
     survey(f.husb, gen + 1);
     survey(f.wife, gen + 1);
@@ -314,7 +316,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     if ((plate === rootPlate ? rootKids : kids.get(plate) || []).length !== 2) return [];
     const lines = marrLines(plate.id);
     if (!lines.length) return [];
-    const size = marrSize(plate.gen), width = Math.max(...lines.map((t) => measure(t, size, false))), height = size * 1.15 * lines.length;
+    const size = marrSize(plate.gen), width = Math.max(...lines.map((l) => lineW(l, size))), height = size * 1.15 * lines.length;
     let x: number, y: number;
     if (plate === rootPlate) {
       x = plate.x + 30 + width / 2;
@@ -440,6 +442,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   }
 
   const marriages: PosterText[] = [];
+  const symbols: PosterShape[] = [];
   const free = (x: number, y: number, w: number, h: number) =>
     !plates.some((q) => Math.abs(x - q.x) < q.w / 2 + w / 2 + 6 && Math.abs(y - q.y) < q.h / 2 + h / 2 + 6) &&
     !limbPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10) &&
@@ -451,7 +454,12 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     near.sort((a, b) => a[2] - b[2]);
     const spot = near.find(([px, py]) => free(px, py, width, height) && !occupied.slice(reserved).some(([ox, oy]) =>
       Math.abs(ox - px) < width / 2 + 6 && Math.abs(oy - py) < height / 2 + 6)) ?? [x, y];
-    lines.forEach((text, i) => marriages.push({ text, x: spot[0], y: spot[1] - height / 2 + (i + 0.5) * size * 1.15 + size * 0.3, size, bold: false, fill: C.branch }));
+    const left = spot[0] - width / 2;
+    lines.forEach(({ symbol, text }, i) => {
+      const cy = spot[1] - height / 2 + (i + 0.5) * size * 1.15;
+      symbols.push(...symbolShapes(symbol, left, cy, size));
+      marriages.push({ text, x: left + symbolW(size) + size * 0.3 + measure(text, size, false) / 2, y: cy + size * 0.3, size, bold: false, fill: C.branch });
+    });
   }
 
   // ------------------------------------------------------------ plates and texts
@@ -479,7 +487,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   texts.push(...marriages, { text: title, x: W / 2, y: 92, size: 58, bold: true, fill: C.ink });
 
   shapes.push({ d: `M0,0L${W},0L${W},${H}L0,${H}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
-              ...branches, ...leaves, ...plateShapes);
+              ...branches, ...leaves, ...symbols, ...plateShapes);
   return { width: W, height: H, shapes, texts, generations: gens, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
 }
 
@@ -551,4 +559,23 @@ export function posterSvg(poster: Poster, fonts?: PosterFonts): string {
   }
   out.push("</g></svg>");
   return out.join("\n");
+}
+
+type MarrLine = { symbol: "rings" | "children"; text: string };
+
+/** The symbol before a marriage line: two interlocked rings, or two small figures; `left` is its left edge. */
+function symbolShapes(symbol: MarrLine["symbol"], left: number, cy: number, s: number): PosterShape[] {
+  const brown = POSTER_COLORS.branch;
+  const circle = (x: number, y: number, r: number) => `M${num(x - r)},${num(y)}A${num(r)},${num(r)} 0 1 0 ${num(x + r)},${num(y)}A${num(r)},${num(r)} 0 1 0 ${num(x - r)},${num(y)}Z`;
+  if (symbol === "rings") {
+    const r = 0.31 * s, x0 = left + 0.05 * s + r;
+    return [x0, x0 + 0.4 * s].map((x) => ({ d: circle(x, cy - 0.03 * s, r), fill: null, stroke: brown, strokeWidth: 0.1 * s }));
+  }
+  // a head over a rounded body, the second figure smaller and a little lower
+  const figure = (x: number, y: number, k: number) => [
+    circle(x, y - 0.3 * k, 0.21 * k),
+    `M${num(x - 0.3 * k)},${num(y + 0.45 * k)}Q${num(x - 0.3 * k)},${num(y - 0.02 * k)} ${num(x)},${num(y - 0.02 * k)}Q${num(x + 0.3 * k)},${num(y - 0.02 * k)} ${num(x + 0.3 * k)},${num(y + 0.45 * k)}Z`,
+  ];
+  const cx = left + 0.57 * s;
+  return [...figure(cx - 0.3 * s, cy, s * 0.9), ...figure(cx + 0.35 * s, cy + 0.08 * s, s * 0.72)].map((d) => ({ d, fill: brown, stroke: null, strokeWidth: 0 }));
 }

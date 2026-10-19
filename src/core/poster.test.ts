@@ -172,22 +172,22 @@ describe("poster plates", () => {
 });
 
 describe("poster marriage years", () => {
-  const years = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.text.startsWith("\u26AD"));
   const brown = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === "#6b4626");
+  const years = (p: ReturnType<typeof buildPoster>) => brown(p).filter((t) => /^\d{4}$/.test(t.text));
 
   test("a marriage year stands at each couple, bigger for the closer generations, and nothing without a date", () => {
     const p = buildPoster(full(6, () => true, true), ROOT, { generations: 6 });
     expect(years(p)).toHaveLength(2 ** 5 - 1);
-    expect(years(p).map((t) => t.text)).toContain("\u26AD 1701");
+    expect(years(p).map((t) => t.text)).toContain("1701");
     expect(years(p).every((t) => !t.bold && t.fill === "#6b4626")).toBe(true);
     const size = (year: string) => years(p).find((t) => t.text === year)!.size;
-    expect(size("\u26AD 1701")).toBeGreaterThan(size("\u26AD 1702"));
-    expect(size("\u26AD 1702")).toBeGreaterThan(size("\u26AD 1704"));
-    expect(size("\u26AD 1704")).toBeGreaterThan(size("\u26AD 1716"));
+    expect(size("1701")).toBeGreaterThan(size("1702"));
+    expect(size("1702")).toBeGreaterThan(size("1704"));
+    expect(size("1704")).toBeGreaterThan(size("1716"));
     expect(years(buildPoster(full(6), ROOT, { generations: 6 }))).toHaveLength(0);
   });
 
-  test("the number of children stands under the year, in the language of the poster, with the right plural", () => {
+  test("two figures and the number of children stand under the year, and nothing for an only child", () => {
     const families = (n: number) => load(`0 HEAD
 0 @I1@ INDI
 1 NAME Child /One/
@@ -204,19 +204,15 @@ describe("poster marriage years", () => {
 ${Array.from({ length: n }, (_, i) => `1 CHIL @I${i === 0 ? 1 : 10 + i}@`).join("\n")}
 0 TRLR
 `);
-    const lines = (n: number, lang: "en" | "sk" | "uk") =>
-      buildPoster(families(n), "@I1@", { generations: 2, lang }).texts.filter((t) => t.fill === "#6b4626").map((t) => t.text);
-    expect(lines(1, "en")).toEqual(["\u26AD 1885", "1 child"]);
-    expect(lines(6, "en")).toEqual(["\u26AD 1885", "6 children"]);
-    expect(lines(1, "sk")[1]).toBe("1 dieťa");
-    expect(lines(3, "sk")[1]).toBe("3 deti");
-    expect(lines(5, "sk")[1]).toBe("5 detí");
-    expect(lines(3, "uk")[1]).toBe("3 дитини");
-    expect(lines(5, "uk")[1]).toBe("5 дітей");
-  });
-
-  test("every language names the children in three forms", () => {
-    for (const lang of LANGS) expect(TEXTS[lang].children.every((f) => f.length > 1), lang).toBe(true);
+    const poster = (n: number) => buildPoster(families(n), "@I1@", { generations: 2 });
+    const counts = (n: number) => brown(poster(n)).map((t) => t.text);
+    expect(counts(1)).toEqual(["1885"]);
+    expect(counts(2)).toEqual(["1885", "2"]);
+    expect(counts(6)).toEqual(["1885", "6"]);
+    // rings and figures are drawn shapes in the brown of the branches: two rings, two heads and two bodies
+    const symbols = (n: number) => poster(n).shapes.filter((x) => x.fill === null || (x.fill === "#6b4626" && !x.stroke));
+    expect(symbols(1)).toHaveLength(2);
+    expect(symbols(6)).toHaveLength(6);
   });
 
   test("a marriage year touches no plate and no other marriage year", () => {

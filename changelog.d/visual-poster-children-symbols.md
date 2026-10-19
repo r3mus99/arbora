@@ -1,0 +1,1 @@
+- **The poster draws symbols before the marriage year and the number of children.** Two rings lead the year and two small figures lead the number, both left-aligned; an only child is not counted, and the word "children" no longer needs translating.
