@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.17.0 – 2026-10-19
+
+- **The poster marks people who appear more than once.** When the family married within itself, the same ancestor stands on several branches; each of those plates gets a small tag ("2×"), and the title counts every person only once.
+
 ## 2.16.1 – 2026-10-19
 
 - **The release build no longer fails on a slow runner.** The tests of the poster layout have a 30 second limit instead of 5 seconds, so the coverage run on GitHub does not stop the Pages deploy.
