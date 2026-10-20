@@ -1,1 +1,1 @@
-- **Poster branches look more natural.** Long branches grow longer side shoots, and the shoots split again into finer twigs; marriage labels no longer overlap each other.
+- **Colours that were wrong in the dark theme are fixed.** The counter on the tool icons is readable in the dark theme, the magnifier and the arrows in the fields follow the theme, and the icons of christening, residence, other events, children and burial have their own lighter colours there. The child icon is a little darker in the light theme.
