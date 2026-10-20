@@ -637,26 +637,36 @@ describe("poster packing of uneven sides", () => {
 });
 
 describe("poster generation ruler", () => {
-  test("every column of plates has a generation label", () => {
-    const p = buildPoster(data, ROOT, { generations: 4, lang: "en", dates: "year" });
+  const titleBox = (p: ReturnType<typeof buildPoster>) => {
+    const t = p.texts.find((x) => x.text === p.title)!;
+    return { x0: t.x - textWidth(p.title, 58, true) / 2, x1: t.x + textWidth(p.title, 58, true) / 2, y: t.y };
+  };
+
+  test("a column has a generation label unless the title frame covers it", () => {
+    const p = buildPoster(data, ROOT, { generations: 7, lang: "en", dates: "year" });
     const labels = p.texts.filter((t) => /^Generation \d$/.test(t.text));
-    expect(labels.map((t) => t.text).sort()).toEqual(["Generation 1", "Generation 2", "Generation 2", "Generation 3", "Generation 3", "Generation 4", "Generation 4"]);
+    const box = titleBox(p);
+    // the columns beside the main person are hidden behind the title, the outer ones stay
+    expect(labels.map((t) => t.text)).not.toContain("Generation 1");
+    expect(labels.map((t) => t.text)).toContain("Generation 7");
+    for (const t of labels) expect(t.x < box.x0 || t.x > box.x1).toBe(true);
     expect(p.texts.some((t) => /^\d{4}–\d{4}$/.test(t.text))).toBe(false);
   });
 
   test("under each generation the known people are counted out of the possible ones", () => {
-    const p = buildPoster(full(4), ROOT, { generations: 4, lang: "en" });
-    expect(p.texts.filter((t) => /^\d+ of \d+$/.test(t.text)).map((t) => t.text).sort()).toEqual(["1 of 1", "1 of 1", "1 of 1", "2 of 2", "2 of 2", "4 of 4", "4 of 4"]);
+    const p = buildPoster(full(7), ROOT, { generations: 7, lang: "en" });
+    expect(p.texts.filter((t) => /^\d+ of \d+$/.test(t.text)).map((t) => t.text).sort()).toEqual(["16 of 16", "16 of 16", "2 of 2", "2 of 2", "32 of 32", "32 of 32", "4 of 4", "4 of 4", "8 of 8", "8 of 8"]);
     // person 4 has no parents: of the 4 people the father's side could hold in generation 4, 2 are known
-    const sparse = buildPoster(full(4, (n) => n !== 4), ROOT, { generations: 4, lang: "en" });
+    const sparse = buildPoster(full(7, (n) => n !== 4), ROOT, { generations: 7, lang: "en" });
     expect(sparse.texts.some((t) => t.text === "2 of 4")).toBe(true);
   });
 
-  test("the ruler stands between the title frame and the plates", () => {
-    const p = buildPoster(data, ROOT, { generations: 4, lang: "en" });
-    const label = p.texts.find((t) => t.text === "Generation 1")!, title = p.texts.find((t) => t.text === p.title)!;
-    expect(label.y).toBeGreaterThan(title.y + 75);
-    expect(label.y).toBeLessThan(Math.min(...p.plates.map((q) => q.y - q.h / 2)));
+  test("the ruler runs through the middle of the title frame", () => {
+    const p = buildPoster(data, ROOT, { generations: 7, lang: "en" });
+    const label = p.texts.find((t) => t.text === "Generation 7")!, title = titleBox(p);
+    // the label stands just above the axis, which is level with the middle of the frame (the title text sits 4 above it)
+    expect(label.y).toBeGreaterThan(title.y - 60);
+    expect(label.y).toBeLessThan(title.y);
   });
 
   test("all languages have a label with the number", () => {
