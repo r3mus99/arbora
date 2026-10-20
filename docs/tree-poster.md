@@ -114,8 +114,8 @@ straight), the seeded branches and leaves and the title frame look the same; onl
 - **Title:** "Descendants of …", under it "3 generations · 49 descendants · 1708–1790" (generations as really drawn, descendants counted once each,
   partners not counted, the years from the oldest to the youngest birth). A person who is in the family twice (cousins who married) is drawn under both parents with the "2×" tag. A loop in the data (a person
   who is their own descendant) is cut where it closes.
-- **Statistics:** same rule as on the ancestors poster (`posterHasStatistics`, from 5 filled generations), a different place and shape (Marek, 2026-10-20: both at the bottom, under the tree). The **ruler** of the generations
-  runs under the tree with a tick and "N. generation" at the middle of every column pair and under it the number of descendants of that generation ("12 descendants", every plate counts; none under generation 1). Under the ruler stands one **list**
+- **Statistics:** same rule as on the ancestors poster (`posterHasStatistics`, from 5 filled generations), a different place and shape (Marek, 2026-10-20: both at the bottom, under the tree; the list above, the ruler below it). The **ruler** of the generations
+  runs under the list with a tick and "N. generation" at the middle of every column pair and under it the number of descendants of that generation ("12 descendants", every plate counts; none under generation 1). Above the ruler stands one **list**
   (the same frame as the title and the plates) at the left edge: the head line "Name · b. 1800 · 62 descendants" and the rows Origin, First names and Surnames of all descendants counted once each (partners are not
   counted), built by `cornerBlocks` with the descendants noun. The ancestors poster has four such lists, one per grandparent line; a descendants poster has no such fixed lines, so one list for the whole family,
   agreed with Marek. Tried and dropped: the ruler through the title frame as on the ancestors poster (the frame hides the labels of the middle columns), and the ruler under the title with the list beside it

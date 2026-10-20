@@ -188,16 +188,16 @@ describe("descendants poster: statistics", () => {
     expect(four.texts.some((t) => t.text.startsWith("Origin"))).toBe(false);
   });
 
-  test("the ruler and the list stand together under the tree, also when the family is a thin chain", () => {
+  test("the list and under it the ruler stand together under the tree, also when the family is a thin chain", () => {
     for (const shape of [shapes.onlyChildren, (g: number) => ({ partners: 1, children: g === 1 ? 4 : 2 })]) {
       const p = build(descendantsGed(shape, 8), 6);
       expectClean(p);
       const treeBottom = Math.max(...p.plates.map((q) => q.y + q.h / 2));
       const ruler = p.texts.find((t) => t.text === "Generation 1")!;
       const head = p.texts.find((t) => t.bold && t.text.startsWith("Name1 Family1  \u00B7  b. 1800"))!;
-      expect(ruler.y).toBeGreaterThan(treeBottom);
-      expect(head.y).toBeGreaterThan(ruler.y);
-      expect(head.y).toBeLessThan(p.height);
+      expect(head.y).toBeGreaterThan(treeBottom);
+      expect(ruler.y).toBeGreaterThan(head.y);
+      expect(ruler.y).toBeLessThan(p.height);
     }
   });
 });

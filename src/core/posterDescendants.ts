@@ -192,11 +192,11 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
   const frameY = 100, bottom = 70;
   const topY = 190;
   settle(tree, topY);
-  // the statistics stand together under the tree: the ruler of the generations, under it the list
+  // the statistics stand together under the tree: the list, and under it the ruler of the generations
   const left = shift;
   const treeBottom = topY + tree.height;
-  const rulerBase = treeBottom + 110, blockY = rulerBase + 90;
-  const H = Math.round(withStats ? blockY + blockH + 70 : treeBottom + bottom);
+  const blockY = treeBottom + 110, rulerBase = blockY + blockH + 110;
+  const H = Math.round(withStats ? rulerBase + 44 + 70 : treeBottom + bottom);
 
   // ------------------------------------------------------------ branches
   const C = POSTER_COLORS;
