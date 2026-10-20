@@ -791,4 +791,10 @@ describe("palette", () => {
     expect(POSTER_COLORS.marriage).toBe(PALETTE.gold);
     expect(POSTER_COLORS.leaves).toContain(PALETTE.forest);
   });
+
+  test("styles.css has colour values only in the token blocks of :root", () => {
+    const css = readFileSync(new URL("../ui/styles.css", import.meta.url), "utf8");
+    const rules = css.replace(/:root[^{]*\{[^}]*\}/g, "");
+    expect(rules.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/g) ?? []).toEqual([]);
+  });
 });
