@@ -708,11 +708,17 @@ describe("poster place rows on the big plates", () => {
     expect(off.plates.filter((p) => p.gen <= POSTER_PLACES_UP_TO).every((p) => p.h === Math.round(66 * [2, 1.75, 1.5, 1.25][p.gen - 1]))).toBe(true);
   });
 
-  test("with places on only generations 1 to 4 are taller, and the others keep their size", () => {
+  test("with places on only generations 1 to 4 can be taller, by what their rows need, and the others keep their size", () => {
     for (const p of on.plates) {
       const before = off.plates.find((q) => q.id === p.id && q.gen === p.gen)!;
-      expect(Math.abs(p.h - (p.gen <= POSTER_PLACES_UP_TO ? before.h * POSTER_PLACES_HEIGHT : before.h))).toBeLessThanOrEqual(2);
+      expect(p.h).toBeGreaterThanOrEqual(before.h);
+      expect(p.h).toBeLessThanOrEqual(p.gen <= POSTER_PLACES_UP_TO ? Math.round(before.h * POSTER_PLACES_HEIGHT) + 1 : before.h);
     }
+    // a person with all rows is taller than a person with no place at all, who keeps the plain plate
+    const ged = (places: string) => load(`0 HEAD\n0 @I1@ INDI\n1 NAME Anna Test\n1 BIRT\n2 DATE 1900\n${places}1 DEAT\n2 DATE 1970\n${places}0 TRLR\n`);
+    const h = (places: string) => buildPoster(ged(places), "@I1@", { ...opts, showPlaces: true }, fonts).plates[0].h;
+    expect(h("")).toBe(132);
+    expect(h("2 PLAC Graz\n")).toBeGreaterThan(132);
   });
 
   test("the rows show the birth and death place with the date, and every row fits its plate", () => {

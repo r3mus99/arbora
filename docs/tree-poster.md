@@ -64,7 +64,7 @@ decorative wall chart. This file records how it works and what is still open.
 5. **Places on plates.** Done for generations 1 to 4 (`POSTER_PLACES_UP_TO`) when "Show places" is on (Marek, 2026-10-20, option B of the
    mock-ups in `arbora/tree-poster/three-line-plates/`): name and up to three rows `*1865 Graz`, `⌂ Prague`, `†1906 Vienna` (the dates move into the
    rows, the format follows the Dates and Labels settings; a row with nothing known is left out; the residence only when it differs from the birth and
-   death place). The plate is 75 % taller (`POSTER_PLACES_HEIGHT`); the poster keeps its height because the 7th generation decides it. Open, decide later:
+   death place). The plate is only as tall as its rows need (up to 75 % taller, `POSTER_PLACES_HEIGHT`; plates of one column can differ in height), and a person without any place stays a plain plate; the poster keeps its height because the 7th generation decides it. Open, decide later:
    - generations 5 and 6 (100 % plates): one small row `* Graz  ⌂ Prague  † Vienna` was tried (variant C), the poster grew 15 % in height and the SVG 12 % and the text is tiny, so postponed; from the 7th generation the plates are too small;
    - merge birth and death into one row when the place is the same (`*1845 †1918 Hohenau`), because in village data birth, residence and death are often one place and a plate then shows a single row;
    - the age at death ("79 y.") is lost on these plates; it could be appended to the death row when it fits;

@@ -29,7 +29,7 @@ const POSTER_BRANCH_OVERLAP = 6;
 export const POSTER_PLATE_SCALE = [2, 1.75, 1.5, 1.25];
 /** The plates of generations 1 to this one (the big ones) show where the person was born, lived and died, one row each, when "Show places" is on. */
 export const POSTER_PLACES_UP_TO = 4;
-/** A plate with the place rows is this much taller (the dates move into the rows). */
+/** A plate with place rows is as tall as its rows need, but at most this much taller than a plain plate (the dates move into the rows). */
 export const POSTER_PLACES_HEIGHT = 1.75;
 type Rows = "none" | "three";
 const rowsFor = (gen: number, o: { showPlaces: boolean }): Rows => o.showPlaces && gen <= POSTER_PLACES_UP_TO ? "three" : "none";
@@ -203,7 +203,13 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const widthOf = (gen: number) => Math.round(baseW * scaleOf(gen) * (gen >= POSTER_SMALL_FROM ? POSTER_SMALL_WIDTH : 1));
   const small = (gen: number) => gen >= POSTER_SMALL_FROM;
   const unitH = (gen: number) => baseH * scaleOf(gen) * (small(gen) ? POSTER_SMALL_HEIGHT : 1);
-  const heightOf = (gen: number) => Math.round(unitH(gen) * (rowsFor(gen, o) === "three" ? POSTER_PLACES_HEIGHT : 1));
+  const heightOf = (gen: number) => Math.round(unitH(gen));
+  // a plate with place rows is only as tall as its rows need (a person without any place stays a plain plate)
+  const plateHeight = (p: Person, gen: number) => {
+    if (rowsFor(gen, o) !== "three") return heightOf(gen);
+    const own = plateLines({ id: "", gen, x: 0, y: 0, w: widthOf(gen), h: unitH(gen) }, p, o, measure, unitH(gen), "three");
+    return Math.max(heightOf(gen), Math.min(Math.round(unitH(gen) * POSTER_PLACES_HEIGHT), Math.ceil(linesHeight(own, 1.15) / PLATE_TEXT_SHARE)));
+  };
   // the border and the tag of a plate follow its height
   const lookOf = (gen: number) => scaleOf(gen) * (small(gen) ? 0.7 : 1);
   // The year of a marriage and the number of children of the couple are a small brown text where the branches of the
@@ -249,7 +255,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const place = (pid: string | null, gen: number, side: -1 | 1): Plate | null => {
     const p = pid ? data.people[pid] : null;
     if (!p) return null;
-    const plate: Plate = { id: pid!, gen, w: widthOf(gen), h: heightOf(gen), x: side * colX.get(gen)!, y: 0 };
+    const plate: Plate = { id: pid!, gen, w: widthOf(gen), h: plateHeight(p, gen), x: side * colX.get(gen)!, y: 0 };
     plates.push(plate);
     people.set(plate, p);
     const fam = p.famc.length ? data.families[p.famc[0]] : null;
@@ -264,7 +270,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     return plate;
   };
 
-  const rootPlate: Plate = { id: rootId, gen: 1, x: 0, y: 0, w: widthOf(1), h: heightOf(1) };
+  const rootPlate: Plate = { id: rootId, gen: 1, x: 0, y: 0, w: widthOf(1), h: plateHeight(root, 1) };
   plates.push(rootPlate);
   people.set(rootPlate, root);
   const fam = root.famc.length ? data.families[root.famc[0]] : null;
@@ -368,7 +374,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // the two parents stand level in the middle, the person below them; the rest of each side hangs above and below
   // the parents
   const levelY = top + Math.max(0, ...sides.map((x) => -x.low));
-  const rootY = levelY + heightOf(2) / 2 + 140 + rootPlate.h / 2;
+  const rootY = levelY + Math.max(heightOf(2), ...rootKids.map(([q]) => q.h)) / 2 + 140 + rootPlate.h / 2;
   const H = Math.round(Math.max(levelY + Math.max(0, ...sides.map((x) => x.high)), rootY + rootPlate.h / 2) + bottom);
   const settle = (plate: Plate, y: number) => {
     plate.y = y;
@@ -658,7 +664,10 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
 type Line = [text: string, size: number, bold: boolean, role?: string];
 
 /** The name (one line, or two when it is long) and the dates of one plate, each shrunk until it fits. */
-function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFonts["width"], unit: number, rows: Rows): Line[] {
+function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFonts["width"], unit: number, wanted: Rows): Line[] {
+  const home = wanted === "three" ? residencePlace(p, o) : "";
+  // a person without any place is drawn as a plain plate, as with "Show places" off
+  const rows: Rows = wanted === "three" && (p.birth?.place || p.death?.place || home) ? "three" : "none";
   const name = p.name || "?";
   const dates = rows === "three" ? "" : [formatEvent("birt", p.birth, { ...o, showPlaces: false }), formatEvent("deat", p.death, { ...o, showPlaces: false })]
     .filter(Boolean).join("  ");
@@ -667,7 +676,8 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
   const age = by !== null && dy !== null && dy >= by && dy - by < 130 ? `, ${dy - by} ${TEXTS[o.lang].ageAbbr}` : "";
   const small = plate.gen >= POSTER_SMALL_FROM;
   // the double line of a big plate grows with it and needs more room than the usual margin
-  const avail = plate.w - (small ? 12 : 18 + 2 * Math.max(0, 6.5 * plate.h / 66 - 9));
+  // the lines of a plate with place rows are longer, so they keep a wider margin to the border
+  const avail = plate.w - (small ? 12 : 18 + 2 * Math.max(0, 6.5 * unit / 66 - 9) + (rows === "three" ? 12 * unit / 66 : 0));
   const minSize = small ? 5.5 : 9;
   const base = unit / 3.4;
   const fit = (text: string, size: number, bold: boolean) => {
@@ -702,7 +712,6 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
   };
   if (rows === "three") {
     // birth, residence and death, each only when known; the residence only when it differs from the other two places
-    const home = residencePlace(p, o);
     const rowsText = [formatEvent("birt", p.birth, o), home && `\u2302 ${home}`, formatEvent("deat", p.death, o)].filter(Boolean);
     let size = base * (wrappedName ? 0.72 : 0.82);
     for (const r of rowsText) size = Math.min(size, shrink(r, size, 7.5)[1]);
@@ -712,8 +721,13 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
 }
 
 /** The lines centred one under the other on the plate; the second line of a wrapped name sits closer to the first. */
+/** The share of a plate's height the text may fill. */
+const PLATE_TEXT_SHARE = 0.8;
+/** The height of the lines stacked as `stack` does. */
+const linesHeight = (lines: Line[], spacing: number) => lines.reduce((a, [, size, bold], i) => a + size * (bold && lines[i - 1]?.[2] ? spacing - 0.22 : spacing), 0);
+
 function stack(plate: Plate, lines: Line[], spacing: number, nameFill: string): PosterText[] {
-  const room = plate.h * 0.8, total = lines.reduce((a, [, size]) => a + size * spacing, 0);
+  const room = plate.h * PLATE_TEXT_SHARE, total = linesHeight(lines, spacing);
   // a plate with place rows is shrunk to fit its height (the other plates keep their sizes)
   if (total > room && lines.some(([, , , role]) => role === "row")) lines = lines.map(([t, size, b, r]): Line => [t, size * room / total, b, r]);
   const heights = lines.map(([, size, bold], i) => size * (bold && lines[i - 1]?.[2] ? spacing - 0.22 : spacing));
