@@ -58,7 +58,7 @@ const STRINGS_RAW = {
     places: "Miesta",
     numbering: "Číslovanie", numGen: "generácia (1, 2, 3…)", numAhn: "Ahnentafel (otec 2n, matka 2n+1)",
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "bez čísel",
-    generations: "Generácie", allGens: "všetky", tipA3: "rodičia a starí rodičia", tipA4: "rodičia, starí rodičia a prastarí rodičia", tipA5: "rodičia, starí rodičia, prastarí rodičia a praprastarí rodičia", tipD3: "deti a vnúčatá", tipD4: "deti, vnúčatá a pravnúčatá", tipD5: "deti, vnúčatá, pravnúčatá a prapravnúčatá", genTipAll: "všetky generácie", gensHint: "Plagát (SVG) zobrazí najviac 10 generácií.",
+    generations: "Generácie", allGens: "všetky", tipA3: "rodičia a starí rodičia", tipA4: "rodičia, starí rodičia a prastarí rodičia", tipA5: "rodičia, starí rodičia, prastarí rodičia a praprastarí rodičia", tipD3: "deti a vnúčatá", tipD4: "deti, vnúčatá a pravnúčatá", tipD5: "deti, vnúčatá, pravnúčatá a prapravnúčatá", genTipAll: "všetky generácie", gensHint: "Plagát (SVG) zobrazí najviac 10 generácií.", gensHintDesc: "Plagát (SVG) potomkov zobrazí najviac 6 generácií.",
 
     showPlaces: "zobraziť miesta", showPlacesTip: "zobraziť miesta (obec narodenia, sobáša a úmrtia a bydlisko, ak je iné)",
     go: "Vytvoriť PDF", download: "Stiahnuť PDF", working: "Vytváram PDF…",
@@ -192,7 +192,7 @@ const STRINGS_RAW = {
     overview: "Prehľad súboru", ovPeople: "Osoby", ovSex: "muži {m} · ženy {f}", ovFamilies: "Rodiny", ovGens: "Generácie",
     ovGensSub: "najdlhšia línia rodič – dieťa", ovSpan: "Obdobie", ovSpanSub: "roky narodenia a úmrtia", ovOldest: "Najstarší predok", ovProblems: "Problémy",
     ovNone: "žiadne", ovSurnames: "Najčastejšie priezviská", ovPlaces: "Najčastejšie miesta", ovSurnameTip: "Hľadať osoby s týmto priezviskom",
-    poster: "Plagát stromu", posterHint: "Predkovia vybranej osoby ako ozdobný strom na veľkoformátovú tlač. Nadpis, označenia a dátumy sa riadia nastaveniami.", posterErr: "Plagát sa nepodarilo vytvoriť: {msg}", filePoster: "plagat", posterWorking: "Vytváram plagát…", 
+    poster: "Plagát stromu", posterHint: "Predkovia vybranej osoby ako ozdobný strom na veľkoformátovú tlač. Nadpis, označenia a dátumy sa riadia nastaveniami.", posterHintDesc: "Potomkovia vybranej osoby ako ozdobný strom na veľkoformátovú tlač. Nadpis, označenia a dátumy sa riadia nastaveniami.", posterErr: "Plagát sa nepodarilo vytvoriť: {msg}", filePoster: "plagat", posterWorking: "Vytváram plagát…", 
   },
   cs: {
     name: "Čeština", language: "Jazyk",
@@ -218,7 +218,7 @@ const STRINGS_RAW = {
     places: "Místa",
     numbering: "Číslování", numGen: "generace (1, 2, 3…)", numAhn: "Ahnentafel (otec 2n, matka 2n+1)",
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "bez čísel",
-    generations: "Generace", allGens: "všechny", tipA3: "rodiče a prarodiče", tipA4: "rodiče, prarodiče a praprarodiče", tipA5: "rodiče, prarodiče, praprarodiče a prapraprarodiče", tipD3: "děti a vnoučata", tipD4: "děti, vnoučata a pravnoučata", tipD5: "děti, vnoučata, pravnoučata a prapravnoučata", genTipAll: "všechny generace", gensHint: "Plakát (SVG) zobrazí nejvýše 10 generací.",
+    generations: "Generace", allGens: "všechny", tipA3: "rodiče a prarodiče", tipA4: "rodiče, prarodiče a praprarodiče", tipA5: "rodiče, prarodiče, praprarodiče a prapraprarodiče", tipD3: "děti a vnoučata", tipD4: "děti, vnoučata a pravnoučata", tipD5: "děti, vnoučata, pravnoučata a prapravnoučata", genTipAll: "všechny generace", gensHint: "Plakát (SVG) zobrazí nejvýše 10 generací.", gensHintDesc: "Plakát (SVG) potomků zobrazí nejvýše 6 generací.",
 
     showPlaces: "zobrazit místa", showPlacesTip: "zobrazit místa (obec narození, sňatku a úmrtí a bydliště, je-li jiné)",
     go: "Vytvořit PDF", download: "Stáhnout PDF", working: "Vytvářím PDF…",
@@ -352,7 +352,7 @@ const STRINGS_RAW = {
     overview: "Přehled souboru", ovPeople: "Osoby", ovSex: "muži {m} · ženy {f}", ovFamilies: "Rodiny", ovGens: "Generace",
     ovGensSub: "nejdelší linie rodič – dítě", ovSpan: "Období", ovSpanSub: "roky narození a úmrtí", ovOldest: "Nejstarší předek", ovProblems: "Problémy",
     ovNone: "žádné", ovSurnames: "Nejčastější příjmení", ovPlaces: "Nejčastější místa", ovSurnameTip: "Hledat osoby s tímto příjmením",
-    poster: "Plakát stromu", posterHint: "Předkové vybrané osoby jako ozdobný strom pro velkoformátový tisk. Nadpis, označení a data se řídí nastavením.", posterErr: "Plakát se nepodařilo vytvořit: {msg}", filePoster: "plakat", posterWorking: "Vytvářím plakát…", 
+    poster: "Plakát stromu", posterHint: "Předkové vybrané osoby jako ozdobný strom pro velkoformátový tisk. Nadpis, označení a data se řídí nastavením.", posterHintDesc: "Potomci vybrané osoby jako ozdobný strom pro velkoformátový tisk. Nadpis, označení a data se řídí nastavením.", posterErr: "Plakát se nepodařilo vytvořit: {msg}", filePoster: "plakat", posterWorking: "Vytvářím plakát…", 
   },
   pl: {
     name: "Polski", language: "Język",
@@ -378,7 +378,7 @@ const STRINGS_RAW = {
     places: "Miejsca",
     numbering: "Numeracja", numGen: "pokolenie (1, 2, 3…)", numAhn: "Ahnentafel (ojciec 2n, matka 2n+1)",
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "bez numerów",
-    generations: "Pokolenia", allGens: "wszystkie", tipA3: "rodzice i dziadkowie", tipA4: "rodzice, dziadkowie i pradziadkowie", tipA5: "rodzice, dziadkowie, pradziadkowie i prapradziadkowie", tipD3: "dzieci i wnuki", tipD4: "dzieci, wnuki i prawnuki", tipD5: "dzieci, wnuki, prawnuki i praprawnuki", genTipAll: "wszystkie pokolenia", gensHint: "Plakat (SVG) pokaże najwyżej 10 pokoleń.",
+    generations: "Pokolenia", allGens: "wszystkie", tipA3: "rodzice i dziadkowie", tipA4: "rodzice, dziadkowie i pradziadkowie", tipA5: "rodzice, dziadkowie, pradziadkowie i prapradziadkowie", tipD3: "dzieci i wnuki", tipD4: "dzieci, wnuki i prawnuki", tipD5: "dzieci, wnuki, prawnuki i praprawnuki", genTipAll: "wszystkie pokolenia", gensHint: "Plakat (SVG) pokaże najwyżej 10 pokoleń.", gensHintDesc: "Plakat (SVG) potomków pokaże najwyżej 6 pokoleń.",
 
     showPlaces: "pokaż miejsca", showPlacesTip: "pokaż miejsca (miejscowość urodzenia, ślubu i śmierci oraz zamieszkania, jeśli inna)",
     go: "Utwórz PDF", download: "Pobierz PDF", working: "Tworzę PDF…",
@@ -513,7 +513,7 @@ const STRINGS_RAW = {
     overview: "Przegląd pliku", ovPeople: "Osoby", ovSex: "mężczyźni {m} · kobiety {f}", ovFamilies: "Rodziny", ovGens: "Pokolenia",
     ovGensSub: "najdłuższa linia rodzic – dziecko", ovSpan: "Okres", ovSpanSub: "lata urodzenia i śmierci", ovOldest: "Najstarszy przodek", ovProblems: "Problemy",
     ovNone: "brak", ovSurnames: "Najczęstsze nazwiska", ovPlaces: "Najczęstsze miejsca", ovSurnameTip: "Szukaj osób o tym nazwisku",
-    poster: "Plakat drzewa", posterHint: "Przodkowie wybranej osoby jako ozdobne drzewo do druku wielkoformatowego. Tytuł, oznaczenia i daty zależą od ustawień.", posterErr: "Nie udało się utworzyć plakatu: {msg}", filePoster: "plakat", posterWorking: "Tworzę plakat…", 
+    poster: "Plakat drzewa", posterHint: "Przodkowie wybranej osoby jako ozdobne drzewo do druku wielkoformatowego. Tytuł, oznaczenia i daty zależą od ustawień.", posterHintDesc: "Potomkowie wybranej osoby jako ozdobne drzewo do druku wielkoformatowego. Tytuł, oznaczenia i daty zależą od ustawień.", posterErr: "Nie udało się utworzyć plakatu: {msg}", filePoster: "plakat", posterWorking: "Tworzę plakat…", 
   },
   hu: {
     name: "Magyar", language: "Nyelv",
@@ -539,7 +539,7 @@ const STRINGS_RAW = {
     places: "Helyek",
     numbering: "Számozás", numGen: "nemzedék (1, 2, 3…)", numAhn: "Ahnentafel (apa 2n, anya 2n+1)",
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "számozás nélkül",
-    generations: "Nemzedékek", allGens: "mind", tipA3: "szülők és nagyszülők", tipA4: "szülők, nagyszülők és dédszülők", tipA5: "szülők, nagyszülők, dédszülők és ükszülők", tipD3: "gyermekek és unokák", tipD4: "gyermekek, unokák és dédunokák", tipD5: "gyermekek, unokák, dédunokák és ükunokák", genTipAll: "minden nemzedék", gensHint: "A plakáton (SVG) legfeljebb 10 nemzedék jelenik meg.",
+    generations: "Nemzedékek", allGens: "mind", tipA3: "szülők és nagyszülők", tipA4: "szülők, nagyszülők és dédszülők", tipA5: "szülők, nagyszülők, dédszülők és ükszülők", tipD3: "gyermekek és unokák", tipD4: "gyermekek, unokák és dédunokák", tipD5: "gyermekek, unokák, dédunokák és ükunokák", genTipAll: "minden nemzedék", gensHint: "A plakáton (SVG) legfeljebb 10 nemzedék jelenik meg.", gensHintDesc: "A leszármazottak plakátján (SVG) legfeljebb 6 nemzedék jelenik meg.",
 
     showPlaces: "helyek megjelenítése", showPlacesTip: "helyek megjelenítése (születés, házasság és halál települése, valamint a lakhely, ha eltér)",
     go: "PDF készítése", download: "PDF letöltése", working: "PDF készül…",
@@ -674,7 +674,7 @@ const STRINGS_RAW = {
     overview: "Fájl áttekintése", ovPeople: "Személyek", ovSex: "férfiak {m} · nők {f}", ovFamilies: "Családok", ovGens: "Nemzedékek",
     ovGensSub: "leghosszabb szülő – gyermek ág", ovSpan: "Időszak", ovSpanSub: "születési és halálozási évek", ovOldest: "Legrégebbi ős", ovProblems: "Problémák",
     ovNone: "nincs", ovSurnames: "Leggyakoribb vezetéknevek", ovPlaces: "Leggyakoribb helyek", ovSurnameTip: "Személyek keresése ezzel a vezetéknévvel",
-    poster: "Családfa-plakát", posterHint: "A kiválasztott személy felmenői díszes fa formájában, nagyméretű nyomtatáshoz. A cím, a jelölések és a dátumok a beállításokat követik.", posterErr: "A plakátot nem sikerült elkészíteni: {msg}", filePoster: "plakat", posterWorking: "A plakát készül…", 
+    poster: "Családfa-plakát", posterHint: "A kiválasztott személy felmenői díszes fa formájában, nagyméretű nyomtatáshoz. A cím, a jelölések és a dátumok a beállításokat követik.", posterHintDesc: "A kiválasztott személy leszármazottai díszes fa formájában, nagyméretű nyomtatáshoz. A cím, a jelölések és a dátumok a beállításokat követik.", posterErr: "A plakátot nem sikerült elkészíteni: {msg}", filePoster: "plakat", posterWorking: "A plakát készül…", 
   },
   de: {
     name: "Deutsch", language: "Sprache",
@@ -700,7 +700,7 @@ const STRINGS_RAW = {
     places: "Orte",
     numbering: "Nummerierung", numGen: "Generation (1, 2, 3…)", numAhn: "Kekule (Vater 2n, Mutter 2n+1)",
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "ohne Nummern",
-    generations: "Generationen", allGens: "alle", tipA3: "Eltern und Großeltern", tipA4: "Eltern, Großeltern und Urgroßeltern", tipA5: "Eltern, Großeltern, Urgroßeltern und Ururgroßeltern", tipD3: "Kinder und Enkel", tipD4: "Kinder, Enkel und Urenkel", tipD5: "Kinder, Enkel, Urenkel und Ururenkel", genTipAll: "alle Generationen", gensHint: "Das Poster (SVG) zeigt höchstens 10 Generationen.",
+    generations: "Generationen", allGens: "alle", tipA3: "Eltern und Großeltern", tipA4: "Eltern, Großeltern und Urgroßeltern", tipA5: "Eltern, Großeltern, Urgroßeltern und Ururgroßeltern", tipD3: "Kinder und Enkel", tipD4: "Kinder, Enkel und Urenkel", tipD5: "Kinder, Enkel, Urenkel und Ururenkel", genTipAll: "alle Generationen", gensHint: "Das Poster (SVG) zeigt höchstens 10 Generationen.", gensHintDesc: "Das Nachkommen-Poster (SVG) zeigt höchstens 6 Generationen.",
 
     showPlaces: "Orte anzeigen", showPlacesTip: "Orte anzeigen (Ort von Geburt, Heirat und Tod sowie Wohnort, wenn er abweicht)",
     go: "PDF erstellen", download: "PDF herunterladen", working: "PDF wird erstellt…",
@@ -836,7 +836,7 @@ const STRINGS_RAW = {
     overview: "Dateiübersicht", ovPeople: "Personen", ovSex: "Männer {m} · Frauen {f}", ovFamilies: "Familien", ovGens: "Generationen",
     ovGensSub: "längste Linie Eltern – Kind", ovSpan: "Zeitraum", ovSpanSub: "Geburts- und Sterbejahre", ovOldest: "Ältester Vorfahr", ovProblems: "Probleme",
     ovNone: "keine", ovSurnames: "Häufigste Nachnamen", ovPlaces: "Häufigste Orte", ovSurnameTip: "Personen mit diesem Nachnamen suchen",
-    poster: "Stammbaum-Poster", posterHint: "Die Vorfahren der gewählten Person als dekorativer Baum für den Großformatdruck. Titel, Kennzeichen und Daten folgen den Einstellungen.", posterErr: "Das Poster konnte nicht erstellt werden: {msg}", filePoster: "poster", posterWorking: "Poster wird erstellt…", 
+    poster: "Stammbaum-Poster", posterHint: "Die Vorfahren der gewählten Person als dekorativer Baum für den Großformatdruck. Titel, Kennzeichen und Daten folgen den Einstellungen.", posterHintDesc: "Die Nachkommen der gewählten Person als dekorativer Baum für den Großformatdruck. Titel, Kennzeichen und Daten folgen den Einstellungen.", posterErr: "Das Poster konnte nicht erstellt werden: {msg}", filePoster: "poster", posterWorking: "Poster wird erstellt…", 
   },
   en: {
     name: "English", language: "Language",
@@ -862,7 +862,7 @@ const STRINGS_RAW = {
     places: "Places",
     numbering: "Numbering", numGen: "generation (1, 2, 3…)", numAhn: "Ahnentafel (father 2n, mother 2n+1)",
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "no numbers",
-    generations: "Generations", allGens: "all", tipA3: "parents and grandparents", tipA4: "parents, grandparents and great-grandparents", tipA5: "parents, grandparents, great-grandparents and great-great-grandparents", tipD3: "children and grandchildren", tipD4: "children, grandchildren and great-grandchildren", tipD5: "children, grandchildren, great-grandchildren and great-great-grandchildren", genTipAll: "all generations", gensHint: "The poster (SVG) shows at most 10 generations.",
+    generations: "Generations", allGens: "all", tipA3: "parents and grandparents", tipA4: "parents, grandparents and great-grandparents", tipA5: "parents, grandparents, great-grandparents and great-great-grandparents", tipD3: "children and grandchildren", tipD4: "children, grandchildren and great-grandchildren", tipD5: "children, grandchildren, great-grandchildren and great-great-grandchildren", genTipAll: "all generations", gensHint: "The poster (SVG) shows at most 10 generations.", gensHintDesc: "The descendants poster (SVG) shows at most 6 generations.",
 
     showPlaces: "show places", showPlacesTip: "show places (town of birth, marriage and death, and the residence if it differs)",
     go: "Create PDF", download: "Download PDF", working: "Creating PDF…",
@@ -996,7 +996,7 @@ const STRINGS_RAW = {
     overview: "File overview", ovPeople: "People", ovSex: "men {m} · women {f}", ovFamilies: "Families", ovGens: "Generations",
     ovGensSub: "longest parent–child line", ovSpan: "Time span", ovSpanSub: "years of birth and death", ovOldest: "Oldest ancestor", ovProblems: "Problems",
     ovNone: "none", ovSurnames: "Most common surnames", ovPlaces: "Most common places", ovSurnameTip: "Search people with this surname",
-    poster: "Tree poster", posterHint: "The ancestors of the chosen person as a decorative tree for large-format printing. The title, labels and dates follow the settings.", posterErr: "The poster could not be created: {msg}", filePoster: "poster", posterWorking: "Creating the poster…", 
+    poster: "Tree poster", posterHint: "The ancestors of the chosen person as a decorative tree for large-format printing. The title, labels and dates follow the settings.", posterHintDesc: "The descendants of the chosen person as a decorative tree for large-format printing. The title, labels and dates follow the settings.", posterErr: "The poster could not be created: {msg}", filePoster: "poster", posterWorking: "Creating the poster…", 
   },
   fr: {
     name: "Français", language: "Langue",
@@ -1022,7 +1022,7 @@ const STRINGS_RAW = {
     places: "Lieux",
     numbering: "Numérotation", numGen: "génération (1, 2, 3…)", numAhn: "Sosa (père 2n, mère 2n+1)",
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "sans numéros",
-    generations: "Générations", allGens: "toutes", tipA3: "parents et grands-parents", tipA4: "parents, grands-parents et arrière-grands-parents", tipA5: "parents, grands-parents, arrière-grands-parents et arrière-arrière-grands-parents", tipD3: "enfants et petits-enfants", tipD4: "enfants, petits-enfants et arrière-petits-enfants", tipD5: "enfants, petits-enfants, arrière-petits-enfants et arrière-arrière-petits-enfants", genTipAll: "toutes les générations", gensHint: "L’affiche (SVG) montre au plus 10 générations.",
+    generations: "Générations", allGens: "toutes", tipA3: "parents et grands-parents", tipA4: "parents, grands-parents et arrière-grands-parents", tipA5: "parents, grands-parents, arrière-grands-parents et arrière-arrière-grands-parents", tipD3: "enfants et petits-enfants", tipD4: "enfants, petits-enfants et arrière-petits-enfants", tipD5: "enfants, petits-enfants, arrière-petits-enfants et arrière-arrière-petits-enfants", genTipAll: "toutes les générations", gensHint: "L’affiche (SVG) montre au plus 10 générations.", gensHintDesc: "L’affiche des descendants (SVG) montre au plus 6 générations.",
 
     showPlaces: "afficher les lieux", showPlacesTip: "afficher les lieux (commune de naissance, mariage et décès, et la résidence si elle diffère)",
     go: "Créer le PDF", download: "Télécharger le PDF", working: "Création du PDF…",
@@ -1157,7 +1157,7 @@ const STRINGS_RAW = {
     overview: "Aperçu du fichier", ovPeople: "Personnes", ovSex: "hommes {m} · femmes {f}", ovFamilies: "Familles", ovGens: "Générations",
     ovGensSub: "plus longue lignée parent – enfant", ovSpan: "Période", ovSpanSub: "années de naissance et de décès", ovOldest: "Ancêtre le plus ancien", ovProblems: "Problèmes",
     ovNone: "aucun", ovSurnames: "Noms les plus fréquents", ovPlaces: "Lieux les plus fréquents", ovSurnameTip: "Chercher les personnes portant ce nom",
-    poster: "Affiche de l’arbre", posterHint: "Les ancêtres de la personne choisie sous forme d’arbre décoratif pour l’impression grand format. Le titre, les libellés et les dates suivent les réglages.", posterErr: "L’affiche n’a pas pu être créée : {msg}", filePoster: "affiche", posterWorking: "Création de l’affiche…", 
+    poster: "Affiche de l’arbre", posterHint: "Les ancêtres de la personne choisie sous forme d’arbre décoratif pour l’impression grand format. Le titre, les libellés et les dates suivent les réglages.", posterHintDesc: "Les descendants de la personne choisie sous forme d’arbre décoratif pour l’impression grand format. Le titre, les libellés et les dates suivent les réglages.", posterErr: "L’affiche n’a pas pu être créée : {msg}", filePoster: "affiche", posterWorking: "Création de l’affiche…", 
   },
   it: {
     name: "Italiano", language: "Lingua",
@@ -1183,7 +1183,7 @@ const STRINGS_RAW = {
     places: "Luoghi",
     numbering: "Numerazione", numGen: "generazione (1, 2, 3…)", numAhn: "Ahnentafel (padre 2n, madre 2n+1)",
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "senza numeri",
-    generations: "Generazioni", allGens: "tutte", tipA3: "genitori e nonni", tipA4: "genitori, nonni e bisnonni", tipA5: "genitori, nonni, bisnonni e trisnonni", tipD3: "figli e nipoti", tipD4: "figli, nipoti e pronipoti", tipD5: "figli, nipoti, pronipoti e abnipoti", genTipAll: "tutte le generazioni", gensHint: "Il poster (SVG) mostra al massimo 10 generazioni.",
+    generations: "Generazioni", allGens: "tutte", tipA3: "genitori e nonni", tipA4: "genitori, nonni e bisnonni", tipA5: "genitori, nonni, bisnonni e trisnonni", tipD3: "figli e nipoti", tipD4: "figli, nipoti e pronipoti", tipD5: "figli, nipoti, pronipoti e abnipoti", genTipAll: "tutte le generazioni", gensHint: "Il poster (SVG) mostra al massimo 10 generazioni.", gensHintDesc: "Il poster dei discendenti (SVG) mostra al massimo 6 generazioni.",
 
     showPlaces: "mostra i luoghi", showPlacesTip: "mostra i luoghi (comune di nascita, matrimonio e morte, e la residenza se diversa)",
     go: "Crea PDF", download: "Scarica PDF", working: "Creazione del PDF…",
@@ -1318,7 +1318,7 @@ const STRINGS_RAW = {
     overview: "Panoramica del file", ovPeople: "Persone", ovSex: "uomini {m} · donne {f}", ovFamilies: "Famiglie", ovGens: "Generazioni",
     ovGensSub: "linea genitore – figlio più lunga", ovSpan: "Periodo", ovSpanSub: "anni di nascita e di morte", ovOldest: "Antenato più antico", ovProblems: "Problemi",
     ovNone: "nessuno", ovSurnames: "Cognomi più frequenti", ovPlaces: "Luoghi più frequenti", ovSurnameTip: "Cerca persone con questo cognome",
-    poster: "Poster dell’albero", posterHint: "Gli antenati della persona scelta come albero decorativo per la stampa in grande formato. Titolo, etichette e date seguono le impostazioni.", posterErr: "Impossibile creare il poster: {msg}", filePoster: "poster", posterWorking: "Creo il poster…", 
+    poster: "Poster dell’albero", posterHint: "Gli antenati della persona scelta come albero decorativo per la stampa in grande formato. Titolo, etichette e date seguono le impostazioni.", posterHintDesc: "I discendenti della persona scelta come albero decorativo per la stampa in grande formato. Titolo, etichette e date seguono le impostazioni.", posterErr: "Impossibile creare il poster: {msg}", filePoster: "poster", posterWorking: "Creo il poster…", 
   },
   es: {
     name: "Español", language: "Idioma",
@@ -1344,7 +1344,7 @@ const STRINGS_RAW = {
     places: "Lugares",
     numbering: "Numeración", numGen: "generación (1, 2, 3…)", numAhn: "Ahnentafel (padre 2n, madre 2n+1)",
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "sin números",
-    generations: "Generaciones", allGens: "todas", tipA3: "padres y abuelos", tipA4: "padres, abuelos y bisabuelos", tipA5: "padres, abuelos, bisabuelos y tatarabuelos", tipD3: "hijos y nietos", tipD4: "hijos, nietos y bisnietos", tipD5: "hijos, nietos, bisnietos y tataranietos", genTipAll: "todas las generaciones", gensHint: "El póster (SVG) muestra como máximo 10 generaciones.",
+    generations: "Generaciones", allGens: "todas", tipA3: "padres y abuelos", tipA4: "padres, abuelos y bisabuelos", tipA5: "padres, abuelos, bisabuelos y tatarabuelos", tipD3: "hijos y nietos", tipD4: "hijos, nietos y bisnietos", tipD5: "hijos, nietos, bisnietos y tataranietos", genTipAll: "todas las generaciones", gensHint: "El póster (SVG) muestra como máximo 10 generaciones.", gensHintDesc: "El póster de descendientes (SVG) muestra como máximo 6 generaciones.",
 
     showPlaces: "mostrar los lugares", showPlacesTip: "mostrar los lugares (localidad de nacimiento, matrimonio y defunción, y la residencia si difiere)",
     go: "Crear PDF", download: "Descargar PDF", working: "Creando PDF…",
@@ -1479,7 +1479,7 @@ const STRINGS_RAW = {
     overview: "Resumen del archivo", ovPeople: "Personas", ovSex: "hombres {m} · mujeres {f}", ovFamilies: "Familias", ovGens: "Generaciones",
     ovGensSub: "línea padre – hijo más larga", ovSpan: "Período", ovSpanSub: "años de nacimiento y muerte", ovOldest: "Antepasado más antiguo", ovProblems: "Problemas",
     ovNone: "ninguno", ovSurnames: "Apellidos más frecuentes", ovPlaces: "Lugares más frecuentes", ovSurnameTip: "Buscar personas con este apellido",
-    poster: "Póster del árbol", posterHint: "Los antepasados de la persona elegida como árbol decorativo para impresión en gran formato. El título, las etiquetas y las fechas siguen los ajustes.", posterErr: "No se pudo crear el póster: {msg}", filePoster: "poster", posterWorking: "Creando el póster…", 
+    poster: "Póster del árbol", posterHint: "Los antepasados de la persona elegida como árbol decorativo para impresión en gran formato. El título, las etiquetas y las fechas siguen los ajustes.", posterHintDesc: "Los descendientes de la persona elegida como árbol decorativo para impresión en gran formato. El título, las etiquetas y las fechas siguen los ajustes.", posterErr: "No se pudo crear el póster: {msg}", filePoster: "poster", posterWorking: "Creando el póster…", 
   },
   pt: {
     name: "Português", language: "Idioma",
@@ -1505,7 +1505,7 @@ const STRINGS_RAW = {
     places: "Locais",
     numbering: "Numeração", numGen: "geração (1, 2, 3…)", numAhn: "Ahnentafel (pai 2n, mãe 2n+1)",
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "sem números",
-    generations: "Gerações", allGens: "todas", tipA3: "pais e avós", tipA4: "pais, avós e bisavós", tipA5: "pais, avós, bisavós e trisavós", tipD3: "filhos e netos", tipD4: "filhos, netos e bisnetos", tipD5: "filhos, netos, bisnetos e trinetos", genTipAll: "todas as gerações", gensHint: "O póster (SVG) mostra no máximo 10 gerações.",
+    generations: "Gerações", allGens: "todas", tipA3: "pais e avós", tipA4: "pais, avós e bisavós", tipA5: "pais, avós, bisavós e trisavós", tipD3: "filhos e netos", tipD4: "filhos, netos e bisnetos", tipD5: "filhos, netos, bisnetos e trinetos", genTipAll: "todas as gerações", gensHint: "O póster (SVG) mostra no máximo 10 gerações.", gensHintDesc: "O póster de descendentes (SVG) mostra no máximo 6 gerações.",
 
     showPlaces: "mostrar os locais", showPlacesTip: "mostrar os locais (localidade de nascimento, casamento e morte, e a residência se diferir)",
     go: "Criar PDF", download: "Descarregar PDF", working: "A criar o PDF…",
@@ -1641,7 +1641,7 @@ const STRINGS_RAW = {
     overview: "Resumo do ficheiro", ovPeople: "Pessoas", ovSex: "homens {m} · mulheres {f}", ovFamilies: "Famílias", ovGens: "Gerações",
     ovGensSub: "linha pai – filho mais longa", ovSpan: "Período", ovSpanSub: "anos de nascimento e morte", ovOldest: "Antepassado mais antigo", ovProblems: "Problemas",
     ovNone: "nenhum", ovSurnames: "Apelidos mais frequentes", ovPlaces: "Locais mais frequentes", ovSurnameTip: "Procurar pessoas com este apelido",
-    poster: "Póster da árvore", posterHint: "Os antepassados da pessoa escolhida como árvore decorativa para impressão em grande formato. O título, os rótulos e as datas seguem as definições.", posterErr: "Não foi possível criar o póster: {msg}", filePoster: "poster", posterWorking: "A criar o póster…", 
+    poster: "Póster da árvore", posterHint: "Os antepassados da pessoa escolhida como árvore decorativa para impressão em grande formato. O título, os rótulos e as datas seguem as definições.", posterHintDesc: "Os descendentes da pessoa escolhida como árvore decorativa para impressão em grande formato. O título, os rótulos e as datas seguem as definições.", posterErr: "Não foi possível criar o póster: {msg}", filePoster: "poster", posterWorking: "A criar o póster…", 
   },
   nl: {
     name: "Nederlands", language: "Taal",
@@ -1667,7 +1667,7 @@ const STRINGS_RAW = {
     places: "Plaatsen",
     numbering: "Nummering", numGen: "generatie (1, 2, 3…)", numAhn: "Kwartiernummer (vader 2n, moeder 2n+1)",
     numDab: "d'Aboville (1, 1.1, 1.1.2…)", numNone: "zonder nummers",
-    generations: "Generaties", allGens: "alle", tipA3: "ouders en grootouders", tipA4: "ouders, grootouders en overgrootouders", tipA5: "ouders, grootouders, overgrootouders en betovergrootouders", tipD3: "kinderen en kleinkinderen", tipD4: "kinderen, kleinkinderen en achterkleinkinderen", tipD5: "kinderen, kleinkinderen, achterkleinkinderen en achterachterkleinkinderen", genTipAll: "alle generaties", gensHint: "De poster (SVG) toont ten hoogste 10 generaties.",
+    generations: "Generaties", allGens: "alle", tipA3: "ouders en grootouders", tipA4: "ouders, grootouders en overgrootouders", tipA5: "ouders, grootouders, overgrootouders en betovergrootouders", tipD3: "kinderen en kleinkinderen", tipD4: "kinderen, kleinkinderen en achterkleinkinderen", tipD5: "kinderen, kleinkinderen, achterkleinkinderen en achterachterkleinkinderen", genTipAll: "alle generaties", gensHint: "De poster (SVG) toont ten hoogste 10 generaties.", gensHintDesc: "De poster van nakomelingen (SVG) toont ten hoogste 6 generaties.",
 
     showPlaces: "plaatsen tonen", showPlacesTip: "plaatsen tonen (plaats van geboorte, huwelijk en overlijden, en de woonplaats als die afwijkt)",
     go: "PDF maken", download: "PDF downloaden", working: "PDF wordt gemaakt…",
@@ -1802,7 +1802,7 @@ const STRINGS_RAW = {
     overview: "Overzicht van het bestand", ovPeople: "Personen", ovSex: "mannen {m} · vrouwen {f}", ovFamilies: "Gezinnen", ovGens: "Generaties",
     ovGensSub: "langste lijn ouder – kind", ovSpan: "Periode", ovSpanSub: "geboorte- en sterfjaren", ovOldest: "Oudste voorouder", ovProblems: "Problemen",
     ovNone: "geen", ovSurnames: "Meest voorkomende achternamen", ovPlaces: "Meest voorkomende plaatsen", ovSurnameTip: "Personen met deze achternaam zoeken",
-    poster: "Stamboomposter", posterHint: "De voorouders van de gekozen persoon als decoratieve boom voor groot-formaatdruk. Titel, labels en data volgen de instellingen.", posterErr: "Het poster kon niet worden gemaakt: {msg}", filePoster: "poster", posterWorking: "Poster wordt gemaakt…", 
+    poster: "Stamboomposter", posterHint: "De voorouders van de gekozen persoon als decoratieve boom voor groot-formaatdruk. Titel, labels en data volgen de instellingen.", posterHintDesc: "De nakomelingen van de gekozen persoon als decoratieve boom voor groot-formaatdruk. Titel, labels en data volgen de instellingen.", posterErr: "Het poster kon niet worden gemaakt: {msg}", filePoster: "poster", posterWorking: "Poster wordt gemaakt…", 
   },
   uk: {
     name: "Українська", language: "Мова",
@@ -1828,7 +1828,7 @@ const STRINGS_RAW = {
     places: "Місця",
     numbering: "Нумерація", numGen: "покоління (1, 2, 3…)", numAhn: "Аненталь (батько 2n, мати 2n+1)",
     numDab: "д'Абовіль (1, 1.1, 1.1.2…)", numNone: "без номерів",
-    generations: "Покоління", allGens: "усі", tipA3: "батьки та дідусі й бабусі", tipA4: "батьки, дідусі й бабусі та прадіди й прабабусі", tipA5: "батьки, дідусі й бабусі, прадіди й прабабусі та прапрадіди й прапрабабусі", tipD3: "діти та онуки", tipD4: "діти, онуки та правнуки", tipD5: "діти, онуки, правнуки та праправнуки", genTipAll: "усі покоління", gensHint: "На плакаті (SVG) буде щонайбільше 10 поколінь.",
+    generations: "Покоління", allGens: "усі", tipA3: "батьки та дідусі й бабусі", tipA4: "батьки, дідусі й бабусі та прадіди й прабабусі", tipA5: "батьки, дідусі й бабусі, прадіди й прабабусі та прапрадіди й прапрабабусі", tipD3: "діти та онуки", tipD4: "діти, онуки та правнуки", tipD5: "діти, онуки, правнуки та праправнуки", genTipAll: "усі покоління", gensHint: "На плакаті (SVG) буде щонайбільше 10 поколінь.", gensHintDesc: "На плакаті нащадків (SVG) буде щонайбільше 6 поколінь.",
 
     showPlaces: "показувати місця", showPlacesTip: "показувати місця (населений пункт народження, шлюбу і смерті та місце проживання, якщо інше)",
     go: "Створити PDF", download: "Завантажити PDF", working: "Створюю PDF…",
@@ -1962,7 +1962,7 @@ const STRINGS_RAW = {
     overview: "Огляд файлу", ovPeople: "Особи", ovSex: "чоловіки {m} · жінки {f}", ovFamilies: "Родини", ovGens: "Покоління",
     ovGensSub: "найдовша лінія батьки – дитина", ovSpan: "Період", ovSpanSub: "роки народження та смерті", ovOldest: "Найдавніший предок", ovProblems: "Проблеми",
     ovNone: "немає", ovSurnames: "Найчастіші прізвища", ovPlaces: "Найчастіші місця", ovSurnameTip: "Шукати осіб із цим прізвищем",
-    poster: "Плакат дерева", posterHint: "Предки обраної особи у вигляді декоративного дерева для великоформатного друку. Заголовок, позначки й дати залежать від налаштувань.", posterErr: "Не вдалося створити плакат: {msg}", filePoster: "plakat", posterWorking: "Створюю плакат…", 
+    poster: "Плакат дерева", posterHint: "Предки обраної особи у вигляді декоративного дерева для великоформатного друку. Заголовок, позначки й дати залежать від налаштувань.", posterHintDesc: "Нащадки обраної особи у вигляді декоративного дерева для великоформатного друку. Заголовок, позначки й дати залежать від налаштувань.", posterErr: "Не вдалося створити плакат: {msg}", filePoster: "plakat", posterWorking: "Створюю плакат…", 
   },
 };
 

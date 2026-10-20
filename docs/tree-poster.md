@@ -1,7 +1,8 @@
 # Tree poster
 
 The tree poster (`src/core/poster.ts`; the SVG button in the top bar in `App.tsx`, a fresh seed per click) draws the ancestors of one person as a
-decorative wall chart. This file records how it works and what is still open.
+decorative wall chart; with the Descendants chart chosen the same button draws the descendants (`src/core/posterDescendants.ts`, see
+"Descendants poster" below). This file records how it works and what is still open.
 
 ## How it works
 
@@ -84,8 +85,71 @@ decorative wall chart. This file records how it works and what is still open.
    - a footer with the date of creation and the author's name, for print.
 7. **Density of side shoots:** an option (sparse, normal, dense).
 8. **Colour themes** (paper, branch and leaf colours; black and white for a laser printer).
-9. **A poster for descendants,** and more than ten generations (the width grows by one column per generation).
+9. **More than ten generations** of ancestors (the width grows by one column per generation). The descendants poster is built, see below.
 10. **Fixed paper size:** the poster now has the proportions of its content, not of A paper. A choice of paper (fit or pad to A3/A2/A1) and a print margin could be added.
 11. **Pedigree collapse:** a repeated ancestor is drawn twice; mark the second plate or link them.
 12. **Other outputs** (PDF via pdf-lib `drawSvgPath`, PNG via a canvas `Path2D`) were built and dropped; the SVG is enough for now.
 13. **A preview** of the poster before the download.
+
+## Descendants poster
+
+`buildDescendantsPoster` (`src/core/posterDescendants.ts`) draws the same kind of poster the other way round. It shares the
+plate kit (`plateKit`: sizes, three-line plates), the branch grower (`makeGrower`), `drawPlates` (name sizes per generation,
+the "2×" tag) and the border with the ancestors poster, so the plates, the double line, the rounding rule (boxes rounded, lines
+straight), the seeded branches and leaves and the title frame look the same; only the layout is its own.
+
+- **Layout:** the person stands at the left, every generation is one column to the right. A person's partners stand
+  in a column of their own right of the person (only for generations that have a partner), the children of each partnership in the
+  next column. A person with several partners has one plate for each, one under the other, the children of each next to its partner. The
+  partner of a child is on the poster as well, the partners of the last generation too, but partners have no families of
+  their own on it (their other partners and children are not followed). The year of a marriage (rings symbol) stands between the person and the partner,
+  moved to the nearest free spot like the years on the ancestors poster; the number of children is left out, since the children are on the poster.
+- **Rows:** every person owns a band as high as its plate or as its partnerships need, bands of siblings follow each other, so no plates
+  overlap whatever the numbers (a Reingold-Tilford contour is not needed: all plates of one column are about equally high). A partner stands level with the middle of its
+  children, the person level with the middle of its partners.
+- **Branches:** from the person a limb to each partner; from the partner (or from the person when no partner is known) up to two children grow
+  as direct limbs, three or more hang from one trunk beside the column of children and every child leaves the trunk level with its plate
+  (the trunk has no side shoots, the children's limbs have), so a family of sixteen does not bundle in one point.
+- **Plates:** 200 %, 150 %, 125 %, 100 % by generation (`POSTER_DESCENDANT_PLATE_SCALE`): the last column decides the height, so the plates shrink
+  faster than on the ancestors poster. The three-line plates (Show places) are used on all four generations.
+- **Title:** "Descendants of …", under it "3 generations · 49 descendants · 1708–1790" (generations as really drawn, descendants counted once each,
+  partners not counted, the years from the oldest to the youngest birth). A person who is in the family twice (cousins who married) is drawn under both parents with the "2×" tag. A loop in the data (a person
+  who is their own descendant) is cut where it closes.
+- **Statistics:** same rule as on the ancestors poster (`posterHasStatistics`, from 5 filled generations), a different place and shape (Marek, 2026-10-20: both at the bottom, under the tree; the list above, the ruler below it). The **ruler** of the generations
+  runs under the list with a tick and "N. generation" at the middle of every column pair and under it the number of descendants of that generation ("12 descendants", every plate counts; none under generation 1). Above the ruler stands one **list**
+  (the same frame as the title and the plates) at the left edge: the head line "Name · b. 1800 · 62 descendants" and the rows Origin, First names and Surnames of all descendants counted once each (partners are not
+  counted), built by `cornerBlocks` with the descendants noun. The ancestors poster has four such lists, one per grandparent line; a descendants poster has no such fixed lines, so one list for the whole family,
+  agreed with Marek. Tried and dropped: the ruler through the title frame as on the ancestors poster (the frame hides the labels of the middle columns), and the ruler under the title with the list beside it
+  (previews `ruler-A-*`, `ruler-B-*` in the project files). Open: lists per line of the children when there are few of them.
+
+### Limits and measurements (2026-10-20)
+
+The width is no problem (one column pair per generation: 3330 units for 3 generations, 4090 for 4). The height is: it grows with the
+number of people in the last generation, about 90 to 110 units for each. SVG size and drawing time grow with the number of plates.
+Made-up families (`src/core/fixtures/descendants.ts`) and the Habsburg sample, with Show places on, text as outlines:
+
+| Family | Generations | Plates | Size (units) | SVG | Time |
+| --- | --- | --- | --- | --- | --- |
+| typical: 4 children, then 3 each | 3 / 4 | 34 / 106 | 3326 × 1520 / 4092 × 3476 | 0.3 / 0.8 MB | 0.2 s |
+| 3 partners (6 children, then 2 each) | 3 / 4 | 76 / 172 | 3326 × 2804 / 4092 × 4556 | 0.6 / 1.2 MB | 0.4 s |
+| only children, 4 generations | 4 | 8 | 4092 × 392 | 0.1 MB | 0.01 s |
+| 16 children, then 3, then 2 | 3 / 4 | 130 / 322 | 3326 × 5372 / 4092 × 8876 | 1.0 / 2.3 MB | 0.3 / 1.3 s |
+| 30 children, then 5 each | 3 / 4 | 362 / 1862 | 3326 × 16286 / 4092 × 67736 | 2.7 / 13.9 MB | 2.6 / 32 s |
+| Habsburgs: Francis I (16 children) | 3 / 4 | 84 / 209 | 3326 × 7521 / 4092 × 14808 | 0.9 / 2.2 MB | 1.0 / 1.9 s |
+| Habsburgs: Charles III of Spain | 3 / 4 | 53 / 166 | 3326 × 4312 / 4092 × 11177 | 0.6 / 1.8 MB | |
+
+Marek asked to raise the limit of 4 (2026-10-20); measured again with more generations (text as outlines, Show places on):
+
+| Family | Generations | Plates | Size (units) | SVG | Time |
+| --- | --- | --- | --- | --- | --- |
+| 2 children each | 5 / 6 | 62 / 126 | 4184 × 1676 / 4850 × 3116 | 0.4 / 0.9 MB | 0.1 / 0.2 s |
+| typical: 4 children, then 3 each | 5 / 6 | 322 / 970 | 4184 × 9956 / 4850 × 29396 | 2.2 / 6.8 MB | 2 / 11 s |
+| Habsburgs: Francis I (16 children) | 5 | 384 | 4424 × 22417 | 4.0 MB | 5 s |
+
+So the limit is **6 generations** (`POSTER_MAX_DESCENDANT_GENERATIONS`; 3 to 6 give exactly that, "All" and anything above give 6) and, as the real limit, **500 plates**
+(`POSTER_MAX_DESCENDANT_PLATES`): when the last generation would bring the poster over that, it is left out (never below 3 generations) and the title shows the
+generations really drawn. So a family of 2 children each gets 6 generations, a typical one (4, then 3 each) 5 generations (322 plates, 10 000 units high), Francis I 5 generations (about 22 000 high, 5 : 1) and the family of 30 children only 3. The generations are counted until the
+plates stop (the check stops as soon as the number is passed, so a huge family is not drawn first). 
+Known weak spots: a very large family is a very tall poster (Francis I with 5 generations is 22 400 × 4 400, about 5 : 1; paper sizes are open point 10); the plates of
+the last generation are only 100 % and the text on them is small; a person with many partners makes a tall band of partners; partners of
+descendants carry no ancestors or other partnerships.

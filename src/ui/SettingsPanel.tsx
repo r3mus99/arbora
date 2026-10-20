@@ -1,4 +1,5 @@
 import { TEXTS, type Lang } from "../core/texts";
+import { POSTER_MAX_DESCENDANT_GENERATIONS } from "../core/posterDescendants";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
 import { NUMBERING, type Form } from "./options";
@@ -52,7 +53,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
           <button type="button" title={t("genTipAll")} aria-label={t("genTipAll")} aria-pressed={gens === 0} className={gens === 0 ? "on" : undefined}
                   onClick={() => onChange("generations", "0")}>{t("allGens")}</button>
         </div>
-        {gens === 0 && <p className="set-hint">{t("gensHint")}</p>}
+        {(desc ? gens === 0 || gens > POSTER_MAX_DESCENDANT_GENERATIONS : gens === 0) && <p className="set-hint">{t(desc ? "gensHintDesc" : "gensHint")}</p>}
       </div>
       <div className="rows">
         <label><span>{t("numbering")}</span>

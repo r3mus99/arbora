@@ -86,11 +86,12 @@ const surnameOf = (p: Person) => p.given && p.name.startsWith(p.given) ? p.name.
 export const cornerMaxValues = (generations: number) => (generations <= 5 ? 5 : generations <= 7 ? 6 : 7);
 
 /**
- * One block per branch that has at least `CORNER_MIN_PEOPLE` people and something to say. Each line is labelled and shows as many values as fit
+ * One block per branch that has at least `CORNER_MIN_PEOPLE` people and something to say. With `descendants` (the nouns after the number) the first person of a branch is only its head, the people counted follow. Each line is labelled and shows as many values as fit
  * in `maxWidth`, at most `cornerMaxValues(generations)`; the rest is counted ("+ 3 more").
  */
 export function cornerBlocks(branches: Record<CornerKey, Person[]>, o: ChartOptions, measure: Measure,
-                             maxWidth: (key: CornerKey) => number, generations: number, labelWidth: number): Corner[] {
+                             maxWidth: (key: CornerKey) => number, generations: number, labelWidth: number,
+                             descendants?: { nouns: [string, string, string] }): Corner[] {
   const t = TEXTS[o.lang], plural = new Intl.PluralRules(o.lang);
   const form = (forms: string[], n: number) => forms[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2];
   const more = (n: number) => `+ ${n} ${form(t.corners.more, n)}`;
@@ -105,12 +106,13 @@ export function cornerBlocks(branches: Record<CornerKey, Person[]>, o: ChartOpti
   // the head of the branch (the first of its people): "Line: Name  ·  b. 7 Apr 1939  ·  62 ancestors"; the birth and then the count drop out when it does not fit
   const heading = (head: Person, count: number, width: number) => {
     const date = head.birth?.date ? formatDate(head.birth.date, o.dates === "full", o.lang) : "";
-    const parts = [head.name || "?", date ? `${t.abbr.birt.trim()} ${date}` : "", `${count} ${form(t.ancestors, count)}`];
+    const parts = [head.name || "?", date ? `${t.abbr.birt.trim()} ${date}` : "", `${count} ${form(descendants?.nouns ?? t.ancestors, count)}`];
     return [parts, [parts[0], parts[2]], [parts[0]]].map((c) => c.filter(Boolean).join(sep))
       .find((x) => measure(x, CORNER_HEAD_SIZE, true) <= width - labelWidth) ?? parts[0];
   };
   return CORNER_KEYS.flatMap((key): Corner[] => {
-    const people = branches[key];
+    // for descendants the first person is the head of the line (the root) and is not one of the people counted
+    const head = branches[key][0], people = descendants ? branches[key].slice(1) : branches[key];
     if (people.length < CORNER_MIN_PEOPLE) return [];
     const lists: [string, Count[]][] = [
       [t.corners.origin, tally(people, municipality)],
@@ -118,6 +120,6 @@ export function cornerBlocks(branches: Record<CornerKey, Person[]>, o: ChartOpti
       [t.corners.surnames, mergeSurnameForms(tally(people, surnameOf))],
     ];
     const rows = lists.filter(([, items]) => items.length).map(([label, items]) => fit(label, items, maxWidth(key)));
-    return rows.length ? [{ key, heading: heading(people[0], people.length, maxWidth(key)), headLabel: t.corners.line, rows }] : [];
+    return rows.length ? [{ key, heading: heading(head, people.length, maxWidth(key)), headLabel: t.corners.line, rows }] : [];
   });
 }
