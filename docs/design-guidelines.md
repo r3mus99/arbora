@@ -70,7 +70,7 @@ No other radius, height or padding number is used for a control. Dialogs use `--
 
 - Surfaces: `--bg` for the page, rail and inputs; `--panel` for panels, dialogs and cards. `--border` for every line.
 - Text: `--text`, secondary `--muted`. Never `opacity` to dim text; use `--muted`.
-- `--accent` marks the active thing (open mini-app, chosen switch, selected person, links, primary button).
+- `--accent` is the palette's Forest green (the same as birth) and marks the active thing (open mini-app, chosen switch, selected person, links, primary button).
   `--accent-soft` is the hover and the "on" background.
 - `--danger` for errors, `--warn` (new token, replaces the literal `#b7791f`) for warnings and badges.
 - Event and sex colours are tokens too (`--c-birth`, `--c-marr`, `--c-death`, `--c-src`, `--sex-M`, `--sex-F`
@@ -113,7 +113,7 @@ Text buttons and text fields are all `--field-h` high, `--radius`, 14px text, 1p
 | Form fields outside the edit window (settings, merge, bulk fix) | The same rows: put the fields in a `.rows` container. A select is a row with its name in the left column; a state that turns on at once (show places) is a switch row (`label.check`, input before the name; the name starts with a capital by CSS); a field without a name column (pick a person, a spelling to find) is `label.pick` with `data-cap=""`, its placeholder stays visible and is its name. Checkboxes and radios in tables and lists keep the native control, always `accent-color: var(--accent)`; a radio next to a value in a table is a plain `label.opt`, never a box. |
 | Search and filter fields (list, places, sources, bulk finder; `.finder`) | The same row look as the edit window: a bar the height of a head row with the magnifier or filter icon, no underline and no box; hover tints it (`--accent-soft` at 45%), focus fills it with `--accent-soft`, draws a 3px `--accent` bar on its left edge and turns the icon `--accent`. A multi-line textarea keeps a dashed box (`--radius`). |
 | Checkbox / radio | 16px, `accent-color: var(--accent)`, label 14px. For a choice in a list or a table and for options of an output. |
-| Switch (iOS style) | `.check` label with `role="switch"` in the edit window: 44×26px, `--switch-on` green when on, label left, switch right. Only for a state of the person or marriage that is on or off (deceased, divorced); never for a setting or a row selection. |
+| Switch (iOS style) | `.check` label with `role="switch"` in the edit window: 44×26px, `--accent` when on, label left, switch right. Only for a state of the person or marriage that is on or off (deceased, divorced); never for a setting or a row selection. |
 | Chip / count badge | `--ctl-h-sm`, pill, 12px. Picked: accent border + `--accent-soft`. |
 | Notification badge (`.badge`) | iOS-style counter on the corner of an icon or button in the top bar and rail: `--warn` pill, white 12px bold number, 17px high, 2px ring in `--bg`, pinned to the top-right corner (`top -4px, right -6px`) so it never changes the layout. Hidden at 0, "99+" above 99. Used for the number of problems (check) and of unsaved changes (GED save button); its tooltip text describes the number ("unsaved changes: 3"). |
 | Tabs (vertical, in a wide panel) | rail-like rows: `--field-h`, `--radius`, active = `--accent-soft` + `--accent`. Count badge on the right (`--ctl-h-sm` pill, `--warn-soft`; grey at 0). |
