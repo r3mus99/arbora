@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.57.0 – 2026-10-20
+
+- **One green and one red on the screen.** The accent of the app is now the same forest green as birth years, errors and women use the same brick red as on the poster, and the switches in the edit window turn on in the accent colour instead of a separate bright green.
+
 ## 2.56.0 – 2026-10-20
 
 - **Marriage has its own gold colour.** The poster draws the rings, the marriage year and the number of children of a couple in dark gold, and the screen and the PDF use the same gold for marriage dates.
