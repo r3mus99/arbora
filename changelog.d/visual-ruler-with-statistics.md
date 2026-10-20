@@ -1,0 +1,1 @@
+- **The poster's generation ruler appears together with the corner statistics.** Both show up automatically from 5 filled generations; smaller posters stay clean.
