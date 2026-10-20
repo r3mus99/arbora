@@ -8,7 +8,7 @@
  */
 
 import type { GedcomData, Person } from "./gedcom";
-import { formatDate, formatEvent, formatPlace, residencePlace, type ChartOptions } from "./format";
+import { formatDMY, formatDate, formatEvent, formatPlace, residencePlace, type ChartOptions } from "./format";
 import { normalize } from "./chart";
 import { yearOf } from "./date";
 import { TEXTS } from "./texts";
@@ -78,6 +78,9 @@ export interface Poster {
   seed: number;
   title: string;
 }
+
+/** What the mark in the corner of a poster says about its origin. */
+export interface PosterCredit { version: string; date: Date }
 
 export const POSTER_COLORS = {
   paper: PALETTE.parchment, plate: PALETTE.ivory, male: PALETTE.lapis, female: PALETTE.brick, ink: PALETTE.ink, line: PALETTE.espresso,
@@ -185,7 +188,7 @@ function leafPath(x: number, y: number, ang: number, s: number): string {
 interface Plate { id: string; gen: number; x: number; y: number; w: number; h: number }
 
 /** The ancestors of `rootId` as a poster; `options.generations` generations including the person (0 = all, which the poster keeps to POSTER_MAX_GENERATIONS); the poster is as wide as the generations need and as high as the people need. */
-export function buildPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts): Poster {
+export function buildPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts, credit?: PosterCredit): Poster {
   const o = normalize(options);
   const measure = fonts ? fonts.width : textWidth;
   const root = data.people[rootId];
@@ -657,6 +660,11 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     const o = inset - distance, r = cornerR - distance;
     return roundedRect(W / 2, H / 2, W + 2 * o, H + 2 * o, r) + roundedRect(W / 2, H / 2, W + 2 * (o - thickness), H + 2 * (o - thickness), r - thickness, true);
   };
+  // the mark of the program: small, in the strip between the tree and the inner border line, right aligned at the bottom
+  if (credit) {
+    const size = 20, text = `${TEXTS[o.lang].createdWith} ${credit.version} \u00B7 ${formatDMY(o.lang, credit.date.getDate(), credit.date.getMonth() + 1, credit.date.getFullYear())}`;
+    texts.push({ text, x: W - 30 - measure(text, size, false) / 2, y: H + 28, size, bold: false, fill: C.place });
+  }
   const frameShapes: PosterShape[] = [{ d: line(0, 6), fill: C.branchEdge, stroke: null, strokeWidth: 0 },
                                       { d: line(gap, 3), fill: C.branchEdge, stroke: null, strokeWidth: 0 }];
   shapes.push({ d: `M${-margin},${-margin}L${W + margin},${-margin}L${W + margin},${H + margin}L${-margin},${H + margin}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },

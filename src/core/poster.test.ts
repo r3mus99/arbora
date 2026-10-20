@@ -42,6 +42,17 @@ describe("seeded random", () => {
 });
 
 describe("poster layout", () => {
+  test("the mark of the program sits in the bottom right corner, outside the tree, only when asked for", () => {
+    const date = new Date(2026, 9, 20);
+    const p = buildPoster(data, ROOT, { generations: 5, lang: "en" }, undefined, { version: "2.57.0", date });
+    const mark = p.texts.find((t) => t.text.startsWith("Created with Arbora"))!;
+    expect(mark.text).toBe("Created with Arbora 2.57.0 \u00B7 20 Oct 2026");
+    expect(mark.y).toBeGreaterThan(p.height);
+    expect(mark.x).toBeLessThan(p.width);
+    expect(mark.x).toBeGreaterThan(p.width * 0.5);
+    expect(buildPoster(data, ROOT, { generations: 5, lang: "en" }).texts.some((t) => t.text.includes("Arbora"))).toBe(false);
+  });
+
   test("a full five-generation tree has a plate for each of the 31 ancestors, and the root below the parents in the middle", () => {
     const p = buildPoster(data, ROOT, { generations: 5, lang: "en" });
     expect(p.people).toBe(31);

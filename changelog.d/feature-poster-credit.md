@@ -1,0 +1,1 @@
+- **The poster says it was made by Arbora.** A small line in the bottom right corner, "Created with Arbora 2.57.0 · 20 Oct 2026" (in the poster language), shows the program version and the date of the download.
