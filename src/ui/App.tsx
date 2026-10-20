@@ -228,7 +228,7 @@ export function App() {
       const pf = posterFonts([...alkatra.regular, dejavu.regular], [...alkatra.bold, dejavu.bold || dejavu.regular]);
       // every download draws new branches
       const opts = toOptions(form, lang);
-      const poster = buildPoster(data, id, { ...opts, posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf);
+      const poster = buildPoster(data, id, { ...opts, posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf, { version, date: new Date() });
       saveFile(new Blob([posterSvg(poster, pf)], { type: "image/svg+xml" }),
                `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}.svg`);
       setStatus(null);
