@@ -825,6 +825,22 @@ section.check { margin: 0 0 14px; }
 .edit-body .editor .check > span { color: var(--text); }
 .edit-body .editor .sex-field { grid-template-columns: var(--lab-w) minmax(0, 1fr); }
 .edit-body .editor .sex { height: 28px; }
+/* item rows (an event, an attribute, a contact): a title row with the kind select, then rows */
+.edit-body .editor .item-head { align-items: center; min-height: var(--row-h); border-top: 1px solid var(--border); padding: 0 4px 0 10px; }
+.edit-body .editor .item-head select { appearance: none; border: 0; background: no-repeat right 0 center / 12px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4.500 6 8.500l4-4' fill='none' stroke='%2362675f' stroke-width='1.600' stroke-linecap='round'/%3E%3C/svg%3E");
+  padding: 0 18px 0 0; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; border-radius: 0; cursor: pointer; }
+.edit-body .editor .item-head select:disabled { background-image: none; padding-right: 0; cursor: default; opacity: 1; color: var(--text); }
+.edit-body .editor .item-head input { border: 0; background: none; border-radius: 0; padding: 0; }
+.edit-body .editor .item-head input:focus { background: none; }
+.edit-body .editor .item > .full, .edit-body .editor .item .full { grid-column: auto; }
+/* the inline form for a new person: the same rows, in the inset card */
+.edit-body .editor .new-child { gap: 0; padding: 0; overflow: hidden; }
+.edit-body .editor .new-child > label:not(.check) { max-width: none; }
+.edit-body .editor .new-child .kid-row, .edit-body .editor .new-child .kid-death, .edit-body .editor .new-child .pair { display: block; }
+.edit-body .editor .new-child > label[data-cap], .edit-body .editor .new-child .kid-row > label[data-cap], .edit-body .editor .new-child .kid-death > label[data-cap],
+.edit-body .editor .new-child .pair > label[data-cap] { border-top: 1px solid var(--border); }
+.edit-body .editor .new-child > :first-child { border-top: 0; }
+.edit-body .editor .new-child .kid-actions { padding: 8px 10px; border-top: 1px solid var(--border); }
 /* "Details": a quiet disclosure of the card, not a row: small, muted, hairline above, no accent colour */
 .edit-body .editor .reveal { color: var(--muted); font-size: 12px; min-height: 28px; margin: 2px 0 0 10px; }
 .edit-body .editor .reveal:hover:not(:disabled) { color: var(--text); }
