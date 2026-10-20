@@ -140,8 +140,8 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
   const frameW = Math.max(measure(title, 58, true), measure(figures, 26, false)) + 120, frameH = 150;
   const W = Math.max(1400, Math.round(contentW + 80), Math.round(frameW + 80));
   const shift = (W - contentW) / 2;
-  // Statistics (as on the ancestors poster, from 5 filled generations): a ruler of the generations under the title and one
-  // list of the places and names of all descendants (the same frame as the title and the plates) over the first columns.
+  // Statistics (as on the ancestors poster, from 5 filled generations): a ruler of the generations and one list of the places and
+  // names of all descendants (the same frame as the title and the plates), together under the tree.
   const withStats = posterHasStatistics(depth);
   const tx = TEXTS[o.lang].corners;
   const labelW = Math.max(...[tx.line, tx.origin, tx.given, tx.surnames].map((l) => measure(l, CORNER_LABEL_SIZE, true))) + CORNER_PAD + 22;
@@ -150,7 +150,6 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
     o, measure, () => blockRoom - 2 * CORNER_PAD, depth, labelW, { nouns: TEXTS[o.lang].descendants })[0] : undefined;
   const blockW = list ? Math.min(blockRoom, labelW + 16 + Math.max(measure(list.heading, CORNER_HEAD_SIZE, true), ...list.rows.map((r) => measure(r.value, CORNER_VALUE_SIZE, false))) + CORNER_PAD) : 0;
   const blockH = list ? cornerHeight(list.rows.length) : 0;
-  const rulerBase = 280, blockY = 350;
 
   // ------------------------------------------------------------ rows
   // Every person owns a band of rows as high as the plate, or as the partnerships need: the children of a partnership stand
@@ -191,15 +190,13 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
     n.plate.y = Math.min(Math.max(mid, top + n.plate.h / 2), top + n.height - n.plate.h / 2);
   };
   const frameY = 100, bottom = 70;
-  let topY = withStats ? 370 : 190;
+  const topY = 190;
   settle(tree, topY);
-  // the list stands over the first columns, from the left edge of the plates; plates that would touch it make the poster start lower
+  // the statistics stand together under the tree: the ruler of the generations, under it the list
   const left = shift;
-  if (list) {
-    const clash = Math.max(0, ...plates.filter((q) => q.x + q.w / 2 > left && q.x - q.w / 2 < left + blockW).map((q) => blockY + blockH + 50 - (q.y - q.h / 2)));
-    if (clash > 0) { topY += clash; settle(tree, topY); }
-  }
-  const H = Math.round(topY + tree.height + bottom);
+  const treeBottom = topY + tree.height;
+  const rulerBase = treeBottom + 110, blockY = rulerBase + 90;
+  const H = Math.round(withStats ? blockY + blockH + 70 : treeBottom + bottom);
 
   // ------------------------------------------------------------ branches
   const C = POSTER_COLORS;
@@ -264,7 +261,7 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
     { text: title, x: W / 2, y: frameY - 4, size: 58, bold: true, fill: C.ink },
     { text: figures, x: W / 2, y: frameY + 40, size: 26, bold: false, fill: C.branch }];
 
-  // The ruler: a decorative line under the title with a tick at the middle of every generation's column pair, "Nth
+  // The ruler: a decorative line under the tree with a tick at the middle of every generation's column pair, "Nth
   // generation" over it and under it how many descendants of that generation are on the poster (every plate counts).
   if (withStats) {
     const bar = (x0: number, y0: number, x1: number, y1: number) => `M${x0},${y0}L${x1},${y0}L${x1},${y1}L${x0},${y1}Z`;
