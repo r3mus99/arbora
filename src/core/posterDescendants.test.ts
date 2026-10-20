@@ -171,6 +171,34 @@ describe("descendants poster: uneven families stay clean", () => {
   });
 });
 
+describe("descendants poster: statistics", () => {
+  const five = () => build(descendantsGed(() => ({ partners: 1, children: 2 }), 8), 5);
+
+  test("from 5 generations the poster has the ruler of the generations and one list of all descendants; below that it has neither", () => {
+    const p = five();
+    expect(p.generations).toBe(5);
+    for (let g = 1; g <= 5; g++) expect(p.texts.some((t) => t.bold && t.text === `Generation ${g}`)).toBe(true);
+    expect(p.texts.some((t) => t.text === "2 descendants")).toBe(true);
+    const descendants = new Set(p.plates.filter((q) => q.gen > 1 && q.id !== "@I1@").map((q) => q.id));
+    expect(p.texts.some((t) => t.bold && t.text.startsWith("Name1 Family1  \u00B7  b. 1800  \u00B7  "))).toBe(true);
+    expect(p.texts.some((t) => t.text.startsWith("Family5"))).toBe(true);
+    expect(descendants.size).toBeGreaterThan(5);
+    const four = build(descendantsGed(() => ({ partners: 1, children: 2 }), 8), 4);
+    expect(four.texts.some((t) => t.text === "Generation 1")).toBe(false);
+    expect(four.texts.some((t) => t.text.startsWith("Origin"))).toBe(false);
+  });
+
+  test("the list and the ruler stay clear of the plates, also when the family is a thin chain", () => {
+    for (const shape of [shapes.onlyChildren, (g: number) => ({ partners: 1, children: g === 1 ? 4 : 2 })]) {
+      const p = build(descendantsGed(shape, 8), 6);
+      expectClean(p);
+      const listBottom = Math.max(...p.texts.filter((t) => t.size === 24 && /Town/.test(t.text)).map((t) => t.y));
+      const rootBox = p.plates.find((q) => q.id === "@I1@")!;
+      expect(listBottom).toBeLessThan(rootBox.y - rootBox.h / 2);
+    }
+  });
+});
+
 describe("descendants poster: look", () => {
   test("the same seed draws the same tree, another seed another one, the layout stays", () => {
     const ged = descendantsGed(shapes.typical);

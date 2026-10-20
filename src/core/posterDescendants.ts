@@ -12,8 +12,9 @@ import { normalize } from "./chart";
 import { yearOf } from "./date";
 import { TEXTS } from "./texts";
 import type { PosterFonts } from "./posterFont";
+import { CORNER_HEAD_H, CORNER_HEAD_SIZE, CORNER_LABEL_SIZE, CORNER_PAD, CORNER_STEP, CORNER_VALUE_SIZE, cornerBlocks, cornerHeight } from "./posterCorners";
 import {
-  dense, drawPlates, makeGrower, plateKit, plateOutline, posterBorder, posterSeed, POSTER_COLORS, POSTER_MIN_GENERATIONS, random, symbolShapes, textWidth,
+  dense, drawPlates, makeGrower, plateKit, plateOutline, posterBorder, posterHasStatistics, posterSeed, POSTER_COLORS, POSTER_MIN_GENERATIONS, random, symbolShapes, textWidth,
   type Plate, type Point, type Poster, type PosterShape, type PosterText,
 } from "./poster";
 
@@ -125,6 +126,32 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
   }
   const contentW = cursor - gapGen;
 
+  // ------------------------------------------------------------ title and statistics
+  const appearances = new Map<string, number>();
+  for (const q of plates) appearances.set(q.id, (appearances.get(q.id) ?? 0) + 1);
+  const descendants = new Set<string>();
+  walk(tree, (n) => { if (n !== tree) descendants.add(n.plate.id); });
+  const born = [rootId, ...descendants].map((id) => yearOf(data.people[id].birth?.date)).filter((y): y is number => y !== null);
+  const plural = new Intl.PluralRules(o.lang);
+  const counted = (n: number, forms: string[]) => `${n} ${forms[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2]}`;
+  const title = TEXTS[o.lang].titleDesc.replace("{name}", root.name || "?");
+  const figures = [counted(depth, TEXTS[o.lang].generations), counted(descendants.size, TEXTS[o.lang].descendants),
+    born.length > 1 ? `${Math.min(...born)}\u2013${Math.max(...born)}` : ""].filter(Boolean).join(" \u00B7 ");
+  const frameW = Math.max(measure(title, 58, true), measure(figures, 26, false)) + 120, frameH = 150;
+  const W = Math.max(1400, Math.round(contentW + 80), Math.round(frameW + 80));
+  const shift = (W - contentW) / 2;
+  // Statistics (as on the ancestors poster, from 5 filled generations): a ruler of the generations under the title and one
+  // list of the places and names of all descendants (the same frame as the title and the plates) over the first columns.
+  const withStats = posterHasStatistics(depth);
+  const tx = TEXTS[o.lang].corners;
+  const labelW = Math.max(...[tx.line, tx.origin, tx.given, tx.surnames].map((l) => measure(l, CORNER_LABEL_SIZE, true))) + CORNER_PAD + 22;
+  const blockRoom = Math.min(1500, contentW);
+  const list = withStats ? cornerBlocks({ fatherFather: [root, ...[...descendants].map((id) => data.people[id])], fatherMother: [], motherFather: [], motherMother: [] },
+    o, measure, () => blockRoom - 2 * CORNER_PAD, depth, labelW, { nouns: TEXTS[o.lang].descendants })[0] : undefined;
+  const blockW = list ? Math.min(blockRoom, labelW + 16 + Math.max(measure(list.heading, CORNER_HEAD_SIZE, true), ...list.rows.map((r) => measure(r.value, CORNER_VALUE_SIZE, false))) + CORNER_PAD) : 0;
+  const blockH = list ? cornerHeight(list.rows.length) : 0;
+  const rulerBase = 280, blockY = 350;
+
   // ------------------------------------------------------------ rows
   // Every person owns a band of rows as high as the plate, or as the partnerships need: the children of a partnership stand
   // one under the other in the band of that partnership, the partner level with the middle of its children, the person
@@ -152,36 +179,27 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
       }
       const centre = u.kids.length ? (u.kids[0].plate.y + u.kids[u.kids.length - 1].plate.y) / 2 : y + u.height / 2;
       if (u.partner) {
-        u.partner.x = partnerX.get(n.plate.gen)!;
+        u.partner.x = partnerX.get(n.plate.gen)! + shift;
         u.partner.y = Math.min(Math.max(centre, y + u.partner.h / 2), y + u.height - u.partner.h / 2);
       }
       u.top = y;
       anchors.push(u.partner?.y ?? centre);
       y += u.height + unionGap;
     }
-    n.plate.x = personX.get(n.plate.gen)!;
+    n.plate.x = personX.get(n.plate.gen)! + shift;
     const mid = anchors.length ? (anchors[0] + anchors[anchors.length - 1]) / 2 : top + n.height / 2;
     n.plate.y = Math.min(Math.max(mid, top + n.plate.h / 2), top + n.height - n.plate.h / 2);
   };
-  const frameY = 100, topY = 190, bottom = 70;
+  const frameY = 100, bottom = 70;
+  let topY = withStats ? 370 : 190;
   settle(tree, topY);
+  // the list stands over the first columns, from the left edge of the plates; plates that would touch it make the poster start lower
+  const left = shift;
+  if (list) {
+    const clash = Math.max(0, ...plates.filter((q) => q.x + q.w / 2 > left && q.x - q.w / 2 < left + blockW).map((q) => blockY + blockH + 50 - (q.y - q.h / 2)));
+    if (clash > 0) { topY += clash; settle(tree, topY); }
+  }
   const H = Math.round(topY + tree.height + bottom);
-
-  // ------------------------------------------------------------ title
-  const appearances = new Map<string, number>();
-  for (const q of plates) appearances.set(q.id, (appearances.get(q.id) ?? 0) + 1);
-  const descendants = new Set<string>();
-  walk(tree, (n) => { if (n !== tree) descendants.add(n.plate.id); });
-  const born = [rootId, ...descendants].map((id) => yearOf(data.people[id].birth?.date)).filter((y): y is number => y !== null);
-  const plural = new Intl.PluralRules(o.lang);
-  const counted = (n: number, forms: string[]) => `${n} ${forms[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2]}`;
-  const title = TEXTS[o.lang].titleDesc.replace("{name}", root.name || "?");
-  const stats = [counted(depth, TEXTS[o.lang].generations), counted(descendants.size, TEXTS[o.lang].descendants),
-    born.length > 1 ? `${Math.min(...born)}–${Math.max(...born)}` : ""].filter(Boolean).join(" · ");
-  const frameW = Math.max(measure(title, 58, true), measure(stats, 26, false)) + 120, frameH = 150;
-  const W = Math.max(1400, Math.round(contentW + 80), Math.round(frameW + 80));
-  const shift = (W - contentW) / 2;
-  for (const q of plates) q.x += shift;
 
   // ------------------------------------------------------------ branches
   const C = POSTER_COLORS;
@@ -244,7 +262,47 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
     { d: frameOuter, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: frameInner, fill: C.plate, stroke: null, strokeWidth: 0 }];
   const texts: PosterText[] = [...drawn.texts, ...marriages,
     { text: title, x: W / 2, y: frameY - 4, size: 58, bold: true, fill: C.ink },
-    { text: stats, x: W / 2, y: frameY + 40, size: 26, bold: false, fill: C.branch }];
+    { text: figures, x: W / 2, y: frameY + 40, size: 26, bold: false, fill: C.branch }];
+
+  // The ruler: a decorative line under the title with a tick at the middle of every generation's column pair, "Nth
+  // generation" over it and under it how many descendants of that generation are on the poster (every plate counts).
+  if (withStats) {
+    const bar = (x0: number, y0: number, x1: number, y1: number) => `M${x0},${y0}L${x1},${y0}L${x1},${y1}L${x0},${y1}Z`;
+    const fit = (x: number, text: string, size: number, bold: boolean) => Math.min(W - 10 - measure(text, size, bold) / 2, Math.max(10 + measure(text, size, bold) / 2, x));
+    const perGen = new Map<number, number>();
+    walk(tree, (n) => perGen.set(n.plate.gen, (perGen.get(n.plate.gen) ?? 0) + 1));
+    const edge = (g: number) => [personX.get(g)! - widthOf(g) / 2 + shift, (partnerX.get(g) ?? personX.get(g)!) + widthOf(g) / 2 + shift];
+    const first = edge(1)[0], last = edge(depth)[1];
+    let d = bar(first, rulerBase - 1.5, last, rulerBase + 1.5);
+    for (let x = first; x <= last; x += 25) d += bar(x - 0.75, rulerBase - 7, x + 0.75, rulerBase);
+    for (let g = 1; g <= depth; g++) {
+      const [x0, x1] = edge(g), cx = (x0 + x1) / 2;
+      const label = TEXTS[o.lang].generation.replace("{n}", String(g));
+      d += bar(cx - 2, rulerBase - 26, cx + 2, rulerBase + 18);
+      texts.push({ text: label, x: fit(cx, label, 26, true), y: rulerBase - 38, size: 26, bold: true, fill: C.branchEdge });
+      if (g > 1) {
+        const n = counted(perGen.get(g) ?? 0, TEXTS[o.lang].descendants);
+        texts.push({ text: n, x: fit(cx, n, 22, false), y: rulerBase + 44, size: 22, bold: false, fill: C.ink });
+      }
+    }
+    plateShapes.unshift({ d, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
+  }
+  if (list) {
+    const x0 = left, x1 = left + blockW, cx = (x0 + x1) / 2, y0 = blockY;
+    const [outer, inner] = plateOutline(cx, y0 + blockH / 2, blockW, blockH, 1.3, false, 14);
+    plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 },
+      { d: `M${x0 + CORNER_PAD},${y0 + CORNER_HEAD_H - 0.7}L${x1 - CORNER_PAD},${y0 + CORNER_HEAD_H - 0.7}L${x1 - CORNER_PAD},${y0 + CORNER_HEAD_H + 0.7}L${x0 + CORNER_PAD},${y0 + CORNER_HEAD_H + 0.7}Z`, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
+    const put = (text: string, size: number, bold: boolean, y: number, fill: string, from: number) =>
+      texts.push({ text, x: from + measure(text, size, bold) / 2, y, size, bold, fill });
+    const headY = y0 + CORNER_HEAD_H / 2 + 11;
+    put(list.headLabel, CORNER_LABEL_SIZE, true, headY, C.branch, x0 + CORNER_PAD);
+    put(list.heading, CORNER_HEAD_SIZE, true, headY, C.branchEdge, x0 + labelW + 16);
+    list.rows.forEach((r, i) => {
+      const y = y0 + CORNER_HEAD_H + i * CORNER_STEP + CORNER_STEP * 0.68;
+      put(r.label, CORNER_LABEL_SIZE, true, y, C.branch, x0 + CORNER_PAD);
+      put(r.value, CORNER_VALUE_SIZE, false, y, C.ink, x0 + labelW + 16);
+    });
+  }
 
   const { margin, frameShapes } = posterBorder(W, H);
   const shapes: PosterShape[] = [
