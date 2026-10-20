@@ -19,24 +19,26 @@ import {
 
 /**
  * The most generations (including the person) the descendants poster shows. The width is not the limit (one more column
- * is one more plate pair), the height is: it grows with the number of people of the last generation, and a
- * family with 60 great-grandchildren is already a poster of 7000 units. Measurements in docs/tree-poster.md.
+ * pair is about 750 units), the height is: it grows with the number of people of the last generation, about 100 units each.
+ * Measurements in docs/tree-poster.md.
  */
-export const POSTER_MAX_DESCENDANT_GENERATIONS = 4;
+export const POSTER_MAX_DESCENDANT_GENERATIONS = 6;
 /** Plate size by generation: the leaves of the last column decide the height of the poster, so the plates shrink faster than on the ancestors poster. */
 export const POSTER_DESCENDANT_PLATE_SCALE = [2, 1.5, 1.25, 1];
 
 /**
- * The most plates (people with their partners) a descendants poster holds. A family with 30 children who have 5 children
- * each is 1900 plates in the fourth generation: a poster 68 000 units high and a 14 MB file that takes half a minute to
- * draw. Over this number the last generation is left out (never below POSTER_MIN_GENERATIONS); the title says how many
- * generations the poster really shows.
+ * The most plates (people with their partners) a descendants poster holds, which keeps the height to about 25 000 units. A family
+ * with 4 children and 3 for each of them has 970 plates in the 6th generation: a poster 29 000 units high and a 7 MB file; with 30 children who have 5 each,
+ * the 4th generation alone is 1900 plates and half a minute of drawing. Over this number the last generation is left out (never below
+ * POSTER_MIN_GENERATIONS); the title says how many generations the poster really shows.
  */
-export const POSTER_MAX_DESCENDANT_PLATES = 400;
+export const POSTER_MAX_DESCENDANT_PLATES = 500;
 
 /** The number of generations the generations setting asks the descendants poster for (0 = all): at least the minimum, at most the descendants limit. */
 export const descendantPosterGenerations = (setting: number) =>
   Math.min(POSTER_MAX_DESCENDANT_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(setting) || POSTER_MAX_DESCENDANT_GENERATIONS));
+
+class TooMany extends Error {}
 
 interface Union { fam: Family; partner: Plate | null; kids: Node[]; top: number; height: number }
 interface Node { plate: Plate; unions: Union[]; height: number }
@@ -56,11 +58,12 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
   // Every person with the partners of his or her families (in the order of the file) and the children of each of them, down to
   // `gens`. A person met on the way back to the root (a loop in bad data) is not followed again; a person who is in the family
   // twice (cousins who married) is drawn twice, with the "2×" tag.
-  const gather = (gens: number) => {
+  const gather = (gens: number, limit: number) => {
     const kit = plateKit(o, measure, gens, POSTER_DESCENDANT_PLATE_SCALE);
     const plates: Plate[] = [];
     const people = new Map<Plate, Person>();
     const plateOf = (id: string, gen: number): Plate => {
+      if (plates.length > limit) throw new TooMany();
       const p = data.people[id];
       const plate: Plate = { id, gen, w: kit.widthOf(gen), h: kit.plateHeight(p, gen), x: 0, y: 0 };
       plates.push(plate);
@@ -83,8 +86,11 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
     };
     return { kit, plates, people, tree: build(rootId, 1, new Set()) };
   };
-  let gens = asked, got = gather(gens);
-  while (gens > POSTER_MIN_GENERATIONS && got.plates.length > POSTER_MAX_DESCENDANT_PLATES) got = gather(--gens);
+  // asked for too many generations: draw one fewer until the plates fit (a family too big even for the minimum is drawn as it is)
+  let gens = asked, got: ReturnType<typeof gather> | null = null;
+  while (!got) {
+    try { got = gather(gens, gens > POSTER_MIN_GENERATIONS ? POSTER_MAX_DESCENDANT_PLATES : Infinity); } catch (e) { if (!(e instanceof TooMany)) throw e; gens--; }
+  }
   const { kit, plates, people, tree } = got;
   const { widthOf, lookOf } = kit;
   const depth = Math.max(...plates.map((q) => q.gen));

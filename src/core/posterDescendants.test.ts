@@ -158,7 +158,7 @@ describe("descendants poster: uneven families stay clean", () => {
     expect(descendantPosterGenerations(10)).toBe(POSTER_MAX_DESCENDANT_GENERATIONS);
     expect(descendantPosterGenerations(3)).toBe(3);
     expect(descendantPosterGenerations(1)).toBe(3);
-    expect(build(descendantsGed(shapes.typical), 10).generations).toBe(POSTER_MAX_DESCENDANT_GENERATIONS);
+    expect(build(descendantsGed(() => ({ partners: 1, children: 2 }), 8), 10).generations).toBe(POSTER_MAX_DESCENDANT_GENERATIONS);
   });
 
   test("a family too large for the last generation leaves that generation out, and the title says so", () => {

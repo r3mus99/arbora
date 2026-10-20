@@ -112,8 +112,7 @@ straight), the seeded branches and leaves and the title frame look the same; onl
 - **Title:** "Descendants of …", under it "3 generations · 49 descendants · 1708–1790" (generations as really drawn, descendants counted once each,
   partners not counted, the years from the oldest to the youngest birth). A person who is in the family twice (cousins who married) is drawn under both parents with the "2×" tag. A loop in the data (a person
   who is their own descendant) is cut where it closes.
-- **Statistics:** the corner lists and the generation ruler follow the same rule (`posterHasStatistics`, from 5 filled generations). With the limit of 4
-  generations they never appear on a descendants poster; they would need their own design (descendants by line, places of the families).
+- **Statistics:** the corner lists and the generation ruler are not drawn on a descendants poster, although `posterHasStatistics` would be true from 5 generations on: they need their own design (descendants by line, places of the families). Open.
 
 ### Limits and measurements (2026-10-20)
 
@@ -131,10 +130,18 @@ Made-up families (`src/core/fixtures/descendants.ts`) and the Habsburg sample, w
 | Habsburgs: Francis I (16 children) | 3 / 4 | 84 / 209 | 3326 × 7521 / 4092 × 14808 | 0.9 / 2.2 MB | 1.0 / 1.9 s |
 | Habsburgs: Charles III of Spain | 3 / 4 | 53 / 166 | 3326 × 4312 / 4092 × 11177 | 0.6 / 1.8 MB | |
 
-So the limit is **4 generations** (`POSTER_MAX_DESCENDANT_GENERATIONS`; 3 and 4 give exactly that, "All" and anything above give 4) and, as a safeguard, **400 plates**
+Marek asked to raise the limit of 4 (2026-10-20); measured again with more generations (text as outlines, Show places on):
+
+| Family | Generations | Plates | Size (units) | SVG | Time |
+| --- | --- | --- | --- | --- | --- |
+| 2 children each | 5 / 6 | 62 / 126 | 4184 × 1676 / 4850 × 3116 | 0.4 / 0.9 MB | 0.1 / 0.2 s |
+| typical: 4 children, then 3 each | 5 / 6 | 322 / 970 | 4184 × 9956 / 4850 × 29396 | 2.2 / 6.8 MB | 2 / 11 s |
+| Habsburgs: Francis I (16 children) | 5 | 384 | 4424 × 22417 | 4.0 MB | 5 s |
+
+So the limit is **6 generations** (`POSTER_MAX_DESCENDANT_GENERATIONS`; 3 to 6 give exactly that, "All" and anything above give 6) and, as the real limit, **500 plates**
 (`POSTER_MAX_DESCENDANT_PLATES`): when the last generation would bring the poster over that, it is left out (never below 3 generations) and the title shows the
-generations really drawn. With 5 generations an ordinary family (4 children each) would already be 2.5 times taller than with 4 and a rich one
-(Francis I) around 30 000 units, so a higher limit was not worth it.
-Known weak spots: a very large family is a very tall poster (Francis I with 4 generations is 14 800 × 4 100, about 3.6 : 1; paper sizes are open point 10); the plates of
+generations really drawn. So a family of 2 children each gets 6 generations, a typical one (4, then 3 each) 5 generations (322 plates, 10 000 units high), Francis I 5 generations (about 22 000 high, 5 : 1) and the family of 30 children only 3. The generations are counted until the
+plates stop (the check stops as soon as the number is passed, so a huge family is not drawn first). 
+Known weak spots: a very large family is a very tall poster (Francis I with 5 generations is 22 400 × 4 400, about 5 : 1; paper sizes are open point 10); the plates of
 the last generation are only 100 % and the text on them is small; a person with many partners makes a tall band of partners; partners of
 descendants carry no ancestors or other partnerships.
