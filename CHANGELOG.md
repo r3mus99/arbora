@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.53.0 – 2026-10-20
+
+- **Tree poster plates with places are only as tall as their rows need.** A person with two rows no longer gets the space of three, and a person without any place keeps the plain plate.
+
 ## 2.52.0 – 2026-10-20
 
 - **The tree poster shows where people were born, lived and died.** With "Show places" on, the plates of the first four generations get a row each for the birth place, the residence and the death place, with the dates in the same rows.
