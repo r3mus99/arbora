@@ -8,12 +8,13 @@
  */
 
 import type { GedcomData, Person } from "./gedcom";
-import { formatDate, formatEvent, residencePlace, type ChartOptions } from "./format";
+import { formatDate, formatEvent, formatPlace, residencePlace, type ChartOptions } from "./format";
 import { normalize } from "./chart";
 import { yearOf } from "./date";
 import { TEXTS } from "./texts";
 import { CORNER_HEAD_H, CORNER_HEAD_SIZE, CORNER_LABEL_SIZE, CORNER_PAD, CORNER_STEP, CORNER_VALUE_SIZE, cornerBlocks, cornerHeight, type CornerKey } from "./posterCorners";
 import type { PosterFonts } from "./posterFont";
+import { PALETTE } from "./palette";
 
 export const POSTER_MIN_GENERATIONS = 3;
 export const POSTER_MAX_GENERATIONS = 10;
@@ -27,12 +28,13 @@ export const posterHasStatistics = (filledGens: number) => filledGens >= POSTER_
 const POSTER_MAX_SWING = 24;
 const POSTER_BRANCH_OVERLAP = 6;
 export const POSTER_PLATE_SCALE = [2, 1.75, 1.5, 1.25];
-/** The plates of generations 1 to this one (the big ones) show where the person was born, lived and died, one row each, when "Show places" is on. */
+/** The plates of generations 1 to this one (the big ones) show where the person was born, lived and died on a third line under the years, when "Show places" is on. */
 export const POSTER_PLACES_UP_TO = 4;
-/** A plate with place rows is as tall as its rows need, but at most this much taller than a plain plate (the dates move into the rows). */
-export const POSTER_PLACES_HEIGHT = 1.75;
-type Rows = "none" | "three";
-const rowsFor = (gen: number, o: { showPlaces: boolean }): Rows => o.showPlaces && gen <= POSTER_PLACES_UP_TO ? "three" : "none";
+/** A plate with a places line is as tall as its lines need, but at most this much taller than a plain plate. */
+export const POSTER_PLACES_HEIGHT = 1.5;
+/** The places line is this much of the name size; it shrinks to `POSTER_PLACES_MIN` of that before a place is cut. */
+const PLACES_SIZE = 0.85, PLACES_MIN = 0.8;
+const placesFor = (gen: number, o: { showPlaces: boolean }) => o.showPlaces && gen <= POSTER_PLACES_UP_TO;
 /** From this generation on (the person is generation 1) the plates are only this tall (text, spacing and border shrink with them), so a big poster does not grow so fast in height. */
 export const POSTER_SMALL_FROM = 7;
 export const POSTER_SMALL_HEIGHT = 0.5;
@@ -78,8 +80,9 @@ export interface Poster {
 }
 
 export const POSTER_COLORS = {
-  paper: "#efe3cc", plate: "#fffcf3", male: "#2f5f9e", female: "#a8322a", ink: "#2a1d12", line: "#3a2a1a", branch: "#6b4626", branchEdge: "#4a2f18",
-  leafEdge: "#2f4a1c", leaves: ["#4f7a2e", "#5d8a34", "#3f6b28", "#6b9a3c", "#4a7a3a"],
+  paper: PALETTE.parchment, plate: PALETTE.ivory, male: PALETTE.lapis, female: PALETTE.brick, ink: PALETTE.ink, line: PALETTE.espresso,
+  branch: PALETTE.chocolate, branchEdge: PALETTE.espresso, birth: PALETTE.forest, death: PALETTE.chocolate, place: PALETTE.stone,
+  leafEdge: PALETTE.leafEdge, leaves: [PALETTE.forest, PALETTE.fern, PALETTE.pine, PALETTE.clover, PALETTE.spruce],
 };
 
 /** A small seeded generator (mulberry32): the same seed gives the same sequence. */
@@ -204,10 +207,10 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const small = (gen: number) => gen >= POSTER_SMALL_FROM;
   const unitH = (gen: number) => baseH * scaleOf(gen) * (small(gen) ? POSTER_SMALL_HEIGHT : 1);
   const heightOf = (gen: number) => Math.round(unitH(gen));
-  // a plate with place rows is only as tall as its rows need (a person without any place stays a plain plate)
+  // a plate with a places line is only as tall as its lines need (a person without any place stays a plain plate)
   const plateHeight = (p: Person, gen: number) => {
-    if (rowsFor(gen, o) !== "three") return heightOf(gen);
-    const own = plateLines({ id: "", gen, x: 0, y: 0, w: widthOf(gen), h: unitH(gen) }, p, o, measure, unitH(gen), "three");
+    if (!placesFor(gen, o)) return heightOf(gen);
+    const own = plateLines({ id: "", gen, x: 0, y: 0, w: widthOf(gen), h: unitH(gen) }, p, o, measure, unitH(gen), true);
     return Math.max(heightOf(gen), Math.min(Math.round(unitH(gen) * POSTER_PLACES_HEIGHT), Math.ceil(linesHeight(own, 1.15) / PLATE_TEXT_SHARE)));
   };
   // the border and the tag of a plate follow its height
@@ -562,7 +565,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // ------------------------------------------------------------ plates and texts
   const texts: PosterText[] = [];
   const plateShapes: PosterShape[] = [];
-  const lines = new Map(plates.map((plate) => [plate, plateLines(plate, people.get(plate)!, o, measure, unitH(plate.gen), rowsFor(plate.gen, o))]));
+  const lines = new Map(plates.map((plate) => [plate, plateLines(plate, people.get(plate)!, o, measure, unitH(plate.gen), placesFor(plate.gen, o))]));
   // one size for the names and one for the dates of a generation, so a column reads evenly; a plate whose name wraps
   // to two lines keeps its own smaller sizes and does not pull the single-line plates of its generation down
   const wraps = (ls: Line[]) => ls.filter(([, , bold]) => bold).length > 1;
@@ -580,8 +583,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 },
                      { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
     const own = lines.get(plate)!;
-    const same = own.map(([text, size, bold, role]): Line => [text, Math.min(size, smallest.get(`${plate.gen}${bold}${role}`) ?? size), bold, role]);
-    texts.push(...stack(plate, same, small(plate.gen) ? 1.05 : 1.15, sex === "M" ? C.male : sex === "F" ? C.female : C.ink));
+    const same = own.map(([text, size, bold, role, parts]): Line => [text, Math.min(size, smallest.get(`${plate.gen}${bold}${role}`) ?? size), bold, role, parts]);
+    texts.push(...stack(plate, same, small(plate.gen) ? 1.05 : 1.15, sex === "M" ? C.male : sex === "F" ? C.female : C.ink, measure));
     // a person who stands on the poster more than once (both lines of the family lead to them) carries a small
     // brown tag with the number of places in the top right corner
     const times = appearances.get(plate.id)!;
@@ -661,23 +664,30 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   return { width: W, height: H, margin, shapes, texts, generations: gens, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
 }
 
-type Line = [text: string, size: number, bold: boolean, role?: string];
+/** One line of a plate; `parts` are the pieces of a dates line, each in its own colour. */
+type Line = [text: string, size: number, bold: boolean, role?: string, parts?: [text: string, fill: string][]];
 
-/** The name (one line, or two when it is long) and the dates of one plate, each shrunk until it fits. */
-function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFonts["width"], unit: number, wanted: Rows): Line[] {
-  const home = wanted === "three" ? residencePlace(p, o) : "";
-  // a person without any place is drawn as a plain plate, as with "Show places" off
-  const rows: Rows = wanted === "three" && (p.birth?.place || p.death?.place || home) ? "three" : "none";
+/**
+ * The name (one line, or two when it is long), the years and, when `withPlaces` is set and the person has a place, the
+ * places of one plate, each shrunk until it fits. The birth year is green, the death year brown and the places grey.
+ */
+function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFonts["width"], unit: number, withPlaces: boolean): Line[] {
+  const C = POSTER_COLORS;
   const name = p.name || "?";
-  const dates = rows === "three" ? "" : [formatEvent("birt", p.birth, { ...o, showPlaces: false }), formatEvent("deat", p.death, { ...o, showPlaces: false })]
-    .filter(Boolean).join("  ");
+  const noPlaces = { ...o, showPlaces: false };
   // the age is only known (and worth printing) when both years are
   const by = yearOf(p.birth?.date), dy = yearOf(p.death?.date);
   const age = by !== null && dy !== null && dy >= by && dy - by < 130 ? `, ${dy - by} ${TEXTS[o.lang].ageAbbr}` : "";
+  const dateParts: [string, string][] = [[formatEvent("birt", p.birth, noPlaces), C.birth], [formatEvent("deat", p.death, noPlaces) && formatEvent("deat", p.death, noPlaces) + age, C.death]];
+  const parts = dateParts.filter(([t]) => t);
+  const dates = parts.map(([t]) => t).join("  ");
+  const home = withPlaces ? residencePlace(p, o) : "";
+  const birthPlace = withPlaces && p.birth?.place ? formatPlace(p.birth.place) : "", deathPlace = withPlaces && p.death?.place ? formatPlace(p.death.place) : "";
+  const hasPlaces = !!(birthPlace || deathPlace || home);
   const small = plate.gen >= POSTER_SMALL_FROM;
   // the double line of a big plate grows with it and needs more room than the usual margin
-  // the lines of a plate with place rows are longer, so they keep a wider margin to the border
-  const avail = plate.w - (small ? 12 : 18 + 2 * Math.max(0, 6.5 * unit / 66 - 9) + (rows === "three" ? 12 * unit / 66 : 0));
+  // the places line is longer, so it keeps a wider margin to the border
+  const avail = plate.w - (small ? 12 : 18 + 2 * Math.max(0, 6.5 * unit / 66 - 9) + (hasPlaces ? 12 * unit / 66 : 0));
   const minSize = small ? 5.5 : 9;
   const base = unit / 3.4;
   const fit = (text: string, size: number, bold: boolean) => {
@@ -702,20 +712,27 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
     lines.push([halves[0], nameSize, true], [halves[1], nameSize, true]);
     wrappedName = true;
   }
-  if (dates) lines.push([dates + age, fit(dates + age, base * (wrappedName ? 0.75 : 0.95), false), false, "dates"]);
-  /** A row shrunk to the plate; at the smallest size too long a text is cut with an ellipsis. */
-  const shrink = (text: string, size: number, min: number) => {
-    while (size > min && measure(text, size, false) > avail) size -= 0.5;
-    let t = text;
-    while (measure(t, size, false) > avail && t.length > 4) t = t.slice(0, -2).trimEnd().replace(/…$/, "") + "…";
-    return [t, size] as const;
-  };
-  if (rows === "three") {
-    // birth, residence and death, each only when known; the residence only when it differs from the other two places
-    const rowsText = [formatEvent("birt", p.birth, o), home && `\u2302 ${home}`, formatEvent("deat", p.death, o)].filter(Boolean);
-    let size = base * (wrappedName ? 0.72 : 0.82);
-    for (const r of rowsText) size = Math.min(size, shrink(r, size, 7.5)[1]);
-    for (const r of rowsText) lines.push([shrink(r, size, 7.5)[0], size, false, "row"]);
+  if (dates) lines.push([dates, fit(dates, base * (wrappedName ? 0.75 : 0.95), false), false, "dates", parts]);
+  if (hasPlaces) {
+    // birth, residence and death place, each only when known; the residence only when it differs from the other two
+    const mark = (kind: "birt" | "deat" | "resi") => o.labels === "symbols" ? { birt: "*", deat: "\u2020", resi: "\u2302" }[kind] : TEXTS[o.lang].abbr[kind].trim();
+    const same = birthPlace && deathPlace && birthPlace.toLowerCase() === deathPlace.toLowerCase();
+    const sep = "   ";
+    const join = (items: string[]) => items.join(sep);
+    let items = [same ? `${mark("birt")}${o.labels === "symbols" ? "" : "/"}${mark("deat")} ${birthPlace}` : birthPlace && `${mark("birt")} ${birthPlace}`,
+                 home && `${mark("resi")} ${home}`, same ? "" : deathPlace && `${mark("deat")} ${deathPlace}`].filter(Boolean);
+    const size = base * (wrappedName ? 0.7 : PLACES_SIZE);
+    // too long: the residence goes first, then the line shrinks a little, then the longest place is cut with an ellipsis
+    if (measure(join(items), size, false) > avail && home) items = items.filter((t) => !t.startsWith(mark("resi")));
+    let fitted = size;
+    while (fitted > size * PLACES_MIN && measure(join(items), fitted, false) > avail) fitted -= 0.5;
+    while (measure(join(items), fitted, false) > avail) {
+      let k = 0;
+      items.forEach((t, i) => { if (t.length > items[k].length) k = i; });
+      if (items[k].length <= 6) break;
+      items[k] = items[k].slice(0, -2).trimEnd().replace(/…$/, "") + "…";
+    }
+    lines.push([join(items), fitted, false, "places"]);
   }
   return lines;
 }
@@ -726,15 +743,26 @@ const PLATE_TEXT_SHARE = 0.8;
 /** The height of the lines stacked as `stack` does. */
 const linesHeight = (lines: Line[], spacing: number) => lines.reduce((a, [, size, bold], i) => a + size * (bold && lines[i - 1]?.[2] ? spacing - 0.22 : spacing), 0);
 
-function stack(plate: Plate, lines: Line[], spacing: number, nameFill: string): PosterText[] {
+function stack(plate: Plate, lines: Line[], spacing: number, nameFill: string, measure: PosterFonts["width"]): PosterText[] {
   const room = plate.h * PLATE_TEXT_SHARE, total = linesHeight(lines, spacing);
-  // a plate with place rows is shrunk to fit its height (the other plates keep their sizes)
-  if (total > room && lines.some(([, , , role]) => role === "row")) lines = lines.map(([t, size, b, r]): Line => [t, size * room / total, b, r]);
+  // a plate with a places line is shrunk to fit its height (the other plates keep their sizes)
+  if (total > room && lines.some(([, , , role]) => role === "places")) lines = lines.map(([t, size, b, r, parts]): Line => [t, size * room / total, b, r, parts]);
   const heights = lines.map(([, size, bold], i) => size * (bold && lines[i - 1]?.[2] ? spacing - 0.22 : spacing));
   let y = plate.y - heights.reduce((a, b) => a + b, 0) / 2;
-  return lines.map(([text, size, bold], i) => {
+  return lines.flatMap(([text, size, bold, role, parts], i) => {
     y += heights[i];
-    return { text, x: plate.x, y: y - size * 0.22, size, bold, fill: bold ? nameFill : POSTER_COLORS.ink };
+    const at = { y: y - size * 0.22, size, bold };
+    if (parts && parts.length > 1) {
+      // the birth and the death year each in their colour, the two together centred on the plate
+      const gap = measure("  ", size, false), widths = parts.map(([t]) => measure(t, size, false));
+      let x = plate.x - (widths.reduce((a, b) => a + b, 0) + gap * (parts.length - 1)) / 2;
+      return parts.map(([t, fill], k): PosterText => {
+        const cx = x + widths[k] / 2;
+        x += widths[k] + gap;
+        return { ...at, text: t, x: cx, fill };
+      });
+    }
+    return [{ ...at, text, x: plate.x, fill: bold ? nameFill : parts ? parts[0][1] : role === "places" ? POSTER_COLORS.place : POSTER_COLORS.ink }];
   });
 }
 

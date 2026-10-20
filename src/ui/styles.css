@@ -9,7 +9,7 @@
   --radius: 10px; --radius-lg: 10px; --radius-pill: 10px; --pad: 14px; --gap: 8px; --panel-w: 320px; --edit-w: 520px;
   /* event colours: the tree, the timeline and (darker) the PDF, see src/core/colors.ts */
   --line: color-mix(in srgb, var(--muted) 50%, var(--bg));
-  --c-birth: #23784f; --c-marr: #8f7733; --c-death: #6f3f27; --c-src: #5f7f9a; --zebra: #00000005;
+  --c-birth: #1e6b44; --c-marr: #8f7733; --c-death: #4e2a1a; --c-src: #5f7f9a; --zebra: #00000005;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {

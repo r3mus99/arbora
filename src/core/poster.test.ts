@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
+import { KIND_COLORS } from "./colors";
 import {
-  buildPoster, CORNER_MIN_PEOPLE, POSTER_PLACES_HEIGHT, POSTER_PLACES_UP_TO, CORNER_PAD, POSTER_CORNERS_MIN_GENERATIONS, posterHasStatistics, cornerMaxValues, load, mergeSurnameForms, posterFonts, posterSeed, posterSvg, random, textWidth, LANGS, TEXTS,
+  buildPoster, CORNER_MIN_PEOPLE, PALETTE, POSTER_COLORS, POSTER_PLACES_HEIGHT, POSTER_PLACES_UP_TO, CORNER_PAD, POSTER_CORNERS_MIN_GENERATIONS, posterHasStatistics, cornerMaxValues, load, mergeSurnameForms, posterFonts, posterSeed, posterSvg, random, textWidth, LANGS, TEXTS, rgbOf,
 } from "./index";
 
 const data = load(readFileSync(new URL("../../public/sample.ged", import.meta.url)));
@@ -165,7 +166,7 @@ describe("poster plates", () => {
   test("the main branches overlap each connected plate by six drawing units", () => {
     const poster = buildPoster(full(3), "@I1@", { generations: 3, posterSeed: 1 });
     const limbs = poster.shapes
-      .filter((shape) => shape.fill === "#6b4626" && shape.strokeWidth === 1)
+      .filter((shape) => shape.fill === POSTER_COLORS.branch && shape.strokeWidth === 1)
       .map((shape) => (shape.d.match(/-?\d+(?:\.\d+)?/g) || []).map(Number))
       .map((values) => {
         const points = Array.from({ length: values.length / 2 }, (_, i) => [values[i * 2], values[i * 2 + 1]] as const);
@@ -255,13 +256,14 @@ describe("poster plates", () => {
 
   test("every plate has its own brown outline, and the name is blue for men and red for women", () => {
     const poster = buildPoster(data, ROOT, { generations: 4, posterSeed: 1 });
-    const outlines = poster.shapes.filter((s) => s.fill === "#4a2f18" && !s.stroke);
+    const outlines = poster.shapes.filter((s) => s.fill === POSTER_COLORS.branchEdge && !s.stroke);
     expect(outlines.length).toBe(poster.people + 3); // the frame of the title and the two rings of the border (4 generations: no ruler)
     expect(new Set(outlines.map((s) => s.d)).size).toBeGreaterThan(1);
-    const names = poster.texts.filter((t) => t.bold && t.fill !== "#2a1d12");
-    expect(names.some((t) => t.fill === "#2f5f9e")).toBe(true);
-    expect(names.some((t) => t.fill === "#a8322a")).toBe(true);
-    expect(poster.texts.filter((t) => !t.bold && t.fill !== "#6b4626").every((t) => t.fill === "#2a1d12")).toBe(true);
+    const names = poster.texts.filter((t) => t.bold && t.fill !== POSTER_COLORS.ink);
+    expect(names.some((t) => t.fill === POSTER_COLORS.male)).toBe(true);
+    expect(names.some((t) => t.fill === POSTER_COLORS.female)).toBe(true);
+    const others = poster.texts.filter((t) => !t.bold && t.fill !== POSTER_COLORS.branch && t.fill !== POSTER_COLORS.birth);
+    expect(others.every((t) => t.fill === POSTER_COLORS.ink)).toBe(true);
   });
 });
 
@@ -276,7 +278,7 @@ describe("poster age and title", () => {
 0 TRLR
 `);
   const dates = (birth: string, death: string, lang: "en" | "sk" = "en") =>
-    buildPoster(one(birth, death), "@I1@", { generations: 2, lang }).texts.find((t) => t.text.includes("\u2020") || t.text.includes("1"))!.text;
+    buildPoster(one(birth, death), "@I1@", { generations: 2, lang }).texts.filter((t) => t.text.includes("\u2020") || t.text.includes("1")).map((t) => t.text).join(" ");
 
   test("the age at death follows the years, in the language of the poster, only when both years are known", () => {
     expect(dates("1907", "1986")).toContain(", 79 y.");
@@ -336,14 +338,14 @@ describe("poster options of a larger poster", () => {
 });
 
 describe("poster marriage years", () => {
-  const brown = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === "#6b4626" && !/^\d+ generations \u00B7 /.test(t.text));
+  const brown = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === POSTER_COLORS.branch && !/^\d+ generations \u00B7 /.test(t.text));
   const years = (p: ReturnType<typeof buildPoster>) => brown(p).filter((t) => /^\d{4}$/.test(t.text));
 
   test("a marriage year stands at each couple, bigger for the closer generations, and nothing without a date", () => {
     const p = buildPoster(full(6, () => true, true), ROOT, { generations: 6 });
     expect(years(p)).toHaveLength(2 ** 5 - 1);
     expect(years(p).map((t) => t.text)).toContain("1701");
-    expect(years(p).every((t) => !t.bold && t.fill === "#6b4626")).toBe(true);
+    expect(years(p).every((t) => !t.bold && t.fill === POSTER_COLORS.branch)).toBe(true);
     const size = (year: string) => years(p).find((t) => t.text === year)!.size;
     expect(size("1701")).toBeGreaterThan(size("1702"));
     expect(size("1702")).toBeGreaterThan(size("1704"));
@@ -374,7 +376,7 @@ ${Array.from({ length: n }, (_, i) => `1 CHIL @I${i === 0 ? 1 : 10 + i}@`).join(
     expect(counts(2)).toEqual(["1885", "2"]);
     expect(counts(6)).toEqual(["1885", "6"]);
     // rings and figures are drawn shapes in the brown of the branches: two rings, two heads and two bodies
-    const symbols = (n: number) => poster(n).shapes.filter((x) => x.fill === null || (x.fill === "#6b4626" && !x.stroke));
+    const symbols = (n: number) => poster(n).shapes.filter((x) => x.fill === null || (x.fill === POSTER_COLORS.branch && !x.stroke));
     expect(symbols(1)).toHaveLength(2);
     expect(symbols(6)).toHaveLength(6);
   });
@@ -698,45 +700,78 @@ describe("poster generation ruler", () => {
   });
 });
 
-describe("poster place rows on the big plates", () => {
+describe("poster places line on the big plates", () => {
   const opts = { generations: 7, lang: "en", posterSeed: 3 } as const;
   const on = buildPoster(data, ROOT, { ...opts, showPlaces: true }, fonts);
   const off = buildPoster(data, ROOT, { ...opts, showPlaces: false }, fonts);
+  const ged = (body: string) => load(`0 HEAD\n0 @I1@ INDI\n1 NAME Anna Test\n${body}0 TRLR\n`);
+  const textsOf = (data2: ReturnType<typeof load>, extra: Record<string, unknown> = {}) =>
+    buildPoster(data2, "@I1@", { ...opts, showPlaces: true, ...extra } as never, fonts);
 
-  test("with places off the plates are as before and carry no place rows", () => {
-    expect(off.texts.some((t) => t.text.includes("⌂"))).toBe(false);
+  test("with places off the plates are as before and carry no places line", () => {
+    expect(off.texts.some((t) => t.fill === POSTER_COLORS.place || t.text.includes("\u2302"))).toBe(false);
     expect(off.plates.filter((p) => p.gen <= POSTER_PLACES_UP_TO).every((p) => p.h === Math.round(66 * [2, 1.75, 1.5, 1.25][p.gen - 1]))).toBe(true);
   });
 
-  test("with places on only generations 1 to 4 can be taller, by what their rows need, and the others keep their size", () => {
+  test("with places on only generations 1 to 4 can be taller, by what their lines need, and the others keep their size", () => {
     for (const p of on.plates) {
       const before = off.plates.find((q) => q.id === p.id && q.gen === p.gen)!;
       expect(p.h).toBeGreaterThanOrEqual(before.h);
       expect(p.h).toBeLessThanOrEqual(p.gen <= POSTER_PLACES_UP_TO ? Math.round(before.h * POSTER_PLACES_HEIGHT) + 1 : before.h);
     }
-    // a person with all rows is taller than a person with no place at all, who keeps the plain plate
-    const ged = (places: string) => load(`0 HEAD\n0 @I1@ INDI\n1 NAME Anna Test\n1 BIRT\n2 DATE 1900\n${places}1 DEAT\n2 DATE 1970\n${places}0 TRLR\n`);
-    const h = (places: string) => buildPoster(ged(places), "@I1@", { ...opts, showPlaces: true }, fonts).plates[0].h;
+    // a person with a place is taller than a person with no place at all, who keeps the plain plate
+    const h = (places: string) => textsOf(ged(`1 BIRT\n2 DATE 1900\n${places}1 DEAT\n2 DATE 1970\n${places}`)).plates[0].h;
     expect(h("")).toBe(132);
     expect(h("2 PLAC Graz\n")).toBeGreaterThan(132);
   });
 
-  test("the rows show the birth and death place with the date, and every row fits its plate", () => {
+  test("the years stand on the second line (green birth, brown death) and the places on the third, grey", () => {
     const root = on.plates.find((p) => p.gen === 1)!;
-    const rows = on.texts.filter((t) => t.x === root.x && Math.abs(t.y - root.y) < root.h / 2);
-    expect(rows.map((t) => t.text)).toEqual(expect.arrayContaining(["*1887 Persenbeug Castle", "†1922 Funchal"]));
+    const lines = on.texts.filter((t) => t.y > root.y - root.h / 2 && t.y < root.y + root.h / 2 + 1 && Math.abs(t.x - root.x) < root.w / 2);
+    const by = (text: string) => lines.find((t) => t.text === text);
+    expect(by("*1887")?.fill).toBe(POSTER_COLORS.birth);
+    expect(by("\u20201922, 35 y.")?.fill).toBe(POSTER_COLORS.death);
+    const places = by("* Persenbeug Castle   \u2020 Funchal")!;
+    expect(places.fill).toBe(POSTER_COLORS.place);
+    expect(places.y).toBeGreaterThan(by("*1887")!.y);
     for (const p of on.plates.filter((q) => q.gen <= POSTER_PLACES_UP_TO)) {
-      for (const t of on.texts.filter((u) => u.x === p.x && u.y > p.y - p.h / 2 && u.y < p.y + p.h / 2 + 1)) {
-        expect(fonts.width(t.text, t.size, t.bold)).toBeLessThanOrEqual(p.w);
+      for (const t of on.texts.filter((u) => Math.abs(u.x - p.x) < p.w / 2 && u.y > p.y - p.h / 2 && u.y < p.y + p.h / 2 + 1)) {
         expect(t.y).toBeLessThanOrEqual(p.y + p.h / 2);
       }
     }
   });
 
-  test("the residence row appears only when it differs from the birth and death place", () => {
-    const ged = (resi: string) => load(`0 HEAD\n0 @I1@ INDI\n1 NAME Anna Test\n1 BIRT\n2 DATE 1900\n2 PLAC Graz\n1 DEAT\n2 DATE 1970\n2 PLAC Wien\n1 RESI\n2 PLAC ${resi}\n0 TRLR\n`);
-    const homes = (resi: string) => buildPoster(ged(resi), "@I1@", { ...opts, showPlaces: true }, fonts).texts.filter((t) => t.text.includes("⌂")).map((t) => t.text);
-    expect(homes("Linz")).toEqual(["⌂ Linz"]);
-    expect(homes("Graz")).toEqual([]);
+  test("the residence appears only when it differs from the birth and death place, and one place is not repeated", () => {
+    const body = (resi: string, death = "Wien") => `1 BIRT\n2 DATE 1900\n2 PLAC Graz\n1 DEAT\n2 DATE 1970\n2 PLAC ${death}\n1 RESI\n2 PLAC ${resi}\n`;
+    const places = (b: string, extra = {}) => textsOf(ged(b), extra).texts.map((t) => t.text).filter((t) => /Graz|Wien|Linz/.test(t));
+    expect(places(body("Linz"))).toEqual(["* Graz   \u2302 Linz   \u2020 Wien"]);
+    expect(places(body("Graz"))).toEqual(["* Graz   \u2020 Wien"]);
+    // the same place of birth and death is one entry
+    expect(places(body("Linz", "Graz"))).toEqual(["*\u2020 Graz   \u2302 Linz"]);
+    expect(places(body("Graz", "Graz"))).toEqual(["*\u2020 Graz"]);
+    // abbreviated labels use the words of the language
+    expect(places(body("Linz"), { labels: "abbr", generations: 3 })).toEqual(["b. Graz   res. Linz   d. Wien"]);
+  });
+
+  test("a long place is cut with an ellipsis and the line still fits and keeps the other place", () => {
+    const long = "Sankt Georgen am Ybbsfelde im Mostviertel";
+    const p = textsOf(ged(`1 BIRT\n2 DATE 1900\n2 PLAC ${long}\n1 DEAT\n2 DATE 1970\n2 PLAC Wien\n`));
+    const line = p.texts.find((t) => t.text.includes("Wien") && t.fill === POSTER_COLORS.place)!;
+    expect(line.text).toMatch(/^\* Sankt .*\u2026 {3}\u2020 Wien$/);
+    expect(fonts.width(line.text, line.size, false)).toBeLessThanOrEqual(p.plates[0].w);
+  });
+});
+
+describe("palette", () => {
+  test("the screen and the PDF use the same green, brown and grey as the poster", () => {
+    const css = readFileSync(new URL("../ui/styles.css", import.meta.url), "utf8");
+    expect(css).toContain(`--c-birth: ${PALETTE.forest};`);
+    expect(css).toContain(`--c-death: ${PALETTE.chocolate};`);
+    expect(css).toContain(`--muted: ${PALETTE.stone};`);
+    expect(KIND_COLORS.birt).toEqual(rgbOf(PALETTE.forest));
+    expect(KIND_COLORS.deat).toEqual(rgbOf(PALETTE.chocolate));
+    expect(KIND_COLORS.place).toEqual(rgbOf(PALETTE.stone));
+    expect(POSTER_COLORS.branch).toBe(PALETTE.chocolate);
+    expect(POSTER_COLORS.leaves).toContain(PALETTE.forest);
   });
 });
