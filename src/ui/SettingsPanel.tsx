@@ -1,6 +1,3 @@
-import { FileImage, FileText, Monitor } from "lucide-react";
-import { useState, type ReactNode } from "react";
-import { POSTER_MAX_GENERATIONS, POSTER_MIN_GENERATIONS } from "../core/poster";
 import { TEXTS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
@@ -13,21 +10,13 @@ interface Props {
   t: (key: StringKey) => string;
 }
 
-const POSTER_GENERATIONS = Array.from({ length: POSTER_MAX_GENERATIONS - POSTER_MIN_GENERATIONS + 1 }, (_, i) => POSTER_MIN_GENERATIONS + i);
+const GENERATIONS = [3, 4, 5, 6, 7, 8, 9, 10];
 
-type Scope = "screen" | "pdf" | "svg";
-const CHART: Scope[] = ["screen", "pdf"];
-const EVERYWHERE: Scope[] = ["screen", "pdf", "svg"];
-
-/** The settings of the chart (screen and PDF), of the PDF page and of the tree poster, in the tool panel; the chart on the screen changes as they do.
- * The chips in the title row name the outputs; the one under the pointer (or focus) lights the outputs a setting changes. */
+/** The settings of the tree: what it shows (ancestors or descendants, how many generations) and how it is written; they apply to the chart
+ * on the screen, the PDF and the SVG poster alike, and the chart on the screen changes as they do. */
 export function SettingsPanel({ form, lang, onChange, t }: Props) {
-  const [hot, setHot] = useState<Scope[]>([]);
-  const scoped = (scopes: Scope[]) => ({
-    onMouseEnter: () => setHot(scopes), onMouseLeave: () => setHot([]),
-    onFocus: () => setHot(scopes), onBlur: () => setHot([]),
-  });
   const ab = TEXTS[lang].abbr;
+  const desc = form.chart === "descendants";
   const sel = <K extends keyof Form>(key: K) => ({
     value: form[key] as string,
     onChange: (e: { target: { value: string } }) => onChange(key, e.target.value as Form[K]),
@@ -36,47 +25,50 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     type: "checkbox", checked: form[key],
     onChange: (e: { target: { checked: boolean } }) => onChange(key, e.target.checked),
   });
-  const chip = (scope: Scope, icon: ReactNode, text: string, tip: string) =>
-    <span className={`chip${hot.includes(scope) ? " on" : ""}`} title={tip}>{icon}{text}</span>;
+  // a number kept from before that is not among the buttons stays as one more
+  const gens = Math.max(0, Math.round(Number(form.generations) || 0));
+  const choices = gens && !GENERATIONS.includes(gens) ? [...GENERATIONS, gens].sort((x, y) => x - y) : GENERATIONS;
+  // which generations the choice shows, e.g. 3 = children and grandchildren
+  const tip = (n: number) => n >= 3 && n <= 5 ? t(`${desc ? "tipD" : "tipA"}${n}` as StringKey) : `${t("generations")} ${n}`;
 
   return (
   <section className="panel-col set-panel" aria-label={t("settings")}>
     <PanelHead title={t("settings")} />
     <div className="panel-body">
-    <div className="set-legend" aria-hidden="true">
-      {chip("screen", <Monitor className="icon" />, t("scopeScreen"), t("tipScreen"))}
-      {chip("pdf", <FileText className="icon" />, "PDF", t("tipPdf"))}
-      {chip("svg", <FileImage className="icon" />, "SVG", t("tipSvg"))}
-    </div>
     <div className="set-group">
-      <h3 {...scoped(CHART)}>{t("setChart")}</h3>
+      <div className="chart-switch set-kind" role="radiogroup">
+        <label title={`${t("ancDesc1")}, ${t("ancDesc2")}`}>
+          <input type="radio" name="chart" value="ancestors" checked={!desc} onChange={() => onChange("chart", "ancestors")} /><span>{t("anc")}</span></label>
+        <label title={`${t("descDesc1")}, ${t("descDesc2")}`}>
+          <input type="radio" name="chart" value="descendants" checked={desc} onChange={() => onChange("chart", "descendants")} /><span>{t("desc")}</span></label>
+      </div>
+      <div className="field">
+        <span id="set-gens-label">{t("generations")}</span>
+        <div className="chart-switch set-gens" role="group" aria-labelledby="set-gens-label">
+          {choices.map((n) => (
+            <button key={n} type="button" title={tip(n)} aria-label={tip(n)} aria-pressed={gens === n} className={gens === n ? "on" : undefined}
+                    onClick={() => onChange("generations", String(n))}>{n}</button>
+          ))}
+          <button type="button" title={t("genTipAll")} aria-label={t("genTipAll")} aria-pressed={gens === 0} className={gens === 0 ? "on" : undefined}
+                  onClick={() => onChange("generations", "0")}>{t("allGens")}</button>
+        </div>
+        <p className="set-hint">{t("gensHint")}</p>
+      </div>
       <div className="rows">
-        <label {...scoped(EVERYWHERE)}><span>{t("labels")}</span>
+        <label><span>{t("numbering")}</span>
+          <select {...sel("numbering")}>
+            {NUMBERING[form.chart].map(([v, key]) => <option key={v} value={v}>{t(key)}</option>)}
+          </select></label>
+        <label><span>{t("labels")}</span>
           <select {...sel("labels")}>
             <option value="symbols">{`${t("symbols")}  * ∞ †`}</option>
             <option value="abbr">{`${t("abbr")}  ${ab.birt}${ab.marr}${ab.deat}`.trim()}</option>
           </select></label>
-        <label {...scoped(EVERYWHERE)}><span>{t("dates")}</span>
+        <label><span>{t("dates")}</span>
           <select {...sel("dates")}>
             <option value="year">{t("year")}</option><option value="full">{t("fullDate")}</option>
           </select></label>
-        <label {...scoped(CHART)}><span>{t("numbering")}</span>
-          <select {...sel("numbering")}>
-            {NUMBERING[form.chart].map(([v, key]) => <option key={v} value={v}>{t(key)}</option>)}
-          </select></label>
-        <label className="check" title={t("showPlacesTip")} {...scoped(CHART)}><input role="switch" {...check("showPlaces")} /><span>{t("showPlaces")}</span></label>
-      </div>
-    </div>
-    <div className="set-group">
-      <h3 {...scoped(["svg"])}>{t("setPoster")}</h3>
-      <div className="field" {...scoped(["svg"])}>
-        <span id="poster-gens-label">{t("posterGens")}</span>
-        <div className="chart-switch set-gens" role="group" aria-labelledby="poster-gens-label">
-          {POSTER_GENERATIONS.map((n) => (
-            <button key={n} type="button" aria-pressed={form.posterGenerations === n} className={form.posterGenerations === n ? "on" : undefined}
-                    onClick={() => onChange("posterGenerations", n)}>{n}</button>
-          ))}
-        </div>
+        <label className="check" title={t("showPlacesTip")}><input role="switch" {...check("showPlaces")} /><span>{t("showPlaces")}</span></label>
       </div>
     </div>
     </div>

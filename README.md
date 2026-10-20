@@ -102,7 +102,7 @@ between relatives) is written out only once; later occurrences refer to it.
    problems found by the file check, and the most common surnames and places.
    A surname is a link to the search.
 4. The chart is laid out the same way as the PDF. Switch between **Ancestors**
-   and **Descendants** above it and choose the number of generations. At first
+   and **Descendants** and choose the number of generations in **Settings**. At first
    person no. 1 is the one chosen last time, otherwise the first in the file.
 5. Clicking a person shows their details on the right, with icons: parents,
    marriages with children, and a timeline of birth, marriages, children,
@@ -234,7 +234,7 @@ The first part of the Settings window applies to both the chart and the PDF:
 | Places | checkbox: show the municipality (first part of the place) |
 | Numbering | generation (1, 2, 3…); Ahnentafel for ancestors (father = 2n, mother = 2n+1), d'Aboville for descendants (1.2.1); none |
 | Parents' marriage | for ancestors: next to the father, next to both parents, not shown |
-| Generations | maximum number including the root (0 = all) |
+| Generations | maximum number including the root (0 = all); the poster draws at most 10 |
 
 The dark mode is switched with the moon icon in the top bar; without a choice it follows the system.
 
@@ -248,7 +248,7 @@ the pages turn landscape.
 The **SVG** button in the top bar, next to GED and PDF, downloads the ancestors of the chart's root person as a
 decorative wall chart for large-format printing: the person in the middle below the two parents, joined to them by one limb that splits in two, the father's line unfolding to the left and
 the mother's to the right, with branches and leaves between the name plates. The plates have exact positions, the
-branches are drawn from a seeded random generator, so every download draws a different, unique tree. The number of generations is its own setting (3 to 10, group "Tree poster" in Settings); the title, labels and
+branches are drawn from a seeded random generator, so every download draws a different, unique tree. The poster uses the same number of generations as the chart and the PDF (3 to 10; "all" and anything above 10 draw 10); the title, labels and
 dates follow the other settings. The SVG is vector, with the text set in Alkatra and written as outlines, so it prints sharply at any size and looks the same without the font; the poster is as wide as the generations need and as high as the people need: only people who exist take room, so a family with gaps gives a lower poster than a complete tree, the closest generations get bigger plates (the person at 200 %, the parents at 175 %, and so on down to 100 %), and the border and the name are coloured by sex.
 The plan and the open points are in [docs/tree-poster.md](docs/tree-poster.md).
 

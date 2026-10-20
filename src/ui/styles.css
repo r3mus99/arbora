@@ -80,7 +80,10 @@ button:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; }
 /* compact switch above the tree: ancestors or descendants */
 .chart-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; min-height: var(--head-h); padding: 0 var(--pad);
              border-bottom: 1px solid var(--border); }
-.chart-bar .gens { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; }
+.chart-summary { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; height: var(--ctl-h-sm); padding: 0 12px; border: 1px solid var(--border);
+                 border-radius: var(--radius-pill); background: var(--panel); color: var(--text); font-size: 14px; cursor: pointer; }
+.chart-summary:hover { border-color: var(--accent); color: var(--accent); }
+.chart-summary .icon { width: var(--icon-sm); height: var(--icon-sm); color: var(--muted); }
 .chart-switch { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; height: var(--field-h);
                 background: var(--panel); }
 .chart-switch button { border: 0; border-radius: 0; background: none; padding: 0 12px; font-size: 14px; min-width: 38px; }
@@ -649,10 +652,12 @@ section.check { margin: 0 0 14px; }
 
 /* settings in the tool panel: one column of fields */
 .set-panel .grid { grid-template-columns: 1fr; gap: 12px; }
-.set-legend { position: sticky; top: 0; z-index: 1; display: flex; flex-wrap: wrap; gap: 4px; padding: 8px var(--pad); background: var(--panel); border-bottom: 1px solid var(--border); }
-.set-legend .chip { margin-left: 0; transition: background-color .12s, border-color .12s, color .12s; }
-.set-legend .chip.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 .set-panel .field > span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+.set-panel .set-kind { display: flex; margin-bottom: 14px; }
+.set-panel .set-kind label { flex: 1 1 0; display: flex; }
+.set-panel .set-kind label span { flex: 1; text-align: center; padding: 0 8px; }
+.set-panel .field { margin-bottom: 14px; }
+.set-panel .field > .set-hint { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
 .set-panel .set-gens { display: flex; }
 .set-panel .set-gens button { flex: 1 1 0; min-width: 0; padding: 0; }
 
@@ -889,5 +894,5 @@ section.check { margin: 0 0 14px; }
 @media (prefers-reduced-motion: reduce) {
   :root { --motion: 0s; }
   .rail-wrap, .check-wide, .edit-window, .detail { animation: none; }
-  .tree-row button, .drop, .set-legend .chip { transition: none; }
+  .tree-row button, .drop { transition: none; }
 }
