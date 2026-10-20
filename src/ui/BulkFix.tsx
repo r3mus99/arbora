@@ -60,8 +60,9 @@ function Detail({ group, listId, data, onRename, onHide, onFocus, keepAka, onKee
       <div className="bulk-scroll">
         <div className="bulk-block">
           <div className="bulk-label">{t("bulkTarget")}</div>
-          <input type="text" className="bulk-target" value={target} list={listId} aria-label={t("bulkTarget")}
-                 onChange={(e) => setTarget(e.target.value)} />
+          <div className="rows"><label className="pick" data-cap="">
+            <input type="text" className="bulk-target" value={target} list={listId} aria-label={t("bulkTarget")}
+                   onChange={(e) => setTarget(e.target.value)} /></label></div>
         </div>
         <div className="bulk-block">
           <div className="bulk-label">{t("bulkSpellings")}</div>
@@ -150,17 +151,17 @@ export function BulkFix({ data, variants, values, hidden, onRename, onHide, onFo
                 <Eye className="icon" aria-hidden="true" /></button>}
             </div>)}
         </div>
-        {tab !== "hidden" && <form className="bulk-batch" onSubmit={(e) => {
+        {tab !== "hidden" && <form className="bulk-batch rows" onSubmit={(e) => {
           e.preventDefault();
           if (!known || !to.trim()) return;
           onRename(kind, [from.trim()], to);
           setFrom(""); setTo("");
         }}>
           <datalist id={listId}>{values[kind].map((v) => <option key={v} value={v} />)}</datalist>
-          <input type="text" value={from} list={listId} placeholder={t("batchFrom")} aria-label={t("batchFrom")}
-                 onChange={(e) => setFrom(e.target.value)} />
-          <input type="text" value={to} list={listId} placeholder={t("batchTo")} aria-label={t("batchTo")}
-                 onChange={(e) => setTo(e.target.value)} />
+          <label className="pick" data-cap=""><input type="text" value={from} list={listId} placeholder={t("batchFrom")} aria-label={t("batchFrom")}
+                 onChange={(e) => setFrom(e.target.value)} /></label>
+          <label className="pick" data-cap=""><input type="text" value={to} list={listId} placeholder={t("batchTo")} aria-label={t("batchTo")}
+                 onChange={(e) => setTo(e.target.value)} /></label>
           <button type="submit" disabled={!known || !to.trim() || from.trim() === to.trim()}>
             <SpellCheck className="icon" aria-hidden="true" />{t("unify")}</button>
         </form>}

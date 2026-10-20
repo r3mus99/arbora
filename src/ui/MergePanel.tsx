@@ -55,10 +55,10 @@ export function MergePanel({ data, records, keepId, lang, onMerge, onCancel, t }
   const rows = a && b ? MERGE_FIELDS.filter((field) => mergeValue(a, field) || mergeValue(b, field)) : [];
   return <div className="merge">
     <p className="muted">{t("mergeInfo")}</p>
-    <label title={t("tipMergePick")}><span>{t("mergeWith")}</span>
-      <input type="text" list={list} value={text} autoFocus autoComplete="off" placeholder={t("pickPerson")} onChange={(e) => { setText(e.target.value); setPick({}); }} />
+    <div className="rows"><label className="pick" data-cap="" title={t("tipMergePick")}>
+      <input type="text" list={list} value={text} autoFocus autoComplete="off" placeholder={t("pickPerson")} aria-label={t("mergeWith")} onChange={(e) => { setText(e.target.value); setPick({}); }} />
       <datalist id={list}>{text.length >= 2 && options.slice(0, 5000).map((o) => <option key={o.id} value={o.label} />)}</datalist>
-    </label>
+    </label></div>
     {blocked === "related" && <p className="warn-text" role="alert">{t("mergeRelated")}</p>}
     {a && b && !blocked && <table className="merge-table">
       <thead><tr><th /><th>{t("mergeThis")}</th><th>{t("mergeOther")}</th></tr></thead>
@@ -66,7 +66,7 @@ export function MergePanel({ data, records, keepId, lang, onMerge, onCancel, t }
         {rows.map((field) => {
           const va = show(a, field), vb = show(b, field), conflict = conflicts.includes(field);
           const side = (which: "keep" | "drop", value: string) => <td key={which} className={value ? undefined : "none"}>
-            {conflict ? <label className="check"><input type="radio" name={`merge-${field}`} checked={(pick[field] ?? "keep") === which}
+            {conflict ? <label className="opt"><input type="radio" name={`merge-${field}`} checked={(pick[field] ?? "keep") === which}
                                                        onChange={() => setPick({ ...pick, [field]: which })} /><span>{value}</span></label> : value || "–"}
           </td>;
           return <tr key={field} className={conflict ? "conflict" : undefined}><th scope="row">{t(FIELD_LABEL[field])}</th>{side("keep", va)}{side("drop", vb)}</tr>;

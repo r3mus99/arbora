@@ -54,7 +54,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
         </div>
         <p className="set-hint">{t("gensHint")}</p>
       </div>
-      <div className="grid">
+      <div className="rows">
         <label><span>{t("numbering")}</span>
           <select {...sel("numbering")}>
             {NUMBERING[form.chart].map(([v, key]) => <option key={v} value={v}>{t(key)}</option>)}
@@ -68,9 +68,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
           <select {...sel("dates")}>
             <option value="year">{t("year")}</option><option value="full">{t("fullDate")}</option>
           </select></label>
-      </div>
-      <div className="checks">
-        <label title={t("showPlacesTip")}><input {...check("showPlaces")} /> <span>{t("showPlaces")}</span></label>
+        <label className="check" title={t("showPlacesTip")}><input role="switch" {...check("showPlaces")} /><span>{t("showPlaces")}</span></label>
       </div>
     </div>
     </div>

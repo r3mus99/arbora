@@ -91,7 +91,7 @@ function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnP
     if (hit) { onPick(hit.id); setText(clearOnPick ? "" : typed); }
     else { setText(typed); if (!typed.trim() && value) onPick(""); }
   };
-  return <label title={tip} data-cap={label || placeholder}>{label && <span>{label}</span>}
+  return <label title={tip} className="pick" data-cap="">{label && <span>{label}</span>}
     <input type="text" value={text} list={list} aria-label={label || placeholder} placeholder={placeholder} autoComplete="off" autoFocus={focus} onChange={(e) => change(e.target.value)} />
     <datalist id={list}>{text.length >= 2 && options.slice(0, 5000).map((c) => <option key={c.id} value={c.label} />)}</datalist>
   </label>;
