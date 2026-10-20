@@ -312,7 +312,13 @@ h1 .logo { width: .9em; height: .9em; color: var(--accent); stroke-width: 1.6; }
 .finder { position: relative; flex: none; background: var(--panel); height: var(--head-h); display: flex; align-items: center;
           padding: 0 var(--pad); border-bottom: 1px solid var(--border); }
 .finder > .icon { position: absolute; left: calc(var(--pad) + 10px); color: var(--muted); pointer-events: none; }
-.finder input { padding-left: 32px; }
+.finder input { padding: 0 var(--pad) 0 calc(var(--pad) + 32px); height: 100%; border: 0; border-radius: 0; background: none; }
+/* the search field is a row like the fields of the edit window: tint on hover, soft fill and an accent bar on focus */
+.finder:hover { background: color-mix(in srgb, var(--accent-soft) 45%, var(--panel)); }
+.finder:focus-within { background: var(--accent-soft); }
+.finder:focus-within::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+.finder:focus-within > .icon { color: var(--accent); }
+.finder input:hover, .finder input:focus { background: none; border: 0; }
 .set-group { padding: var(--pad); }
 .set-group + .set-group { border-top: 1px solid var(--border); }
 .set-panel .panel-body { background: var(--bg); }
