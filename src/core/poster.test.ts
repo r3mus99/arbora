@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  buildPoster, CORNER_MIN_PEOPLE, CORNER_PAD, POSTER_CORNERS_MIN_GENERATIONS, posterHasStatistics, cornerMaxValues, load, mergeSurnameForms, posterFonts, posterSeed, posterSvg, random, textWidth, LANGS, TEXTS,
+  buildPoster, CORNER_MIN_PEOPLE, POSTER_PLACES_HEIGHT, POSTER_PLACES_UP_TO, CORNER_PAD, POSTER_CORNERS_MIN_GENERATIONS, posterHasStatistics, cornerMaxValues, load, mergeSurnameForms, posterFonts, posterSeed, posterSvg, random, textWidth, LANGS, TEXTS,
 } from "./index";
 
 const data = load(readFileSync(new URL("../../public/sample.ged", import.meta.url)));
@@ -695,5 +695,42 @@ describe("poster generation ruler", () => {
 
   test("all languages have a label with the number", () => {
     for (const lang of LANGS) expect(TEXTS[lang].generation).toContain("{n}");
+  });
+});
+
+describe("poster place rows on the big plates", () => {
+  const opts = { generations: 7, lang: "en", posterSeed: 3 } as const;
+  const on = buildPoster(data, ROOT, { ...opts, showPlaces: true }, fonts);
+  const off = buildPoster(data, ROOT, { ...opts, showPlaces: false }, fonts);
+
+  test("with places off the plates are as before and carry no place rows", () => {
+    expect(off.texts.some((t) => t.text.includes("⌂"))).toBe(false);
+    expect(off.plates.filter((p) => p.gen <= POSTER_PLACES_UP_TO).every((p) => p.h === Math.round(66 * [2, 1.75, 1.5, 1.25][p.gen - 1]))).toBe(true);
+  });
+
+  test("with places on only generations 1 to 4 are taller, and the others keep their size", () => {
+    for (const p of on.plates) {
+      const before = off.plates.find((q) => q.id === p.id && q.gen === p.gen)!;
+      expect(Math.abs(p.h - (p.gen <= POSTER_PLACES_UP_TO ? before.h * POSTER_PLACES_HEIGHT : before.h))).toBeLessThanOrEqual(2);
+    }
+  });
+
+  test("the rows show the birth and death place with the date, and every row fits its plate", () => {
+    const root = on.plates.find((p) => p.gen === 1)!;
+    const rows = on.texts.filter((t) => t.x === root.x && Math.abs(t.y - root.y) < root.h / 2);
+    expect(rows.map((t) => t.text)).toEqual(expect.arrayContaining(["*1887 Persenbeug Castle", "†1922 Funchal"]));
+    for (const p of on.plates.filter((q) => q.gen <= POSTER_PLACES_UP_TO)) {
+      for (const t of on.texts.filter((u) => u.x === p.x && u.y > p.y - p.h / 2 && u.y < p.y + p.h / 2 + 1)) {
+        expect(fonts.width(t.text, t.size, t.bold)).toBeLessThanOrEqual(p.w);
+        expect(t.y).toBeLessThanOrEqual(p.y + p.h / 2);
+      }
+    }
+  });
+
+  test("the residence row appears only when it differs from the birth and death place", () => {
+    const ged = (resi: string) => load(`0 HEAD\n0 @I1@ INDI\n1 NAME Anna Test\n1 BIRT\n2 DATE 1900\n2 PLAC Graz\n1 DEAT\n2 DATE 1970\n2 PLAC Wien\n1 RESI\n2 PLAC ${resi}\n0 TRLR\n`);
+    const homes = (resi: string) => buildPoster(ged(resi), "@I1@", { ...opts, showPlaces: true }, fonts).texts.filter((t) => t.text.includes("⌂")).map((t) => t.text);
+    expect(homes("Linz")).toEqual(["⌂ Linz"]);
+    expect(homes("Graz")).toEqual([]);
   });
 });

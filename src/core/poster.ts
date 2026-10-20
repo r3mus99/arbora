@@ -8,7 +8,7 @@
  */
 
 import type { GedcomData, Person } from "./gedcom";
-import { formatDate, formatEvent, type ChartOptions } from "./format";
+import { formatDate, formatEvent, residencePlace, type ChartOptions } from "./format";
 import { normalize } from "./chart";
 import { yearOf } from "./date";
 import { TEXTS } from "./texts";
@@ -27,6 +27,12 @@ export const posterHasStatistics = (filledGens: number) => filledGens >= POSTER_
 const POSTER_MAX_SWING = 24;
 const POSTER_BRANCH_OVERLAP = 6;
 export const POSTER_PLATE_SCALE = [2, 1.75, 1.5, 1.25];
+/** The plates of generations 1 to this one (the big ones) show where the person was born, lived and died, one row each, when "Show places" is on. */
+export const POSTER_PLACES_UP_TO = 4;
+/** A plate with the place rows is this much taller (the dates move into the rows). */
+export const POSTER_PLACES_HEIGHT = 1.75;
+type Rows = "none" | "three";
+const rowsFor = (gen: number, o: { showPlaces: boolean }): Rows => o.showPlaces && gen <= POSTER_PLACES_UP_TO ? "three" : "none";
 /** From this generation on (the person is generation 1) the plates are only this tall (text, spacing and border shrink with them), so a big poster does not grow so fast in height. */
 export const POSTER_SMALL_FROM = 7;
 export const POSTER_SMALL_HEIGHT = 0.5;
@@ -196,7 +202,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const scaleOf = (gen: number) => POSTER_PLATE_SCALE[gen - 1] ?? 1;
   const widthOf = (gen: number) => Math.round(baseW * scaleOf(gen) * (gen >= POSTER_SMALL_FROM ? POSTER_SMALL_WIDTH : 1));
   const small = (gen: number) => gen >= POSTER_SMALL_FROM;
-  const heightOf = (gen: number) => Math.round(baseH * scaleOf(gen) * (small(gen) ? POSTER_SMALL_HEIGHT : 1));
+  const unitH = (gen: number) => baseH * scaleOf(gen) * (small(gen) ? POSTER_SMALL_HEIGHT : 1);
+  const heightOf = (gen: number) => Math.round(unitH(gen) * (rowsFor(gen, o) === "three" ? POSTER_PLACES_HEIGHT : 1));
   // the border and the tag of a plate follow its height
   const lookOf = (gen: number) => scaleOf(gen) * (small(gen) ? 0.7 : 1);
   // The year of a marriage and the number of children of the couple are a small brown text where the branches of the
@@ -549,15 +556,15 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // ------------------------------------------------------------ plates and texts
   const texts: PosterText[] = [];
   const plateShapes: PosterShape[] = [];
-  const lines = new Map(plates.map((plate) => [plate, plateLines(plate, people.get(plate)!, o, measure)]));
+  const lines = new Map(plates.map((plate) => [plate, plateLines(plate, people.get(plate)!, o, measure, unitH(plate.gen), rowsFor(plate.gen, o))]));
   // one size for the names and one for the dates of a generation, so a column reads evenly; a plate whose name wraps
   // to two lines keeps its own smaller sizes and does not pull the single-line plates of its generation down
   const wraps = (ls: Line[]) => ls.filter(([, , bold]) => bold).length > 1;
   const smallest = new Map<string, number>();
   for (const [plate, ls] of lines) {
     if (wraps(ls)) continue;
-    for (const [, size, bold] of ls) {
-      const key = `${plate.gen}${bold}`;
+    for (const [, size, bold, role] of ls) {
+      const key = `${plate.gen}${bold}${role}`;
       smallest.set(key, Math.min(smallest.get(key) ?? Infinity, size));
     }
   }
@@ -567,7 +574,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 },
                      { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
     const own = lines.get(plate)!;
-    const same = own.map(([text, size, bold]): Line => [text, Math.min(size, smallest.get(`${plate.gen}${bold}`) ?? size), bold]);
+    const same = own.map(([text, size, bold, role]): Line => [text, Math.min(size, smallest.get(`${plate.gen}${bold}${role}`) ?? size), bold, role]);
     texts.push(...stack(plate, same, small(plate.gen) ? 1.05 : 1.15, sex === "M" ? C.male : sex === "F" ? C.female : C.ink));
     // a person who stands on the poster more than once (both lines of the family lead to them) carries a small
     // brown tag with the number of places in the top right corner
@@ -648,12 +655,12 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   return { width: W, height: H, margin, shapes, texts, generations: gens, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
 }
 
-type Line = [text: string, size: number, bold: boolean];
+type Line = [text: string, size: number, bold: boolean, role?: string];
 
 /** The name (one line, or two when it is long) and the dates of one plate, each shrunk until it fits. */
-function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFonts["width"]): Line[] {
+function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFonts["width"], unit: number, rows: Rows): Line[] {
   const name = p.name || "?";
-  const dates = [formatEvent("birt", p.birth, { ...o, showPlaces: false }), formatEvent("deat", p.death, { ...o, showPlaces: false })]
+  const dates = rows === "three" ? "" : [formatEvent("birt", p.birth, { ...o, showPlaces: false }), formatEvent("deat", p.death, { ...o, showPlaces: false })]
     .filter(Boolean).join("  ");
   // the age is only known (and worth printing) when both years are
   const by = yearOf(p.birth?.date), dy = yearOf(p.death?.date);
@@ -662,7 +669,7 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
   // the double line of a big plate grows with it and needs more room than the usual margin
   const avail = plate.w - (small ? 12 : 18 + 2 * Math.max(0, 6.5 * plate.h / 66 - 9));
   const minSize = small ? 5.5 : 9;
-  const base = plate.h / 3.4;
+  const base = unit / 3.4;
   const fit = (text: string, size: number, bold: boolean) => {
     while (size > minSize && measure(text, size, bold) > avail) size -= 0.5;
     return size;
@@ -685,12 +692,30 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
     lines.push([halves[0], nameSize, true], [halves[1], nameSize, true]);
     wrappedName = true;
   }
-  if (dates) lines.push([dates + age, fit(dates + age, base * (wrappedName ? 0.75 : 0.95), false), false]);
+  if (dates) lines.push([dates + age, fit(dates + age, base * (wrappedName ? 0.75 : 0.95), false), false, "dates"]);
+  /** A row shrunk to the plate; at the smallest size too long a text is cut with an ellipsis. */
+  const shrink = (text: string, size: number, min: number) => {
+    while (size > min && measure(text, size, false) > avail) size -= 0.5;
+    let t = text;
+    while (measure(t, size, false) > avail && t.length > 4) t = t.slice(0, -2).trimEnd().replace(/…$/, "") + "…";
+    return [t, size] as const;
+  };
+  if (rows === "three") {
+    // birth, residence and death, each only when known; the residence only when it differs from the other two places
+    const home = residencePlace(p, o);
+    const rowsText = [formatEvent("birt", p.birth, o), home && `\u2302 ${home}`, formatEvent("deat", p.death, o)].filter(Boolean);
+    let size = base * (wrappedName ? 0.72 : 0.82);
+    for (const r of rowsText) size = Math.min(size, shrink(r, size, 7.5)[1]);
+    for (const r of rowsText) lines.push([shrink(r, size, 7.5)[0], size, false, "row"]);
+  }
   return lines;
 }
 
 /** The lines centred one under the other on the plate; the second line of a wrapped name sits closer to the first. */
 function stack(plate: Plate, lines: Line[], spacing: number, nameFill: string): PosterText[] {
+  const room = plate.h * 0.8, total = lines.reduce((a, [, size]) => a + size * spacing, 0);
+  // a plate with place rows is shrunk to fit its height (the other plates keep their sizes)
+  if (total > room && lines.some(([, , , role]) => role === "row")) lines = lines.map(([t, size, b, r]): Line => [t, size * room / total, b, r]);
   const heights = lines.map(([, size, bold], i) => size * (bold && lines[i - 1]?.[2] ? spacing - 0.22 : spacing));
   let y = plate.y - heights.reduce((a, b) => a + b, 0) / 2;
   return lines.map(([text, size, bold], i) => {
