@@ -1,1 +1,1 @@
-- **One green and one red on the screen.** The accent of the app is now the same forest green as birth years, errors and women use the same brick red as on the poster, and the switches in the edit window turn on in the accent colour instead of a separate bright green.
+- **Poster branches look more natural.** Long branches grow longer side shoots, and the shoots split again into finer twigs; marriage labels no longer overlap each other.

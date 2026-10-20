@@ -230,7 +230,7 @@ export function App() {
       // every download draws new branches
       const opts = toOptions(form, lang);
       const build = opts.chart === "descendants" ? buildDescendantsPoster : buildPoster;
-      const poster = build(data, id, { ...opts, posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf);
+      const poster = build(data, id, { ...opts, posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf, { version, date: new Date() });
       saveFile(new Blob([posterSvg(poster, pf)], { type: "image/svg+xml" }),
                `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}.svg`);
       setStatus(null);

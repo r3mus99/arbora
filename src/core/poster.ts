@@ -8,7 +8,7 @@
  */
 
 import type { GedcomData, Person } from "./gedcom";
-import { formatDate, formatEvent, formatPlace, residencePlace, type ChartOptions } from "./format";
+import { formatDMY, formatDate, formatEvent, formatPlace, residencePlace, type ChartOptions } from "./format";
 import { normalize } from "./chart";
 import { yearOf } from "./date";
 import { TEXTS } from "./texts";
@@ -78,6 +78,9 @@ export interface Poster {
   seed: number;
   title: string;
 }
+
+/** What the mark in the corner of a poster says about its origin. */
+export interface PosterCredit { version: string; date: Date }
 
 export const POSTER_COLORS = {
   paper: PALETTE.parchment, plate: PALETTE.ivory, male: PALETTE.lapis, female: PALETTE.brick, ink: PALETTE.ink, line: PALETTE.espresso,
@@ -185,7 +188,7 @@ function leafPath(x: number, y: number, ang: number, s: number): string {
 export interface Plate { id: string; gen: number; x: number; y: number; w: number; h: number }
 
 /** The ancestors of `rootId` as a poster; `options.generations` generations including the person (0 = all, which the poster keeps to POSTER_MAX_GENERATIONS); the poster is as wide as the generations need and as high as the people need. */
-export function buildPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts): Poster {
+export function buildPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts, credit?: PosterCredit): Poster {
   const o = normalize(options);
   const measure = fonts ? fonts.width : textWidth;
   const root = data.people[rootId];
@@ -419,6 +422,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
 
   const marriages: PosterText[] = [];
   const symbols: PosterShape[] = [];
+  const taken: [number, number, number, number][] = [];
   for (const label of labels) {
     const { lines, size, width, height, x, y, top, bottom } = label;
     // the room between the two branches is preferred; a spot above or below them is the last resort
@@ -430,8 +434,10 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
       }
     }
     near.sort((a, b) => a[2] - b[2]);
-    const spot = near.find(([px, py]) => free(px, py, width, height) && !occupied.slice(reserved).some(([ox, oy]) =>
+    const apart = (px: number, py: number) => !taken.some(([tx, ty, tw, th]) => Math.abs(px - tx) < (width + tw) / 2 + 6 && Math.abs(py - ty) < (height + th) / 2 + 6);
+    const spot = near.find(([px, py]) => free(px, py, width, height) && apart(px, py) && !occupied.slice(reserved).some(([ox, oy]) =>
       Math.abs(ox - px) < width / 2 + 6 && Math.abs(oy - py) < height / 2 + 6)) ?? [x, y];
+    taken.push([spot[0], spot[1], width, height]);
     const left = spot[0] - width / 2;
     lines.forEach(({ symbol, text }, i) => {
       const cy = spot[1] - height / 2 + (i + 0.5) * size * 1.15;
@@ -501,6 +507,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   }
 
   const { margin, frameShapes } = posterBorder(W, H);
+  addCredit(texts, credit, o, measure, W, H);
   shapes.push({ d: `M${-margin},${-margin}L${W + margin},${-margin}L${W + margin},${H + margin}L${-margin},${H + margin}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
               ...frameShapes, ...branches, ...leaves, ...symbols, ...plateShapes);
   return { width: W, height: H, margin, shapes, texts, generations: gens, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
@@ -519,10 +526,11 @@ export function makeGrower(rnd: () => number, plates: Plate[], W: number, H: num
   const occupied: Point[] = [];
   const limbPts: Point[] = [], leafPts: Point[] = [];
 
-  const blocked = (pts: Point[], radius: number) => pts.slice(1).some(([x, y]) =>
+  // `leaving`: the first points of a shoot that starts on another shoot stay close to it and are not tested against the shoots
+  const blocked = (pts: Point[], radius: number, leaving = 0) => pts.slice(1).some(([x, y], i) =>
     x < 20 || x > W - 20 || y < 20 || y > H - 20 ||
     plates.some((p) => Math.abs(x - p.x) < p.w / 2 + 12 && Math.abs(y - p.y) < p.h / 2 + 12) ||
-    occupied.some(([ox, oy]) => (x - ox) ** 2 + (y - oy) ** 2 < radius * radius));
+    (i >= leaving && occupied.some(([ox, oy]) => (x - ox) ** 2 + (y - oy) ** 2 < radius * radius)));
 
   const branch = (d: string, width: number) => branches.push({ d, fill: C.branch, stroke: C.branchEdge, strokeWidth: width });
   const leaf = (x: number, y: number, ang: number, s: number) => {
@@ -541,23 +549,27 @@ export function makeGrower(rnd: () => number, plates: Plate[], W: number, H: num
       y += length / n * Math.sin(a);
       pts.push([x, y]);
     }
-    if (blocked(pts, depth < 2 ? 34 : 20)) return false;
+    if (blocked(pts, depth < 2 ? 34 : depth < 3 ? 22 : 16, depth > 1 ? 3 : 0)) return false;
     const d = dense(pts);
     occupied.push(...dense(pts, 2));
     branch(tapered(d, width, Math.max(0.6, width * 0.25)), 0.8);
-    if (depth < 2) {
-      for (let i = int(1, 3); i > 0; i--) {
+    // a longer shoot splits into more and longer ones, and those split again (three levels in all)
+    let split = 0;
+    if (depth < 3 && length > 36) {
+      let dir = pick([-1, 1]);
+      for (let i = length > 90 ? int(2, 4) : int(1, 3); i > 0; i--) {
         const k = int(Math.floor(d.length / 3), d.length - 2);
-        twig(d[k][0], d[k][1], a + pick([-1, 1]) * uniform(35, 65) * Math.PI / 180, length * uniform(0.45, 0.7), width * 0.5, depth + 1);
+        dir = -dir;
+        if (twig(d[k][0], d[k][1], a + dir * uniform(35, 65) * Math.PI / 180, length * uniform(0.45, 0.7), width * 0.55, depth + 1)) split++;
       }
     }
     for (let k = Math.floor(d.length / 3); k < d.length; k += int(3, 5)) {
       for (const side of [-1, 1]) {
-        if (rnd() < 0.4) leaf(d[k][0], d[k][1], angleAt(d, k) + side * uniform(35, 80) * Math.PI / 180, uniform(0.3, 0.5));
+        if (rnd() < (split ? 0.12 : 0.3)) leaf(d[k][0], d[k][1], angleAt(d, k) + side * uniform(35, 80) * Math.PI / 180, uniform(0.3, 0.5));
       }
     }
     for (const da of [-30, 0, 30]) {
-      if (rnd() < 0.55 || da === 0) leaf(d[d.length - 1][0], d[d.length - 1][1], a + (da + uniform(-10, 10)) * Math.PI / 180, uniform(0.5, 0.75));
+      if (da === 0 || (!split && rnd() < 0.4)) leaf(d[d.length - 1][0], d[d.length - 1][1], a + (da + uniform(-10, 10)) * Math.PI / 180, uniform(0.5, 0.75));
     }
     return true;
   };
@@ -608,14 +620,14 @@ export function makeGrower(rnd: () => number, plates: Plate[], W: number, H: num
     const [a, b] = [pts[0], pts[pts.length - 1]];
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const count = Math.max(2, Math.round(len / 95));
-    // the side shoots grow with the branch: 1 at 260 units, proportionally longer on a longer branch (0.8 to 2)
-    const reach = Math.min(2, Math.max(0.8, len / 260));
+    // the side shoots grow with the branch: 1 at 260 units, proportionally longer on a longer branch (0.8 to 3)
+    const reach = Math.min(3, Math.max(0.8, len / 260));
     let side2 = pick([-1, 1]);
     for (let i = 0; i < count; i++) {
       const k = Math.min(Math.max(Math.floor(d.length * (i + 0.5 + uniform(-0.2, 0.2)) / count), 3), d.length - 4);
       side2 = -side2;
       for (let tries = 0; tries < 4; tries++) {
-        if (twig(d[k][0], d[k][1], angleAt(d, k) + side2 * uniform(40, 70) * Math.PI / 180, uniform(34, 60) * reach, 3.4, 1)) break;
+        if (twig(d[k][0], d[k][1], angleAt(d, k) + side2 * uniform(40, 70) * Math.PI / 180, uniform(34, 60) * reach, 3.4 * Math.sqrt(reach), 1)) break;
       }
     }
   };
@@ -627,6 +639,13 @@ export function makeGrower(rnd: () => number, plates: Plate[], W: number, H: num
     !leafPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10);
 
   return { branches, leaves, occupied, limbPts, leafPts, blocked, twig, curve, limb, free };
+}
+
+/** The mark of the program: small, in the strip between the tree and the inner border line, right aligned at the bottom. */
+export function addCredit(texts: PosterText[], credit: PosterCredit | undefined, o: ChartOptions, measure: PosterFonts["width"], W: number, H: number) {
+  if (!credit) return;
+  const size = 20, text = `${TEXTS[o.lang].createdWith} ${credit.version} \u00B7 ${formatDMY(o.lang, credit.date.getDate(), credit.date.getMonth() + 1, credit.date.getFullYear())}`;
+  texts.push({ text, x: W - 30 - measure(text, size, false) / 2, y: H + 28, size, bold: false, fill: POSTER_COLORS.place });
 }
 
 /** A quiet double border around the whole poster, in the margin outside the tree: straight lines with rounded corners like every box on the poster (the plates, the title and the lists). */

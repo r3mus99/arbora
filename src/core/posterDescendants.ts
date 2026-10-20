@@ -14,8 +14,8 @@ import { TEXTS } from "./texts";
 import type { PosterFonts } from "./posterFont";
 import { CORNER_HEAD_H, CORNER_HEAD_SIZE, CORNER_LABEL_SIZE, CORNER_PAD, CORNER_STEP, CORNER_VALUE_SIZE, cornerBlocks, cornerHeight } from "./posterCorners";
 import {
-  dense, drawPlates, makeGrower, plateKit, plateOutline, posterBorder, posterHasStatistics, posterSeed, POSTER_COLORS, POSTER_MIN_GENERATIONS, random, symbolShapes, textWidth,
-  type Plate, type Point, type Poster, type PosterShape, type PosterText,
+  addCredit, dense, drawPlates, makeGrower, plateKit, plateOutline, posterBorder, posterHasStatistics, posterSeed, POSTER_COLORS, POSTER_MIN_GENERATIONS, random, symbolShapes, textWidth,
+  type Plate, type Point, type Poster, type PosterCredit, type PosterShape, type PosterText,
 } from "./poster";
 
 /**
@@ -45,7 +45,7 @@ interface Union { fam: Family; partner: Plate | null; kids: Node[]; top: number;
 interface Node { plate: Plate; unions: Union[]; height: number }
 
 /** The descendants of `rootId` as a poster, in the same drawing format as the ancestors poster. */
-export function buildDescendantsPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts): Poster {
+export function buildDescendantsPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts, credit?: PosterCredit): Poster {
   const o = normalize(options);
   const measure = fonts ? fonts.width : textWidth;
   const gapY = 24, unionGap = 24, gapGen = 110;
@@ -302,6 +302,7 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
   }
 
   const { margin, frameShapes } = posterBorder(W, H);
+  addCredit(texts, credit, o, measure, W, H);
   const shapes: PosterShape[] = [
     { d: `M${-margin},${-margin}L${W + margin},${-margin}L${W + margin},${H + margin}L${-margin},${H + margin}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
     ...frameShapes, ...branches, ...leaves, ...symbols, ...plateShapes];
