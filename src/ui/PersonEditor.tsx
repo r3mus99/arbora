@@ -539,13 +539,15 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           [...form.aliases, { origin: -1, given: form.given, surname: form.surname }])}><Plus className="icon" aria-hidden="true" />{t("addAka")}</button>)}</legend>
         {form.aliases.map((a, i) => (
           <div className="item alias" key={a.origin < 0 ? `new${i}` : a.origin}>
-            <input type="text" autoComplete="off" value={a.given} list={givenList(form.sex)} aria-label={t("givenName")} title={t("tipGiven")} placeholder={t("givenName")}
-                   onChange={(e) => setAlias(i, { given: e.target.value })} />
-            <input type="text" autoComplete="off" value={a.surname} list={surnameList(form.sex)} aria-label={t("surname")} title={t("tipSurname")} placeholder={t("surname")}
-                   onChange={(e) => setAlias(i, { surname: e.target.value })} />
-            <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                    onClick={() => set("aliases", form.aliases.filter((_, j) => j !== i))}>
-              <Trash2 className="icon" aria-hidden="true" /></button>
+            <div className="item-head">
+              <input type="text" autoComplete="off" value={a.given} list={givenList(form.sex)} aria-label={t("givenName")} title={t("tipGiven")} placeholder={t("givenName")}
+                     onChange={(e) => setAlias(i, { given: e.target.value })} />
+              <input type="text" autoComplete="off" value={a.surname} list={surnameList(form.sex)} aria-label={t("surname")} title={t("tipSurname")} placeholder={t("surname")}
+                     onChange={(e) => setAlias(i, { surname: e.target.value })} />
+              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                      onClick={() => set("aliases", form.aliases.filter((_, j) => j !== i))}>
+                <Trash2 className="icon" aria-hidden="true" /></button>
+              </div>
           </div>
         ))}
       </fieldset>

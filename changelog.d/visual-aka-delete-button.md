@@ -1,0 +1,1 @@
+- **The delete button of an alternative name sits at the end of its row.** In the person edit window the trash can of each "Also known as" name is now on the same line as the name fields, like in events and attributes.
