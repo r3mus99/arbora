@@ -183,7 +183,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const firstInput = useRef<HTMLInputElement>(null);
   useEffect(() => { if (!open) firstInput.current?.focus({ preventScroll: true }); }, []);
   const [opened] = useState(() => JSON.stringify([initial.shown, initial.fams.map((f) => f.shown)]));
-  const changes = useMemo(() => diffCount(JSON.parse(opened), JSON.parse(JSON.stringify([form, fams]))), [opened, form, fams]);
+  // a new person that is filled in but not added yet counts as one change: Save keeps it
+  const pendingKid = kid?.given.trim() ? 1 : 0;
+  const changes = useMemo(() => diffCount(JSON.parse(opened), JSON.parse(JSON.stringify([form, fams]))), [opened, form, fams]) + pendingKid;
   const dirty = changes > 0;
   useEffect(() => onDirty?.(changes), [changes, onDirty]);
 
@@ -245,7 +247,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
 
   const onKey = (e: KeyboardEvent) => {
     if (e.key === "Escape") { e.preventDefault(); onCancel(); }
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(); }
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveAll(); }
   };
 
   const set = <K extends keyof PersonFields>(key: K, value: PersonFields[K]) => setForm({ ...form, [key]: value });
@@ -395,6 +397,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     }
     return "";
   };
+  /** Save also keeps a new person that is filled in but not added yet: it is added first, and the form is saved once that has landed in the state */
+  const [saveQueued, setSaveQueued] = useState(false);
+  const saveAll = () => { if (kid?.given.trim()) { addKid(); setSaveQueued(true); } else save(); };
+  useEffect(() => { if (saveQueued) { setSaveQueued(false); save(); } }, [saveQueued]);
   const startKid = (kind: "child" | "spouse" | "parent", i = 0) => {
     const sex = kind === "parent" ? "M" : kind === "spouse" ? (otherKey(fams[i]) === "wife" ? "F" : "M") : "";
     const surname = kind === "child" ? familySurname(fams[i]) : kind === "parent" ? form.surname : "";
@@ -510,7 +516,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     </details>;
   };
   return (
-    <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
+    <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); saveAll(); }}>
       {section("name", <>
       <div className="pair">
         <label title={t("tipGiven")} data-cap={t("givenName")}><input placeholder={t("givenName")} aria-label={t("givenName")} ref={firstInput} type="text" autoComplete="off" value={form.given} list={givenList(form.sex)} onChange={(e) => set("given", e.target.value)} /></label>
