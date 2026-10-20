@@ -1,1 +1,1 @@
-- **Search boxes look like the other fields.** The search and filter fields in the people list, places, sources and bulk rename use the same row look as the edit window.
+- **The delete button of an alternative name sits at the end of its row.** In the person edit window the trash can of each "Also known as" name is now on the same line as the name fields, like in events and attributes.
