@@ -81,7 +81,7 @@ export interface Poster {
 
 export const POSTER_COLORS = {
   paper: PALETTE.parchment, plate: PALETTE.ivory, male: PALETTE.lapis, female: PALETTE.brick, ink: PALETTE.ink, line: PALETTE.espresso,
-  branch: PALETTE.chocolate, branchEdge: PALETTE.espresso, birth: PALETTE.forest, death: PALETTE.chocolate, place: PALETTE.stone,
+  branch: PALETTE.chocolate, marriage: PALETTE.gold, branchEdge: PALETTE.espresso, birth: PALETTE.forest, death: PALETTE.chocolate, place: PALETTE.stone,
   leafEdge: PALETTE.leafEdge, leaves: [PALETTE.forest, PALETTE.fern, PALETTE.pine, PALETTE.clover, PALETTE.spruce],
 };
 
@@ -215,7 +215,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   };
   // the border and the tag of a plate follow its height
   const lookOf = (gen: number) => scaleOf(gen) * (small(gen) ? 0.7 : 1);
-  // The year of a marriage and the number of children of the couple are a small brown text where the branches of the
+  // The year of a marriage and the number of children of the couple are a small gold text where the branches of the
   // two parents meet, each line led by a drawn symbol (two rings, two figures); its size follows the generation of the
   // child, and the gap between the child's column and the parents' is wide enough for it.
   const marrSize = (gen: number) => 12 * lookOf(gen);
@@ -394,7 +394,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
 
   const limbPts: Point[] = [], leafPts: Point[] = [];
 
-  // The marriage years: a small brown text where the branches of the two parents meet, in the gap between the
+  // The marriage years: a small gold text where the branches of the two parents meet, in the gap between the
   // person and the parents (beside the fork for the main person). The room is kept free of shoots before they grow;
   // afterwards the spot closest to the usual one that touches no plate, branch, shoot or leaf is taken.
   const labels = plates.flatMap((plate) => {
@@ -558,7 +558,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     lines.forEach(({ symbol, text }, i) => {
       const cy = spot[1] - height / 2 + (i + 0.5) * size * 1.15;
       symbols.push(...symbolShapes(symbol, left, cy, size));
-      marriages.push({ text, x: left + symbolW(size) + size * 0.3 + measure(text, size, false) / 2, y: cy + size * 0.3, size, bold: false, fill: C.branch });
+      marriages.push({ text, x: left + symbolW(size) + size * 0.3 + measure(text, size, false) / 2, y: cy + size * 0.3, size, bold: false, fill: POSTER_COLORS.marriage });
     });
   }
 
@@ -804,11 +804,11 @@ type MarrLine = { symbol: "rings" | "children"; text: string };
 
 /** The symbol before a marriage line: two interlocked rings, or two small figures; `left` is its left edge. */
 function symbolShapes(symbol: MarrLine["symbol"], left: number, cy: number, s: number): PosterShape[] {
-  const brown = POSTER_COLORS.branch;
+  const gold = POSTER_COLORS.marriage;
   const circle = (x: number, y: number, r: number) => `M${num(x - r)},${num(y)}A${num(r)},${num(r)} 0 1 0 ${num(x + r)},${num(y)}A${num(r)},${num(r)} 0 1 0 ${num(x - r)},${num(y)}Z`;
   if (symbol === "rings") {
     const r = 0.31 * s, x0 = left + 0.05 * s + r;
-    return [x0, x0 + 0.4 * s].map((x) => ({ d: circle(x, cy - 0.03 * s, r), fill: null, stroke: brown, strokeWidth: 0.1 * s }));
+    return [x0, x0 + 0.4 * s].map((x) => ({ d: circle(x, cy - 0.03 * s, r), fill: null, stroke: gold, strokeWidth: 0.1 * s }));
   }
   // a head over a rounded body, the second figure smaller and a little lower
   const figure = (x: number, y: number, k: number) => [
@@ -816,5 +816,5 @@ function symbolShapes(symbol: MarrLine["symbol"], left: number, cy: number, s: n
     `M${num(x - 0.3 * k)},${num(y + 0.45 * k)}Q${num(x - 0.3 * k)},${num(y - 0.02 * k)} ${num(x)},${num(y - 0.02 * k)}Q${num(x + 0.3 * k)},${num(y - 0.02 * k)} ${num(x + 0.3 * k)},${num(y + 0.45 * k)}Z`,
   ];
   const cx = left + 0.57 * s;
-  return [...figure(cx - 0.3 * s, cy, s * 0.9), ...figure(cx + 0.35 * s, cy + 0.08 * s, s * 0.72)].map((d) => ({ d, fill: brown, stroke: null, strokeWidth: 0 }));
+  return [...figure(cx - 0.3 * s, cy, s * 0.9), ...figure(cx + 0.35 * s, cy + 0.08 * s, s * 0.72)].map((d) => ({ d, fill: gold, stroke: null, strokeWidth: 0 }));
 }
