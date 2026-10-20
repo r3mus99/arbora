@@ -17,8 +17,6 @@ import type { PosterFonts } from "./posterFont";
 
 export const POSTER_MIN_GENERATIONS = 3;
 export const POSTER_MAX_GENERATIONS = 10;
-/** what 0 ("all") draws */
-export const POSTER_BASE_GENERATIONS = 7;
 /** the fewest generations that are actually on the poster (not only asked for) for the corner lists to be drawn */
 export const POSTER_CORNERS_MIN_GENERATIONS = 5;
 /** The corner lists and the generation ruler are the poster's statistics: both appear under this one rule. */
@@ -177,13 +175,13 @@ function leafPath(x: number, y: number, ang: number, s: number): string {
 
 interface Plate { id: string; gen: number; x: number; y: number; w: number; h: number }
 
-/** The ancestors of `rootId` as a poster; `options.generations` generations including the person (0 = seven); the poster is as wide as the generations need and as high as the people need. */
+/** The ancestors of `rootId` as a poster; `options.generations` generations including the person (0 = all, which the poster keeps to POSTER_MAX_GENERATIONS); the poster is as wide as the generations need and as high as the people need. */
 export function buildPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts): Poster {
   const o = normalize(options);
   const measure = fonts ? fonts.width : textWidth;
   const root = data.people[rootId];
   if (!root) throw new Error(`Person ${rootId} does not exist.`);
-  const gens = Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(o.generations) || POSTER_BASE_GENERATIONS));
+  const gens = Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(o.generations) || POSTER_MAX_GENERATIONS));
   const seed = posterSeed(rootId, o.posterSeed);
   const rnd = random(seed);
   const uniform = (a: number, b: number) => a + (b - a) * rnd();

@@ -187,11 +187,9 @@ describe("chart options", () => {
     expect(storedOptions({ posterCorners: true })).toEqual(APP_DEFAULTS);
   });
 
-  test("the poster has its own number of generations, kept within 3 to 10", () => {
-    expect(DEFAULTS.posterGenerations).toBe(7);
-    expect(storedOptions({ posterGenerations: 4 }).posterGenerations).toBe(4);
-    expect(toOptions(toForm({ ...DEFAULTS, posterGenerations: 12 }), "sk").posterGenerations).toBe(10);
-    expect(toOptions(toForm({ ...DEFAULTS, posterGenerations: 1 }), "sk").posterGenerations).toBe(3);
+  test("the poster has no number of generations of its own; a stored one is dropped", () => {
+    expect(storedOptions({ posterGenerations: 4 })).toEqual(APP_DEFAULTS);
+    expect(storedOptions({ generations: 6 }).generations).toBe(6);
   });
 
   test("the number of unsaved changes counts steps since the saved version", () => {

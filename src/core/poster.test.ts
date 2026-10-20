@@ -68,7 +68,7 @@ describe("poster layout", () => {
   test("the generations are limited to 3..10 and a person without parents has just the plate", () => {
     expect(buildPoster(full(3), ROOT, { generations: 99 }).generations).toBe(10);
     expect(buildPoster(data, ROOT, { generations: 1 }).generations).toBe(3);
-    expect(buildPoster(data, ROOT, { generations: 0 }).generations).toBe(7);
+    expect(buildPoster(data, ROOT, { generations: 0 }).generations).toBe(10); // all
     const lone = Object.values(data.people).find((x) => !x.famc.length)!;
     const p = buildPoster(data, lone.id, { generations: 5 });
     expect(p.people).toBe(1);
@@ -111,10 +111,10 @@ describe("poster layout", () => {
   });
 
   test("one seed always draws the same tree, another seed another one", () => {
-    const one = posterSvg(buildPoster(data, ROOT, { posterSeed: 3 }));
-    expect(posterSvg(buildPoster(data, ROOT, { posterSeed: 3 }))).toBe(one);
-    expect(posterSvg(buildPoster(data, ROOT, { posterSeed: 4 }))).not.toBe(one);
-    expect(posterSvg(buildPoster(data, "@I2@", { posterSeed: 3 }))).not.toBe(one);
+    const one = posterSvg(buildPoster(data, ROOT, { generations: 6, posterSeed: 3 }));
+    expect(posterSvg(buildPoster(data, ROOT, { generations: 6, posterSeed: 3 }))).toBe(one);
+    expect(posterSvg(buildPoster(data, ROOT, { generations: 6, posterSeed: 4 }))).not.toBe(one);
+    expect(posterSvg(buildPoster(data, "@I2@", { generations: 6, posterSeed: 3 }))).not.toBe(one);
   });
 
   test("the title names the person, long names wrap to two lines", () => {
