@@ -1,1 +1,0 @@
-- **The tree poster's generation ruler runs through the middle of the title frame.** The title and the time axis read as one, the generations hidden behind the frame have no label, and the corner lists moved below the ruler.
