@@ -20,8 +20,6 @@ export interface ChartOptions {
   margin: number;
   /** tree poster: the number that makes the branches differ; the same number draws the same tree (not a setting: each download picks one) */
   posterSeed: number;
-  /** tree poster: generations including the person, 2 to 7 */
-  posterGenerations: number;
 }
 
 export const DEFAULTS: ChartOptions = {
@@ -29,7 +27,7 @@ export const DEFAULTS: ChartOptions = {
   chart: "ancestors",
   numbering: "generation",
   lineHeight: 1.7, margin: 36,
-  posterSeed: 0, posterGenerations: 7,
+  posterSeed: 0,
 };
 
 export const fmt = (s: string, vars: Record<string, string | number>) =>

@@ -19,7 +19,7 @@ import { type Lang } from "../core/texts";
 import { renameVariants, spellings, variantGroups, type VariantKind } from "../core/variants";
 import { NO_BROWSING, NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move as moveIn, replay, startEdits, stepEdits, unsavedChanges, visit, withRecords, type Browsing, type Doc, type Edits, type Op, type Place } from "./history";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
-import { storedOptions, toForm, toOptions, withOption, type Form } from "./options";
+import { gensSummary, storedOptions, toForm, toOptions, withOption, type Form } from "./options";
 import { ChangesPanel } from "./ChangesPanel";
 import { BulkFix } from "./BulkFix";
 import { CheckPanel } from "./CheckPanel";
@@ -228,7 +228,7 @@ export function App() {
       const pf = posterFonts([...alkatra.regular, dejavu.regular], [...alkatra.bold, dejavu.bold || dejavu.regular]);
       // every download draws new branches
       const opts = toOptions(form, lang);
-      const poster = buildPoster(data, id, { ...opts, generations: opts.posterGenerations, posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf);
+      const poster = buildPoster(data, id, { ...opts, posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf);
       saveFile(new Blob([posterSvg(poster, pf)], { type: "image/svg+xml" }),
                `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}.svg`);
       setStatus(null);
@@ -603,12 +603,6 @@ export function App() {
     }
   }
 
-  // generations shown in the chart and the PDF; a value set earlier outside the usual choices stays as an extra button
-  const gens = Math.max(0, Math.round(Number(form.generations) || 0));
-  const gensChoices = [3, 4, 5, 0].includes(gens) ? [3, 4, 5, 0] : [3, 4, 5, gens, 0].sort((a, b) => (a || 1e9) - (b || 1e9));
-  // tooltip: which generations the choice shows, e.g. 3 = children and grandchildren
-  const gensTip = (n: number) => !n ? t("genTipAll")
-    : n >= 3 && n <= 5 ? t(`${desc ? "tipD" : "tipA"}${n}` as StringKey) : `${t("generations")} ${n}`;
   const pick = (id: string) => {
     select(id);
     setQuery("");
@@ -767,23 +761,10 @@ export function App() {
             {!narrow && <div className="mid">
               <div className="chart-bar">
                 <h2>{t("treeTitle")}</h2>
-                <div className="chart-switch" role="radiogroup">
-                  <label title={`${t("ancDesc1")}, ${t("ancDesc2")}`}>
-                    <input type="radio" name="chart" value="ancestors" checked={form.chart === "ancestors"}
-                           onChange={() => setOpt("chart", "ancestors")} /><span>{t("anc")}</span></label>
-                  <label title={`${t("descDesc1")}, ${t("descDesc2")}`}>
-                    <input type="radio" name="chart" value="descendants" checked={desc}
-                           onChange={() => setOpt("chart", "descendants")} /><span>{t("desc")}</span></label>
-                </div>
-                <div className="gens" role="group" aria-label={t("generations")}>
-                  <span>{t("generations")}</span>
-                  <div className="chart-switch">
-                    {gensChoices.map((n) => (
-                      <button key={n} type="button" title={gensTip(n)} aria-label={gensTip(n)} aria-pressed={gens === n} className={gens === n ? "on" : undefined}
-                              onClick={() => setOpt("generations", String(n))}>{n || t("allGens")}</button>
-                    ))}
-                  </div>
-                </div>
+                <button type="button" className="chart-summary" title={t("settings")} onClick={() => setShowSettings(true)}>
+                  {desc ? t("desc") : t("anc")} · {gensSummary(Number(form.generations) || 0, lang, t("genTipAll"))}
+                  <SlidersHorizontal className="icon" aria-hidden="true" />
+                </button>
               </div>
               <TreeView rows={shown} focusId={focusId} starred={favourites} scrollKey={treeScroll} scrollTo={jumpRow}
                         numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}

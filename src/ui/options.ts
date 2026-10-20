@@ -1,8 +1,7 @@
 /** Chart options as the settings form edits them, and as they are kept in the browser. */
 import { normalize } from "../core/chart";
-import { POSTER_MAX_GENERATIONS, POSTER_MIN_GENERATIONS } from "../core/poster";
 import { DEFAULTS, type ChartKind, type ChartOptions } from "../core/format";
-import { LANGS, type Lang } from "../core/texts";
+import { LANGS, TEXTS, type Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 
 /** What the app starts with: the core defaults, but places (the town only) are shown. */
@@ -20,7 +19,6 @@ export function toOptions(f: Form, lang: Lang): ChartOptions {
   return {
     ...f, lang,
     generations: Math.max(0, Math.round(num(f.generations, DEFAULTS.generations))),
-    posterGenerations: Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(f.posterGenerations) || DEFAULTS.posterGenerations)),
   };
 }
 
@@ -59,4 +57,11 @@ export function storedOptions(stored: unknown): ChartOptions {
     if (valid(key)) (out as Record<string, unknown>)[key] = o[key];
   }
   return normalize(out);
+}
+
+/** "7 generations" in the language; `all` is the text for 0 */
+export function gensSummary(n: number, lang: Lang, all: string): string {
+  if (!n) return all;
+  const forms = TEXTS[lang].generations;
+  return `${n} ${forms[{ one: 0, few: 1 }[new Intl.PluralRules(lang).select(n) as "one" | "few"] ?? 2]}`;
 }
