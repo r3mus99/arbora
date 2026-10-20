@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.52.0 – 2026-10-20
+
+- **The tree poster shows where people were born, lived and died.** With "Show places" on, the plates of the first four generations get a row each for the birth place, the residence and the death place, with the dates in the same rows.
+
 ## 2.51.1 – 2026-10-20
 
 - **Generations control fits all languages.** The "all" segment is no longer cut off, and the note about the 10-generation poster limit (now naming the SVG poster) appears only when all generations are selected.
