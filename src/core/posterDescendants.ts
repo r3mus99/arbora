@@ -249,7 +249,7 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
     taken.push({ x: spot[0], y: spot[1], width, height });
     const left = spot[0] - width / 2;
     symbols.push(...symbolShapes("rings", left, spot[1], size));
-    marriages.push({ text, x: left + symbolW(size) + size * 0.3 + measure(text, size, false) / 2, y: spot[1] + size * 0.3, size, bold: false, fill: C.branch });
+    marriages.push({ text, x: left + symbolW(size) + size * 0.3 + measure(text, size, false) / 2, y: spot[1] + size * 0.3, size, bold: false, fill: C.marriage });
   }
 
   // ------------------------------------------------------------ plates and texts

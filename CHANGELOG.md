@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.57.0 – 2026-10-20
+
+- **One green and one red on the screen.** The accent of the app is now the same forest green as birth years, errors and women use the same brick red as on the poster, and the switches in the edit window turn on in the accent colour instead of a separate bright green.
+
+## 2.56.0 – 2026-10-20
+
+- **Marriage has its own gold colour.** The poster draws the rings, the marriage year and the number of children of a couple in dark gold, and the screen and the PDF use the same gold for marriage dates.
+
 ## 2.55.0 – 2026-10-20
 
 - **The poster plates show the places on a third line, and birth, death and places have one colour everywhere.** With "Show places" on, a big plate keeps the name and the years and adds `* Graz   ⌂ Prague   † Vienna` in grey under them (one place in the same town is not repeated, long names are cut). The birth year and the poster leaves are one green, the death year, the marriage year and the branches one dark brown, places one grey, on the poster, in the tree and in the PDF.
