@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.49.0 – 2026-10-20
+
+- **Search boxes look like the other fields.** The search and filter fields in the people list, places, sources and bulk rename use the same row look as the edit window.
+
 ## 2.48.0 – 2026-10-20
 
 - **Same fields everywhere.** Settings, merge, bulk rename and the person pickers now use the row fields of the edit window, and checkboxes and radios share one accent colour.
