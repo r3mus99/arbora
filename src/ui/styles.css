@@ -533,8 +533,6 @@ section.check { margin: 0 0 14px; }
 .check-tabs .bulk-hint { padding: 0 10px; margin: var(--pad) 0 0; border-top: 1px solid var(--border); padding-top: var(--pad); }
 .keep-aka { display: flex; gap: 8px; align-items: center; cursor: pointer; }
 .keep-aka input { width: 16px; height: 16px; accent-color: var(--accent); }
-.editor .item.alias { grid-template-columns: 1fr 1fr auto; }
-.editor .item.alias .icon-btn { padding: 0 11px; }
 .detail .id .aka { font-style: italic; }
 .detail .tools .save .icon { color: var(--accent); }
 
