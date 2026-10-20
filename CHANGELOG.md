@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.48.0 – 2026-10-20
+
+- **Same fields everywhere.** Settings, merge, bulk rename and the person pickers now use the row fields of the edit window, and checkboxes and radios share one accent colour.
+
 ## 2.47.0 – 2026-10-20
 
 - **One setting for the number of generations.** The chart, the PDF and the SVG poster now share it; the poster has no number of its own and the "Graphic output (SVG)" section and the Screen / PDF / SVG chips are gone from Settings. Ancestors / Descendants and the generations moved into Settings, and the bar above the tree shows the choice ("Ancestors · 4 generations") as a shortcut that opens Settings. The poster draws at most 10 generations.
