@@ -16,13 +16,13 @@ export type CornerKey = (typeof CORNER_KEYS)[number];
 /** a branch with fewer people than this gets no block: its counts would say next to nothing */
 export const CORNER_MIN_PEOPLE = 5;
 
-export const CORNER_HEAD_SIZE = 34, CORNER_VALUE_SIZE = 24;
-/** the baseline of the heading and of the first line under the top of a block, and the distance between lines */
-export const CORNER_HEAD_Y = 36, CORNER_FIRST_Y = 84, CORNER_STEP = 40;
+export const CORNER_HEAD_SIZE = 34, CORNER_VALUE_SIZE = 24, CORNER_LABEL_SIZE = 21;
+/** a framed block: height of the header, of a line, the padding inside the frame */
+export const CORNER_HEAD_H = 70, CORNER_STEP = 44, CORNER_PAD = 26, CORNER_BOTTOM = 14;
 /** height of a block with this many lines */
-export const cornerHeight = (rows: number) => CORNER_FIRST_Y + (rows - 1) * CORNER_STEP + 14;
+export const cornerHeight = (rows: number) => CORNER_HEAD_H + rows * CORNER_STEP + CORNER_BOTTOM;
 
-export interface Corner { key: CornerKey; heading: string; rows: string[] }
+export interface Corner { key: CornerKey; heading: string; headLabel: string; rows: { label: string; value: string }[] }
 
 type Count = [value: string, count: number];
 type Measure = (text: string, size: number, bold: boolean) => number;
@@ -90,24 +90,24 @@ export const cornerMaxValues = (generations: number) => (generations <= 5 ? 5 : 
  * in `maxWidth`, at most `cornerMaxValues(generations)`; the rest is counted ("+ 3 more").
  */
 export function cornerBlocks(branches: Record<CornerKey, Person[]>, o: ChartOptions, measure: Measure,
-                             maxWidth: (key: CornerKey) => number, generations: number): Corner[] {
+                             maxWidth: (key: CornerKey) => number, generations: number, labelWidth: number): Corner[] {
   const t = TEXTS[o.lang], plural = new Intl.PluralRules(o.lang);
   const form = (forms: string[], n: number) => forms[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2];
   const more = (n: number) => `+ ${n} ${form(t.corners.more, n)}`;
   const sep = "  \u00B7  ";
   const fit = (label: string, items: Count[], width: number) => {
-    const shown = (n: number) => `${label}: ` + items.slice(0, n).map(([v, c]) => (c > 1 ? `${v} (${c})` : v)).join(sep)
+    const shown = (n: number) => items.slice(0, n).map(([v, c]) => (c > 1 ? `${v} (${c})` : v)).join(sep)
       + (n < items.length ? "  " + more(items.length - n) : "");
     let n = Math.min(items.length, cornerMaxValues(generations));
-    while (n > 1 && measure(shown(n), CORNER_VALUE_SIZE, false) > width) n--;
-    return shown(n);
+    while (n > 1 && measure(shown(n), CORNER_VALUE_SIZE, false) > width - labelWidth) n--;
+    return { label, value: shown(n) };
   };
   // the head of the branch (the first of its people): "Line: Name  ·  b. 7 Apr 1939  ·  62 ancestors"; the birth and then the count drop out when it does not fit
   const heading = (head: Person, count: number, width: number) => {
     const date = head.birth?.date ? formatDate(head.birth.date, o.dates === "full", o.lang) : "";
-    const parts = [`${t.corners.line}: ${head.name || "?"}`, date ? `${t.abbr.birt.trim()} ${date}` : "", `${count} ${form(t.ancestors, count)}`];
+    const parts = [head.name || "?", date ? `${t.abbr.birt.trim()} ${date}` : "", `${count} ${form(t.ancestors, count)}`];
     return [parts, [parts[0], parts[2]], [parts[0]]].map((c) => c.filter(Boolean).join(sep))
-      .find((x) => measure(x, CORNER_HEAD_SIZE, true) <= width) ?? parts[0];
+      .find((x) => measure(x, CORNER_HEAD_SIZE, true) <= width - labelWidth) ?? parts[0];
   };
   return CORNER_KEYS.flatMap((key): Corner[] => {
     const people = branches[key];
@@ -118,6 +118,6 @@ export function cornerBlocks(branches: Record<CornerKey, Person[]>, o: ChartOpti
       [t.corners.surnames, mergeSurnameForms(tally(people, surnameOf))],
     ];
     const rows = lists.filter(([, items]) => items.length).map(([label, items]) => fit(label, items, maxWidth(key)));
-    return rows.length ? [{ key, heading: heading(people[0], people.length, maxWidth(key)), rows }] : [];
+    return rows.length ? [{ key, heading: heading(people[0], people.length, maxWidth(key)), headLabel: t.corners.line, rows }] : [];
   });
 }

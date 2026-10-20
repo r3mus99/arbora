@@ -12,7 +12,7 @@ import { formatDate, formatEvent, type ChartOptions } from "./format";
 import { normalize } from "./chart";
 import { yearOf } from "./date";
 import { TEXTS } from "./texts";
-import { CORNER_FIRST_Y, CORNER_HEAD_SIZE, CORNER_HEAD_Y, CORNER_STEP, CORNER_VALUE_SIZE, cornerBlocks, cornerHeight, type CornerKey } from "./posterCorners";
+import { CORNER_HEAD_H, CORNER_HEAD_SIZE, CORNER_LABEL_SIZE, CORNER_PAD, CORNER_STEP, CORNER_VALUE_SIZE, cornerBlocks, cornerHeight, type CornerKey } from "./posterCorners";
 import type { PosterFonts } from "./posterFont";
 
 export const POSTER_MIN_GENERATIONS = 3;
@@ -311,10 +311,14 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const plateLeft = Math.min(...plates.map((p) => p.x - p.w / 2)), plateRight = Math.max(...plates.map((p) => p.x + p.w / 2));
   const cornerEdge = (key: CornerKey) => key.startsWith("father") ? plateLeft : plateRight;
   const filledGens = Math.max(...plates.map((p) => p.gen));
-  const corners = filledGens >= POSTER_CORNERS_MIN_GENERATIONS ? cornerBlocks(branchOf, o, measure, (key) => {
-    const room = W / 2 - 100;
-    return room - (key.startsWith("father") ? plateLeft - 60 : W - 60 - plateRight);
-  }, gens) : [];
+  const cornerRoom = (key: CornerKey) => W / 2 - 100 - (key.startsWith("father") ? plateLeft - 60 : W - 60 - plateRight);
+  // the labels (Line, Origin, ...) stand in a column of their own, the values start at its right edge
+  const t = TEXTS[o.lang].corners;
+  const labelW = Math.max(...[t.line, t.origin, t.given, t.surnames].map((l) => measure(l, CORNER_LABEL_SIZE, true))) + CORNER_PAD + 22;
+  const corners = filledGens >= POSTER_CORNERS_MIN_GENERATIONS ? cornerBlocks(branchOf, o, measure, (key) => cornerRoom(key) - 2 * CORNER_PAD, gens, labelW) : [];
+  // all frames are as wide as the widest content needs, so the four read as a set
+  const blockW = Math.min(Math.max(0, ...corners.map((c) => labelW + 16 + Math.max(measure(c.heading, CORNER_HEAD_SIZE, true), ...c.rows.map((r) => measure(r.value, CORNER_VALUE_SIZE, false))) + CORNER_PAD)),
+    ...corners.map((c) => cornerRoom(c.key)));
   const bandH = (top: boolean) => Math.max(0, ...corners.filter((c) => isTop(c.key) === top).map((c) => cornerHeight(c.rows.length)));
   const topH = bandH(true), bottomH = bandH(false);
   // The ruler runs through the middle of the title frame, so the title and the time axis read as one; the lists
@@ -579,16 +583,23 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   plateShapes.push({ d: frameOuter, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: frameInner, fill: C.plate, stroke: null, strokeWidth: 0 });
   texts.push(...marriages, { text: title, x: W / 2, y: frameY - 4, size: 58, bold: true, fill: C.ink },
              { text: stats, x: W / 2, y: frameY + 40, size: 26, bold: false, fill: C.branch });
-  for (const { key, heading, rows } of corners) {
-    const left = key.startsWith("father"), x = cornerEdge(key);
-    const y0 = isTop(key) ? listsY : H - bottom + 30;
-    const put = (text: string, size: number, bold: boolean, y: number, fill: string, edge: number) => {
-      const w = measure(text, size, bold);
-      texts.push({ text, x: left ? edge + w / 2 : edge - w / 2, y, size, bold, fill });
-      return w;
-    };
-    put(heading, CORNER_HEAD_SIZE, true, y0 + CORNER_HEAD_Y, C.branchEdge, x);
-    rows.forEach((value, n) => put(value, CORNER_VALUE_SIZE, false, y0 + CORNER_FIRST_Y + n * CORNER_STEP, C.ink, x));
+  for (const { key, heading, headLabel, rows } of corners) {
+    const left = key.startsWith("father"), x = cornerEdge(key), cx = left ? x + blockW / 2 : x - blockW / 2;
+    const y0 = isTop(key) ? listsY : H - bottom + 30, h = cornerHeight(rows.length), x0 = cx - blockW / 2, x1 = cx + blockW / 2;
+    // the same double-line frame as the title and the plates, the heading and a hairline above the lines
+    const [outer, inner] = plateOutline(cx, y0 + h / 2, blockW, h, 1.3);
+    plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
+    plateShapes.push({ d: `M${num(x0 + CORNER_PAD)},${num(y0 + CORNER_HEAD_H - 0.7)}L${num(x1 - CORNER_PAD)},${num(y0 + CORNER_HEAD_H - 0.7)}L${num(x1 - CORNER_PAD)},${num(y0 + CORNER_HEAD_H + 0.7)}L${num(x0 + CORNER_PAD)},${num(y0 + CORNER_HEAD_H + 0.7)}Z`, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
+    const put = (text: string, size: number, bold: boolean, y: number, fill: string, from: number) =>
+      texts.push({ text, x: from + measure(text, size, bold) / 2, y, size, bold, fill });
+    const headY = y0 + CORNER_HEAD_H / 2 + 11;
+    put(headLabel, CORNER_LABEL_SIZE, true, headY, C.branch, x0 + CORNER_PAD);
+    put(heading, CORNER_HEAD_SIZE, true, headY, C.branchEdge, x0 + labelW + 16);
+    rows.forEach((r, n) => {
+      const y = y0 + CORNER_HEAD_H + n * CORNER_STEP + CORNER_STEP * 0.68;
+      put(r.label, CORNER_LABEL_SIZE, true, y, C.branch, x0 + CORNER_PAD);
+      put(r.value, CORNER_VALUE_SIZE, false, y, C.ink, x0 + labelW + 16);
+    });
   }
 
   // The ruler: a purely decorative line across the poster, level with the middle of the title frame, with a tick at the
