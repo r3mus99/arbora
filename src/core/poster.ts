@@ -434,21 +434,22 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     occupied.push(...dense(pts, 2));
     branch(tapered(d, width, Math.max(0.6, width * 0.25)), 0.8);
     // a longer shoot splits into more and longer ones, and those split again (three levels in all)
+    let split = 0;
     if (depth < 3 && length > 36) {
       let dir = pick([-1, 1]);
       for (let i = length > 90 ? int(2, 4) : int(1, 3); i > 0; i--) {
         const k = int(Math.floor(d.length / 3), d.length - 2);
         dir = -dir;
-        twig(d[k][0], d[k][1], a + dir * uniform(35, 65) * Math.PI / 180, length * uniform(0.45, 0.7), width * 0.55, depth + 1);
+        if (twig(d[k][0], d[k][1], a + dir * uniform(35, 65) * Math.PI / 180, length * uniform(0.45, 0.7), width * 0.55, depth + 1)) split++;
       }
     }
     for (let k = Math.floor(d.length / 3); k < d.length; k += int(3, 5)) {
       for (const side of [-1, 1]) {
-        if (rnd() < 0.4) leaf(d[k][0], d[k][1], angleAt(d, k) + side * uniform(35, 80) * Math.PI / 180, uniform(0.3, 0.5));
+        if (rnd() < (split ? 0.12 : 0.3)) leaf(d[k][0], d[k][1], angleAt(d, k) + side * uniform(35, 80) * Math.PI / 180, uniform(0.3, 0.5));
       }
     }
     for (const da of [-30, 0, 30]) {
-      if (rnd() < 0.55 || da === 0) leaf(d[d.length - 1][0], d[d.length - 1][1], a + (da + uniform(-10, 10)) * Math.PI / 180, uniform(0.5, 0.75));
+      if (da === 0 || (!split && rnd() < 0.4)) leaf(d[d.length - 1][0], d[d.length - 1][1], a + (da + uniform(-10, 10)) * Math.PI / 180, uniform(0.5, 0.75));
     }
     return true;
   };
