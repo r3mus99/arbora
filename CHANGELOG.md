@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.54.0 – 2026-10-20
+
+- **The edit window is narrower.** With the row-based fields it no longer needs 560 px; it is now 520 px wide, so the tree keeps more room.
+
 ## 2.53.0 – 2026-10-20
 
 - **Tree poster plates with places are only as tall as their rows need.** A person with two rows no longer gets the space of three, and a person without any place keeps the plain plate.

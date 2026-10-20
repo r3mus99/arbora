@@ -1,1 +1,0 @@
-- **The edit window is narrower.** With the row-based fields it no longer needs 560 px; it is now 520 px wide, so the tree keeps more room.
