@@ -1,0 +1,1 @@
+- **Save keeps a new person that is filled in.** When a new child, spouse or parent is typed in the edit window but "Add" was not pressed, the Save button at the bottom now adds that person too and saves everything else in the same step.

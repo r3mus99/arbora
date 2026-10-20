@@ -91,7 +91,7 @@ function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnP
     if (hit) { onPick(hit.id); setText(clearOnPick ? "" : typed); }
     else { setText(typed); if (!typed.trim() && value) onPick(""); }
   };
-  return <label title={tip}>{label && <span>{label}</span>}
+  return <label title={tip} data-cap={label || placeholder}>{label && <span>{label}</span>}
     <input type="text" value={text} list={list} aria-label={label || placeholder} placeholder={placeholder} autoComplete="off" autoFocus={focus} onChange={(e) => change(e.target.value)} />
     <datalist id={list}>{text.length >= 2 && options.slice(0, 5000).map((c) => <option key={c.id} value={c.label} />)}</datalist>
   </label>;
@@ -183,7 +183,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const firstInput = useRef<HTMLInputElement>(null);
   useEffect(() => { if (!open) firstInput.current?.focus({ preventScroll: true }); }, []);
   const [opened] = useState(() => JSON.stringify([initial.shown, initial.fams.map((f) => f.shown)]));
-  const changes = useMemo(() => diffCount(JSON.parse(opened), JSON.parse(JSON.stringify([form, fams]))), [opened, form, fams]);
+  // a new person that is filled in but not added yet counts as one change: Save keeps it
+  const pendingKid = kid?.given.trim() ? 1 : 0;
+  const changes = useMemo(() => diffCount(JSON.parse(opened), JSON.parse(JSON.stringify([form, fams]))), [opened, form, fams]) + pendingKid;
   const dirty = changes > 0;
   useEffect(() => onDirty?.(changes), [changes, onDirty]);
 
@@ -245,7 +247,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
 
   const onKey = (e: KeyboardEvent) => {
     if (e.key === "Escape") { e.preventDefault(); onCancel(); }
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(); }
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveAll(); }
   };
 
   const set = <K extends keyof PersonFields>(key: K, value: PersonFields[K]) => setForm({ ...form, [key]: value });
@@ -288,7 +290,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {revealBtn(id, shown, t("eventDetails"), t("tipDetails"))}
       {shown && <>
         <div className="trio">
-          {DETAILS.map(([k, label, tip]) => <label key={k} title={t(tip)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={d[k]} onChange={(e) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); onChange({ [k]: e.target.value }); }} /></label>)}
+          {DETAILS.map(([k, label, tip]) => <label key={k} title={t(tip)} data-cap={t(label)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={d[k]} onChange={(e) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); onChange({ [k]: e.target.value }); }} /></label>)}
         </div>
         {extra}
       </>}
@@ -323,7 +325,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={form[key].place} list={PLACES}
                onChange={(e) => set(key, { ...form[key], place: e.target.value })} />
       </label>
-      {key === "christening" && <label className="full" title={t("tipReligion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
+      {key === "christening" && <label className="full" title={t("tipReligion")} data-cap={t("religion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
       {details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
     </fieldset>;
@@ -349,7 +351,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                  onChange={(v) => set(key, { ...form[key], date: v })} />
       <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={form[key].place} list={PLACES}
                onChange={(e) => set(key, { ...form[key], place: e.target.value })} /></label>
-      {key === "christening" && <label className="full" title={t("tipReligion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
+      {key === "christening" && <label className="full" title={t("tipReligion")} data-cap={t("religion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
       {details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
     </div></fieldset>;
@@ -395,6 +397,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     }
     return "";
   };
+  /** Save also keeps a new person that is filled in but not added yet: it is added first, and the form is saved once that has landed in the state */
+  const [saveQueued, setSaveQueued] = useState(false);
+  const saveAll = () => { if (kid?.given.trim()) { addKid(); setSaveQueued(true); } else save(); };
+  useEffect(() => { if (saveQueued) { setSaveQueued(false); save(); } }, [saveQueued]);
   const startKid = (kind: "child" | "spouse" | "parent", i = 0) => {
     const sex = kind === "parent" ? "M" : kind === "spouse" ? (otherKey(fams[i]) === "wife" ? "F" : "M") : "";
     const surname = kind === "child" ? familySurname(fams[i]) : kind === "parent" ? form.surname : "";
@@ -510,7 +516,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     </details>;
   };
   return (
-    <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); save(); }}>
+    <form id={EDITOR_FORM} className="editor" onKeyDown={onKey} onSubmit={(e) => { e.preventDefault(); saveAll(); }}>
       {section("name", <>
       <div className="pair">
         <label title={t("tipGiven")} data-cap={t("givenName")}><input placeholder={t("givenName")} aria-label={t("givenName")} ref={firstInput} type="text" autoComplete="off" value={form.given} list={givenList(form.sex)} onChange={(e) => set("given", e.target.value)} /></label>
@@ -547,7 +553,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       <button type="button" className={`reveal${moreParts ? " open" : ""}`} aria-expanded={moreParts} onClick={() => setPartsOpen(!moreParts)}>
         {t("eventDetails")}<ChevronDown className="icon" aria-hidden="true" /></button>
       {moreParts && <div className="pair">
-        {NAME_PARTS.map(([key, label, tip]) => <label key={key} title={t(tip)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={form.nameParts[key]} autoFocus={!initialParts && key === NAME_PARTS[0][0]}
+        {NAME_PARTS.map(([key, label, tip]) => <label key={key} title={t(tip)} data-cap={t(label)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={form.nameParts[key]} autoFocus={!initialParts && key === NAME_PARTS[0][0]}
                  onChange={(e) => setPart({ [key]: e.target.value })} /></label>)}
       </div>}
       </>)}
@@ -579,14 +585,14 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onClick={() => set("events", form.events.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
-            {e.tag === "EVEN" && <label className="full" title={t("tipEventTitle")}><input placeholder={t("eventKind")} aria-label={t("eventKind")} type="text" autoComplete="off" value={e.title} onChange={(ev) => setEv(i, { title: ev.target.value })} /></label>}
-            {e.tag === "EVEN" && <label className="full" title={t("tipEventText")}><input placeholder={t("eventText")} aria-label={t("eventText")} type="text" autoComplete="off" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
+            {e.tag === "EVEN" && <label className="full" title={t("tipEventTitle")} data-cap={t("eventKind")}><input placeholder={t("eventKind")} aria-label={t("eventKind")} type="text" autoComplete="off" value={e.title} onChange={(ev) => setEv(i, { title: ev.target.value })} /></label>}
+            {e.tag === "EVEN" && <label className="full" title={t("tipEventText")} data-cap={t("eventText")}><input placeholder={t("eventText")} aria-label={t("eventText")} type="text" autoComplete="off" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
             {/* a residence: the address (street and number) is separate from the place (town), and is not shown twice when it is the same text */}
             {e.tag === "RESI" && <>
               {(() => { const id = `addr:${rowId(e, i)}`, shown = (!!e.value && e.value !== e.place || openAddr.includes(rowId(e, i))) && !closed.includes(id);
                 return <>
                   <div className="full">{revealBtn(id, shown, t("detAddress"), t(e.value ? "sameAsPlace" : "addrHint"))}</div>
-                  {shown && <label className="full" title={t("addrHint")}><input placeholder={t("detAddress")} aria-label={t("detAddress")} type="text" autoComplete="off" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
+                  {shown && <label className="full" title={t("addrHint")} data-cap={t("detAddress")}><input placeholder={t("detAddress")} aria-label={t("detAddress")} type="text" autoComplete="off" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
                 </>; })()}
             </>}
             <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
@@ -655,7 +661,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                 <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={f.marriage.place} list={PLACES}
                          onChange={(e) => setFam(i, {}, { place: e.target.value })} /></label>
                 <div className="trio">
-                  {DETAILS.map(([k, label, tip]) => <label key={k} title={t(tip)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={f.details.marriage[k]}
+                  {DETAILS.map(([k, label, tip]) => <label key={k} title={t(tip)} data-cap={t(label)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={f.details.marriage[k]}
                            onChange={(e) => setFamDetails(i, "marriage", { [k]: e.target.value })} /></label>)}
                 </div>
                 <label className="check" title={t("tipDivorced")}><input type="checkbox" role="switch" checked={f.divorced}
@@ -717,7 +723,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onClick={() => set("associations", form.associations.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
-            <label className="full" title={t("tipAssocRole")}><input placeholder={t("assocRole")} aria-label={t("assocRole")} type="text" autoComplete="off" value={a.role} onChange={(e) => setAssoc(i, { role: e.target.value })} /></label>
+            <label className="full" title={t("tipAssocRole")} data-cap={t("assocRole")}><input placeholder={t("assocRole")} aria-label={t("assocRole")} type="text" autoComplete="off" value={a.role} onChange={(e) => setAssoc(i, { role: e.target.value })} /></label>
           </div>
         ))}
       </fieldset>
@@ -771,7 +777,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </fieldset>
       </>)}
       {section("notes", <>
-      <label title={t("tipNote")}><textarea autoComplete="off" placeholder={t("note")} aria-label={t("note")} rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
+      <label title={t("tipNote")} data-cap={t("note")}><textarea autoComplete="off" placeholder={t("note")} aria-label={t("note")} rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
       <fieldset className="list">
         <legend>{ico(BookMarked)}{t("sources")}{acts(<button type="button" className="head-act" onClick={() => set("citations",
           [...form.citations, { origin: -1, source: sources[0]?.xref || "", page: "", quality: "" }])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button>)}</legend>
@@ -791,7 +797,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             </div>
             {hidable(`ci${c.origin < 0 ? `new${i}` : c.origin}`, !!(c.page || c.quality), t("eventDetails"), t("tipCitationDetails"),
               <div className="pair">
-                <label title={t("tipPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(`ci${c.origin < 0 ? `new${i}` : c.origin}`); setCite(i, { page: e.target.value }); }} /></label>
+                <label title={t("tipPage")} data-cap={t("srcPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(`ci${c.origin < 0 ? `new${i}` : c.origin}`); setCite(i, { page: e.target.value }); }} /></label>
                 <label title={t("tipQuality")}><span>{t("quality")}</span>
                   <select value={c.quality} onChange={(e) => { pin(`ci${c.origin < 0 ? `new${i}` : c.origin}`); setCite(i, { quality: e.target.value }); }}>
                     <option value="">–</option>
@@ -811,7 +817,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             {RESTRICTIONS.map((r) => <option key={r} value={r}>{t(`resn_${r}` as StringKey)}</option>)}
           </select></label>)}
       {hidable("pAddr", !!form.address, t("address"), t("tipAddress"),
-        <label title={t("tipAddress")}><textarea autoComplete="off" placeholder={t("address")} aria-label={t("address")} rows={2} value={form.address} onChange={(e) => { pin("pAddr"); set("address", e.target.value); }} /></label>)}
+        <label title={t("tipAddress")} data-cap={t("address")}><textarea autoComplete="off" placeholder={t("address")} aria-label={t("address")} rows={2} value={form.address} onChange={(e) => { pin("pAddr"); set("address", e.target.value); }} /></label>)}
       <fieldset className="list">
         <legend>{ico(Phone)}{t("contacts")}{acts(<button type="button" className="head-act" onClick={() => set("contacts", [...form.contacts, { origin: -1, tag: CONTACT_TAGS[0], value: "" }])}><Plus className="icon" aria-hidden="true" />{t("addContact")}</button>)}</legend>
         {form.contacts.map((c, i) => (
@@ -838,13 +844,13 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onClick={() => set("references", form.references.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
-            <label className="full" title={t("tipRefType")}><input placeholder={t("refType")} aria-label={t("refType")} type="text" autoComplete="off" value={r.type} onChange={(e) => setRef(i, { type: e.target.value })} /></label>
+            <label className="full" title={t("tipRefType")} data-cap={t("refType")}><input placeholder={t("refType")} aria-label={t("refType")} type="text" autoComplete="off" value={r.type} onChange={(e) => setRef(i, { type: e.target.value })} /></label>
           </div>
         ))}
       </fieldset>
       <div className="pair">
-        <label title={t("tipAfn")}><input placeholder={t("afn")} aria-label={t("afn")} type="text" autoComplete="off" value={form.afn} onChange={(e) => set("afn", e.target.value)} /></label>
-        <label title={t("tipRfn")}><input placeholder={t("rfn")} aria-label={t("rfn")} type="text" autoComplete="off" value={form.rfn} onChange={(e) => set("rfn", e.target.value)} /></label>
+        <label title={t("tipAfn")} data-cap={t("afn")}><input placeholder={t("afn")} aria-label={t("afn")} type="text" autoComplete="off" value={form.afn} onChange={(e) => set("afn", e.target.value)} /></label>
+        <label title={t("tipRfn")} data-cap={t("rfn")}><input placeholder={t("rfn")} aria-label={t("rfn")} type="text" autoComplete="off" value={form.rfn} onChange={(e) => set("rfn", e.target.value)} /></label>
       </div>
       </>)}
       <SuggestLists suggest={suggest} lang={lang} />
