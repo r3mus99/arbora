@@ -664,6 +664,7 @@ section.check { margin: 0 0 14px; }
 .set-panel .field > .set-hint { margin: 6px 0 0; font-size: 12px; color: var(--muted); }
 .set-panel .set-gens { display: flex; }
 .set-panel .set-gens button { flex: 1 1 0; min-width: 0; padding: 0; }
+.set-panel .set-gens button:last-child { flex: 0 0 auto; padding: 0 10px; }
 
 /* favourites: one star colour; the star is a filled glyph, on screen only */
 .star { color: var(--star); fill: currentColor; }
