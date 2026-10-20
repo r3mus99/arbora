@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.47.0 – 2026-10-20
+
+- **One setting for the number of generations.** The chart, the PDF and the SVG poster now share it; the poster has no number of its own and the "Graphic output (SVG)" section and the Screen / PDF / SVG chips are gone from Settings. Ancestors / Descendants and the generations moved into Settings, and the bar above the tree shows the choice ("Ancestors · 4 generations") as a shortcut that opens Settings. The poster draws at most 10 generations.
+
 ## 2.46.0 – 2026-10-20
 
 - **The poster's generation ruler appears together with the corner statistics.** Both show up automatically from 5 filled generations; smaller posters stay clean.
