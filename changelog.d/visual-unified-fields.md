@@ -1,0 +1,1 @@
+- **Same fields everywhere.** Settings, merge, bulk rename and the person pickers now use the row fields of the edit window, and checkboxes and radios share one accent colour.

@@ -50,7 +50,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
     </div>
     <div className="set-group">
       <h3 {...scoped(CHART)}>{t("setChart")}</h3>
-      <div className="grid">
+      <div className="rows">
         <label {...scoped(EVERYWHERE)}><span>{t("labels")}</span>
           <select {...sel("labels")}>
             <option value="symbols">{`${t("symbols")}  * ∞ †`}</option>
@@ -64,9 +64,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
           <select {...sel("numbering")}>
             {NUMBERING[form.chart].map(([v, key]) => <option key={v} value={v}>{t(key)}</option>)}
           </select></label>
-      </div>
-      <div className="checks">
-        <label title={t("showPlacesTip")} {...scoped(CHART)}><input {...check("showPlaces")} /> <span>{t("showPlaces")}</span></label>
+        <label className="check" title={t("showPlacesTip")} {...scoped(CHART)}><input role="switch" {...check("showPlaces")} /><span>{t("showPlaces")}</span></label>
       </div>
     </div>
     <div className="set-group">
