@@ -1,1 +1,0 @@
-- **The tree poster's border has rounded corners.** The border and the statistics frames now match the rounded plates and the title frame, so every box on the poster follows one rule.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.51.0 – 2026-10-20
+
+- **The tree poster's border has rounded corners.** The border and the statistics frames now match the rounded plates and the title frame, so every box on the poster follows one rule.
+
 ## 2.50.0 – 2026-10-20
 
 - **The delete button of an alternative name sits at the end of its row.** In the person edit window the trash can of each "Also known as" name is now on the same line as the name fields, like in events and attributes.
