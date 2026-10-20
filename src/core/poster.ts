@@ -137,8 +137,8 @@ function roundedRect(cx: number, cy: number, w: number, h: number, r: number, ho
  * border of the whole poster); with `single` just one line. Returns the ink shape (the lines) and the paper shape
  * (drawn over it), both around the centre (cx, cy); the lines grow with the plate (`scale`).
  */
-function plateOutline(cx: number, cy: number, w: number, h: number, scale: number, single = false): [string, string] {
-  const thick = 2.2 * scale, gap = 2.6 * scale, thin = 1.2 * scale, r = 7 * scale;
+function plateOutline(cx: number, cy: number, w: number, h: number, scale: number, single = false, r = 7 * scale): [string, string] {
+  const thick = 2.2 * scale, gap = 2.6 * scale, thin = 1.2 * scale;
   const ring = (inset: number, width: number) =>
     roundedRect(cx, cy, w - 2 * inset, h - 2 * inset, r - inset) + roundedRect(cx, cy, w - 2 * (inset + width), h - 2 * (inset + width), r - inset - width, true);
   if (single) return [ring(0, thick), roundedRect(cx, cy, w - 2 * thick, h - 2 * thick, r - thick)];
@@ -587,7 +587,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     const left = key.startsWith("father"), x = cornerEdge(key), cx = left ? x + blockW / 2 : x - blockW / 2;
     const y0 = isTop(key) ? listsY : H - bottom + 30, h = cornerHeight(rows.length), x0 = cx - blockW / 2, x1 = cx + blockW / 2;
     // the same double-line frame as the title and the plates, the heading and a hairline above the lines
-    const [outer, inner] = plateOutline(cx, y0 + h / 2, blockW, h, 1.3);
+    const [outer, inner] = plateOutline(cx, y0 + h / 2, blockW, h, 1.3, false, 14);
     plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
     plateShapes.push({ d: `M${num(x0 + CORNER_PAD)},${num(y0 + CORNER_HEAD_H - 0.7)}L${num(x1 - CORNER_PAD)},${num(y0 + CORNER_HEAD_H - 0.7)}L${num(x1 - CORNER_PAD)},${num(y0 + CORNER_HEAD_H + 0.7)}L${num(x0 + CORNER_PAD)},${num(y0 + CORNER_HEAD_H + 0.7)}Z`, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
     const put = (text: string, size: number, bold: boolean, y: number, fill: string, from: number) =>
@@ -634,13 +634,12 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     plateShapes.unshift({ d, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
   }
 
-  // a quiet double border of straight lines around the whole poster, in the margin outside the tree
-  const margin = 84, inset = 54, gap = 16;
-  const rect = (x0: number, y0: number, x1: number, y1: number, reverse = false) =>
-    reverse ? `M${x0},${y0}L${x0},${y1}L${x1},${y1}L${x1},${y0}Z` : `M${x0},${y0}L${x1},${y0}L${x1},${y1}L${x0},${y1}Z`;
+  // a quiet double border around the whole poster, in the margin outside the tree: straight lines with rounded corners
+  // like every box on the poster (the plates, the title and the lists)
+  const margin = 84, inset = 54, gap = 16, cornerR = 24;
   const line = (distance: number, thickness: number) => {
-    const o = inset - distance;
-    return rect(-o, -o, W + o, H + o) + rect(-o + thickness, -o + thickness, W + o - thickness, H + o - thickness, true);
+    const o = inset - distance, r = cornerR - distance;
+    return roundedRect(W / 2, H / 2, W + 2 * o, H + 2 * o, r) + roundedRect(W / 2, H / 2, W + 2 * (o - thickness), H + 2 * (o - thickness), r - thickness, true);
   };
   const frameShapes: PosterShape[] = [{ d: line(0, 6), fill: C.branchEdge, stroke: null, strokeWidth: 0 },
                                       { d: line(gap, 3), fill: C.branchEdge, stroke: null, strokeWidth: 0 }];
