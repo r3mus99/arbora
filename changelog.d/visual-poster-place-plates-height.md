@@ -1,0 +1,1 @@
+- **Tree poster plates with places are only as tall as their rows need.** A person with two rows no longer gets the space of three, and a person without any place keeps the plain plate.
