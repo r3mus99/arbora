@@ -1,1 +1,0 @@
-- **Poster branches look more natural.** Long branches grow longer side shoots, and the shoots split again into finer twigs; marriage labels no longer overlap each other.
