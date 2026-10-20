@@ -1,1 +1,1 @@
-- **Marriage details sit with the marriage in the edit window.** Date, place, age, cause, agency and divorce are now shown right after the spouse, above the children, instead of below them.
+- **The statistics in the corners of the tree poster stand in a frame.** Each of the four blocks has the same double-line frame as the title, a heading row and a column of labels, so the first values of all rows line up.
