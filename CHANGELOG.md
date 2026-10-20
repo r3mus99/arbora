@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.46.0 – 2026-10-20
+
+- **The poster's generation ruler appears together with the corner statistics.** Both show up automatically from 5 filled generations; smaller posters stay clean.
+
 ## 2.45.0 – 2026-10-20
 
 - **The statistics in the corners of the tree poster stand in a frame.** Each of the four blocks has the same double-line frame as the title, a heading row and a column of labels, so the first values of all rows line up.
