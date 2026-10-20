@@ -52,7 +52,7 @@ export function SettingsPanel({ form, lang, onChange, t }: Props) {
           <button type="button" title={t("genTipAll")} aria-label={t("genTipAll")} aria-pressed={gens === 0} className={gens === 0 ? "on" : undefined}
                   onClick={() => onChange("generations", "0")}>{t("allGens")}</button>
         </div>
-        <p className="set-hint">{t("gensHint")}</p>
+        {gens === 0 && <p className="set-hint">{t("gensHint")}</p>}
       </div>
       <div className="rows">
         <label><span>{t("numbering")}</span>
