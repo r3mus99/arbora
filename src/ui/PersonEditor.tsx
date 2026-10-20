@@ -628,25 +628,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             </div>}
             {newPersonForm("spouse", i)}
           </div>
-          <div className="wide children">
-            <span className="lab">{ico(Baby)}{t("children")}
-              {acts(<button type="button" className="head-act" title={t("newChild")} onClick={() => startKid("child", i)}><Plus className="icon" aria-hidden="true" />{t("addShort")}</button>,
-                    <button type="button" className="head-act" title={t("findChild")} onClick={() => setAdding(adding === i ? null : i)}><Search className="icon" aria-hidden="true" />{t("findShort")}</button>,
-                    fams[i].children.length > 1 && sortedKids(fams[i].children).join() !== fams[i].children.join() &&
-                      <button type="button" className="head-act" title={t("tipSortKids")} onClick={() => setChildren(i, sortedKids(fams[i].children))}><ArrowDownUp className="icon" aria-hidden="true" />{t("sortKids")}</button>)}</span>
-            {adding === i && <PersonPick choices={personChoices} clearOnPick focus exclude={[record.xref!, fams[i].husb, fams[i].wife, ...fams[i].children, ...above]}
-                        value="" label="" placeholder={t("pickPerson")} tip={t("addChild")}
-                        onPick={(id) => { if (id) { addChild(i, id); setAdding(null); } }} />}
-            {fams[i].children.map((id) => (
-              <div className="child" key={id}>
-                <span>{labelOf(id)}</span>
-                <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                        onClick={() => setChildren(i, fams[i].children.filter((c) => c !== id))}>
-                  <Trash2 className="icon" aria-hidden="true" /></button>
-              </div>
-            ))}
-            {newPersonForm("child", i)}
-          </div>
           {(() => {
             const f = fams[i], id = `m${r.xref}`;
             // date, place and the rest of the marriage sit behind the Details button: open when they hold a value, and for a new empty family
@@ -678,6 +659,25 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
               </>}
             </>;
           })()}
+          <div className="wide children">
+            <span className="lab">{ico(Baby)}{t("children")}
+              {acts(<button type="button" className="head-act" title={t("newChild")} onClick={() => startKid("child", i)}><Plus className="icon" aria-hidden="true" />{t("addShort")}</button>,
+                    <button type="button" className="head-act" title={t("findChild")} onClick={() => setAdding(adding === i ? null : i)}><Search className="icon" aria-hidden="true" />{t("findShort")}</button>,
+                    fams[i].children.length > 1 && sortedKids(fams[i].children).join() !== fams[i].children.join() &&
+                      <button type="button" className="head-act" title={t("tipSortKids")} onClick={() => setChildren(i, sortedKids(fams[i].children))}><ArrowDownUp className="icon" aria-hidden="true" />{t("sortKids")}</button>)}</span>
+            {adding === i && <PersonPick choices={personChoices} clearOnPick focus exclude={[record.xref!, fams[i].husb, fams[i].wife, ...fams[i].children, ...above]}
+                        value="" label="" placeholder={t("pickPerson")} tip={t("addChild")}
+                        onPick={(id) => { if (id) { addChild(i, id); setAdding(null); } }} />}
+            {fams[i].children.map((id) => (
+              <div className="child" key={id}>
+                <span>{labelOf(id)}</span>
+                <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                        onClick={() => setChildren(i, fams[i].children.filter((c) => c !== id))}>
+                  <Trash2 className="icon" aria-hidden="true" /></button>
+              </div>
+            ))}
+            {newPersonForm("child", i)}
+          </div>
         </fieldset>
         </div>
       ))}
