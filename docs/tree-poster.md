@@ -44,6 +44,7 @@ decorative wall chart. This file records how it works and what is still open.
   male forms of a surname (Nováková/Novák, Kowalska/Kowalski, Иванова/Иванов) are one entry shown in the male form. A row
   names the most common values first, at most 5 (up to 5 generations), 6 (6 and 7) or 7 (from 8), with the number of people ("Vienna (7)  ·  Prague (5)"); the rest
   is counted ("+ 13 more", with no dot before it). A trailing district number ("Prague 2") is dropped, so the municipality and its numbered forms are one entry. The left lists start at the leftmost plate edge and the right ones end at the rightmost. A row without values is left out. The poster grows: the top blocks stand under the ruler, the bottom ones under the lowest plates. A faint band on every second row was tried and dropped (Marek, 2026-10-20): with three rows it only highlights the middle one.
+- With "Show places" on, the plates of generations 1 to 4 carry place rows instead of the date line (see open point 5); the poster text sizes are computed per role (names, dates, rows), and a plate with rows shrinks its text to fit its height.
 - Names wrap to two lines when one line would be small; two-line names use a smaller font so the date line stays clear of the plate edge. A generation shares one name size and one date size, taken from its single-line plates; a plate with a wrapped name keeps its own smaller sizes and does not shrink the others.
 - A ruler runs across the poster level with the middle of the title frame (drawn under the same rule as the corner lists, `posterHasStatistics`: from 5 filled generations); the frame covers the part of it beside the main person, so the labels of the columns it covers (usually generations 1 and 2) are left out. The corner lists stand under the ruler. It is only decoration, a line with ticks that mean nothing, with a larger tick and "N. generation" (`TEXTS.generation`) at the middle of each column of plates and under it how many people of that column are known out of how many it could hold ("12 of 16", `TEXTS.known`; a column on one side holds 2^(generation-2), the main person 1; every plate counts, so a person who stands on several branches counts each time). The father's side is on the left, the mother's on the right, the main person's "1." in the middle. A time scale in real years with a band per generation was tried and dropped (Marek, 2026-10-19): on real data the generations overlap too much (the ranges grow to about 100 years by the 10th generation), so the scale said little. 
 - **Corner rule:** every box on the poster (plates, title frame, corner lists, the "2×" tag and the border of the whole poster) has rounded corners; lines (the ruler, the hairline under a list heading) have none. The statistics frames use the same radius as the title frame.
@@ -60,13 +61,16 @@ decorative wall chart. This file records how it works and what is still open.
    the person's children. They need drawn vectors; the branches stay generated.
 3. **Leaf shape:** one drawn leaf (a plain path) would replace the generic one.
 4. **Fonts:** the text is set in Alkatra (OFL, `public/fonts/Alkatra-*.woff`, Latin and Latin Extended) and written as outlines, so a print shop sees the same letters; what Alkatra lacks (Cyrillic) falls back to DejaVu Sans per character (`core/posterFont.ts`). Open: a Cyrillic font that matches Alkatra. Each letter is stored once in `<defs>` and reused with `<use>`, so the 7-generation sample SVG is about 1.1 MB.
-5. **Places, sources and residence on plates** (the poster ignores places for now). Tried as a preview and postponed
-   (Marek, 2026-10-19): an extra small line inside the plate, `* Graz  ⌂ Prague  † Vienna` (birth place, residence,
-   death place, only what is known), only for the generations with the big plates (200 % to 125 %), none for the
-   100 % ones. Findings: the plates need to be about 30 % higher (a separate residence line needs 55 % and two-line
-   names then touch the border); long place names shrink the line to small type, mostly on the 125 % plates, so a
-   long line would have to wrap or the places would be limited to 200 % to 150 %; the residence shows only when it
-   differs from the birth and death places. A residence line is better as an opt-in setting.
+5. **Places on plates.** Done for generations 1 to 4 (`POSTER_PLACES_UP_TO`) when "Show places" is on (Marek, 2026-10-20, option B of the
+   mock-ups in `arbora/tree-poster/three-line-plates/`): name and up to three rows `*1865 Graz`, `⌂ Prague`, `†1906 Vienna` (the dates move into the
+   rows, the format follows the Dates and Labels settings; a row with nothing known is left out; the residence only when it differs from the birth and
+   death place). The plate is 75 % taller (`POSTER_PLACES_HEIGHT`); the poster keeps its height because the 7th generation decides it. Open, decide later:
+   - generations 5 and 6 (100 % plates): one small row `* Graz  ⌂ Prague  † Vienna` was tried (variant C), the poster grew 15 % in height and the SVG 12 % and the text is tiny, so postponed; from the 7th generation the plates are too small;
+   - merge birth and death into one row when the place is the same (`*1845 †1918 Hohenau`), because in village data birth, residence and death are often one place and a plate then shows a single row;
+   - the age at death ("79 y.") is lost on these plates; it could be appended to the death row when it fits;
+   - the residence has no abbreviation in the text-label mode (always `⌂`);
+   - a shallow tree (5 generations) is higher than the generation 7 column normally leaves room for, so the taller plates may then make the poster higher;
+   - sources are still not shown.
 6. **More facts on the poster** (Marek liked all five, 2026-10-19; the number of children is done, see the
    marriage text under "Plates"):
    - the occupation under the name on the big plates (200 % to 125 %), only when known;
