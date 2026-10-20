@@ -1,1 +1,1 @@
-- **The tree poster's border has rounded corners.** The border and the statistics frames now match the rounded plates and the title frame, so every box on the poster follows one rule.
+- **Generations control fits all languages.** The "all" segment is no longer cut off, and the note about the 10-generation poster limit (now naming the SVG poster) appears only when all generations are selected.

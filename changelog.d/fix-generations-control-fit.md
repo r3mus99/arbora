@@ -1,1 +1,0 @@
-- **Generations control fits all languages.** The "all" segment is no longer cut off, and the note about the 10-generation poster limit (now naming the SVG poster) appears only when all generations are selected.
