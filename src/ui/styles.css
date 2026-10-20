@@ -785,12 +785,50 @@ section.check { margin: 0 0 14px; }
 .editor .fam-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; }
 .editor .fam-card .new-child { background: var(--panel); }
 
-/* date, place and name pairs keep their name once filled: a small caption above the value (the placeholder is gone by then) */
-.editor label[data-cap] { position: relative; }
-.editor label[data-cap]:has(> input:not(:placeholder-shown))::before {
-  content: attr(data-cap); position: absolute; left: 0; top: -8px; z-index: 1; padding: 0 3px 0 0; pointer-events: none;
-  font-size: 12px; line-height: 1; font-weight: 600; color: var(--muted);
-}
+/* the fields of the edit window are rows: the name of the field in a fixed column, the value next to it, hairlines between the rows (docs/design-guidelines.md, 6b) */
+.edit-body .editor { --lab-w: 104px; --row-h: 36px; }
+.edit-body .editor label[data-cap], .edit-body .editor label.check, .edit-body .editor label:has(> span:first-child + select),
+.edit-body .editor .sex-field {
+  display: grid; grid-template-columns: var(--lab-w) minmax(0, 1fr); align-items: center; column-gap: 8px; min-height: var(--row-h);
+  margin: 0; padding: 0 10px; border-top: 1px solid var(--border); position: relative; transition: background .12s; }
+.edit-body .editor label[data-cap]::before { content: attr(data-cap); font-size: 13px; line-height: 1.25; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.edit-body .editor label > span:first-child:not(.hint), .edit-body .editor .sex-field > span { margin: 0; font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.edit-body .editor label[data-cap]:hover, .edit-body .editor label:has(> span:first-child + select):hover { background: color-mix(in srgb, var(--accent-soft) 45%, transparent); }
+.edit-body .editor label[data-cap]:focus-within, .edit-body .editor label:has(> span:first-child + select):focus-within { background: var(--accent-soft); }
+.edit-body .editor label[data-cap]:focus-within::before, .edit-body .editor label:focus-within > span:first-child { color: var(--accent); }
+.edit-body .editor label[data-cap]:focus-within::after, .edit-body .editor label:has(> span:first-child + select):focus-within::after {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+.edit-body .editor label[data-cap]:has(.hint.warn)::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--danger); }
+.edit-body .editor label[data-cap]:has(.hint.warn)::before { color: var(--danger); }
+.edit-body .editor label[data-cap] input[type=text], .edit-body .editor label[data-cap] textarea, .edit-body .editor label > select {
+  border: 0; background: none; border-radius: 0; padding: 0; min-height: calc(var(--row-h) - 2px); box-shadow: none; }
+.edit-body .editor label[data-cap] input[list] { padding-right: 26px; background-position: right 0 center; }
+.edit-body .editor label[data-cap] input::placeholder, .edit-body .editor label[data-cap] textarea::placeholder { color: transparent; }
+.edit-body .editor label[data-cap] textarea { padding: 8px 0; resize: vertical; }
+.edit-body .editor label:has(> textarea) { align-items: start; }
+.edit-body .editor label:has(> textarea)::before { padding-top: 9px; }
+.edit-body .editor label[data-cap] .hint { grid-column: 2; margin: -4px 0 6px; }
+.edit-body .editor label > select { appearance: none; width: 100%; padding-right: 22px; cursor: pointer;
+  background: no-repeat right 0 center / 12px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 4.500 6 8.500l4-4' fill='none' stroke='%2362675f' stroke-width='1.600' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.edit-body .editor label > select:focus { background-color: transparent; }
+/* groups of fields are one column of rows */
+.edit-body .editor fieldset { grid-template-columns: minmax(0, 1fr); gap: 0; }
+.edit-body .editor fieldset.list { gap: 16px; }
+.edit-body .editor .item { grid-template-columns: minmax(0, 1fr); gap: 0; }
+.edit-body .editor .trio, .edit-body .editor .pair { display: block; }
+.edit-body .editor legend { margin-bottom: 4px; }
+.edit-body .editor .full { grid-column: auto; }
+.edit-body .editor label.check { grid-template-columns: minmax(0, 1fr) auto; grid-column: auto; border-radius: 0; background: none; }
+.edit-body .editor .sec-fields { gap: 0; }
+.edit-body .editor .sec-fields > * + fieldset, .edit-body .editor .sec-fields > * + .sub, .edit-body .editor .sec-fields > fieldset + * { margin-top: 14px; }
+.edit-body .editor .sec-fields > label + label, .edit-body .editor .sec-fields > .sex-field { margin-top: 0; }
+.edit-body .editor .check > span { color: var(--text); }
+.edit-body .editor .sex-field { grid-template-columns: var(--lab-w) minmax(0, 1fr); }
+.edit-body .editor .sex { height: 28px; }
+/* "Details": a quiet disclosure of the card, not a row: small, muted, hairline above, no accent colour */
+.edit-body .editor .reveal { color: var(--muted); font-size: 12px; min-height: 28px; margin: 2px 0 0 10px; }
+.edit-body .editor .reveal:hover:not(:disabled) { color: var(--text); }
+.edit-body .editor .reveal .icon { width: 12px; height: 12px; }
 
 /* narrow screens (phone, small tablet): the list of people and the detail of one person, one at a time; the chart, the tool
    bar and the tool panels are not shown. Last in the file so that it wins over the desktop rules above. */
