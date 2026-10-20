@@ -23,6 +23,7 @@ export * from "./places";
 export * from "./names";
 export * from "./info";
 export * from "./placelist";
+export * from "./palette";
 export * from "./poster";
 export * from "./posterDescendants";
 export { CORNER_MIN_PEOPLE, CORNER_PAD, cornerMaxValues, mergeSurnameForms } from "./posterCorners";

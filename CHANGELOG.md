@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.55.0 – 2026-10-20
+
+- **The poster plates show the places on a third line, and birth, death and places have one colour everywhere.** With "Show places" on, a big plate keeps the name and the years and adds `* Graz   ⌂ Prague   † Vienna` in grey under them (one place in the same town is not repeated, long names are cut). The birth year and the poster leaves are one green, the death year, the marriage year and the branches one dark brown, places one grey, on the poster, in the tree and in the PDF.
+
 ## 2.54.0 – 2026-10-20
 
 - **The edit window is narrower.** With the row-based fields it no longer needs 560 px; it is now 520 px wide, so the tree keeps more room.
