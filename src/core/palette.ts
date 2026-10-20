@@ -4,7 +4,7 @@
  * `src/ui/styles.css` repeats `--c-birth`, `--c-marr`, `--c-death` and `--muted` of the light theme; `palette.test.ts` keeps them equal.
  */
 export const PALETTE = {
-  forest: "#1e6b44",     // birth year, the main leaf colour
+  forest: "#1e6b44",     // birth year, the main leaf colour, the screen's accent
   fern: "#2b8453",
   pine: "#17583a",
   clover: "#339058",
@@ -18,7 +18,7 @@ export const PALETTE = {
   ivory: "#fffcf3",      // plate
   parchment: "#efe3cc",  // poster paper
   lapis: "#2f5f9e",      // male name
-  brick: "#a8322a",      // female name
+  brick: "#a8322a",      // female name, errors, the female colour on the screen
 } as const;
 
 /** "#rrggbb" as red, green and blue between 0 and 1 (the PDF colour model). */
