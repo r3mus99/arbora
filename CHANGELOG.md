@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.60.0 – 2026-10-20
+
+- **The SVG tree poster also draws descendants.** With the Descendants chart chosen, the SVG button makes a poster of the person's descendants: a column for each generation, the partners beside every person and one trunk with a branch for each child. It shows at most 6 generations (fewer for a very large family, at most 500 people); the plates, branches and border are those of the ancestors poster, and from 5 generations on under the tree it has one list of places and names of all descendants and under it the ruler of the generations.
+
 ## 2.59.1 – 2026-10-20
 
 - **Colours that were wrong in the dark theme are fixed.** The counter on the tool icons is readable in the dark theme, the magnifier and the arrows in the fields follow the theme, and the icons of christening, residence, other events, children and burial have their own lighter colours there. The child icon is a little darker in the light theme.
