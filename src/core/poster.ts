@@ -101,9 +101,9 @@ export function posterSeed(rootId: string, seed: number): number {
   return h >>> 0;
 }
 
-type Point = [number, number];
+export type Point = [number, number];
 
-const num = (n: number) => String(Math.round(n * 10) / 10);
+export const num = (n: number) => String(Math.round(n * 10) / 10);
 /** A glyph scale (about 0.01) needs more digits than a coordinate. */
 const scale = (n: number) => String(Math.round(n * 1e5) / 1e5);
 
@@ -111,7 +111,7 @@ const scale = (n: number) => String(Math.round(n * 1e5) / 1e5);
 export const textWidth = (text: string, size: number, bold: boolean) => text.length * size * (bold ? 0.62 : 0.56);
 
 /** Points of a Catmull-Rom spline through `pts`, `k` per segment. */
-function dense(pts: Point[], k = 6): Point[] {
+export function dense(pts: Point[], k = 6): Point[] {
   const out: Point[] = [];
   for (let i = 0; i < pts.length - 1; i++) {
     const p0 = pts[Math.max(i - 1, 0)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(i + 2, pts.length - 1)];
@@ -127,7 +127,7 @@ function dense(pts: Point[], k = 6): Point[] {
 }
 
 /** A rectangle with corners rounded by `r`, as a path around the centre (cx, cy). Rectangles that are too small for `r` get less rounding. */
-function roundedRect(cx: number, cy: number, w: number, h: number, r: number, hole = false): string {
+export function roundedRect(cx: number, cy: number, w: number, h: number, r: number, hole = false): string {
   const x0 = cx - w / 2, y0 = cy - h / 2, x1 = cx + w / 2, y1 = cy + h / 2;
   r = Math.max(0, Math.min(r, w / 2, h / 2));
   const a = (x: number, y: number) => `A${num(r)},${num(r)} 0 0 ${hole ? 0 : 1} ${num(x)},${num(y)}`;
@@ -143,7 +143,7 @@ function roundedRect(cx: number, cy: number, w: number, h: number, r: number, ho
  * border of the whole poster); with `single` just one line. Returns the ink shape (the lines) and the paper shape
  * (drawn over it), both around the centre (cx, cy); the lines grow with the plate (`scale`).
  */
-function plateOutline(cx: number, cy: number, w: number, h: number, scale: number, single = false, r = 7 * scale): [string, string] {
+export function plateOutline(cx: number, cy: number, w: number, h: number, scale: number, single = false, r = 7 * scale): [string, string] {
   const thick = 2.2 * scale, gap = 2.6 * scale, thin = 1.2 * scale;
   const ring = (inset: number, width: number) =>
     roundedRect(cx, cy, w - 2 * inset, h - 2 * inset, r - inset) + roundedRect(cx, cy, w - 2 * (inset + width), h - 2 * (inset + width), r - inset - width, true);
@@ -179,7 +179,7 @@ function leafPath(x: number, y: number, ang: number, s: number): string {
     `M${p([2, 0])}L${p([30, 0])}`;
 }
 
-interface Plate { id: string; gen: number; x: number; y: number; w: number; h: number }
+export interface Plate { id: string; gen: number; x: number; y: number; w: number; h: number }
 
 /** The ancestors of `rootId` as a poster; `options.generations` generations including the person (0 = all, which the poster keeps to POSTER_MAX_GENERATIONS); the poster is as wide as the generations need and as high as the people need. */
 export function buildPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts): Poster {
@@ -190,28 +190,13 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const gens = Math.min(POSTER_MAX_GENERATIONS, Math.max(POSTER_MIN_GENERATIONS, Math.round(o.generations) || POSTER_MAX_GENERATIONS));
   const seed = posterSeed(rootId, o.posterSeed);
   const rnd = random(seed);
-  const uniform = (a: number, b: number) => a + (b - a) * rnd();
-  const int = (a: number, b: number) => Math.floor(uniform(a, b + 1));
-  const pick = <T>(list: readonly T[]) => list[Math.floor(rnd() * list.length)];
 
   // ------------------------------------------------------------ plates
   // the plates keep one size; the columns are one generation each and the drawing is as high as the people need
   // The closest generations, whom the person may still have known, get bigger plates (see POSTER_PLATE_SCALE).
-  const baseH = 66, rowGap = 24, minGap = 70;
-  const baseW = gens <= 4 ? 280 : gens <= 6 ? 230 : 200;
-  const scaleOf = (gen: number) => POSTER_PLATE_SCALE[gen - 1] ?? 1;
-  const widthOf = (gen: number) => Math.round(baseW * scaleOf(gen) * (gen >= POSTER_SMALL_FROM ? POSTER_SMALL_WIDTH : 1));
-  const small = (gen: number) => gen >= POSTER_SMALL_FROM;
-  const unitH = (gen: number) => baseH * scaleOf(gen) * (small(gen) ? POSTER_SMALL_HEIGHT : 1);
-  const heightOf = (gen: number) => Math.round(unitH(gen));
-  // a plate with place rows is only as tall as its rows need (a person without any place stays a plain plate)
-  const plateHeight = (p: Person, gen: number) => {
-    if (rowsFor(gen, o) !== "three") return heightOf(gen);
-    const own = plateLines({ id: "", gen, x: 0, y: 0, w: widthOf(gen), h: unitH(gen) }, p, o, measure, unitH(gen), "three");
-    return Math.max(heightOf(gen), Math.min(Math.round(unitH(gen) * POSTER_PLACES_HEIGHT), Math.ceil(linesHeight(own, 1.15) / PLATE_TEXT_SHARE)));
-  };
-  // the border and the tag of a plate follow its height
-  const lookOf = (gen: number) => scaleOf(gen) * (small(gen) ? 0.7 : 1);
+  const rowGap = 24, minGap = 70;
+  const kit = plateKit(o, measure, gens);
+  const { widthOf, small, heightOf, plateHeight, lookOf } = kit;
   // The year of a marriage and the number of children of the couple are a small brown text where the branches of the
   // two parents meet, each line led by a drawn symbol (two rings, two figures); its size follows the generation of the
   // child, and the gap between the child's column and the parents' is wide enough for it.
@@ -386,10 +371,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // ------------------------------------------------------------ branches
   const shapes: PosterShape[] = [];
   const C = POSTER_COLORS;
-  const branches: PosterShape[] = [], leaves: PosterShape[] = [];
-  const occupied: Point[] = [];
-
-  const limbPts: Point[] = [], leafPts: Point[] = [];
+  const { branches, leaves, occupied, curve, limb, free } = makeGrower(rnd, plates, W, H);
 
   // The marriage years: a small brown text where the branches of the two parents meet, in the gap between the
   // person and the parents (beside the fork for the main person). The room is kept free of shoots before they grow;
@@ -416,6 +398,123 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   });
   const reserved = occupied.length;
 
+
+  const grow = (child: Plate, parent: Plate, side: -1 | 1) => {
+    limb(curve([child.x + side * child.w / 2, child.y], [parent.x - side * parent.w / 2, parent.y]), gens - parent.gen, true, true);
+    for (const q of kids.get(parent) || []) grow(parent, q, side);
+  };
+  // one limb rises from the person and splits in two, one for each parent
+  if (rootKids.length) {
+    const lowest = Math.max(...rootKids.map(([plate]) => plate.y + plate.h / 2));
+    const fork: Point = [rootPlate.x, lowest + 70];
+    limb(curve([rootPlate.x, rootPlate.y - rootPlate.h / 2], fork, true), gens - 1, true);
+    for (const [plate, side] of rootKids) {
+      limb(curve(fork, [plate.x - side * plate.w * 0.2, plate.y + plate.h / 2], true), gens - 2, false, true);
+      for (const q of kids.get(plate) || []) grow(plate, q, side);
+    }
+  }
+
+  const marriages: PosterText[] = [];
+  const symbols: PosterShape[] = [];
+  for (const label of labels) {
+    const { lines, size, width, height, x, y, top, bottom } = label;
+    // the room between the two branches is preferred; a spot above or below them is the last resort
+    const near: [number, number, number][] = [];
+    for (let dx = -70; dx <= 70; dx += 4) {
+      for (let dy = -120; dy <= 120; dy += 4) {
+        const outside = y + dy < top || y + dy > bottom;
+        near.push([x + dx, y + dy, Math.abs(dx) + 2 * Math.abs(dy) + (outside ? 1000 : 0)]);
+      }
+    }
+    near.sort((a, b) => a[2] - b[2]);
+    const spot = near.find(([px, py]) => free(px, py, width, height) && !occupied.slice(reserved).some(([ox, oy]) =>
+      Math.abs(ox - px) < width / 2 + 6 && Math.abs(oy - py) < height / 2 + 6)) ?? [x, y];
+    const left = spot[0] - width / 2;
+    lines.forEach(({ symbol, text }, i) => {
+      const cy = spot[1] - height / 2 + (i + 0.5) * size * 1.15;
+      symbols.push(...symbolShapes(symbol, left, cy, size));
+      marriages.push({ text, x: left + symbolW(size) + size * 0.3 + measure(text, size, false) / 2, y: cy + size * 0.3, size, bold: false, fill: C.branch });
+    });
+  }
+
+  // ------------------------------------------------------------ plates and texts
+  const texts: PosterText[] = [];
+  const drawn = drawPlates(plates, people, appearances, o, measure, kit);
+  const plateShapes = drawn.shapes;
+  texts.push(...drawn.texts);
+  const [frameOuter, frameInner] = plateOutline(W / 2, frameY, frameW, frameH, 2);
+  plateShapes.push({ d: frameOuter, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: frameInner, fill: C.plate, stroke: null, strokeWidth: 0 });
+  texts.push(...marriages, { text: title, x: W / 2, y: frameY - 4, size: 58, bold: true, fill: C.ink },
+             { text: stats, x: W / 2, y: frameY + 40, size: 26, bold: false, fill: C.branch });
+  for (const { key, heading, headLabel, rows } of corners) {
+    const left = key.startsWith("father"), x = cornerEdge(key), cx = left ? x + blockW / 2 : x - blockW / 2;
+    const y0 = isTop(key) ? listsY : H - bottom + 30, h = cornerHeight(rows.length), x0 = cx - blockW / 2, x1 = cx + blockW / 2;
+    // the same double-line frame as the title and the plates, the heading and a hairline above the lines
+    const [outer, inner] = plateOutline(cx, y0 + h / 2, blockW, h, 1.3, false, 14);
+    plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
+    plateShapes.push({ d: `M${num(x0 + CORNER_PAD)},${num(y0 + CORNER_HEAD_H - 0.7)}L${num(x1 - CORNER_PAD)},${num(y0 + CORNER_HEAD_H - 0.7)}L${num(x1 - CORNER_PAD)},${num(y0 + CORNER_HEAD_H + 0.7)}L${num(x0 + CORNER_PAD)},${num(y0 + CORNER_HEAD_H + 0.7)}Z`, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
+    const put = (text: string, size: number, bold: boolean, y: number, fill: string, from: number) =>
+      texts.push({ text, x: from + measure(text, size, bold) / 2, y, size, bold, fill });
+    const headY = y0 + CORNER_HEAD_H / 2 + 11;
+    put(headLabel, CORNER_LABEL_SIZE, true, headY, C.branch, x0 + CORNER_PAD);
+    put(heading, CORNER_HEAD_SIZE, true, headY, C.branchEdge, x0 + labelW + 16);
+    rows.forEach((r, n) => {
+      const y = y0 + CORNER_HEAD_H + n * CORNER_STEP + CORNER_STEP * 0.68;
+      put(r.label, CORNER_LABEL_SIZE, true, y, C.branch, x0 + CORNER_PAD);
+      put(r.value, CORNER_VALUE_SIZE, false, y, C.ink, x0 + labelW + 16);
+    });
+  }
+
+  // The ruler: a purely decorative line across the poster, level with the middle of the title frame, with a tick at the
+  // middle of every generation's column, "Nth generation" over it and under it how many of the possible
+  // people of that column are known (father's side left, mother's side right, the main person in the middle).
+  // The title frame covers the columns beside the main person: their labels are left out.
+  // Like the corner lists, it appears only when the poster really reaches POSTER_CORNERS_MIN_GENERATIONS generations.
+  if (posterHasStatistics(filledGens)) {
+    const ordinal = TEXTS[o.lang].generation;
+    const left = Math.min(...plates.map((p) => p.x - p.w / 2)), right = Math.max(...plates.map((p) => p.x + p.w / 2));
+    const bar = (x0: number, y0: number, x1: number, y1: number) => `M${x0},${y0}L${x1},${y0}L${x1},${y1}L${x0},${y1}Z`;
+    // the outermost labels may be wider than their narrow plates: they stay inside the drawing
+    const fit = (x: number, text: string, size: number, bold: boolean) => Math.min(W - 10 - measure(text, size, bold) / 2, Math.max(10 + measure(text, size, bold) / 2, x));
+    const base = rulerY + 6;
+    let d = bar(left, base - 1.5, right, base + 1.5);
+    for (let x = left; x <= right; x += 25) d += bar(x - 0.75, base - 7, x + 0.75, base);
+    const cols = new Map<string, Plate[]>();
+    for (const q of plates) cols.set(`${q.gen}:${q === rootPlate ? 0 : Math.sign(q.x - rootPlate.x)}`, [...(cols.get(`${q.gen}:${q === rootPlate ? 0 : Math.sign(q.x - rootPlate.x)}`) || []), q]);
+    const covered = (x0: number, x1: number) => x1 > W / 2 - frameW / 2 - 14 && x0 < W / 2 + frameW / 2 + 14;
+    for (const [key, members] of cols) {
+      const gen = Number(key.split(":")[0]);
+      const cx = members.reduce((sum, q) => sum + q.x, 0) / members.length;
+      const label = ordinal.replace("{n}", String(gen));
+      const lw = measure(label, 26, true), lx = fit(cx, label, 26, true);
+      if (covered(lx - lw / 2, lx + lw / 2)) continue;
+      d += bar(cx - 2, base - 26, cx + 2, base + 18);
+      texts.push({ text: label, x: lx, y: base - 38, size: 26, bold: true, fill: C.branchEdge });
+      // how many of the possible people are known: a column on one side holds 2^(generation-2) of them
+      const known = TEXTS[o.lang].known.replace("{a}", String(members.length)).replace("{b}", String(gen === 1 ? 1 : 2 ** (gen - 2)));
+      texts.push({ text: known, x: fit(cx, known, 22, false), y: base + 44, size: 22, bold: false, fill: C.ink });
+    }
+    plateShapes.unshift({ d, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
+  }
+
+  const { margin, frameShapes } = posterBorder(W, H);
+  shapes.push({ d: `M${-margin},${-margin}L${W + margin},${-margin}L${W + margin},${H + margin}L${-margin},${H + margin}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
+              ...frameShapes, ...branches, ...leaves, ...symbols, ...plateShapes);
+  return { width: W, height: H, margin, shapes, texts, generations: gens, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
+}
+
+/**
+ * The branches of a poster: limbs with side shoots and leaves grown from a seeded generator, kept clear of the plates
+ * (`plates` is read while growing, so plates added later count too) and of the poster edge.
+ */
+export function makeGrower(rnd: () => number, plates: Plate[], W: number, H: number) {
+  const uniform = (a: number, b: number) => a + (b - a) * rnd();
+  const int = (a: number, b: number) => Math.floor(uniform(a, b + 1));
+  const pick = <T>(list: readonly T[]) => list[Math.floor(rnd() * list.length)];
+  const C = POSTER_COLORS;
+  const branches: PosterShape[] = [], leaves: PosterShape[] = [];
+  const occupied: Point[] = [];
+  const limbPts: Point[] = [], leafPts: Point[] = [];
 
   const blocked = (pts: Point[], radius: number) => pts.slice(1).some(([x, y]) =>
     x < 20 || x > W - 20 || y < 20 || y > H - 20 ||
@@ -489,8 +588,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     return pts;
   };
 
-  /** A limb along `pts` of the given thickness class, with side shoots and leaves. */
-  const limb = (pts: Point[], thick: number, extendStart = false, extendEnd = false) => {
+  /** A limb along `pts` of the given thickness class, with side shoots and leaves (unless `shoots` is false). */
+  const limb = (pts: Point[], thick: number, extendStart = false, extendEnd = false, shoots = true) => {
     const d = dense(pts);
     limbPts.push(...dense(pts, 3));
     const path = [...d];
@@ -502,6 +601,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     if (extendStart) path.unshift(extend(d[1], d[0]));
     if (extendEnd) path.push(extend(d[d.length - 2], d[d.length - 1]));
     branch(tapered(path, 5 + 2.2 * thick, 2.5 + 1.2 * thick), 1);
+    if (!shoots) return;
     const [a, b] = [pts[0], pts[pts.length - 1]];
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const count = Math.max(2, Math.round(len / 95));
@@ -517,51 +617,53 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     }
   };
 
-  const grow = (child: Plate, parent: Plate, side: -1 | 1) => {
-    limb(curve([child.x + side * child.w / 2, child.y], [parent.x - side * parent.w / 2, parent.y]), gens - parent.gen, true, true);
-    for (const q of kids.get(parent) || []) grow(parent, q, side);
-  };
-  // one limb rises from the person and splits in two, one for each parent
-  if (rootKids.length) {
-    const lowest = Math.max(...rootKids.map(([plate]) => plate.y + plate.h / 2));
-    const fork: Point = [rootPlate.x, lowest + 70];
-    limb(curve([rootPlate.x, rootPlate.y - rootPlate.h / 2], fork, true), gens - 1, true);
-    for (const [plate, side] of rootKids) {
-      limb(curve(fork, [plate.x - side * plate.w * 0.2, plate.y + plate.h / 2], true), gens - 2, false, true);
-      for (const q of kids.get(plate) || []) grow(plate, q, side);
-    }
-  }
-
-  const marriages: PosterText[] = [];
-  const symbols: PosterShape[] = [];
+  /** Whether a box of size w by h around (x, y) touches no plate, limb or leaf. */
   const free = (x: number, y: number, w: number, h: number) =>
     !plates.some((q) => Math.abs(x - q.x) < q.w / 2 + w / 2 + 6 && Math.abs(y - q.y) < q.h / 2 + h / 2 + 6) &&
     !limbPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10) &&
     !leafPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10);
-  for (const label of labels) {
-    const { lines, size, width, height, x, y, top, bottom } = label;
-    // the room between the two branches is preferred; a spot above or below them is the last resort
-    const near: [number, number, number][] = [];
-    for (let dx = -70; dx <= 70; dx += 4) {
-      for (let dy = -120; dy <= 120; dy += 4) {
-        const outside = y + dy < top || y + dy > bottom;
-        near.push([x + dx, y + dy, Math.abs(dx) + 2 * Math.abs(dy) + (outside ? 1000 : 0)]);
-      }
-    }
-    near.sort((a, b) => a[2] - b[2]);
-    const spot = near.find(([px, py]) => free(px, py, width, height) && !occupied.slice(reserved).some(([ox, oy]) =>
-      Math.abs(ox - px) < width / 2 + 6 && Math.abs(oy - py) < height / 2 + 6)) ?? [x, y];
-    const left = spot[0] - width / 2;
-    lines.forEach(({ symbol, text }, i) => {
-      const cy = spot[1] - height / 2 + (i + 0.5) * size * 1.15;
-      symbols.push(...symbolShapes(symbol, left, cy, size));
-      marriages.push({ text, x: left + symbolW(size) + size * 0.3 + measure(text, size, false) / 2, y: cy + size * 0.3, size, bold: false, fill: C.branch });
-    });
-  }
 
-  // ------------------------------------------------------------ plates and texts
-  const texts: PosterText[] = [];
-  const plateShapes: PosterShape[] = [];
+  return { branches, leaves, occupied, limbPts, leafPts, blocked, twig, curve, limb, free };
+}
+
+/** A quiet double border around the whole poster, in the margin outside the tree: straight lines with rounded corners like every box on the poster (the plates, the title and the lists). */
+export function posterBorder(W: number, H: number) {
+  const C = POSTER_COLORS;
+  const margin = 84, inset = 54, gap = 16, cornerR = 24;
+  const line = (distance: number, thickness: number) => {
+    const o = inset - distance, r = cornerR - distance;
+    return roundedRect(W / 2, H / 2, W + 2 * o, H + 2 * o, r) + roundedRect(W / 2, H / 2, W + 2 * (o - thickness), H + 2 * (o - thickness), r - thickness, true);
+  };
+  const frameShapes: PosterShape[] = [{ d: line(0, 6), fill: C.branchEdge, stroke: null, strokeWidth: 0 },
+                                      { d: line(gap, 3), fill: C.branchEdge, stroke: null, strokeWidth: 0 }];
+  return { margin, frameShapes };
+}
+
+/** The sizes of the plates by generation, shared by the ancestors poster and the descendants poster. */
+export function plateKit(o: ChartOptions, measure: PosterFonts["width"], gens: number, scales: readonly number[] = POSTER_PLATE_SCALE) {
+  const baseH = 66;
+  const baseW = gens <= 4 ? 280 : gens <= 6 ? 230 : 200;
+  const scaleOf = (gen: number) => scales[gen - 1] ?? 1;
+  const widthOf = (gen: number) => Math.round(baseW * scaleOf(gen) * (gen >= POSTER_SMALL_FROM ? POSTER_SMALL_WIDTH : 1));
+  const small = (gen: number) => gen >= POSTER_SMALL_FROM;
+  const unitH = (gen: number) => baseH * scaleOf(gen) * (small(gen) ? POSTER_SMALL_HEIGHT : 1);
+  const heightOf = (gen: number) => Math.round(unitH(gen));
+  // a plate with place rows is only as tall as its rows need (a person without any place stays a plain plate)
+  const plateHeight = (p: Person, gen: number) => {
+    if (rowsFor(gen, o) !== "three") return heightOf(gen);
+    const own = plateLines({ id: "", gen, x: 0, y: 0, w: widthOf(gen), h: unitH(gen) }, p, o, measure, unitH(gen), "three");
+    return Math.max(heightOf(gen), Math.min(Math.round(unitH(gen) * POSTER_PLACES_HEIGHT), Math.ceil(linesHeight(own, 1.15) / PLATE_TEXT_SHARE)));
+  };
+  // the border and the tag of a plate follow its height
+  const lookOf = (gen: number) => scaleOf(gen) * (small(gen) ? 0.7 : 1);
+  return { scaleOf, widthOf, small, unitH, heightOf, plateHeight, lookOf };
+}
+
+/** The plates of a poster with their texts: one size for the names and one for the dates of a generation, and the "2×" tag of a person who stands on the poster more than once. */
+export function drawPlates(plates: Plate[], people: Map<Plate, Person>, appearances: Map<string, number>, o: ChartOptions, measure: PosterFonts["width"], kit: ReturnType<typeof plateKit>) {
+  const { unitH, lookOf, small } = kit;
+  const C = POSTER_COLORS;
+  const shapes: PosterShape[] = [], out: PosterText[] = [];
   const lines = new Map(plates.map((plate) => [plate, plateLines(plate, people.get(plate)!, o, measure, unitH(plate.gen), rowsFor(plate.gen, o))]));
   // one size for the names and one for the dates of a generation, so a column reads evenly; a plate whose name wraps
   // to two lines keeps its own smaller sizes and does not pull the single-line plates of its generation down
@@ -577,88 +679,21 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   for (const plate of plates) {
     const sex = people.get(plate)!.sex;
     const [outer, inner] = plateOutline(plate.x, plate.y, plate.w, plate.h, lookOf(plate.gen), small(plate.gen));
-    plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 },
+    shapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 },
                      { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
     const own = lines.get(plate)!;
     const same = own.map(([text, size, bold, role]): Line => [text, Math.min(size, smallest.get(`${plate.gen}${bold}${role}`) ?? size), bold, role]);
-    texts.push(...stack(plate, same, small(plate.gen) ? 1.05 : 1.15, sex === "M" ? C.male : sex === "F" ? C.female : C.ink));
+    out.push(...stack(plate, same, small(plate.gen) ? 1.05 : 1.15, sex === "M" ? C.male : sex === "F" ? C.female : C.ink));
     // a person who stands on the poster more than once (both lines of the family lead to them) carries a small
     // brown tag with the number of places in the top right corner
     const times = appearances.get(plate.id)!;
     if (times > 1) {
       const k = lookOf(plate.gen), w = 24 * k, h = 15 * k, cx = plate.x + plate.w / 2 - 8 * k, cy = plate.y - plate.h / 2 + 2 * k;
-      plateShapes.push({ d: roundedRect(cx, cy, w, h, 3 * k), fill: C.branchEdge, stroke: null, strokeWidth: 0 });
-      texts.push({ text: `${times}\u00D7`, x: cx, y: cy + h * 0.3, size: h * 0.85, bold: true, fill: C.plate });
+      shapes.push({ d: roundedRect(cx, cy, w, h, 3 * k), fill: C.branchEdge, stroke: null, strokeWidth: 0 });
+      out.push({ text: `${times}\u00D7`, x: cx, y: cy + h * 0.3, size: h * 0.85, bold: true, fill: C.plate });
     }
   }
-
-  const [frameOuter, frameInner] = plateOutline(W / 2, frameY, frameW, frameH, 2);
-  plateShapes.push({ d: frameOuter, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: frameInner, fill: C.plate, stroke: null, strokeWidth: 0 });
-  texts.push(...marriages, { text: title, x: W / 2, y: frameY - 4, size: 58, bold: true, fill: C.ink },
-             { text: stats, x: W / 2, y: frameY + 40, size: 26, bold: false, fill: C.branch });
-  for (const { key, heading, headLabel, rows } of corners) {
-    const left = key.startsWith("father"), x = cornerEdge(key), cx = left ? x + blockW / 2 : x - blockW / 2;
-    const y0 = isTop(key) ? listsY : H - bottom + 30, h = cornerHeight(rows.length), x0 = cx - blockW / 2, x1 = cx + blockW / 2;
-    // the same double-line frame as the title and the plates, the heading and a hairline above the lines
-    const [outer, inner] = plateOutline(cx, y0 + h / 2, blockW, h, 1.3, false, 14);
-    plateShapes.push({ d: outer, fill: C.branchEdge, stroke: null, strokeWidth: 0 }, { d: inner, fill: C.plate, stroke: null, strokeWidth: 0 });
-    plateShapes.push({ d: `M${num(x0 + CORNER_PAD)},${num(y0 + CORNER_HEAD_H - 0.7)}L${num(x1 - CORNER_PAD)},${num(y0 + CORNER_HEAD_H - 0.7)}L${num(x1 - CORNER_PAD)},${num(y0 + CORNER_HEAD_H + 0.7)}L${num(x0 + CORNER_PAD)},${num(y0 + CORNER_HEAD_H + 0.7)}Z`, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
-    const put = (text: string, size: number, bold: boolean, y: number, fill: string, from: number) =>
-      texts.push({ text, x: from + measure(text, size, bold) / 2, y, size, bold, fill });
-    const headY = y0 + CORNER_HEAD_H / 2 + 11;
-    put(headLabel, CORNER_LABEL_SIZE, true, headY, C.branch, x0 + CORNER_PAD);
-    put(heading, CORNER_HEAD_SIZE, true, headY, C.branchEdge, x0 + labelW + 16);
-    rows.forEach((r, n) => {
-      const y = y0 + CORNER_HEAD_H + n * CORNER_STEP + CORNER_STEP * 0.68;
-      put(r.label, CORNER_LABEL_SIZE, true, y, C.branch, x0 + CORNER_PAD);
-      put(r.value, CORNER_VALUE_SIZE, false, y, C.ink, x0 + labelW + 16);
-    });
-  }
-
-  // The ruler: a purely decorative line across the poster, level with the middle of the title frame, with a tick at the
-  // middle of every generation's column, "Nth generation" over it and under it how many of the possible
-  // people of that column are known (father's side left, mother's side right, the main person in the middle).
-  // The title frame covers the columns beside the main person: their labels are left out.
-  // Like the corner lists, it appears only when the poster really reaches POSTER_CORNERS_MIN_GENERATIONS generations.
-  if (posterHasStatistics(filledGens)) {
-    const ordinal = TEXTS[o.lang].generation;
-    const left = Math.min(...plates.map((p) => p.x - p.w / 2)), right = Math.max(...plates.map((p) => p.x + p.w / 2));
-    const bar = (x0: number, y0: number, x1: number, y1: number) => `M${x0},${y0}L${x1},${y0}L${x1},${y1}L${x0},${y1}Z`;
-    // the outermost labels may be wider than their narrow plates: they stay inside the drawing
-    const fit = (x: number, text: string, size: number, bold: boolean) => Math.min(W - 10 - measure(text, size, bold) / 2, Math.max(10 + measure(text, size, bold) / 2, x));
-    const base = rulerY + 6;
-    let d = bar(left, base - 1.5, right, base + 1.5);
-    for (let x = left; x <= right; x += 25) d += bar(x - 0.75, base - 7, x + 0.75, base);
-    const cols = new Map<string, Plate[]>();
-    for (const q of plates) cols.set(`${q.gen}:${q === rootPlate ? 0 : Math.sign(q.x - rootPlate.x)}`, [...(cols.get(`${q.gen}:${q === rootPlate ? 0 : Math.sign(q.x - rootPlate.x)}`) || []), q]);
-    const covered = (x0: number, x1: number) => x1 > W / 2 - frameW / 2 - 14 && x0 < W / 2 + frameW / 2 + 14;
-    for (const [key, members] of cols) {
-      const gen = Number(key.split(":")[0]);
-      const cx = members.reduce((sum, q) => sum + q.x, 0) / members.length;
-      const label = ordinal.replace("{n}", String(gen));
-      const lw = measure(label, 26, true), lx = fit(cx, label, 26, true);
-      if (covered(lx - lw / 2, lx + lw / 2)) continue;
-      d += bar(cx - 2, base - 26, cx + 2, base + 18);
-      texts.push({ text: label, x: lx, y: base - 38, size: 26, bold: true, fill: C.branchEdge });
-      // how many of the possible people are known: a column on one side holds 2^(generation-2) of them
-      const known = TEXTS[o.lang].known.replace("{a}", String(members.length)).replace("{b}", String(gen === 1 ? 1 : 2 ** (gen - 2)));
-      texts.push({ text: known, x: fit(cx, known, 22, false), y: base + 44, size: 22, bold: false, fill: C.ink });
-    }
-    plateShapes.unshift({ d, fill: C.branchEdge, stroke: null, strokeWidth: 0 });
-  }
-
-  // a quiet double border around the whole poster, in the margin outside the tree: straight lines with rounded corners
-  // like every box on the poster (the plates, the title and the lists)
-  const margin = 84, inset = 54, gap = 16, cornerR = 24;
-  const line = (distance: number, thickness: number) => {
-    const o = inset - distance, r = cornerR - distance;
-    return roundedRect(W / 2, H / 2, W + 2 * o, H + 2 * o, r) + roundedRect(W / 2, H / 2, W + 2 * (o - thickness), H + 2 * (o - thickness), r - thickness, true);
-  };
-  const frameShapes: PosterShape[] = [{ d: line(0, 6), fill: C.branchEdge, stroke: null, strokeWidth: 0 },
-                                      { d: line(gap, 3), fill: C.branchEdge, stroke: null, strokeWidth: 0 }];
-  shapes.push({ d: `M${-margin},${-margin}L${W + margin},${-margin}L${W + margin},${H + margin}L${-margin},${H + margin}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
-              ...frameShapes, ...branches, ...leaves, ...symbols, ...plateShapes);
-  return { width: W, height: H, margin, shapes, texts, generations: gens, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
+  return { shapes, texts: out };
 }
 
 type Line = [text: string, size: number, bold: boolean, role?: string];
@@ -775,7 +810,7 @@ export function posterSvg(poster: Poster, fonts?: PosterFonts): string {
 type MarrLine = { symbol: "rings" | "children"; text: string };
 
 /** The symbol before a marriage line: two interlocked rings, or two small figures; `left` is its left edge. */
-function symbolShapes(symbol: MarrLine["symbol"], left: number, cy: number, s: number): PosterShape[] {
+export function symbolShapes(symbol: MarrLine["symbol"], left: number, cy: number, s: number): PosterShape[] {
   const brown = POSTER_COLORS.branch;
   const circle = (x: number, y: number, r: number) => `M${num(x - r)},${num(y)}A${num(r)},${num(r)} 0 1 0 ${num(x + r)},${num(y)}A${num(r)},${num(r)} 0 1 0 ${num(x - r)},${num(y)}Z`;
   if (symbol === "rings") {

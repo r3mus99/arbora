@@ -234,7 +234,7 @@ The first part of the Settings window applies to both the chart and the PDF:
 | Places | checkbox: show the municipality (first part of the place) |
 | Numbering | generation (1, 2, 3…); Ahnentafel for ancestors (father = 2n, mother = 2n+1), d'Aboville for descendants (1.2.1); none |
 | Parents' marriage | for ancestors: next to the father, next to both parents, not shown |
-| Generations | maximum number including the root (0 = all); the poster draws at most 10 |
+| Generations | maximum number including the root (0 = all); the poster draws at most 10 (descendants: 4) |
 
 The dark mode is switched with the moon icon in the top bar; without a choice it follows the system.
 
@@ -250,6 +250,7 @@ decorative wall chart for large-format printing: the person in the middle below 
 the mother's to the right, with branches and leaves between the name plates. The plates have exact positions, the
 branches are drawn from a seeded random generator, so every download draws a different, unique tree. The poster uses the same number of generations as the chart and the PDF (3 to 10; "all" and anything above 10 draw 10); the title, labels and
 dates follow the other settings. The SVG is vector, with the text set in Alkatra and written as outlines, so it prints sharply at any size and looks the same without the font; the poster is as wide as the generations need and as high as the people need: only people who exist take room, so a family with gaps gives a lower poster than a complete tree, the closest generations get bigger plates (the person at 200 %, the parents at 175 %, and so on down to 100 %), and the border and the name are coloured by sex.
+With the **Descendants** chart chosen, the same button draws a poster of the descendants instead: the person at the left, every generation a column to the right, each person with the partners beside the plate and the children of each partnership in the next column, one trunk with a branch for each child. It shows at most 4 generations (and at most 400 plates; a very large family loses its last generation, the title says how many are drawn). The plates, branches, border and settings are the same as on the ancestors poster.
 The plan and the open points are in [docs/tree-poster.md](docs/tree-poster.md).
 
 ### Notes on the data
@@ -279,7 +280,8 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   chart.ts          ancestor and descendant chart rows
   collapse.ts       collapsed branches: which rows stay visible
   pdf.ts            page layout and PDF
-  poster.ts         tree poster: plates, seeded branches and leaves, SVG (posterFont.ts: glyph widths and outlines)
+  poster.ts         tree poster of ancestors: plates, seeded branches and leaves, SVG (posterFont.ts: glyph widths and outlines)
+  posterDescendants.ts  tree poster of descendants: columns of persons, partners and children on the same plates and branches
   texts.ts          PDF texts in 12 languages
   *.test.ts         tests on the sample and made-up data
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),

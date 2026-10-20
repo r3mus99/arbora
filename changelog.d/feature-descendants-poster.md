@@ -1,0 +1,1 @@
+- **The SVG tree poster also draws descendants.** With the Descendants chart chosen, the SVG button makes a poster of the person's descendants: a column for each generation, the partners beside every person and one trunk with a branch for each child. It shows at most 4 generations; the plates, branches and border are those of the ancestors poster.

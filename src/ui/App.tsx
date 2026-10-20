@@ -32,6 +32,7 @@ import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
 import { PlacesPanel } from "./PlacesPanel";
 import { buildPoster, posterSvg } from "../core/poster";
+import { buildDescendantsPoster } from "../core/posterDescendants";
 import { PersonDetail } from "./PersonDetail";
 import { EditWindow } from "./EditWindow";
 import { PersonRail } from "./PersonRail";
@@ -228,7 +229,8 @@ export function App() {
       const pf = posterFonts([...alkatra.regular, dejavu.regular], [...alkatra.bold, dejavu.bold || dejavu.regular]);
       // every download draws new branches
       const opts = toOptions(form, lang);
-      const poster = buildPoster(data, id, { ...opts, posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf);
+      const build = opts.chart === "descendants" ? buildDescendantsPoster : buildPoster;
+      const poster = build(data, id, { ...opts, posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf);
       saveFile(new Blob([posterSvg(poster, pf)], { type: "image/svg+xml" }),
                `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}.svg`);
       setStatus(null);
@@ -641,7 +643,7 @@ export function App() {
                       aria-label={t("go")}>
                 {busy ? <Loader2 className="icon spin" aria-hidden="true" /> : <FileText className="icon" aria-hidden="true" />}
                 PDF</button>
-              <button type="button" className="icon-btn save-btn poster" disabled={busy} onClick={() => createPoster()} title={`${t("poster")}. ${t("posterHint")}`}
+              <button type="button" className="icon-btn save-btn poster" disabled={busy} onClick={() => createPoster()} title={`${t("poster")}. ${t(form.chart === "descendants" ? "posterHintDesc" : "posterHint")}`}
                       aria-label={t("poster")}>
                 <FileImage className="icon" aria-hidden="true" />
                 SVG</button>
