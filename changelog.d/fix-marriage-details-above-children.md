@@ -1,1 +1,0 @@
-- **Marriage details sit with the marriage in the edit window.** Date, place, age, cause, agency and divorce are now shown right after the spouse, above the children, instead of below them.

@@ -1,1 +1,1 @@
-- **The tree poster's generation ruler runs through the middle of the title frame.** The title and the time axis read as one, the generations hidden behind the frame have no label, and the corner lists moved below the ruler.
+- **Marriage details sit with the marriage in the edit window.** Date, place, age, cause, agency and divorce are now shown right after the spouse, above the children, instead of below them.

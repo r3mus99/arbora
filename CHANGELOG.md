@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.44.1 – 2026-10-20
+
+- **Marriage details sit with the marriage in the edit window.** Date, place, age, cause, agency and divorce are now shown right after the spouse, above the children, instead of below them.
+
 ## 2.44.0 – 2026-10-20
 
 - **The tree poster's generation ruler runs through the middle of the title frame.** The title and the time axis read as one, the generations hidden behind the frame have no label, and the corner lists moved below the ruler.
