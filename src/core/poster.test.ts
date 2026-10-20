@@ -262,7 +262,7 @@ describe("poster plates", () => {
     const names = poster.texts.filter((t) => t.bold && t.fill !== POSTER_COLORS.ink);
     expect(names.some((t) => t.fill === POSTER_COLORS.male)).toBe(true);
     expect(names.some((t) => t.fill === POSTER_COLORS.female)).toBe(true);
-    const others = poster.texts.filter((t) => !t.bold && t.fill !== POSTER_COLORS.branch && t.fill !== POSTER_COLORS.birth);
+    const others = poster.texts.filter((t) => !t.bold && t.fill !== POSTER_COLORS.branch && t.fill !== POSTER_COLORS.marriage && t.fill !== POSTER_COLORS.birth);
     expect(others.every((t) => t.fill === POSTER_COLORS.ink)).toBe(true);
   });
 });
@@ -338,14 +338,14 @@ describe("poster options of a larger poster", () => {
 });
 
 describe("poster marriage years", () => {
-  const brown = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === POSTER_COLORS.branch && !/^\d+ generations \u00B7 /.test(t.text));
-  const years = (p: ReturnType<typeof buildPoster>) => brown(p).filter((t) => /^\d{4}$/.test(t.text));
+  const marriageText = (p: ReturnType<typeof buildPoster>) => p.texts.filter((t) => t.fill === POSTER_COLORS.marriage && !/^\d+ generations \u00B7 /.test(t.text));
+  const years = (p: ReturnType<typeof buildPoster>) => marriageText(p).filter((t) => /^\d{4}$/.test(t.text));
 
   test("a marriage year stands at each couple, bigger for the closer generations, and nothing without a date", () => {
     const p = buildPoster(full(6, () => true, true), ROOT, { generations: 6 });
     expect(years(p)).toHaveLength(2 ** 5 - 1);
     expect(years(p).map((t) => t.text)).toContain("1701");
-    expect(years(p).every((t) => !t.bold && t.fill === POSTER_COLORS.branch)).toBe(true);
+    expect(years(p).every((t) => !t.bold && t.fill === POSTER_COLORS.marriage)).toBe(true);
     const size = (year: string) => years(p).find((t) => t.text === year)!.size;
     expect(size("1701")).toBeGreaterThan(size("1702"));
     expect(size("1702")).toBeGreaterThan(size("1704"));
@@ -371,12 +371,12 @@ ${Array.from({ length: n }, (_, i) => `1 CHIL @I${i === 0 ? 1 : 10 + i}@`).join(
 0 TRLR
 `);
     const poster = (n: number) => buildPoster(families(n), "@I1@", { generations: 2, lang: "en" });
-    const counts = (n: number) => brown(poster(n)).map((t) => t.text);
+    const counts = (n: number) => marriageText(poster(n)).map((t) => t.text);
     expect(counts(1)).toEqual(["1885"]);
     expect(counts(2)).toEqual(["1885", "2"]);
     expect(counts(6)).toEqual(["1885", "6"]);
     // rings and figures are drawn shapes in the brown of the branches: two rings, two heads and two bodies
-    const symbols = (n: number) => poster(n).shapes.filter((x) => x.fill === null || (x.fill === POSTER_COLORS.branch && !x.stroke));
+    const symbols = (n: number) => poster(n).shapes.filter((x) => x.fill === null || (x.fill === POSTER_COLORS.marriage && !x.stroke));
     expect(symbols(1)).toHaveLength(2);
     expect(symbols(6)).toHaveLength(6);
   });
@@ -385,10 +385,10 @@ ${Array.from({ length: n }, (_, i) => `1 CHIL @I${i === 0 ? 1 : 10 + i}@`).join(
     const p = buildPoster(full(7, () => true, true), ROOT, { generations: 7 });
     const hits: string[] = [];
     const box = (t: { text: string; x: number; y: number; size: number }) => [t.x, t.y - t.size * 0.3, textWidth(t.text, t.size, false), t.size] as const;
-    for (const t of brown(p)) {
+    for (const t of marriageText(p)) {
       const [x, y, w, h] = box(t);
       for (const q of p.plates) if (Math.abs(x - q.x) < (w + q.w) / 2 && Math.abs(y - q.y) < (h + q.h) / 2) hits.push(`${t.text} ${q.id}`);
-      for (const u of brown(p)) {
+      for (const u of marriageText(p)) {
         const [x2, y2, w2, h2] = box(u);
         if (u !== t && Math.abs(x - x2) < (w + w2) / 2 && Math.abs(y - y2) < (h + h2) / 2) hits.push(`${t.text} ${u.text}`);
       }
@@ -763,15 +763,18 @@ describe("poster places line on the big plates", () => {
 });
 
 describe("palette", () => {
-  test("the screen and the PDF use the same green, brown and grey as the poster", () => {
+  test("the screen and the PDF use the same green, gold, brown and grey as the poster", () => {
     const css = readFileSync(new URL("../ui/styles.css", import.meta.url), "utf8");
     expect(css).toContain(`--c-birth: ${PALETTE.forest};`);
+    expect(css).toContain(`--c-marr: ${PALETTE.gold};`);
     expect(css).toContain(`--c-death: ${PALETTE.chocolate};`);
     expect(css).toContain(`--muted: ${PALETTE.stone};`);
     expect(KIND_COLORS.birt).toEqual(rgbOf(PALETTE.forest));
+    expect(KIND_COLORS.marr).toEqual(rgbOf(PALETTE.gold));
     expect(KIND_COLORS.deat).toEqual(rgbOf(PALETTE.chocolate));
     expect(KIND_COLORS.place).toEqual(rgbOf(PALETTE.stone));
     expect(POSTER_COLORS.branch).toBe(PALETTE.chocolate);
+    expect(POSTER_COLORS.marriage).toBe(PALETTE.gold);
     expect(POSTER_COLORS.leaves).toContain(PALETTE.forest);
   });
 });

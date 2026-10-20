@@ -77,8 +77,8 @@ No other radius, height or padding number is used for a control. Dialogs use `--
   (new), and one token per event kind). They colour icons and dates only, never backgrounds or borders.
 - A literal colour in a rule is a bug. Every colour has a dark-theme value.
 - **One palette for screen, PDF and poster** (`src/core/palette.ts`, named colours): birth = Forest green `#1e6b44`
-  (the poster leaves are variations of it), death, marriage year and branches = Chocolate `#4e2a1a`, places and secondary text = Stone grey
-  `#62675f`. `--c-birth`, `--c-death` and `--muted` of the light theme repeat these values (`poster.test.ts` keeps them equal); the dark theme
+  (the poster leaves are variations of it), marriage (rings, year, children of the couple on the poster) = dark Gold `#946c00` (darker than a bright gold so it reads on white paper), death and branches = Chocolate `#4e2a1a`, places and secondary text = Stone grey
+  `#62675f`. `--c-birth`, `--c-marr`, `--c-death` and `--muted` of the light theme repeat these values (`poster.test.ts` keeps them equal); the dark theme
   keeps lighter variants of the same hues. A new place where birth, death or places are coloured takes these, not a new shade.
 - **Theme rule:** the theme follows the system (`prefers-color-scheme`) until the user chooses with the sun/moon icon
   button in the top bar, right next to the language menu. The choice is kept in `localStorage` (`arbora-options`, key

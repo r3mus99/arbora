@@ -1,0 +1,1 @@
+- **Marriage has its own gold colour.** The poster draws the rings, the marriage year and the number of children of a couple in dark gold, and the screen and the PDF use the same gold for marriage dates.
