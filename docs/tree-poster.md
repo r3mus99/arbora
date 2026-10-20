@@ -18,7 +18,7 @@ decorative wall chart. This file records how it works and what is still open.
   generations; a missing ancestor leaves no gap.
 - Branches are tapered filled shapes along a smooth curve with a seeded wiggle across the chord; a longer branch swings
   a little more (an S bend), but never beyond a small cap (`POSTER_MAX_SWING`), so there are no big waves; a bend that
-  would run over a plate is tried again with less swing. The length of the side shoots follows the length of the branch (proportionally, 0.8 to 2 times the usual). Side shoots (two levels) and leaves
+  would run over a plate is tried again with less swing. The length of the side shoots follows the length of the branch (proportionally, 0.8 to 3 times the usual). Side shoots (three levels: a longer shoot splits into two to four finer ones, those split again) and leaves
   grow along them; a shoot that would touch a plate, another shoot or the edge is not drawn. The seed combines the
   person's id with a random number picked at each download, so every download is a new tree; the same seed (the
   `posterSeed` option) always draws the same one, which the tests use.

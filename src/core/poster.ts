@@ -406,10 +406,11 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const reserved = occupied.length;
 
 
-  const blocked = (pts: Point[], radius: number) => pts.slice(1).some(([x, y]) =>
+  // `leaving`: the first points of a shoot that starts on another shoot stay close to it and are not tested against the shoots
+  const blocked = (pts: Point[], radius: number, leaving = 0) => pts.slice(1).some(([x, y], i) =>
     x < 20 || x > W - 20 || y < 20 || y > H - 20 ||
     plates.some((p) => Math.abs(x - p.x) < p.w / 2 + 12 && Math.abs(y - p.y) < p.h / 2 + 12) ||
-    occupied.some(([ox, oy]) => (x - ox) ** 2 + (y - oy) ** 2 < radius * radius));
+    (i >= leaving && occupied.some(([ox, oy]) => (x - ox) ** 2 + (y - oy) ** 2 < radius * radius)));
 
   const branch = (d: string, width: number) => branches.push({ d, fill: C.branch, stroke: C.branchEdge, strokeWidth: width });
   const leaf = (x: number, y: number, ang: number, s: number) => {
@@ -428,14 +429,17 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
       y += length / n * Math.sin(a);
       pts.push([x, y]);
     }
-    if (blocked(pts, depth < 2 ? 34 : 20)) return false;
+    if (blocked(pts, depth < 2 ? 34 : depth < 3 ? 22 : 16, depth > 1 ? 3 : 0)) return false;
     const d = dense(pts);
     occupied.push(...dense(pts, 2));
     branch(tapered(d, width, Math.max(0.6, width * 0.25)), 0.8);
-    if (depth < 2) {
-      for (let i = int(1, 3); i > 0; i--) {
+    // a longer shoot splits into more and longer ones, and those split again (three levels in all)
+    if (depth < 3 && length > 36) {
+      let dir = pick([-1, 1]);
+      for (let i = length > 90 ? int(2, 4) : int(1, 3); i > 0; i--) {
         const k = int(Math.floor(d.length / 3), d.length - 2);
-        twig(d[k][0], d[k][1], a + pick([-1, 1]) * uniform(35, 65) * Math.PI / 180, length * uniform(0.45, 0.7), width * 0.5, depth + 1);
+        dir = -dir;
+        twig(d[k][0], d[k][1], a + dir * uniform(35, 65) * Math.PI / 180, length * uniform(0.45, 0.7), width * 0.55, depth + 1);
       }
     }
     for (let k = Math.floor(d.length / 3); k < d.length; k += int(3, 5)) {
@@ -494,14 +498,14 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     const [a, b] = [pts[0], pts[pts.length - 1]];
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const count = Math.max(2, Math.round(len / 95));
-    // the side shoots grow with the branch: 1 at 260 units, proportionally longer on a longer branch (0.8 to 2)
-    const reach = Math.min(2, Math.max(0.8, len / 260));
+    // the side shoots grow with the branch: 1 at 260 units, proportionally longer on a longer branch (0.8 to 3)
+    const reach = Math.min(3, Math.max(0.8, len / 260));
     let side2 = pick([-1, 1]);
     for (let i = 0; i < count; i++) {
       const k = Math.min(Math.max(Math.floor(d.length * (i + 0.5 + uniform(-0.2, 0.2)) / count), 3), d.length - 4);
       side2 = -side2;
       for (let tries = 0; tries < 4; tries++) {
-        if (twig(d[k][0], d[k][1], angleAt(d, k) + side2 * uniform(40, 70) * Math.PI / 180, uniform(34, 60) * reach, 3.4, 1)) break;
+        if (twig(d[k][0], d[k][1], angleAt(d, k) + side2 * uniform(40, 70) * Math.PI / 180, uniform(34, 60) * reach, 3.4 * Math.sqrt(reach), 1)) break;
       }
     }
   };
@@ -527,6 +531,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     !plates.some((q) => Math.abs(x - q.x) < q.w / 2 + w / 2 + 6 && Math.abs(y - q.y) < q.h / 2 + h / 2 + 6) &&
     !limbPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10) &&
     !leafPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10);
+  const taken: [number, number, number, number][] = [];
   for (const label of labels) {
     const { lines, size, width, height, x, y, top, bottom } = label;
     // the room between the two branches is preferred; a spot above or below them is the last resort
@@ -538,8 +543,10 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
       }
     }
     near.sort((a, b) => a[2] - b[2]);
-    const spot = near.find(([px, py]) => free(px, py, width, height) && !occupied.slice(reserved).some(([ox, oy]) =>
+    const apart = (px: number, py: number) => !taken.some(([tx, ty, tw, th]) => Math.abs(px - tx) < (width + tw) / 2 + 6 && Math.abs(py - ty) < (height + th) / 2 + 6);
+    const spot = near.find(([px, py]) => free(px, py, width, height) && apart(px, py) && !occupied.slice(reserved).some(([ox, oy]) =>
       Math.abs(ox - px) < width / 2 + 6 && Math.abs(oy - py) < height / 2 + 6)) ?? [x, y];
+    taken.push([spot[0], spot[1], width, height]);
     const left = spot[0] - width / 2;
     lines.forEach(({ symbol, text }, i) => {
       const cy = spot[1] - height / 2 + (i + 0.5) * size * 1.15;
