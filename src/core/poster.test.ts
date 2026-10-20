@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  buildPoster, CORNER_MIN_PEOPLE, CORNER_PAD, cornerMaxValues, load, mergeSurnameForms, posterFonts, posterSeed, posterSvg, random, textWidth, LANGS, TEXTS,
+  buildPoster, CORNER_MIN_PEOPLE, CORNER_PAD, POSTER_CORNERS_MIN_GENERATIONS, posterHasStatistics, cornerMaxValues, load, mergeSurnameForms, posterFonts, posterSeed, posterSvg, random, textWidth, LANGS, TEXTS,
 } from "./index";
 
 const data = load(readFileSync(new URL("../../public/sample.ged", import.meta.url)));
@@ -256,7 +256,7 @@ describe("poster plates", () => {
   test("every plate has its own brown outline, and the name is blue for men and red for women", () => {
     const poster = buildPoster(data, ROOT, { generations: 4, posterSeed: 1 });
     const outlines = poster.shapes.filter((s) => s.fill === "#4a2f18" && !s.stroke);
-    expect(outlines.length).toBe(poster.people + 4); // the frame of the title, the two rings of the border and the ruler
+    expect(outlines.length).toBe(poster.people + 3); // the frame of the title and the two rings of the border (4 generations: no ruler)
     expect(new Set(outlines.map((s) => s.d)).size).toBeGreaterThan(1);
     const names = poster.texts.filter((t) => t.bold && t.fill !== "#2a1d12");
     expect(names.some((t) => t.fill === "#2f5f9e")).toBe(true);
@@ -680,6 +680,17 @@ describe("poster generation ruler", () => {
     // the label stands just above the axis, which is level with the middle of the frame (the title text sits 4 above it)
     expect(label.y).toBeGreaterThan(title.y - 60);
     expect(label.y).toBeLessThan(title.y);
+  });
+
+  test("the ruler appears under the same rule as the corner lists", () => {
+    const hasRuler = (n: number) => buildPoster(full(n), ROOT, { generations: n, lang: "en" }).texts.some((t) => /^Generation \d$/.test(t.text));
+    expect(posterHasStatistics(POSTER_CORNERS_MIN_GENERATIONS - 1)).toBe(false);
+    expect(posterHasStatistics(POSTER_CORNERS_MIN_GENERATIONS)).toBe(true);
+    expect(hasRuler(4)).toBe(false);
+    expect(hasRuler(5)).toBe(true);
+    // fewer generations filled than asked for: no statistics either
+    const shallow = buildPoster(full(4), ROOT, { generations: 8, lang: "en" });
+    expect(shallow.texts.some((t) => /^Generation \d$/.test(t.text))).toBe(false);
   });
 
   test("all languages have a label with the number", () => {

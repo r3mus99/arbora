@@ -21,6 +21,8 @@ export const POSTER_MAX_GENERATIONS = 10;
 export const POSTER_BASE_GENERATIONS = 7;
 /** the fewest generations that are actually on the poster (not only asked for) for the corner lists to be drawn */
 export const POSTER_CORNERS_MIN_GENERATIONS = 5;
+/** The corner lists and the generation ruler are the poster's statistics: both appear under this one rule. */
+export const posterHasStatistics = (filledGens: number) => filledGens >= POSTER_CORNERS_MIN_GENERATIONS;
 /** Plate size by generation (person, parents, grandparents, great-grandparents): the people the person may still have
  * known stand out; every further generation is 100 %. */
 /** The most a branch swings sideways from the straight line between its ends, in drawing units. */
@@ -315,7 +317,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // the labels (Line, Origin, ...) stand in a column of their own, the values start at its right edge
   const t = TEXTS[o.lang].corners;
   const labelW = Math.max(...[t.line, t.origin, t.given, t.surnames].map((l) => measure(l, CORNER_LABEL_SIZE, true))) + CORNER_PAD + 22;
-  const corners = filledGens >= POSTER_CORNERS_MIN_GENERATIONS ? cornerBlocks(branchOf, o, measure, (key) => cornerRoom(key) - 2 * CORNER_PAD, gens, labelW) : [];
+  const corners = posterHasStatistics(filledGens) ? cornerBlocks(branchOf, o, measure, (key) => cornerRoom(key) - 2 * CORNER_PAD, gens, labelW) : [];
   // all frames are as wide as the widest content needs, so the four read as a set
   const blockW = Math.min(Math.max(0, ...corners.map((c) => labelW + 16 + Math.max(measure(c.heading, CORNER_HEAD_SIZE, true), ...c.rows.map((r) => measure(r.value, CORNER_VALUE_SIZE, false))) + CORNER_PAD)),
     ...corners.map((c) => cornerRoom(c.key)));
@@ -606,7 +608,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // middle of every generation's column, "Nth generation" over it and under it how many of the possible
   // people of that column are known (father's side left, mother's side right, the main person in the middle).
   // The title frame covers the columns beside the main person: their labels are left out.
-  {
+  // Like the corner lists, it appears only when the poster really reaches POSTER_CORNERS_MIN_GENERATIONS generations.
+  if (posterHasStatistics(filledGens)) {
     const ordinal = TEXTS[o.lang].generation;
     const left = Math.min(...plates.map((p) => p.x - p.w / 2)), right = Math.max(...plates.map((p) => p.x + p.w / 2));
     const bar = (x0: number, y0: number, x1: number, y1: number) => `M${x0},${y0}L${x1},${y0}L${x1},${y1}L${x0},${y1}Z`;
