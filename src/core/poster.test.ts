@@ -802,15 +802,20 @@ describe("palette", () => {
 describe("poster tree in the middle", () => {
   const trunk = (p: ReturnType<typeof buildPoster>) => p.shapes.filter((s) => s.fill === POSTER_COLORS.branch && s.stroke === POSTER_COLORS.branchEdge && s.strokeWidth === 1.2);
 
-  test("a landscape poster gets an apple tree between the parents, a portrait one stays without", () => {
+  test("a landscape poster gets an apple tree between the parents and is wider than without it", () => {
     for (const gens of [3, 5, 7, 8]) {
       const p = buildPoster(full(gens), ROOT, { generations: gens, posterSeed: 1 });
-      const plain = buildPosterWithoutTree(full(gens), ROOT, { generations: gens, posterSeed: 1 });
-      expect(trunk(p)).toHaveLength(p.width >= p.height ? 1 : 0);
-      if (p.width < p.height) expect(posterSvg(p)).toBe(posterSvg(plain));
-      else expect(p.width).toBeGreaterThan(plain.width);
+      expect(p.width).toBeGreaterThanOrEqual(p.height);
+      expect(trunk(p)).toHaveLength(1);
+      expect(p.width).toBeGreaterThan(buildPosterWithoutTree(full(gens), ROOT, { generations: gens, posterSeed: 1 }).width);
     }
-    expect(trunk(buildPoster(full(7), ROOT, { generations: 7, posterSeed: 1 }))).toHaveLength(1);
+  });
+
+  test("a portrait poster stays without the tree", () => {
+    const p = buildPoster(full(10), ROOT, { generations: 10, posterSeed: 1 });
+    expect(p.height).toBeGreaterThan(p.width);
+    expect(trunk(p)).toHaveLength(0);
+    expect(posterSvg(p)).toBe(posterSvg(buildPosterWithoutTree(full(10), ROOT, { generations: 10, posterSeed: 1 })));
   });
 
   test("the tree stands on the middle line below the parents' plates and the person's plate is in front of its trunk", () => {
