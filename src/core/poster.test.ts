@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import { KIND_COLORS } from "./colors";
 import {
-  buildPoster, CORNER_MIN_PEOPLE, PALETTE, POSTER_COLORS, POSTER_PLACES_HEIGHT, POSTER_PLACES_UP_TO, CORNER_PAD, POSTER_CORNERS_MIN_GENERATIONS, posterHasStatistics, cornerMaxValues, load, mergeSurnameForms, posterFonts, posterSeed, posterSvg, random, textWidth, LANGS, TEXTS, rgbOf,
+  buildPoster, buildPosterWithoutTree, CORNER_MIN_PEOPLE, PALETTE, POSTER_COLORS, POSTER_PLACES_HEIGHT, POSTER_PLACES_UP_TO, CORNER_PAD, POSTER_CORNERS_MIN_GENERATIONS, posterHasStatistics, cornerMaxValues, load, mergeSurnameForms, posterFonts, posterSeed, posterSvg, random, textWidth, LANGS, TEXTS, rgbOf,
 } from "./index";
 
 const data = load(readFileSync(new URL("../../public/sample.ged", import.meta.url)));
@@ -116,7 +116,7 @@ describe("poster layout", () => {
 
   test("only the people who exist take room: a sparse tree is much lower than a full one", () => {
     const sparse = full(6, (n) => n % 3 !== 0 || n < 8);
-    const a = buildPoster(sparse, ROOT, { generations: 6 }), b = buildPoster(full(6), ROOT, { generations: 6 });
+    const a = buildPosterWithoutTree(sparse, ROOT, { generations: 6 }), b = buildPosterWithoutTree(full(6), ROOT, { generations: 6 });
     expect(a.people).toBeLessThan(b.people);
     expect(a.height).toBeLessThan(b.height * 0.8);
     expect(b.width).toBe(a.width);
@@ -175,7 +175,7 @@ describe("poster output", () => {
 
 describe("poster plates", () => {
   test("the main branches overlap each connected plate by six drawing units", () => {
-    const poster = buildPoster(full(3), "@I1@", { generations: 3, posterSeed: 1 });
+    const poster = buildPosterWithoutTree(full(3), "@I1@", { generations: 3, posterSeed: 1 });
     const limbs = poster.shapes
       .filter((shape) => shape.fill === POSTER_COLORS.branch && shape.strokeWidth === 1)
       .map((shape) => (shape.d.match(/-?\d+(?:\.\d+)?/g) || []).map(Number))
@@ -353,7 +353,7 @@ describe("poster marriage years", () => {
   const years = (p: ReturnType<typeof buildPoster>) => marriageText(p).filter((t) => /^\d{4}$/.test(t.text));
 
   test("a marriage year stands at each couple, bigger for the closer generations, and nothing without a date", () => {
-    const p = buildPoster(full(6, () => true, true), ROOT, { generations: 6 });
+    const p = buildPosterWithoutTree(full(6, () => true, true), ROOT, { generations: 6 });
     expect(years(p)).toHaveLength(2 ** 5 - 1);
     expect(years(p).map((t) => t.text)).toContain("1701");
     expect(years(p).every((t) => !t.bold && t.fill === POSTER_COLORS.marriage)).toBe(true);
@@ -361,7 +361,7 @@ describe("poster marriage years", () => {
     expect(size("1701")).toBeGreaterThan(size("1702"));
     expect(size("1702")).toBeGreaterThan(size("1704"));
     expect(size("1704")).toBeGreaterThan(size("1716"));
-    expect(years(buildPoster(full(6), ROOT, { generations: 6 }))).toHaveLength(0);
+    expect(years(buildPosterWithoutTree(full(6), ROOT, { generations: 6 }))).toHaveLength(0);
   });
 
   test("two figures and the number of children stand under the year, and nothing for an only child", () => {
@@ -381,7 +381,7 @@ describe("poster marriage years", () => {
 ${Array.from({ length: n }, (_, i) => `1 CHIL @I${i === 0 ? 1 : 10 + i}@`).join("\n")}
 0 TRLR
 `);
-    const poster = (n: number) => buildPoster(families(n), "@I1@", { generations: 2, lang: "en" });
+    const poster = (n: number) => buildPosterWithoutTree(families(n), "@I1@", { generations: 2, lang: "en" });
     const counts = (n: number) => marriageText(poster(n)).map((t) => t.text);
     expect(counts(1)).toEqual(["1885"]);
     expect(counts(2)).toEqual(["1885", "2"]);
@@ -393,7 +393,7 @@ ${Array.from({ length: n }, (_, i) => `1 CHIL @I${i === 0 ? 1 : 10 + i}@`).join(
   });
 
   test("a marriage year touches no plate and no other marriage year", () => {
-    const p = buildPoster(full(7, () => true, true), ROOT, { generations: 7 });
+    const p = buildPosterWithoutTree(full(7, () => true, true), ROOT, { generations: 7 });
     const hits: string[] = [];
     const box = (t: { text: string; x: number; y: number; size: number }) => [t.x, t.y - t.size * 0.3, textWidth(t.text, t.size, false), t.size] as const;
     for (const t of marriageText(p)) {
@@ -617,7 +617,7 @@ describe("poster corner lists: places and surnames", () => {
       + "0 @I4@ INDI\n1 NAME Jan /Test/\n1 BIRT\n2 DATE 1700\n1 FAMC @F3@\n0 @I6@ INDI\n1 NAME Petr /Test/\n1 BIRT\n2 PLAC Lesná, okres Doly\n0 @F3@ FAM\n1 HUSB @I6@\n1 WIFE @I9@\n1 CHIL @I4@\n0 @I5@ INDI\n1 NAME Anna /Test/\n"
       + "0 @I9@ INDI\n1 NAME Zora /Test/\n1 FAMC @F4@\n0 @F4@ FAM\n1 HUSB @I7@\n1 WIFE @I8@\n1 CHIL @I9@\n0 @I7@ INDI\n1 NAME Ivan /Test/\n0 @I8@ INDI\n1 NAME Dana /Test/\n"
       + "0 @F1@ FAM\n1 HUSB @I2@\n1 WIFE @I3@\n1 CHIL @I1@\n0 @F2@ FAM\n1 HUSB @I4@\n1 WIFE @I5@\n1 CHIL @I2@\n0 TRLR\n";
-    const p = buildPoster(load(ged), ROOT, { generations: 5, lang: "en", posterSeed: 1 });
+    const p = buildPosterWithoutTree(load(ged), ROOT, { generations: 5, lang: "en", posterSeed: 1 });
     const born = p.texts.filter((t) => t.text.startsWith("Lesná"));
     expect(born.length).toBeGreaterThan(0);
     for (const t of born) expect(t.text).not.toContain("okres");
@@ -681,7 +681,7 @@ describe("poster generation ruler", () => {
 
   test("under each generation the known people are counted out of the possible ones", () => {
     const p = buildPoster(full(7), ROOT, { generations: 7, lang: "en" });
-    expect(p.texts.filter((t) => /^\d+ of \d+$/.test(t.text)).map((t) => t.text).sort()).toEqual(["16 of 16", "16 of 16", "2 of 2", "2 of 2", "32 of 32", "32 of 32", "4 of 4", "4 of 4", "8 of 8", "8 of 8"]);
+    expect(p.texts.filter((t) => /^\d+ of \d+$/.test(t.text)).map((t) => t.text).sort()).toEqual(["1 of 1", "1 of 1", "16 of 16", "16 of 16", "2 of 2", "2 of 2", "32 of 32", "32 of 32", "4 of 4", "4 of 4", "8 of 8", "8 of 8"]);
     // person 4 has no parents: of the 4 people the father's side could hold in generation 4, 2 are known
     const sparse = buildPoster(full(7, (n) => n !== 4), ROOT, { generations: 7, lang: "en" });
     expect(sparse.texts.some((t) => t.text === "2 of 4")).toBe(true);
@@ -796,5 +796,42 @@ describe("palette", () => {
     const css = readFileSync(new URL("../ui/styles.css", import.meta.url), "utf8");
     const rules = css.replace(/:root[^{]*\{[^}]*\}/g, "");
     expect(rules.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(/g) ?? []).toEqual([]);
+  });
+});
+
+describe("poster tree in the middle", () => {
+  const trunk = (p: ReturnType<typeof buildPoster>) => p.shapes.filter((s) => s.fill === POSTER_COLORS.branch && s.stroke === POSTER_COLORS.branchEdge && s.strokeWidth === 1.2);
+
+  test("a landscape poster gets an apple tree between the parents, a portrait one stays without", () => {
+    for (const gens of [3, 5, 7, 8]) {
+      const p = buildPoster(full(gens), ROOT, { generations: gens, posterSeed: 1 });
+      const plain = buildPosterWithoutTree(full(gens), ROOT, { generations: gens, posterSeed: 1 });
+      expect(trunk(p)).toHaveLength(p.width >= p.height ? 1 : 0);
+      if (p.width < p.height) expect(posterSvg(p)).toBe(posterSvg(plain));
+      else expect(p.width).toBeGreaterThan(plain.width);
+    }
+    expect(trunk(buildPoster(full(7), ROOT, { generations: 7, posterSeed: 1 }))).toHaveLength(1);
+  });
+
+  test("the tree stands on the middle line below the parents' plates and the person's plate is in front of its trunk", () => {
+    const p = buildPoster(full(7), ROOT, { generations: 7, posterSeed: 1 });
+    const root = p.plates.find((q) => q.gen === 1)!, parents = p.plates.filter((q) => q.gen === 2);
+    expect(parents).toHaveLength(2);
+    // the parents are level, on both sides of the tree, and the person is below them
+    expect(parents[0].y).toBe(parents[1].y);
+    expect(parents[0].x).toBeLessThan(root.x);
+    expect(parents[1].x).toBeGreaterThan(root.x);
+    expect(root.y).toBeGreaterThan(parents[0].y);
+    // the trunk (the first brown shape with a dark edge of width 1.2) ends at the ground below the plate
+    const xs = (trunk(p)[0].d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number).filter((_, i) => i % 2 === 0);
+    expect(Math.min(...xs)).toBeLessThan(root.x);
+    expect(Math.max(...xs)).toBeGreaterThan(root.x);
+  });
+
+  test("one seed always grows the same tree and the tree uses only the named palette", () => {
+    const a = posterSvg(buildPoster(full(6), ROOT, { generations: 6, posterSeed: 2 })), b = posterSvg(buildPoster(full(6), ROOT, { generations: 6, posterSeed: 2 }));
+    expect(a).toBe(b);
+    const colours = new Set<string>(Object.values(PALETTE));
+    for (const m of a.matchAll(/(?:fill|stroke)="(#[0-9a-fA-F]{6})"/g)) expect(colours.has(m[1])).toBe(true);
   });
 });

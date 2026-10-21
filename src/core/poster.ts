@@ -15,6 +15,7 @@ import { TEXTS } from "./texts";
 import { CORNER_HEAD_H, CORNER_HEAD_SIZE, CORNER_LABEL_SIZE, CORNER_PAD, CORNER_STEP, CORNER_VALUE_SIZE, cornerBlocks, cornerHeight, type CornerKey } from "./posterCorners";
 import type { PosterFonts } from "./posterFont";
 import { PALETTE } from "./palette";
+import { appleTree } from "./posterTree";
 
 export const POSTER_MIN_GENERATIONS = 3;
 export const POSTER_MAX_GENERATIONS = 10;
@@ -164,7 +165,7 @@ const angleAt = (d: Point[], k: number) => {
 };
 
 /** A branch as a filled shape that narrows from width `w0` at its start to `w1` at its end. */
-function tapered(d: Point[], w0: number, w1: number): string {
+export function tapered(d: Point[], w0: number, w1: number): string {
   const left: Point[] = [], right: Point[] = [];
   d.forEach(([x, y], i) => {
     const a = d[Math.max(i - 1, 0)], b = d[Math.min(i + 1, d.length - 1)];
@@ -178,7 +179,7 @@ function tapered(d: Point[], w0: number, w1: number): string {
 }
 
 /** A leaf from its stalk at (x, y), pointing `ang` radians, `s` times the base size; the midrib is part of the path. */
-function leafPath(x: number, y: number, ang: number, s: number): string {
+export function leafPath(x: number, y: number, ang: number, s: number): string {
   const c = Math.cos(ang), sn = Math.sin(ang);
   const p = ([px, py]: Point) => `${num(x + (px * c - py * sn) * s)},${num(y + (px * sn + py * c) * s)}`;
   return `M${p([0, 0])}C${p([4, -9])} ${p([20, -10])} ${p([34, 0])}C${p([20, 10])} ${p([4, 9])} ${p([0, 0])}Z` +
@@ -187,8 +188,28 @@ function leafPath(x: number, y: number, ang: number, s: number): string {
 
 export interface Plate { id: string; gen: number; x: number; y: number; w: number; h: number }
 
-/** The ancestors of `rootId` as a poster; `options.generations` generations including the person (0 = all, which the poster keeps to POSTER_MAX_GENERATIONS); the poster is as wide as the generations need and as high as the people need. */
+/** The tree in the middle: the room between the parents is this much of the poster height, the crown is wider than the room, so the lowest limbs reach the parents' plates. */
+export const POSTER_TREE_GAP = 0.5;
+const POSTER_TREE_CROWN = 1.5;
+/** The height the tree does not use: the title above it and the strip below. */
+const POSTER_TREE_HEIGHT_MARGIN = 330;
+
+/**
+ * The ancestors of `rootId` as a poster; `options.generations` generations including the person (0 = all, which the poster keeps to POSTER_MAX_GENERATIONS); the poster is as wide as the generations need and as high as the people need.
+ * An apple tree grows in the middle, between the parents, whenever the poster stays landscape or square with it; a portrait poster is drawn without it.
+ */
 export function buildPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts, credit?: PosterCredit): Poster {
+  const plain = layoutPoster(data, rootId, options, fonts, credit);
+  const withTree = layoutPoster(data, rootId, options, fonts, credit, Math.round((plain.height - POSTER_TREE_HEIGHT_MARGIN) * POSTER_TREE_GAP));
+  return withTree.width >= withTree.height ? withTree : plain;
+}
+
+/** The poster as buildPoster draws it when there is no room for the tree. */
+export const buildPosterWithoutTree = (data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts, credit?: PosterCredit): Poster =>
+  layoutPoster(data, rootId, options, fonts, credit);
+
+/** The poster; with `treeGap` (the room between the parents) an apple tree stands in the middle. */
+function layoutPoster(data: GedcomData, rootId: string, options: Partial<ChartOptions>, fonts?: PosterFonts, credit?: PosterCredit, treeGap?: number): Poster {
   const o = normalize(options);
   const measure = fonts ? fonts.width : textWidth;
   const root = data.people[rootId];
@@ -231,7 +252,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const gapAfter = (gen: number) => gen >= POSTER_SMALL_FROM ? Math.max(POSTER_SMALL_GAP, Math.ceil((needed.get(gen) ?? 0) + 40)) : Math.max(minGap, Math.ceil((needed.get(gen) ?? 0) + 80));
   // column centres, measured from the middle line: the first column starts 40 away from it
   const colX = new Map<number, number>();
-  let edge = 40;
+  let edge = 40 + (treeGap ? treeGap / 2 : 0);
   for (let g = 2; g <= gens; g++) {
     colX.set(g, edge + widthOf(g) / 2);
     edge += widthOf(g) + gapAfter(g);
@@ -366,7 +387,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // the parents
   const levelY = top + Math.max(0, ...sides.map((x) => -x.low));
   const rootY = levelY + Math.max(heightOf(2), ...rootKids.map(([q]) => q.h)) / 2 + 140 + rootPlate.h / 2;
-  const H = Math.round(Math.max(levelY + Math.max(0, ...sides.map((x) => x.high)), rootY + rootPlate.h / 2) + bottom);
+  const trunkRoom = treeGap ? 150 : 0;
+  const H = Math.round(Math.max(levelY + Math.max(0, ...sides.map((x) => x.high)), rootY + rootPlate.h / 2 + trunkRoom) + bottom);
   const settle = (plate: Plate, y: number) => {
     plate.y = y;
     (kids.get(plate) || []).forEach((q, i) => settle(q, y + offsets.get(plate)![i]));
@@ -383,6 +405,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // person and the parents (beside the fork for the main person). The room is kept free of shoots before they grow;
   // afterwards the spot closest to the usual one that touches no plate, branch, shoot or leaf is taken.
   const labels = plates.flatMap((plate) => {
+    if (treeGap && plate === rootPlate) return [];
     if ((plate === rootPlate ? rootKids : kids.get(plate) || []).length !== 2) return [];
     const lines = marrLines(plate.id);
     if (!lines.length) return [];
@@ -410,7 +433,9 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
     for (const q of kids.get(parent) || []) grow(parent, q, side);
   };
   // one limb rises from the person and splits in two, one for each parent
-  if (rootKids.length) {
+  if (rootKids.length && treeGap) {
+    for (const [plate, side] of rootKids) for (const q of kids.get(plate) || []) grow(plate, q, side);
+  } else if (rootKids.length) {
     const lowest = Math.max(...rootKids.map(([plate]) => plate.y + plate.h / 2));
     const fork: Point = [rootPlate.x, lowest + 70];
     limb(curve([rootPlate.x, rootPlate.y - rootPlate.h / 2], fork, true), gens - 1, true);
@@ -418,6 +443,14 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
       limb(curve(fork, [plate.x - side * plate.w * 0.2, plate.y + plate.h / 2], true), gens - 2, false, true);
       for (const q of kids.get(plate) || []) grow(plate, q, side);
     }
+  }
+
+  let tree: ReturnType<typeof appleTree> | null = null;
+  if (treeGap) {
+    const boxTop = 200, crownEnd = rootY - rootPlate.h / 2 - 30, crown = Math.round(treeGap * POSTER_TREE_CROWN);
+    const box = { x: rootPlate.x - crown / 2, y: boxTop, w: crown, h: H - bottom - boxTop, trunkTop: 0 };
+    box.trunkTop = (crownEnd - boxTop) / box.h;
+    tree = appleTree(box, { apples: 0, density: 1.7 }, random(seed ^ 0x9e3779b9));
   }
 
   const marriages: PosterText[] = [];
@@ -509,7 +542,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const { margin, frameShapes } = posterBorder(W, H);
   addCredit(texts, credit, o, measure, W, H);
   shapes.push({ d: `M${-margin},${-margin}L${W + margin},${-margin}L${W + margin},${H + margin}L${-margin},${H + margin}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
-              ...frameShapes, ...branches, ...leaves, ...symbols, ...plateShapes);
+              ...frameShapes, ...(tree ? [...tree.wood, ...tree.leaves, ...tree.apples] : []), ...branches, ...leaves, ...symbols, ...plateShapes);
   return { width: W, height: H, margin, shapes, texts, generations: gens, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
 }
 
