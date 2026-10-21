@@ -1,1 +1,0 @@
-- **Poster with 10 generations is drawn about ten times faster.** The branch and label placement looks up only nearby points, so a big tree no longer takes half a minute; the poster looks exactly the same.
