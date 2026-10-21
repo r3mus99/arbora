@@ -377,7 +377,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   // ------------------------------------------------------------ branches
   const shapes: PosterShape[] = [];
   const C = POSTER_COLORS;
-  const { branches, leaves, occupied, curve, limb, free } = makeGrower(rnd, plates, W, H);
+  const { branches, leaves, occupied, occupy, curve, limb, free } = makeGrower(rnd, plates, W, H);
 
   // The marriage years: a small gold text where the branches of the two parents meet, in the gap between the
   // person and the parents (beside the fork for the main person). The room is kept free of shoots before they grow;
@@ -397,7 +397,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
       y = plate.y;
     }
     for (let px = x - width / 2; px <= x + width / 2; px += 6) {
-      for (let py = y - height / 2; py <= y + height / 2; py += 6) occupied.push([px, py]);
+      for (let py = y - height / 2; py <= y + height / 2; py += 6) occupy([px, py]);
     }
     const parents = (plate === rootPlate ? rootKids.map(([q]) => q) : kids.get(plate) || []).map((q) => q.y);
     return [{ lines, size, width, height, x, y, top: Math.min(...parents), bottom: Math.max(...parents) }];
@@ -524,17 +524,56 @@ export function makeGrower(rnd: () => number, plates: Plate[], W: number, H: num
   const C = POSTER_COLORS;
   const branches: PosterShape[] = [], leaves: PosterShape[] = [];
   const occupied: Point[] = [];
-  const limbPts: Point[] = [], leafPts: Point[] = [];
+  // limb and leaf points in a grid of CELL-sized squares, so that `free` looks only at the points near the box
+  const CELL = 40;
+  const grid = new Map<string, Point[]>();
+  const addPoint = (pt: Point) => {
+    const key = `${Math.floor(pt[0] / CELL)}:${Math.floor(pt[1] / CELL)}`;
+    const cell = grid.get(key);
+    if (cell) cell.push(pt); else grid.set(key, [pt]);
+  };
+  const touchesPoint = (x: number, y: number, w: number, h: number) => {
+    for (let cx = Math.floor((x - w / 2 - 10) / CELL); cx <= Math.floor((x + w / 2 + 10) / CELL); cx++) {
+      for (let cy = Math.floor((y - h / 2 - 10) / CELL); cy <= Math.floor((y + h / 2 + 10) / CELL); cy++) {
+        if (grid.get(`${cx}:${cy}`)?.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10)) return true;
+      }
+    }
+    return false;
+  };
+
+  // the plates and the occupied points are looked up in the same kind of grid
+  const plateGrid = new Map<string, Plate[]>();
+  const plateReach = Math.max(0, ...plates.map((p) => Math.max(p.w, p.h) / 2)) + 12;
+  for (const p of plates) {
+    const key = `${Math.floor(p.x / CELL)}:${Math.floor(p.y / CELL)}`;
+    const cell = plateGrid.get(key);
+    if (cell) cell.push(p); else plateGrid.set(key, [p]);
+  }
+  const nearCells = <T,>(cells: Map<string, T[]>, x: number, y: number, reach: number, test: (item: T) => boolean) => {
+    for (let cx = Math.floor((x - reach) / CELL); cx <= Math.floor((x + reach) / CELL); cx++) {
+      for (let cy = Math.floor((y - reach) / CELL); cy <= Math.floor((y + reach) / CELL); cy++) {
+        if (cells.get(`${cx}:${cy}`)?.some(test)) return true;
+      }
+    }
+    return false;
+  };
+  const occupiedGrid = new Map<string, Point[]>();
+  const occupy = (pt: Point) => {
+    occupied.push(pt);
+    const key = `${Math.floor(pt[0] / CELL)}:${Math.floor(pt[1] / CELL)}`;
+    const cell = occupiedGrid.get(key);
+    if (cell) cell.push(pt); else occupiedGrid.set(key, [pt]);
+  };
 
   // `leaving`: the first points of a shoot that starts on another shoot stay close to it and are not tested against the shoots
   const blocked = (pts: Point[], radius: number, leaving = 0) => pts.slice(1).some(([x, y], i) =>
     x < 20 || x > W - 20 || y < 20 || y > H - 20 ||
-    plates.some((p) => Math.abs(x - p.x) < p.w / 2 + 12 && Math.abs(y - p.y) < p.h / 2 + 12) ||
-    (i >= leaving && occupied.some(([ox, oy]) => (x - ox) ** 2 + (y - oy) ** 2 < radius * radius)));
+    nearCells(plateGrid, x, y, plateReach, (p) => Math.abs(x - p.x) < p.w / 2 + 12 && Math.abs(y - p.y) < p.h / 2 + 12) ||
+    (i >= leaving && nearCells(occupiedGrid, x, y, radius, ([ox, oy]) => (x - ox) ** 2 + (y - oy) ** 2 < radius * radius)));
 
   const branch = (d: string, width: number) => branches.push({ d, fill: C.branch, stroke: C.branchEdge, strokeWidth: width });
   const leaf = (x: number, y: number, ang: number, s: number) => {
-    leafPts.push([x, y]);
+    addPoint([x, y]);
     leaves.push({ d: leafPath(x, y, ang, s), fill: pick(C.leaves), stroke: C.leafEdge, strokeWidth: 1.2 });
   };
 
@@ -551,7 +590,7 @@ export function makeGrower(rnd: () => number, plates: Plate[], W: number, H: num
     }
     if (blocked(pts, depth < 2 ? 34 : depth < 3 ? 22 : 16, depth > 1 ? 3 : 0)) return false;
     const d = dense(pts);
-    occupied.push(...dense(pts, 2));
+    dense(pts, 2).forEach(occupy);
     branch(tapered(d, width, Math.max(0.6, width * 0.25)), 0.8);
     // a longer shoot splits into more and longer ones, and those split again (three levels in all)
     let split = 0;
@@ -606,7 +645,7 @@ export function makeGrower(rnd: () => number, plates: Plate[], W: number, H: num
   /** A limb along `pts` of the given thickness class, with side shoots and leaves (unless `shoots` is false). */
   const limb = (pts: Point[], thick: number, extendStart = false, extendEnd = false, shoots = true) => {
     const d = dense(pts);
-    limbPts.push(...dense(pts, 3));
+    dense(pts, 3).forEach(addPoint);
     const path = [...d];
     const extend = (a: Point, b: Point): Point => {
       const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
@@ -635,10 +674,9 @@ export function makeGrower(rnd: () => number, plates: Plate[], W: number, H: num
   /** Whether a box of size w by h around (x, y) touches no plate, limb or leaf. */
   const free = (x: number, y: number, w: number, h: number) =>
     !plates.some((q) => Math.abs(x - q.x) < q.w / 2 + w / 2 + 6 && Math.abs(y - q.y) < q.h / 2 + h / 2 + 6) &&
-    !limbPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10) &&
-    !leafPts.some(([px, py]) => Math.abs(px - x) < w / 2 + 10 && Math.abs(py - y) < h / 2 + 10);
+    !touchesPoint(x, y, w, h);
 
-  return { branches, leaves, occupied, limbPts, leafPts, blocked, twig, curve, limb, free };
+  return { branches, leaves, occupied, occupy, blocked, twig, curve, limb, free };
 }
 
 /** The mark of the program: small, in the strip between the tree and the inner border line, right aligned at the bottom. */
