@@ -780,7 +780,6 @@ describe("palette", () => {
     expect(css).toContain(`--c-marr: ${PALETTE.gold};`);
     expect(css).toContain(`--c-death: ${PALETTE.chocolate};`);
     expect(css).toContain(`--muted: ${PALETTE.stone};`);
-    expect(css).toContain(`--accent: ${PALETTE.forest};`);
     expect(css).toContain(`--danger: ${PALETTE.brick};`);
     expect(css).toContain(`--sex-F: ${PALETTE.brick};`);
     expect(KIND_COLORS.birt).toEqual(rgbOf(PALETTE.forest));

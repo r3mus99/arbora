@@ -1,0 +1,1 @@
+- **The app has a purple accent.** Buttons, the selected person, links and focus are purple instead of green; birth stays green, and the poster and PDF colours are unchanged.
