@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.61.0 – 2026-10-21
+
+- **The app has a purple accent.** Buttons, the selected person, links and focus are purple instead of green; birth stays green, and the poster and PDF colours are unchanged.
+
 ## 2.60.1 – 2026-10-21
 
 - **Poster with 10 generations is drawn about ten times faster.** The branch and label placement looks up only nearby points, so a big tree no longer takes half a minute; the poster looks exactly the same.
