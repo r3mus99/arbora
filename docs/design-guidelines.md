@@ -70,7 +70,7 @@ No other radius, height or padding number is used for a control. Dialogs use `--
 
 - Surfaces: `--bg` for the page, rail and inputs; `--panel` for panels, dialogs and cards. `--border` for every line.
 - Text: `--text`, secondary `--muted`. Never `opacity` to dim text; use `--muted`.
-- `--accent` is the palette's Forest green (the same as birth) and marks the active thing (open mini-app, chosen switch, selected person, links, primary button).
+- `--accent` is purple (`#7c3aed` light, `#a78bfa` dark; its own colour, not part of the poster palette and different from birth green) and marks the active thing (open mini-app, chosen switch, selected person, links, primary button).
   `--accent-soft` is the hover and the "on" background.
 - `--danger` for errors, `--warn` (new token, replaces the literal `#b7791f`) for warnings and badges.
 - Event and sex colours are tokens too (`--c-birth`, `--c-marr`, `--c-death`, `--c-src`, `--sex-M`, `--sex-F`
