@@ -1,1 +1,1 @@
-- **The app has a purple accent.** Buttons, the selected person, links and focus are purple instead of green; birth stays green, and the poster and PDF colours are unchanged.
+- **Downloaded PDF and poster file names now contain the person, ancestors or descendants and the number of generations** (e.g. `maria-theresia_ancestors_7g.pdf`).

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.62.0 – 2026-10-22
+
+- **Downloaded PDF and poster file names now contain the person, ancestors or descendants and the number of generations** (e.g. `maria-theresia_ancestors_7g.pdf`).
+
 ## 2.61.0 – 2026-10-21
 
 - **The app has a purple accent.** Buttons, the selected person, links and focus are purple instead of green; birth stays green, and the poster and PDF colours are unchanged.
