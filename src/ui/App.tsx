@@ -10,7 +10,8 @@ import { checkGedcom, fixIssue } from "../core/check";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { addFamily, addPerson, appended, deleteFamily, deletePerson, freeXref } from "../core/structure";
 import { mergePeople, type MergePick } from "../core/merge";
-import { decode, fold, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
+import { outputFileName } from "../core/fileName";
+import { decode, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceChoices, sourceOverview } from "../core/sources";
 import { placeOverview } from "../core/placelist";
@@ -192,8 +193,8 @@ export function App() {
   // ------------------------------------------------------------ result
   const resetResult = () => setStatus(null);
 
-  const fileName = (name: string, chart: ChartKind) =>
-    `${fold(name).replace(/[^\w.-]+/g, "_")}_${t(chart === "descendants" ? "fileDesc" : "fileAnc")}.pdf`;
+  const fileName = (name: string, chart: ChartKind, generations: number, extension: string) =>
+    outputFileName(name, generations, t(chart === "descendants" ? "fileDesc" : "fileAnc"), extension);
 
   async function create(id = selectedId) {
     if (!data || !id || busy) return;
@@ -206,7 +207,7 @@ export function App() {
       const opts = toOptions(form, lang);
       const res = await generate(data, id, opts, f, version);
       saveFile(new Blob([res.bytes as BlobPart], { type: "application/pdf" }),
-               fileName(data.people[id].name, opts.chart));
+               fileName(data.people[id].name, opts.chart, res.generations, "pdf"));
       setStatus({ key: "done", err: false, vars: {
         pages: res.pages, gens: res.generations, shrunkSize: res.shrunk ? res.fontSize.toFixed(1) : "" } });
     } catch (e) {
@@ -232,7 +233,7 @@ export function App() {
       const build = opts.chart === "descendants" ? buildDescendantsPoster : buildPoster;
       const poster = build(data, id, { ...opts, posterSeed: Math.floor(Math.random() * 2 ** 31) }, pf, { version, date: new Date() });
       saveFile(new Blob([posterSvg(poster, pf)], { type: "image/svg+xml" }),
-               `${fold(data.people[id].name).replace(/[^\w.-]+/g, "_")}_${t("filePoster")}.svg`);
+               fileName(data.people[id].name, opts.chart, poster.generations, "svg"));
       setStatus(null);
     } catch (e) {
       console.error(e);
