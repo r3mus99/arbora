@@ -194,7 +194,7 @@ export function App() {
   const resetResult = () => setStatus(null);
 
   const fileName = (name: string, chart: ChartKind, generations: number, extension: string) =>
-    outputFileName(name, generations, { chartWord: t(chart === "descendants" ? "fileDesc" : "fileAnc"), generationsWord: t("fileGens") }, extension);
+    outputFileName(name, generations, t(chart === "descendants" ? "fileDesc" : "fileAnc"), extension);
 
   async function create(id = selectedId) {
     if (!data || !id || busy) return;
