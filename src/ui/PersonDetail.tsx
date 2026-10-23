@@ -242,6 +242,8 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
           }).map((pid) => {
             const q = data.people[pid];
             return <Row key={pid} icon={Baby} tone={q?.sex ? `tl-birth tl-sex-${q.sex}` : "tl-birth"}>
+              <div className="tl-date">{q?.birth?.date && <span>{formatDate(q.birth.date, true, lang)}</span>}
+                <span className="tl-label">{q?.birth?.date && " · "}{t("thBirth")}</span></div>
               <div className="tl-what">{link(pid, false)}</div>
             </Row>;
           })}
@@ -261,15 +263,21 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
             const childSex = e.kind === "child" && e.other ? data.people[e.other]?.sex : "";
             return <Row key={e.key} icon={Icon} tone={`tl-${e.kind}${childSex ? ` tl-sex-${childSex}` : ""}`}>
               <div className={`tl-body${src ? " has-src" : ""}`}>
-                {/* first line: date, what happened and the age; second line: who and where */}
+                {/* Put linked people on the date line; their event label and age go below. */}
                 <div className="tl-date">
                   {e.date && <span>{editable(e) ? dateField(e) : formatDate(e.date, true, lang)}</span>}
-                  <span className="tl-label">{e.date && " · "}{label(e.kind, !!e.date, e.other, e.title, e.tag)}</span>
-                  {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}</div>
-                {(e.other || e.detail || e.divorced || (e.place && e.kind !== "child") || e.coords) && <div className="tl-what">
-                  {e.other && link(e.other)}
+                  {e.other ? <>{e.date && " · "}{link(e.other, false)}</> : <>
+                    <span className="tl-label">{e.date && " · "}{label(e.kind, !!e.date, e.other, e.title, e.tag)}</span>
+                    {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}
+                  </>}
+                </div>
+                {e.other && <div className="tl-what">
+                  {label(e.kind, !!e.date, e.other, e.title, e.tag)}
+                  {e.age !== null && <span> · {fmt(t("ageAt"), { n: e.age })}</span>}
+                </div>}
+                {(e.detail || e.divorced || (e.place && e.kind !== "child") || e.coords) && <div className="tl-what">
                   {e.detail && <>{e.other && " · "}{e.detail}</>}
-                  {e.divorced && <span className="muted">{e.other && " · "}{TEXTS[lang].divorced}</span>}
+                  {e.divorced && <span className="muted">{(e.other || e.detail) && " · "}{TEXTS[lang].divorced}</span>}
                   {/* a child's birth place is shown with the child's name */}
                   {e.place && e.kind !== "child" && <span className="muted">{(e.other || e.detail || e.divorced) && " · "}{editable(e) ? placeField(e) : municipality(e.place)}</span>}
                   {e.coords && <a className="map-link" href={mapUrl(e.coords)} target="_blank" rel="noopener noreferrer"
