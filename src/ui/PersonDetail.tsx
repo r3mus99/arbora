@@ -257,7 +257,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
         </Section>}
         {life.length > 0 && <Section icon={History} title={t("timeline")} rows className="timeline">
           {life.map((e) => {
-            const Icon = (e.kind === "marriage" && e.divorced) || e.tag === "DIV" ? HeartCrack : ICONS[e.kind];
+            const Icon = e.tag === "DIV" ? HeartCrack : ICONS[e.kind];
             const found = extras(e.kind, e.key, e.node);
             const src = found && hasAnnotations(found) ? found : null;
             const childSex = e.kind === "child" && e.other ? data.people[e.other]?.sex : "";
