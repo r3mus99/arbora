@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, decode, familyFields, parseGedcom, personFields, relinkFamily, relinkParents, rewritten, sourceChoices, writeGedcom, type FamilyFields, type GedNode,
+  applyFamily, applyPerson, decode, familyFields, OTHER_EVENT_TAGS, parseGedcom, personFields, relinkFamily, relinkParents, rewritten, sourceChoices, writeGedcom, type FamilyFields, type GedNode,
   type PersonFields,
 } from "./index";
 import { RICH_GED } from "./fixtures/rich";
@@ -257,6 +257,10 @@ describe("events of a person", () => {
   const ged = (extra: string) => `0 HEAD\n0 @I1@ INDI\n1 NAME Anna /Test/\n1 SEX F\n1 BIRT\n2 DATE 1 JAN 1900\n${extra}1 NOTE n\n0 TRLR\n`;
   const load = (text: string) => parseGedcom(text).find((c) => c.tag === "INDI")!;
   const none = { age: "", cause: "", agency: "" };
+
+  test("offers residence first as the default event", () => {
+    expect(OTHER_EVENT_TAGS[0]).toBe("RESI");
+  });
 
   test("adds details to a birth in the usual order and removes them again", () => {
     const rec = load(ged(""));
