@@ -9,12 +9,12 @@ import { recordInfo } from "../core/info";
 import { mapUrl, municipality } from "../core/places";
 import { nameDetails } from "../core/names";
 import { personAttributes, type Attribute } from "../core/facts";
-import { dateParts } from "../core/date";
+import { dateParts, yearsBetween } from "../core/date";
 import { fmt, formatDate } from "../core/format";
 import { childOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
-import { timeline, weddingAges, type TimelineItem, type TimelineKind } from "../core/timeline";
+import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { dateHint, givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
 import { InlineName, InlineNote, InlineText } from "./Inline";
@@ -151,10 +151,13 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
   };
 
   const birthFam = p.famc.length ? data.families[p.famc[0]] : null;
-  const parentAges = birthFam ? weddingAges(birthFam.marriage?.date, [birthFam.husb, birthFam.wife].map((x) => {
+  /** a spouse of the parents' marriage: given name and age on the wedding day, when known */
+  const spouseAtWedding = (x: string | null | undefined) => {
     const q = x ? data.people[x] : null;
-    return { name: q?.given || "", born: q?.birth?.date || "" };
-  })) : [];
+    if (!q) return null;
+    const age = yearsBetween(q.birth?.date, birthFam?.marriage?.date);
+    return <span key={q.id}>{q.given || q.name || "?"}{age !== null && ` (${age}${t("yearsShort")})`}</span>;
+  };
   const parents = birthFam ? [birthFam.husb, birthFam.wife].filter((x): x is string => !!x) : [];
   const life = timeline(data, id, f, record, lookup);
   // the tag of the person's own line, or the marriage family, that a timeline item shows
@@ -242,17 +245,18 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
           }).map((pid) => {
             const q = data.people[pid];
             return <Row key={pid} icon={Baby} tone={q?.sex ? `tl-birth tl-sex-${q.sex}` : "tl-birth"}>
-              <div className="tl-date">{q?.birth?.date && <span>{formatDate(q.birth.date, true, lang)}</span>}
-                <span className="tl-label">{q?.birth?.date && " · "}{t("thBirth")}</span></div>
-              <div className="tl-what">{link(pid, false)}</div>
+              <div className="tl-date">
+                {q?.birth?.date && <span>{formatDate(q.birth.date, true, lang)} · </span>}{link(pid, false)}</div>
+              <div className="tl-what">{t(pid === birthFam?.husb ? "birthGroom" : "birthBride")}
+                {q?.birth?.place && <span> · {municipality(q.birth.place)}</span>}</div>
             </Row>;
           })}
           {birthFam?.marriage && (birthFam.marriage.date || birthFam.marriage.place) && <Row icon={Heart} tone="tl-marriage">
-            <div className="tl-date">{birthFam.marriage.date && <span>{formatDate(birthFam.marriage.date, true, lang)}</span>}
-              <span className="tl-label">{birthFam.marriage.date && " · "}{t("marriage")}</span></div>
-            {birthFam.marriage.place && <div className="tl-what muted">{municipality(birthFam.marriage.place)}</div>}
-            {parentAges.length > 0 && <div className="tl-details"><span>{t("marriageAges")}:</span>{" "}
-              {parentAges.map((a, i) => <span key={i}>{i > 0 && ", "}{a.name} ({a.age}{t("yearsShort")})</span>)}</div>}
+            <div className="tl-date">
+              {birthFam.marriage.date && <span>{formatDate(birthFam.marriage.date, true, lang)} · </span>}
+              {spouseAtWedding(birthFam.husb)} ⚭ {spouseAtWedding(birthFam.wife)}</div>
+            <div className="tl-what">{t("marriage")}
+              {birthFam.marriage.place && <span> · {municipality(birthFam.marriage.place)}</span>}</div>
           </Row>}
         </Section>}
         {life.length > 0 && <Section icon={History} title={t("timeline")} rows className="timeline">

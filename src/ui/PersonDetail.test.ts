@@ -12,6 +12,7 @@ const GED = `0 HEAD
 1 SEX F
 1 BIRT
 2 DATE 1900
+2 PLAC Brno, Czechia
 1 FAMS @F1@
 0 @I2@ INDI
 1 NAME Bob /Sample/
@@ -25,8 +26,8 @@ const GED = `0 HEAD
 2 DATE 1920
 1 FAMC @F1@
 0 @F1@ FAM
-1 HUSB @I1@
-1 WIFE @I2@
+1 HUSB @I2@
+1 WIFE @I1@
 1 CHIL @I3@
 1 MARR
 2 DATE 1918
@@ -51,5 +52,20 @@ describe("person detail timeline", () => {
     expect(html).toContain(
       'class="tl-date"><span>1920</span> · <span class="person-ref"><button class="link person" type="button">Child Sample</button></span></div><div class="tl-what">Child born<span> · at 20</span></div>',
     );
+  });
+
+  test("parents: birth rows show date and name, then role and place; the wedding shows both spouses with ages", () => {
+    const records = parseGedcom(GED);
+    const data = readRecords(records);
+    const html = renderToStaticMarkup(createElement(PersonDetail, {
+      data, id: "@I3@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [], rootId: "@I3@", starred: false,
+      onStar: () => {}, lang: "en", onFocus: () => {}, onMakeRoot: () => {}, onChange: () => {},
+      suggest: suggestions(records), onEdit: () => {}, onBack: () => {},
+      t: (key: StringKey) => STRINGS.en[key] ?? key,
+    }));
+    expect(html).toContain("<span>1900 · </span>");
+    expect(html).toContain('<div class="tl-what">Bride&#x27;s birth<span> · Brno</span></div>');
+    expect(html).toContain('<div class="tl-what">Groom&#x27;s birth</div>');
+    expect(html).toContain("<span>1918 · </span><span>Bob (16y)</span> ⚭ <span>Alice (18y)</span>");
   });
 });
