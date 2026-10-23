@@ -35,7 +35,7 @@ import { PlacesPanel } from "./PlacesPanel";
 import { buildPoster, posterSvg } from "../core/poster";
 import { buildDescendantsPoster } from "../core/posterDescendants";
 import { PersonDetail } from "./PersonDetail";
-import { EditWindow } from "./EditWindow";
+import { EditWindow } from "./PersonEditWindow";
 import { PersonRail } from "./PersonRail";
 import { SettingsPanel } from "./SettingsPanel";
 import { clearLog, fingerprint, forgetFile, recallFile, recallLog, rememberFile, saveLog, type EditLog } from "./lastFile";
