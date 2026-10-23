@@ -242,6 +242,8 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
           }).map((pid) => {
             const q = data.people[pid];
             return <Row key={pid} icon={Baby} tone={q?.sex ? `tl-birth tl-sex-${q.sex}` : "tl-birth"}>
+              <div className="tl-date">{q?.birth?.date && <span>{formatDate(q.birth.date, true, lang)}</span>}
+                <span className="tl-label">{q?.birth?.date && " · "}{t("thBirth")}</span></div>
               <div className="tl-what">{link(pid, false)}</div>
             </Row>;
           })}
