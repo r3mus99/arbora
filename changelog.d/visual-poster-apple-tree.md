@@ -1,0 +1,1 @@
+- **The tree poster has an apple tree in the middle.** The main person stands on its trunk, the two parents on both sides of the crown, and the lowest limbs reach their plates. The tree appears whenever the poster stays landscape or square; a portrait poster is drawn without it.

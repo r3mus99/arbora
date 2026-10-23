@@ -53,14 +53,24 @@ decorative wall chart; with the Descendants chart chosen the same button draws t
 - A quiet double border of straight lines with rounded corners (radius 24, the inner line concentric) runs around the whole poster in a margin outside the tree (`Poster.margin`; the SVG view box starts at `-margin`, so `width` and `height` still describe the tree itself). It is always on.
 - Text widths come from the real fonts (`posterFonts`), so plates and text fit exactly; without fonts (tests) an estimate is used.
 
+## Apple tree in the middle
+
+`core/posterTree.ts` (`appleTree`, one function per part: `trunkShape`, `limbShape`, `leafShape`, `appleShapes`) grows a seeded tree between the two parents: a trunk with roots, a pyramid-shaped crown of tiered limbs with side twigs and leaves; the main person stands in front of the trunk, the parents on both sides of the crown, and the lowest limbs reach their plates. Its geometry is a port of a standalone SVG tree generator; colours come from `core/palette.ts` and the leaf is the poster's own `leafPath`.
+
+- Fixed behaviour, no setting. `buildPoster` lays the poster out twice, without and with the tree (room between the parents `POSTER_TREE_GAP` = half the poster height, crown 1.5 times wider than that); the tree stays when the poster is then landscape or square, otherwise (portrait, typically 9 to 10 generations) the poster is drawn without it (`buildPosterWithoutTree`).
+- The main person is not joined to the parents by limbs, and the marriage text under the main person is left out. The tree adds about 20 to 30 % to the width and about 150 units of trunk under the person.
+- The tree is drawn under the ancestors' branches and uses its own seed, so the ancestors' branches look the same with or without it.
+- Apples are built (`appleShapes`, option `apples`) but off: Marek wanted to try without them (2026-10-21). With 24 apples the SVG grows by about 100 KB.
+- Cost: the layout runs twice (about 1.5 s at 8 generations); the leaves add 900 to 1,800 shapes (SVG +0.3 to 1.4 MB at 5 to 7 generations).
+- Open: a short poster (3 to 4 generations) gets a small tree that does not touch the parents; previews in `arbora/tree-poster/generator-tree/`.
+
 ## Open points
 
 1. **Fine-tune the name plates.** Plates are plain labels with straight sides, rounded corners and a double line (single from the 7th generation on), drawn as
    two flat shapes (brown under paper colour); the name is blue for men and red for women (ink for unknown sex; the dates stay ink). An earlier variant coloured the border by sex. Later ideas: more characterful shapes (scroll ends, folded corners, branch
    frames, tried in prototypes under `arbora/tree-poster/nameplate` in the project files), border-width and waviness
    settings.
-2. **Fixed decorations:** the title ribbon, the crown of the tree in the middle, roots under the person, a list of
-   the person's children. They need drawn vectors; the branches stay generated.
+2. **Fixed decorations:** the title ribbon and a list of the person's children. They need drawn vectors; the branches stay generated. The crown and roots in the middle are done (see "Apple tree in the middle").
 3. **Leaf shape:** one drawn leaf (a plain path) would replace the generic one.
 4. **Fonts:** the text is set in Alkatra (OFL, `public/fonts/Alkatra-*.woff`, Latin and Latin Extended) and written as outlines, so a print shop sees the same letters; what Alkatra lacks (Cyrillic) falls back to DejaVu Sans per character (`core/posterFont.ts`). Open: a Cyrillic font that matches Alkatra. Each letter is stored once in `<defs>` and reused with `<use>`, so the 7-generation sample SVG is about 1.1 MB.
 5. **Places on plates.** Done for generations 1 to 4 (`POSTER_PLACES_UP_TO`) when "Show places" is on (Marek, 2026-10-20): the plate keeps the name and the
