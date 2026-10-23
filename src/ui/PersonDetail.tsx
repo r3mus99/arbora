@@ -156,7 +156,10 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
     const q = x ? data.people[x] : null;
     if (!q) return null;
     const age = yearsBetween(q.birth?.date, birthFam?.marriage?.date);
-    return <span key={q.id}>{q.given || q.name || "?"}{age !== null && ` (${age}${t("yearsShort")})`}</span>;
+    return <span className="person-ref">
+      <button className="link person" type="button" onClick={() => onFocus(q.id)}>{q.given || q.name || "?"}</button>
+      {age !== null && ` (${age}${t("yearsShort")})`}
+    </span>;
   };
   const parents = birthFam ? [birthFam.husb, birthFam.wife].filter((x): x is string => !!x) : [];
   const life = timeline(data, id, f, record, lookup);
@@ -254,7 +257,9 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
           {birthFam?.marriage && (birthFam.marriage.date || birthFam.marriage.place) && <Row icon={Heart} tone="tl-marriage">
             <div className="tl-date">
               {birthFam.marriage.date && <span>{formatDate(birthFam.marriage.date, true, lang)} · </span>}
-              {spouseAtWedding(birthFam.husb)} ⚭ {spouseAtWedding(birthFam.wife)}</div>
+              {spouseAtWedding(birthFam.husb)}
+              {birthFam.husb && birthFam.wife && " & "}
+              {spouseAtWedding(birthFam.wife)}</div>
             <div className="tl-what">{t("marriage")}
               {birthFam.marriage.place && <span> · {municipality(birthFam.marriage.place)}</span>}</div>
           </Row>}
