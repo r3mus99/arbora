@@ -82,7 +82,7 @@ export interface EventRow extends EventFields, EventDetailFields {
 }
 
 /** the tags of the other events, in the order they are offered */
-export const OTHER_EVENT_TAGS = [...EXTRA_EVENT_TAGS, "RESI", "EVEN"];
+export const OTHER_EVENT_TAGS = ["RESI", ...EXTRA_EVENT_TAGS, "EVEN"];
 
 /** a source citation directly under the person: `source` is the pointer to a source record (@S1@) or the text of the citation */
 export interface CitationRow {

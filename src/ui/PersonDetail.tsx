@@ -138,12 +138,12 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
     const d = q.death ? formatDate(q.death.date, false, lang) : "";
     return d ? `${b}–${d}` : b;
   };
-  /** a reference to a person: name, year of birth in brackets and the municipality of birth */
-  const link = (pid: string | null, withPlace = true) => {
+  /** a reference to a person: name, optionally followed by birth year and municipality */
+  const link = (pid: string | null, withDetails = true) => {
     const q = pid ? data.people[pid] : null;
     if (!q) return <span className="muted">?</span>;
-    const year = q.birth ? formatDate(q.birth.date, false, lang) : "";
-    const place = withPlace && q.birth ? municipality(q.birth.place) : "";
+    const year = withDetails && q.birth ? formatDate(q.birth.date, false, lang) : "";
+    const place = withDetails && q.birth ? municipality(q.birth.place) : "";
     return <span className="person-ref">
       <button className="link person" type="button" onClick={() => onFocus(q.id)}>{q.name || "?"}</button>
       {(year || place) && <span> (<span className="s-birt">{year}</span>{year && place && " "}<span className="s-place">{place}</span>)</span>}
@@ -242,9 +242,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
           }).map((pid) => {
             const q = data.people[pid];
             return <Row key={pid} icon={Baby} tone={q?.sex ? `tl-birth tl-sex-${q.sex}` : "tl-birth"}>
-              <div className="tl-date">{q?.birth?.date && <span>{formatDate(q.birth.date, true, lang)}</span>}
-                <span className="tl-label">{q?.birth?.date && " · "}{t("thBirth")}</span></div>
-              <div className="tl-what">{link(pid)}</div>
+              <div className="tl-what">{link(pid, false)}</div>
             </Row>;
           })}
           {birthFam?.marriage && (birthFam.marriage.date || birthFam.marriage.place) && <Row icon={Heart} tone="tl-marriage">
