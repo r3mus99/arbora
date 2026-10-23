@@ -267,27 +267,21 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
             const childSex = e.kind === "child" && e.other ? data.people[e.other]?.sex : "";
             return <Row key={e.key} icon={Icon} tone={`tl-${e.kind}${childSex ? ` tl-sex-${childSex}` : ""}`}>
               <div className={`tl-body${src ? " has-src" : ""}`}>
-                {/* Put linked people on the date line; their event label and age go below. */}
-                <div className="tl-date">
+                {/* Line 1: when and who/where; line 2: what happened, age and extras. */}
+                {e.date || e.other || e.place ? <div className="tl-date">
                   {e.date && <span>{editable(e) ? dateField(e) : formatDate(e.date, true, lang)}</span>}
-                  {e.other ? <>{e.date && " · "}{link(e.other, false)}</> : <>
-                    <span className="tl-label">{e.date && " · "}{label(e.kind, !!e.date, e.other, e.title, e.tag)}</span>
-                    {e.age !== null && <span className="muted"> · {fmt(t("ageAt"), { n: e.age })}</span>}
-                  </>}
-                </div>
-                {e.other && <div className="tl-what">
+                  {e.other ? <>{e.date && " · "}{link(e.other, false)}</>
+                    : e.place && <span className="muted">{e.date && " · "}{editable(e) ? placeField(e) : municipality(e.place)}</span>}
+                </div> : null}
+                <div className="tl-what">
                   {label(e.kind, !!e.date, e.other, e.title, e.tag)}
                   {e.age !== null && <span> · {fmt(t("ageAt"), { n: e.age })}</span>}
-                </div>}
-                {(e.detail || e.divorced || (e.place && e.kind !== "child") || e.coords) && <div className="tl-what">
-                  {e.detail && <>{e.other && " · "}{e.detail}</>}
-                  {e.divorced && <span className="muted">{(e.other || e.detail) && " · "}{TEXTS[lang].divorced}</span>}
-                  {/* a child's birth place is shown with the child's name */}
-                  {e.place && e.kind !== "child" && <span className="muted">{(e.other || e.detail || e.divorced) && " · "}{editable(e) ? placeField(e) : municipality(e.place)}</span>}
+                  {e.detail && <> · {e.detail}</>}
+                  {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
                   {e.coords && <a className="map-link" href={mapUrl(e.coords)} target="_blank" rel="noopener noreferrer"
                                   title={t("showOnMap")} aria-label={t("showOnMap")}>
                     <MapPin className="icon" aria-hidden="true" /></a>}
-                </div>}
+                </div>
                 {e.witnesses && <div className="tl-details"><span>{t("witnesses")}:</span>{" "}
                   {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w)}</span>)}</div>}
                 {e.details && <div className="tl-details">{e.details.map((d) => {
