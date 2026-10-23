@@ -66,6 +66,6 @@ describe("person detail timeline", () => {
     expect(html).toContain("<span>1900 · </span>");
     expect(html).toContain('<div class="tl-what">Bride&#x27;s birth<span> · Brno</span></div>');
     expect(html).toContain('<div class="tl-what">Groom&#x27;s birth</div>');
-    expect(html).toContain("<span>1918 · </span><span>Bob (16y)</span> ⚭ <span>Alice (18y)</span>");
+    expect(html).toContain("Bob</button> (16y)</span> &amp; <span class=\"person-ref\"><button class=\"link person\" type=\"button\">Alice</button> (18y)");
   });
 });
