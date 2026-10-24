@@ -18,7 +18,7 @@ export interface Stored {
   keepAka?: boolean;
   /** the list of people is expanded (default: a narrow rail with a magnifier) */
   listOpen?: boolean;
-  /** recently visited and favourite people, per file (see marks.ts) */
+  /** recently visited, favourite and home people, per file (see marks.ts) */
   marks?: Record<string, Marks>;
 }
 

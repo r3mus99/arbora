@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="sk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Arbora — domovská osoba</title>
+    <link rel="stylesheet" href="/src/ui/styles.css" />
+    <style>
+      main { max-width: 1280px; padding-top: 10px; }
+      .panel.chart { height: calc(100vh - 40px); min-height: 540px; }
+      .preview-viewer { grid-template-columns: 280px minmax(0, 1fr) 350px; }
+      .preview-people { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--border); }
+      .preview-people ul { padding: 8px 0; }
+      .preview-people li { cursor: pointer; }
+      .preview-people li .icon { width: 15px; height: 15px; color: var(--star); }
+      .preview-middle { min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+      .preview-tree { flex: 1; overflow: auto; margin: 12px; padding: 16px 8px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
+      .preview-tree .tree-row { padding-left: 12px !important; }
+      .preview-tree .tree-row.indent { padding-left: 42px !important; }
+      .preview-tree .tree-row.deep { padding-left: 72px !important; }
+      .preview-tree .tree-row .name { font-size: 14px; }
+      .preview-detail { display: flex; flex-direction: column; min-height: 0; padding: 0 14px 12px; overflow-y: auto; }
+      .preview-detail .detail-head { margin: 0 -14px 8px; }
+      .preview-detail h3 { font-size: 19px; }
+      .preview-detail .facts { display: grid; gap: 10px; }
+      .preview-detail .section { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px; }
+      .preview-detail .section h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+      .preview-detail .section h4 .icon { color: var(--c-src); }
+      .preview-detail .timeline-row { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; padding: 6px 0; border-top: 1px solid var(--border); }
+      .preview-detail .timeline-row:first-of-type { border-top: 0; }
+      .preview-detail .timeline-row > .icon { color: var(--c-birth); }
+      .preview-detail .person-link { color: inherit; font: inherit; font-weight: 400; background: none; border: 0; padding: 0; text-decoration: none; }
+      .preview-detail .person-link.ancestor { font-weight: 700; }
+      .preview-detail .person-link:hover { color: var(--accent); text-decoration: underline; }
+      .preview-detail .muted { color: var(--muted); font-size: 12px; }
+      .preview-caption { margin: 0 0 8px; padding: 8px 14px; border-bottom: 1px solid var(--border); color: var(--muted); font-size: 12px; }
+      .home-control.on { color: var(--accent); background: var(--accent-soft); }
+      @media (max-width: 900px) {
+        .preview-viewer { grid-template-columns: minmax(0, 1fr); }
+        .preview-people, .preview-middle { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="loaded">
+      <section class="panel chart">
+        <header class="frame-bar">
+          <h1><span class="home"><span aria-hidden="true">🌳</span> Arbora</span></h1>
+          <div class="file-chip"><strong>Rodinný strom · ukážka</strong><span class="count">9 osôb</span></div>
+          <div class="head-tools">
+            <div class="tools">
+              <button id="return-home" type="button" class="icon-btn home-control on" title="Späť na domovskú osobu" aria-label="Späť na domovskú osobu">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-6v-7h-4v7H4a1 1 0 0 1-1-1z"/></svg>
+              </button>
+              <button type="button" class="icon-btn" title="Vrátiť zmenu" aria-label="Vrátiť zmenu">↶</button>
+              <button type="button" class="icon-btn" title="Stiahnuť GEDCOM" aria-label="Stiahnuť GEDCOM">GED</button>
+            </div>
+          </div>
+        </header>
+        <div class="preview-caption">Klikni na domček pri osobe a nastav ju ako domovskú. Domček v hornej lište ťa k nej kedykoľvek vráti.</div>
+        <div class="viewer preview-viewer">
+          <aside class="preview-people">
+            <div class="panel-head"><h2>Osoby</h2><span class="muted">9</span></div>
+            <ul class="rail panel-body" id="people"></ul>
+          </aside>
+          <div class="preview-middle">
+            <div class="chart-bar"><h2>Rodokmeň</h2><span class="chart-summary">Predkovia · 3 generácie</span></div>
+            <div class="preview-tree" id="tree"></div>
+          </div>
+          <aside class="preview-detail" id="detail" aria-live="polite"></aside>
+        </div>
+      </section>
+    </main>
+    <script>
+      const people = {
+        anna: { name: "Anna Nováková", years: "1991–", parents: ["juraj", "elena"], spouse: "peter", children: ["martin"] },
+        juraj: { name: "Juraj Novák", years: "1958–2020", parents: ["jan", "maria"], spouse: "elena", children: ["anna", "martin"] },
+        elena: { name: "Elena Kováčová", years: "1961–", parents: ["pavol", "zuzana"], spouse: "juraj", children: ["anna", "martin"] },
+        peter: { name: "Peter Horváth", years: "1989–", parents: [], spouse: "anna", children: ["martin"] },
+        martin: { name: "Martin Novák", years: "2018–", parents: ["juraj", "elena"], spouse: null, children: [] },
+        jan: { name: "Ján Novák", years: "1930–1998", parents: [], spouse: "maria", children: ["juraj"] },
+        maria: { name: "Mária Blažeková", years: "1934–2004", parents: [], spouse: "jan", children: ["juraj"] },
+        pavol: { name: "Pavol Kováč", years: "1931–2001", parents: [], spouse: "zuzana", children: ["elena"] },
+        zuzana: { name: "Zuzana Poláková", years: "1937–", parents: [], spouse: "pavol", children: ["elena"] },
+      };
+      let focus = "martin";
+      let home = "anna";
+      const ancestorIds = () => {
+        const found = new Set();
+        const seen = new Set([home]);
+        const visit = (id) => {
+          for (const parent of people[id]?.parents || []) {
+            if (seen.has(parent)) continue;
+            seen.add(parent);
+            found.add(parent);
+            visit(parent);
+          }
+        };
+        if (home) visit(home);
+        return found;
+      };
+      const personButton = (id, className = "") =>
+        `<button type="button" class="person-link ${className}" data-person="${id}">${people[id].name}</button>`;
+      function render() {
+        const relatives = ancestorIds();
+        const list = Object.entries(people).map(([id, p]) =>
+          `<li class="${id === focus ? "sel" : ""}" data-person="${id}"><span class="dot sex-${id === "elena" || id === "maria" || id === "anna" || id === "zuzana" ? "F" : "M"}"></span><span class="rname">${p.name}</span><span class="ryears">${p.years}</span></li>`).join("");
+        document.querySelector("#people").innerHTML = list;
+        const tree = (id, depth = 0) => `<div class="tree-row ${depth === 0 ? "root" : ""} ${depth === 1 ? "indent" : ""} ${depth > 1 ? "deep" : ""} ${id === focus ? "sel" : ""}">
+          <button class="name" type="button" data-person="${id}">${people[id].name} <span class="s-num">${people[id].years}</span></button>
+          ${id === focus ? `<button type="button" class="home-control${home === id ? " on" : ""}" data-home="${id}" title="${home === id ? "Odstrániť domovskú osobu" : "Nastaviť ako domovskú osobu"}" aria-label="${home === id ? "Odstrániť domovskú osobu" : "Nastaviť ako domovskú osobu"}">⌂</button>` : ""}
+        </div>${depth < 2 ? (people[id].parents || []).map((parent) => tree(parent, depth + 1)).join("") : ""}`;
+        document.querySelector("#tree").innerHTML = tree(focus);
+        const p = people[focus];
+        const homeName = home ? people[home].name : "nenastavená";
+        const parents = p.parents.length
+          ? `<section class="section"><h4>♧ Rodičia</h4>${p.parents.map((pid) => `<div class="timeline-row"><span class="icon">◉</span><div>${personButton(pid, relatives.has(pid) ? "ancestor" : "")}<div class="muted">Rodič · ${people[pid].years}</div></div></div>`).join("")}</section>`
+          : "";
+        const timeline = `<section class="section"><h4>◷ Časová os</h4>
+          <div class="timeline-row"><span class="icon">◉</span><div><strong>${p.years}</strong><div class="muted">Narodenie</div></div></div>
+          ${p.spouse ? `<div class="timeline-row"><span class="icon">♡</span><div>${personButton(p.spouse, relatives.has(p.spouse) ? "ancestor" : "")}<div class="muted">Manželstvo</div></div></div>` : ""}
+          ${p.children.map((id) => `<div class="timeline-row"><span class="icon">◉</span><div>${personButton(id, relatives.has(id) ? "ancestor" : "")}<div class="muted">Narodenie dieťaťa</div></div></div>`).join("")}
+        </section>`;
+        document.querySelector("#detail").innerHTML = `<div class="detail-head">
+          <button type="button" class="icon-btn back-btn" aria-label="Späť na zoznam" title="Späť na zoznam">‹</button>
+          <div class="detail-name"><h3>${p.name}</h3><div class="id">${p.years}</div></div>
+          <div class="tools"><button type="button" class="icon-btn home-control${home === focus ? " on" : ""}" data-home="${focus}"
+            aria-pressed="${home === focus}" aria-label="${home === focus ? "Odstrániť domovskú osobu" : "Nastaviť ako domovskú osobu"}"
+            title="${home === focus ? "Odstrániť domovskú osobu" : "Nastaviť ako domovskú osobu"}">⌂</button></div>
+        </div><div class="id">Domovská osoba: <strong>${homeName}</strong></div><div class="facts">${parents}${timeline}</div>`;
+        document.querySelector("#return-home").disabled = !home;
+        document.querySelector("#return-home").title = home ? `Späť na domovskú osobu: ${homeName}` : "Najprv nastav domovskú osobu v detaile";
+        document.querySelector("#return-home").setAttribute("aria-label", document.querySelector("#return-home").title);
+        document.querySelector("#return-home").classList.toggle("on", !!home);
+      }
+      document.addEventListener("click", (event) => {
+        const setHome = event.target.closest("[data-home]");
+        if (setHome) home = home === setHome.dataset.home ? null : setHome.dataset.home;
+        const person = event.target.closest("[data-person]");
+        if (person) focus = person.dataset.person;
+        if (event.target.closest("#return-home") && home) focus = home;
+        render();
+      });
+      render();
+    </script>
+  </body>
+</html>

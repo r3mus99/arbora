@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
-import { FileDown, FileText, FileImage, FileUp, LayoutDashboard,
+import { FileDown, FileText, FileImage, FileUp, Home, LayoutDashboard,
          Loader2, BookMarked, History, Trash2, Clock, ListChecks, MapPin, Redo2, Replace, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
@@ -25,7 +25,7 @@ import { ChangesPanel } from "./ChangesPanel";
 import { BulkFix } from "./BulkFix";
 import { CheckPanel } from "./CheckPanel";
 import { FileDrop } from "./FileDrop";
-import { NO_MARKS, fileKey, marksOf, toggleFav, visited, withMarks, listing, type Marks } from "./marks";
+import { NO_MARKS, fileKey, marksOf, setHome as changeHome, toggleFav, visited, withMarks, listing, type Marks } from "./marks";
 import { RecentPanel } from "./RecentPanel";
 import { LanguageMenu } from "./LanguageMenu";
 import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./theme";
@@ -121,7 +121,7 @@ export function App() {
   const [folding, setFolding] = useState<Folding>({ key: "", paths: NO_PATHS });
   const [hist, setHist] = useState<Browsing>(NO_BROWSING);
   const [query, setQuery] = useState("");
-  // recently visited and favourite people of this file, kept in the browser only
+  // recently visited, favourite and home people of this file, kept in the browser only
   const [marks, setMarks] = useState<Marks>(NO_MARKS);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
@@ -497,6 +497,7 @@ export function App() {
     if (data) updateStore({ marks: withMarks(readStore().marks, markKey, marks) });
   }, [marks, markKey, data]);
   const favourites = useMemo(() => new Set(marks.fav), [marks]);
+  const homeId = marks.home && data?.people[marks.home] ? marks.home : null;
   const recent = useMemo(() => (data ? listing(marks, (id) => !!data.people[id]) : []), [marks, data]);
 
   const select = (id: string) => {
@@ -614,6 +615,7 @@ export function App() {
   const deselect = () => { setFocusId(null); setJumpRow(null); };
   const pickListed = (id: string) => { if (id === focusId) deselect(); else pick(id); };
   const star = (id: string) => setMarks((m) => toggleFav(m, id));
+  const setHome = (id: string | null) => setMarks((m) => changeHome(m, id));
 
   return (
     <main className={data ? "loaded" : undefined}>
@@ -631,6 +633,10 @@ export function App() {
           {data && statusText && <span className={status?.err ? "status err" : "status"} role="status">{statusText}</span>}
           <div className="head-tools">
             {data && <div className="tools" role="toolbar">
+              <button type="button" className="icon-btn" disabled={!homeId} onClick={() => homeId && makeRoot(homeId)}
+                      title={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}
+                      aria-label={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}>
+                <Home className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn" disabled={!canUndo(edits)} onClick={() => undoRedo(-1)}
                       title={withShortcut(t("undo"), "undo", MAC)} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn" disabled={!canRedo(edits)} onClick={() => undoRedo(1)}
@@ -775,7 +781,8 @@ export function App() {
                         onJump={(r) => jump(r.targetIndex)} t={t} />
             </div>}
             {focusId && <PersonDetail key={focusId} data={data} id={focusId} starred={favourites.has(focusId)}
-                                      onStar={() => star(focusId)} record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
+                                      onStar={() => star(focusId)} homeId={homeId} onSetHome={setHome}
+                                      record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} onChange={commit} suggest={suggest}
                                       onEdit={() => setWindowId(focusId)} onBack={deselect} t={t} />}
             </>}
