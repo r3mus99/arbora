@@ -1,10 +1,12 @@
-/** Recently visited and favourite people, kept per file in the browser (never written into the GEDCOM). */
+/** Recently visited, favourite and home people, kept per file in the browser (never written into the GEDCOM). */
 
 export interface Marks {
   /** most recent first */
   recent: string[];
   /** newest first */
   fav: string[];
+  /** the single home person for this file */
+  home?: string;
 }
 
 export const NO_MARKS: Marks = { recent: [], fav: [] };
@@ -21,6 +23,11 @@ export function visited(m: Marks, id: string): Marks {
 /** The marks after the star of `id` was switched. */
 export function toggleFav(m: Marks, id: string): Marks {
   return { ...m, fav: m.fav.includes(id) ? m.fav.filter((x) => x !== id) : [id, ...m.fav] };
+}
+
+/** The marks after the home person was changed; there can only be one. */
+export function setHome(m: Marks, id: string | null): Marks {
+  return id ? { ...m, home: id } : { recent: m.recent, fav: m.fav };
 }
 
 export interface Entry { id: string; fav: boolean }
@@ -47,5 +54,5 @@ export function withMarks(all: Record<string, Marks> | undefined, key: string, m
 export function marksOf(all: Record<string, Marks> | undefined, key: string): Marks {
   const m = all?.[key];
   const ids = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
-  return m ? { recent: ids(m.recent), fav: ids(m.fav) } : NO_MARKS;
+  return m ? { recent: ids(m.recent), fav: ids(m.fav), ...(typeof m.home === "string" ? { home: m.home } : {}) } : NO_MARKS;
 }

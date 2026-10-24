@@ -2,7 +2,7 @@ import {
   Award, Baby, Briefcase, CircleHelp, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Mars, Pencil,
   ChevronLeft, StickyNote, Star, CalendarDays, Tag, Users, Venus, type LucideIcon,
 } from "lucide-react";
-import { useRef, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { applyAttribute, applyEventLine, applyEventNode, applyFamily, applyPerson, type AttributeFields, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields, type Suggestions } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
@@ -34,6 +34,8 @@ interface Props {
   /** favourite person: the star next to the name */
   starred: boolean;
   onStar: () => void;
+  homeId: string | null;
+  onSetHome: (id: string | null) => void;
   lang: Lang;
   onFocus: (id: string) => void;
   onMakeRoot: (id: string) => void;
@@ -64,8 +66,54 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, lookup, inbound, rootId, starred, onStar, lang, onFocus, onMakeRoot, onChange, suggest, onEdit, onBack, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, inbound, rootId, starred, onStar, homeId, onSetHome, lang, onFocus, onMakeRoot, onChange, suggest, onEdit, onBack, t }: Props) {
   const p = data.people[id];
+  const homeAncestors = useMemo(() => {
+    const generations = new Map<string, number>();
+    const paths = new Map<string, string[]>();
+    if (!homeId) return { generations, paths };
+    const queue: [string, number][] = [[homeId, 0]];
+    const seen = new Set([homeId]);
+    paths.set(homeId, [homeId]);
+    for (let i = 0; i < queue.length; i++) {
+      const [personId, generation] = queue[i];
+      for (const familyId of data.people[personId]?.famc || []) {
+        const family = data.families[familyId];
+        for (const parent of [family?.husb, family?.wife]) {
+          if (!parent || seen.has(parent) || !data.people[parent]) continue;
+          seen.add(parent);
+          generations.set(parent, generation + 1);
+          paths.set(parent, [parent, ...(paths.get(personId) || [personId])]);
+          queue.push([parent, generation + 1]);
+        }
+      }
+    }
+    return { generations, paths };
+  }, [data, homeId]);
+  const ancestorTitle = (personId: string) => {
+    const generation = homeAncestors.generations.get(personId);
+    if (!generation) return undefined;
+    const sex = data.people[personId]?.sex;
+    const key: StringKey = generation === 1
+      ? sex === "F" ? "ancestorMother" : sex === "M" ? "ancestorFather" : "ancestorUnknown"
+      : generation === 2
+        ? sex === "F" ? "ancestorGrandmother" : sex === "M" ? "ancestorGrandfather" : "ancestorUnknown"
+        : generation === 3
+          ? sex === "F" ? "ancestorGreatGrandmother" : sex === "M" ? "ancestorGreatGrandfather" : "ancestorUnknown"
+          : sex === "F" ? "ancestorNthGreatGrandmother" : sex === "M" ? "ancestorNthGreatGrandfather" : "ancestorUnknown";
+    return t(key).replace("{n}", String(generation - 2));
+  };
+  const ancestorTooltip = (personId: string) => {
+    const relationship = ancestorTitle(personId);
+    const path = homeAncestors.paths.get(personId);
+    if (!relationship || !path) return undefined;
+    const line = (ancestorId: string) => {
+      const person = data.people[ancestorId];
+      const birthYear = person?.birth ? formatDate(person.birth.date, false, lang) : "";
+      return `→ ${person?.name || "?"}${birthYear ? ` (${birthYear})` : ""}`;
+    };
+    return `${relationship}\n${path.map(line).join("\n")}`;
+  };
   if (!p) return null;
   const f = record ? personFields(record) : null;
   /** an inline edit: the fields that changed, applied the same way as the form applies them */
@@ -145,7 +193,8 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
     const year = withDetails && q.birth ? formatDate(q.birth.date, false, lang) : "";
     const place = withDetails && q.birth ? municipality(q.birth.place) : "";
     return <span className="person-ref">
-      <button className="link person" type="button" onClick={() => onFocus(q.id)}>{q.name || "?"}</button>
+      <button className={`link person${homeAncestors.generations.has(q.id) ? " ancestor" : ""}`} type="button"
+              title={ancestorTooltip(q.id)} onClick={() => onFocus(q.id)}>{q.name || "?"}</button>
       {(year || place) && <span> (<span className="s-birt">{year}</span>{year && place && " "}<span className="s-place">{place}</span>)</span>}
     </span>;
   };
@@ -210,6 +259,10 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
         </div>
         </div>
         <div className="tools">
+          <button type="button" className={`icon-btn${homeId === id ? " on" : ""}`} aria-pressed={homeId === id}
+                  onClick={() => onSetHome(homeId === id ? null : id)}
+                  title={t(homeId === id ? "homeUnset" : "homeSet")} aria-label={t(homeId === id ? "homeUnset" : "homeSet")}>
+            <Home className="icon" aria-hidden="true" /></button>
           <button type="button" className="icon-btn" onClick={onEdit} title={t("edit")} aria-label={t("edit")}>
             <Pencil className="icon" aria-hidden="true" /></button>
           {id !== rootId && <button type="button" className="icon-btn" onClick={() => onMakeRoot(id)}
@@ -220,6 +273,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
       {live && <SuggestLists suggest={suggest} lang={lang} />}
       <p className="id">
         {years(p) && <span className="lifespan">{years(p)} · </span>}
+        {homeAncestors.generations.has(id) && <><span className="ancestor-relation">{ancestorTitle(id)}</span> · </>}
         {/* other forms of the name (aka), quietly before the ID */}
         {f && f.aliases.length > 0 && <span className="aka" title={t("aka")}>
           aka {f.aliases.map((a, i) => {

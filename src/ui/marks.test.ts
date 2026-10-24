@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { NO_MARKS, RECENT_LIMIT, fileKey, listing, marksOf, toggleFav, visited, withMarks } from "./marks";
+import { NO_MARKS, RECENT_LIMIT, fileKey, listing, marksOf, setHome, toggleFav, visited, withMarks } from "./marks";
 
 describe("recent and favourite people", () => {
   test("the latest visit comes first and a repeat does not duplicate", () => {
@@ -27,6 +27,13 @@ describe("recent and favourite people", () => {
     expect(toggleFav(m, "a").fav).toEqual(["c"]);
   });
 
+  test("only one home person is kept and it can be cleared", () => {
+    const first = setHome(NO_MARKS, "a");
+    const second = setHome(first, "b");
+    expect(second.home).toBe("b");
+    expect(setHome(second, null)).toEqual(NO_MARKS);
+  });
+
   test("people missing from the file are left out", () => {
     const m = toggleFav(visited(visited(NO_MARKS, "a"), "b"), "a");
     expect(listing(m, (id) => id === "b")).toEqual([{ id: "b", fav: false }]);
@@ -42,5 +49,9 @@ describe("recent and favourite people", () => {
 
   test("a damaged store gives empty marks", () => {
     expect(marksOf({ f: { recent: "x", fav: [1, "k"] } as never }, "f")).toEqual({ recent: [], fav: ["k"] });
+  });
+
+  test("the home person is restored from stored marks", () => {
+    expect(marksOf({ f: { recent: [], fav: [], home: "x" } }, "f").home).toBe("x");
   });
 });
