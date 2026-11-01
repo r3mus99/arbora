@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { addSourceCitation, isWebAddress, setSourceFields } from "./sourceLinks";
-import { decode, lookupOf, parseGedcom, sourceOverview, annotations, citationLinks, writeGedcom, type GedNode } from "./index";
+import { childOf, decode, lookupOf, parseGedcom, sourceOverview, annotations, citationLinks, writeGedcom, type GedNode } from "./index";
 import { SOURCES_GED } from "./fixtures/sources";
 
 const records = parseGedcom(decode(SOURCES_GED));
@@ -74,5 +74,27 @@ describe("citing a source for a person", () => {
     expect(addSourceCitation(once, "@S1@", "@I1@", "BIRT")).toBe(once);
     expect(addSourceCitation(records, "@S1@", "@I99@", "")).toBe(records);
     expect(addSourceCitation(records, "@S99@", "@I1@", "")).toBe(records);
+  });
+});
+
+describe("citing a marriage, divorce or residence", () => {
+  test("a marriage is cited on the family record, under a new MARR line when the family has none", () => {
+    const fam = records.find((r) => r.tag === "FAM")!;
+    const out = addSourceCitation(records, "@S2@", "@I1@", "MARR", fam.xref!);
+    const famOut = out.find((r) => r.xref === fam.xref)!;
+    expect(childOf(famOut, "MARR")!.children.map((c) => c.value)).toContain("@S2@");
+    // the existing marriage citation (@S1@) is kept
+    expect(childOf(famOut, "MARR")!.children.map((c) => c.value)).toContain("@S1@");
+    expect(addSourceCitation(out, "@S2@", "@I1@", "MARR", fam.xref!)).toBe(out);
+  });
+
+  test("a marriage of a family the person is not in changes nothing", () => {
+    const fam = records.find((r) => r.tag === "FAM")!;
+    expect(addSourceCitation(records, "@S2@", "@I3@", "MARR", fam.xref!)).toBe(records);
+  });
+
+  test("a residence is added to the person", () => {
+    const out = addSourceCitation(records, "@S2@", "@I2@", "RESI");
+    expect(childOf(out.find((r) => r.xref === "@I2@")!, "RESI")!.children.map((c) => c.value)).toEqual(["@S2@"]);
   });
 });

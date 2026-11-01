@@ -17,7 +17,7 @@ interface Props {
   /** saves the text of a source record (its xref, then the new fields) */
   onSave?: (xref: string, fields: SourceFields) => void;
   /** cites the source for a person: the whole person ("") or one of its events */
-  onCite?: (xref: string, person: string, event: CiteEvent) => void;
+  onCite?: (xref: string, person: string, event: CiteEvent, family: string) => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
@@ -104,6 +104,7 @@ function SourceForm({ value, onSave, onCancel, t }: { value: SourceFields; onSav
 const CITE_EVENTS: { event: CiteEvent; label: StringKey }[] = [
   { event: "", label: "srcCitePerson" }, { event: "BIRT", label: "thBirth" }, { event: "CHR", label: "christening" },
   { event: "DEAT", label: "thDeath" }, { event: "BURI", label: "burial" },
+  { event: "MARR", label: "marriage" }, { event: "DIV", label: "divorce" }, { event: "RESI", label: "residence" },
 ];
 
 /** Cites this source for one person and one of their events, picked from the file's people. */
@@ -111,16 +112,34 @@ function CiteFor({ xref, data, t, onCite }: { xref: string; data: GedcomData; t:
   const people = useMemo(() => Object.values(data.people).sort((a, b) => fold(a.name).localeCompare(fold(b.name))), [data]);
   const [person, setPerson] = useState(people[0]?.id ?? "");
   const [event, setEvent] = useState<CiteEvent>("");
+  // the families the person is a spouse in: a marriage or divorce is cited under one of them
+  const families = (data.people[person]?.fams ?? []).map((id) => {
+    const f = data.families[id];
+    const spouse = f && (f.husb === person ? f.wife : f.husb);
+    return { id, name: spouse ? data.people[spouse]?.name || "?" : "?" };
+  });
+  const family = event === "MARR" || event === "DIV" ? families[0]?.id ?? "" : "";
+  const [pickedFamily, setPickedFamily] = useState("");
+  const chosenFamily = families.some((f) => f.id === pickedFamily) ? pickedFamily : family;
+  const needsFamily = event === "MARR" || event === "DIV";
   return <div className="sp-field sp-cite">
     <span className="sp-label">{t("srcCiteFor")}</span>
     <div className="sp-add">
-      <select aria-label={t("srcCiteFor")} value={person} onChange={(e) => setPerson(e.target.value)}>
+      <select aria-label={t("srcCiteFor")} value={person} onChange={(e) => { setPerson(e.target.value); setPickedFamily(""); }}>
         {people.map((p) => <option key={p.id} value={p.id}>{p.name || "?"}</option>)}
       </select>
       <select aria-label={t("event")} value={event} onChange={(e) => setEvent(e.target.value as CiteEvent)}>
         {CITE_EVENTS.map((c) => <option key={c.event} value={c.event}>{t(c.label)}</option>)}
       </select>
-      <button type="button" className="chip" disabled={!person} onClick={() => onCite(xref, person, event)}>{t("srcCiteAdd")}</button>
+    </div>
+    {needsFamily && <div className="sp-add">
+      <select aria-label={t("srcCiteFamily")} value={chosenFamily} disabled={!families.length} onChange={(e) => setPickedFamily(e.target.value)}>
+        {families.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+      </select>
+    </div>}
+    <div className="sp-add">
+      <button type="button" className="chip" disabled={!person || (needsFamily && !chosenFamily)}
+              onClick={() => onCite(xref, person, event, chosenFamily)}>{t("srcCiteAdd")}</button>
     </div>
   </div>;
 }
