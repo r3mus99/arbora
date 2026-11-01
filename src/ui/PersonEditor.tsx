@@ -3,7 +3,7 @@ import { familyRecord, lineage, personRecord, type NewPerson } from "../core/str
 import { useEffect, useId, useMemo, useRef, useState, Fragment, type KeyboardEvent, type ReactNode } from "react";
 import {
   CONTACT_TAGS, OTHER_EVENT_TAGS, PEDIGREES, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
-  type Alias, type AssocRow, type AttributeRow, type CitationRow, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
+  type Alias, type AssocRow, type AttributeRow, type CitationRow, citationsWithoutSource, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import { matchSources, type SourceChoice } from "../core/sources";
@@ -98,7 +98,7 @@ function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnP
 }
 
 /** Citing a source: type to find one of the file (a few matches only), or write the text of a new one. */
-function SourcePick({ choices, value, label, tip, onChange }: { choices: SourceChoice[]; value: string; label: string; tip: string; onChange: (value: string) => void }) {
+function SourcePick({ choices, value, label, tip, invalid, onChange }: { choices: SourceChoice[]; value: string; label: string; tip: string; invalid?: boolean; onChange: (value: string) => void }) {
   const list = useId();
   const shown = /^@[^@]+@$/.test(value) ? choices.find((s) => s.xref === value)?.title ?? value : value;
   const [text, setText] = useState(shown);
@@ -113,7 +113,7 @@ function SourcePick({ choices, value, label, tip, onChange }: { choices: SourceC
   if (!editing) return <div className="cite-title" role="button" tabIndex={0} title={tip} aria-label={`${label}: ${text}`}
     onClick={() => setEditing(true)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setEditing(true); } }}>{text}</div>;
   return <>
-    <input className="fill" type="text" value={text} list={list} autoComplete="off" aria-label={label} title={tip} autoFocus={!!text}
+    <input className={invalid ? "fill invalid" : "fill"} type="text" value={text} list={list} autoComplete="off" aria-label={label} placeholder={label} title={tip} autoFocus={!!text} aria-invalid={invalid || undefined}
            onBlur={() => { if (text.trim()) setEditing(false); }} onChange={(e) => change(e.target.value)} />
     <datalist id={list}>{options.map((s) => <option key={s.xref} value={s.title} />)}</datalist>
   </>;
@@ -338,11 +338,12 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       const id = `${idp}${c.origin < 0 ? `new${i}` : c.origin}`;
       return <Fragment key={id}>
         <div className="item-head">
-          <SourcePick choices={sources} value={c.source} label={t("sources")} tip={t("tipSource")} onChange={(v) => patchRow(i, { source: v })} />
+          <SourcePick choices={sources} value={c.source} label={t("sources")} tip={t("tipSource")} invalid={askSource && citationsWithoutSource([c]).length > 0} onChange={(v) => patchRow(i, { source: v })} />
           <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                   onClick={() => setRows(rows.filter((_, j) => j !== i))}>
             <Trash2 className="icon" aria-hidden="true" /></button>
         </div>
+        {askSource && citationsWithoutSource([c]).length > 0 && <div className="cite-info cite-missing" role="alert">{t("citationNeedsSource")}</div>}
         {(info(c.source) || c.note) && <div className="cite-info">
           {info(c.source) && <div>{withLinks(info(c.source))}</div>}
           {c.note && <div>{withLinks(c.note)}</div>}
@@ -468,7 +469,14 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   };
   /** Save also keeps a new person that is filled in but not added yet: it is added first, and the form is saved once that has landed in the state */
   const [saveQueued, setSaveQueued] = useState(false);
-  const saveAll = () => { if (kid?.given.trim()) { addKid(); setSaveQueued(true); } else save(); };
+  /** a citation with a page or link but no source would be dropped on Save: Save waits and the rows ask for the source */
+  const [askSource, setAskSource] = useState(false);
+  const missingSource = () => [form.citations, ...Object.values(form.eventCitations), ...form.events.map((e) => e.citations),
+    ...fams.flatMap((f) => [f.citations.marriage, f.citations.divorce])].some((rows) => citationsWithoutSource(rows).length > 0);
+  const saveAll = () => {
+    if (missingSource()) { setAskSource(true); return; }
+    if (kid?.given.trim()) { addKid(); setSaveQueued(true); } else save();
+  };
   useEffect(() => { if (saveQueued) { setSaveQueued(false); save(); } }, [saveQueued]);
   const startKid = (kind: "child" | "spouse" | "parent", i = 0) => {
     const sex = kind === "parent" ? "M" : kind === "spouse" ? (otherKey(fams[i]) === "wife" ? "F" : "M") : "";

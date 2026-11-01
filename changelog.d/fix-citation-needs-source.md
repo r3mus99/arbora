@@ -1,0 +1,1 @@
+- **A source with a page or link but no source title is no longer lost on Save.** Save now waits and marks the empty source field, instead of silently dropping the citation.
