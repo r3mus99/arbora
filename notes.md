@@ -1,1 +1,1 @@
-Sources and notes of an occupation, religion or other fact (education, title, …) now appear on that fact instead of in the general "Sources and notes" section.
+- **Sources can be renamed like a new source.** In the Sources panel a magic wand renames all sources cited exactly once to the event and people ("Birth Jan Novak") after a preview, or one source from its opened row; one undo step, the old title stays in a note of the source.

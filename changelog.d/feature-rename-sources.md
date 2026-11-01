@@ -1,1 +1,0 @@
-- **Sources can be renamed like a new source.** In the Sources panel a magic wand renames all sources cited exactly once to the event and people ("Birth Jan Novak") after a preview, or one source from its opened row; one undo step, the old title stays in a note of the source.
