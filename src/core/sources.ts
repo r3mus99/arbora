@@ -237,9 +237,12 @@ export interface SourceOverview {
 export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(records)): SourceOverview {
   const sources = new Map<string, Omit<SourceEntry, "people" | "kinds"> & { who: Set<string>; kinds: Set<SourceKind> }>();
   const notes = new Map<string, { text: string; who: Set<string> }>();
+  // one entry per source: the links and notes of every citation of it, so the list shows what the detail shows for each person
   const entry = (key: string, cite: GedNode) => {
+    const c = citation(cite, lookup);
     let e = sources.get(key);
-    if (!e) sources.set(key, e = { key, citation: citation(cite, lookup), citations: 0, who: new Set(), kinds: new Set() });
+    if (!e) sources.set(key, e = { key, citation: c, citations: 0, who: new Set(), kinds: new Set() });
+    else e.citation = { ...e.citation, notes: [...new Set([...e.citation.notes, ...c.notes])] };
     return e;
   };
   for (const r of records) if (r.tag === "SOUR" && r.xref) {

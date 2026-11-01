@@ -230,6 +230,30 @@ describe("citation fields", () => {
   });
 });
 
+describe("the source list shows what every citation of a source says", () => {
+  test("two citations with their own links give the list both links, as the detail does", () => {
+    const text = `0 HEAD
+0 @S1@ SOUR
+1 TITL Church book
+1 PUBL https://www.example.org/book
+0 @I1@ INDI
+1 NAME Jan /Novak/
+1 BIRT
+2 SOUR @S1@
+3 NOTE https://www.example.org/entry-1
+1 DEAT
+2 SOUR @S1@
+3 NOTE https://www.example.org/entry-2
+0 TRLR
+`;
+    const records = parseGedcom(text);
+    const overview = sourceOverview(records);
+    const entry = overview.sources.find((s) => s.key === "@S1@")!;
+    expect(entry.citations).toBe(2);
+    expect(entry.citation.notes).toEqual(["https://www.example.org/entry-1", "https://www.example.org/entry-2"]);
+  });
+});
+
 describe("sources already shown on the timeline", () => {
   const cite = (xref: string, title = "", page = ""): Citation => ({ xref, title: title || xref, author: "", publication: "", repository: "", page, quality: "", text: "", notes: [] });
   test("a source shown at an event leaves the card, the others and the notes stay", () => {

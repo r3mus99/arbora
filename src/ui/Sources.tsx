@@ -1,4 +1,4 @@
-import { BookMarked, ExternalLink, Pencil, StickyNote, WandSparkles } from "lucide-react";
+import { BookMarked, ExternalLink, StickyNote, WandSparkles } from "lucide-react";
 import { createContext, useContext, useRef, useState } from "react";
 import { Inline } from "./Inline";
 import { citationFields, citationLinks, hasAnnotations, linkParts, readableNotes, withoutLinks, type Annotations, type Citation, type CitationField } from "../core/sources";
@@ -33,7 +33,7 @@ export interface SourceEditApi {
 }
 export const SourceEditContext = createContext<SourceEditApi | null>(null);
 
-/** The title of a source, edited in place with the pencil; a suggested name is offered below when it differs. */
+/** The title of a source: a click edits it in place, like a name; a magic wand writes the suggested name (event, people and year) when it differs. */
 export function SourceTitle({ xref, title, t }: { xref: string; title: string; t: T }) {
   const api = useContext(SourceEditContext);
   const field = useRef<HTMLInputElement>(null);
@@ -43,10 +43,11 @@ export function SourceTitle({ xref, title, t }: { xref: string; title: string; t
     <Inline label={t("srcEditTitle")} className="src-title-edit" restTip={t("srcEditTitle")}
             onClose={(commit) => { const v = field.current?.value.trim() ?? ""; if (commit && v && v !== title) api.rename(xref, v); }}
             edit={() => <input ref={field} className="src-title-input" autoFocus defaultValue={title} aria-label={t("srcEditTitle")} />}>
-      {title}<Pencil className="icon src-pencil" aria-hidden="true" />
+      {title}
     </Inline>
-    {suggestion && suggestion !== title && <button type="button" className="link src-suggest" title={t("srcUseSuggested")}
-        onClick={() => api.rename(xref, suggestion)}><WandSparkles className="icon" aria-hidden="true" />{suggestion}</button>}
+    {suggestion && suggestion !== title && <button type="button" className="icon-btn src-wand" title={`${t("srcUseSuggested")}: ${suggestion}`}
+        aria-label={`${t("srcUseSuggested")}: ${suggestion}`} onClick={() => api.rename(xref, suggestion)}>
+      <WandSparkles className="icon" aria-hidden="true" /></button>}
   </div>;
 }
 
