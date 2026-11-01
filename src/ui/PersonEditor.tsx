@@ -2,7 +2,7 @@ import { Hash, Phone, ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, D
 import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
-  CONTACT_TAGS, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
+  CONTACT_TAGS, OTHER_EVENT_TAGS, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
   type Alias, type AssocRow, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
@@ -126,6 +126,9 @@ export function SuggestLists({ suggest, lang }: { suggest: Suggest; lang: Lang }
 
 const NO_DETAILS: EventDetailFields = { age: "", cause: "", agency: "", note: "" };
 const DETAILS: [Exclude<keyof EventDetailFields, "note">, StringKey, StringKey][] = [["age", "detAge", "tipAge"], ["cause", "detCause", "tipCause"], ["agency", "detAgency", "tipAgency"]];
+/** the names of the other events, as in the timeline */
+const OTHER_LABEL = Object.fromEntries(OTHER_EVENT_TAGS.map((tag) => [tag, (tag === "RESI" ? "residence" : `ev${tag}`) as StringKey])) as Record<string, StringKey>;
+
 /** christening and burial can take the date and place of birth and death */
 const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "death", StringKey]>> = {
   christening: ["birth", "copyBirth"], burial: ["death", "copyDeath"],
@@ -561,30 +564,33 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {form.deceased && event("death")}
       {form.deceased && fixedKeys.includes("burial") && fixedRow("burial")}
       <fieldset className="list">
-        <legend>{ico(CalendarDays)}{t("residences")}{acts(<button type="button" className="head-act" onClick={() => set("events",
-          [...form.events, { origin: -1, tag: "RESI", value: "", date: "", place: "", age: "", cause: "", agency: "", note: "", citations: [] }])}><Plus className="icon" aria-hidden="true" />{t("addResidence")}</button>)}</legend>
+        <legend>{ico(CalendarDays)}{t("otherEvents")}{acts(<button type="button" className="head-act" onClick={() => set("events",
+          [...form.events, { origin: -1, tag: OTHER_EVENT_TAGS[0], value: "", date: "", place: "", age: "", cause: "", agency: "", note: "", citations: [] }])}><Plus className="icon" aria-hidden="true" />{t("addEvent")}</button>)}</legend>
         {form.events.map((e, i) => (
           <div className="item" key={e.origin < 0 ? `new${i}` : e.origin}>
             <div className="item-head">
-              <span className="grow">{t("residence")}</span>
-              <button type="button" className="head-act" disabled={!parentsResidence || e.place === parentsResidence}
+              <select value={e.tag} disabled={e.origin >= 0} aria-label={t("eventKind")} title={t("tipEventKind")}
+                      onChange={(ev) => setEv(i, { tag: ev.target.value })}>
+                {OTHER_EVENT_TAGS.map((tag) => <option key={tag} value={tag}>{t(OTHER_LABEL[tag])}</option>)}
+              </select>
+              {e.tag === "RESI" && <button type="button" className="head-act" disabled={!parentsResidence || e.place === parentsResidence}
                 title={parentsResidence ? `${t("copyParentsResidence")}: ${parentsResidence}` : t("copyParentsResidenceNone")} onClick={() => setEv(i, { place: parentsResidence })}>
-                <Copy className="icon" aria-hidden="true" />{t("copyParentsResidence")}</button>
+                <Copy className="icon" aria-hidden="true" />{t("copyParentsResidence")}</button>}
               <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                       onClick={() => set("events", form.events.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
             {/* a residence: the address (street and number) is separate from the place (town), and is not shown twice when it is the same text */}
-            <>
+            {e.tag === "RESI" && <>
               {(() => { const id = `addr:${rowId(e, i)}`, shown = (!!e.value && e.value !== e.place || openAddr.includes(rowId(e, i))) && !closed.includes(id);
                 return <>
                   <div className="full">{revealBtn(id, shown, t("detAddress"), t(e.value ? "sameAsPlace" : "addrHint"))}</div>
                   {shown && <label className="full" title={t("addrHint")} data-cap={t("detAddress")}><input placeholder={t("detAddress")} aria-label={t("detAddress")} type="text" autoComplete="off" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
                 </>; })()}
-            </>
+            </>}
             <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
                        t={t} onChange={(v) => setEv(i, { date: v })} />
-            <label title={t("resiPlaceHint")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={e.place} list={PLACES}
+            <label title={t(e.tag === "RESI" ? "resiPlaceHint" : "tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={e.place} list={PLACES}
                      onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
             {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
           </div>

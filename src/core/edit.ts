@@ -79,8 +79,8 @@ export interface EventRow extends EventFields, EventDetailFields {
   citations: CitationRow[];
 }
 
-/** the lines of a person written as residences */
-export const OTHER_EVENT_TAGS = ["RESI"];
+/** the residence and baptism lines of a person, in the order they are offered */
+export const OTHER_EVENT_TAGS = ["RESI", "BAPM"];
 
 /** a source citation directly under the person or under one of their events: `source` is the pointer to a source record (@S1@) or the text of the citation */
 export interface CitationRow {
