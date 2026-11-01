@@ -17,7 +17,7 @@ Everything runs in your browser; the file is never uploaded anywhere.
   contact details. Add, delete and merge people and families. Everything is one
   undo step, and the parts of the file you do not touch are written back
   byte for byte. Download the result as GEDCOM.
-- **Check** the file for broken links, impossible dates and sex against family roles,
+- **Check** the file for broken links, impossible dates and odd surname endings,
   and fix what is safe with one click.
 - **Browse** every place and every source and note of the file in their own
   lists.
@@ -184,6 +184,9 @@ click lists them, and the names in the list open the person's details. It checks
 - impossible dates: death before birth, a child born before a parent, a parent
   younger than 12, birth after the mother's death or more than a year after the
   father's. Approximate dates (`ABT`) are compared only when they are years apart;
+- surname endings that do not fit the sex, in languages where they differ:
+  Slovak and Czech (Horváth / Horváthová, Nový / Nová) and Polish (-ski / -ska),
+  only in files that show the habit and only for people with a known sex.
 
 What can be fixed safely has a magic wand on the right; each fix is one step
 that can be undone. A missing header or `TRLR` is added, a link to nothing is

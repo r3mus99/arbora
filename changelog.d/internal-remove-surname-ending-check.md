@@ -1,1 +1,0 @@
-- **The file check no longer looks at surname endings.** The Slovak, Czech and Polish ending rules and their two warnings are gone; the surname-by-sex naming rule used for new people stays.
