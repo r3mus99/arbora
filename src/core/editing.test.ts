@@ -678,3 +678,24 @@ describe("notes under events", () => {
     expect(applyFamily(fam, f, f)).toBe(fam);
   });
 });
+
+describe("lines of fields the editor no longer shows", () => {
+  const text = [
+    "0 @I1@ INDI", "1 NAME A /X/", "1 SEX M", "1 PHON 111", "1 EMAIL a@example.org", "1 FAX 333", "1 WWW https://example.org",
+    "1 AFN AF9", "1 RFN RF9", "1 REFN 7", "2 TYPE old", "1 BAPM", "2 DATE 5 JAN 1900", "1 CENS", "2 DATE 1910",
+    "1 OCCU baker", "1 EDUC school", "1 NATI Austrian", "1 FAMC @F1@", "2 PEDI adopted", "",
+  ].join("\n");
+
+  test("changing the name and the occupation leaves every other line as it was", () => {
+    const r = parseGedcom(text)[0], f = personFields(r);
+    const out = applyPerson(r, f, { ...f, given: "B", occupations: [...f.occupations, { ...f.occupations[0], origin: -1, value: "smith" }] });
+    const lines = (n: GedNode) => n.children.map((c) => `${c.tag} ${c.value}`.trim());
+    for (const l of ["PHON 111", "EMAIL a@example.org", "FAX 333", "WWW https://example.org", "AFN AF9", "RFN RF9", "REFN 7", "BAPM", "CENS", "EDUC school", "NATI Austrian", "FAMC @F1@"]) {
+      expect(lines(out)).toContain(l);
+    }
+    const written = writeGedcom([out]);
+    expect(written).toContain("1 REFN 7\n2 TYPE old");
+    expect(written).toContain("1 FAMC @F1@\n2 PEDI adopted");
+    expect(written).toContain("1 BAPM\n2 DATE 5 JAN 1900");
+  });
+});

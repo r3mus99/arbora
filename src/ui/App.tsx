@@ -262,9 +262,9 @@ export function App() {
     setTool("people");
     setLoadedName(name);
     setQuery("");
-    const last = readStore().root;
+    const stored = readStore().root;
     // the chart shows at once: last chosen person, else the first one in the file
-    const root = last && parsed.people[last] ? last : Object.keys(parsed.people)[0];
+    const root = stored && parsed.people[stored] ? stored : Object.keys(parsed.people)[0];
     setSelectedId(root);
     setMarks(visited(marksOf(readStore().marks, fileKey(name)), root));
     setMarkedFor(root);

@@ -274,7 +274,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
         {parents.length > 0 && <Section icon={Users} title={t("parents")} rows className="timeline">
           {/* a small timeline: the parent born first, the other parent, the wedding last */}
           {[...parents].sort((x, y) => {
-            const key = (id: string) => { const d = dateParts(data.people[id]?.birth?.date); return d ? d.y * 10000 + d.m * 100 + d.d : Infinity; };
+            const key = (pid: string) => { const d = dateParts(data.people[pid]?.birth?.date); return d ? d.y * 10000 + d.m * 100 + d.d : Infinity; };
             return key(x) === key(y) ? 0 : key(x) < key(y) ? -1 : 1;
           }).map((pid) => {
             const q = data.people[pid];

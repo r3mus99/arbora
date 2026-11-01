@@ -146,7 +146,7 @@ parentheses.
 
 **Save** (Ctrl+Enter) shows the change at once in the chart and the PDF,
 **Cancel** (Esc) drops it. Every save is one undo step; the arrows in the top
-bar (or Ctrl+Z / Ctrl+Y) undo and redo. The **changes** panel lists the records
+bar undo and redo. The **changes** panel lists the records
 that differ from the opened file, and unsaved edits survive a reload.
 
 **Download GEDCOM** downloads the edited file; while there are changes not yet
