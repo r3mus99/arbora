@@ -6,7 +6,7 @@ import {
   type Alias, type AssocRow, type AttributeRow, type CitationRow, citationsWithoutSource, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
-import { matchSources, type SourceChoice } from "../core/sources";
+import { autoSource, matchSources, type SourceChoice } from "../core/sources";
 import type { Lang } from "../core/texts";
 import { surnameForSex, surnamesFor } from "../core/surnames";
 import { ATTRIBUTE_TAGS } from "../core/facts";
@@ -85,6 +85,8 @@ function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnP
   const list = useId();
   const shown = choices.find((c) => c.id === value)?.label || "";
   const [text, setText] = useState(shown);
+  // a title filled in from outside (a web address typed as the page) shows at once
+  useEffect(() => { setText(shown); }, [shown]);
   const options = useMemo(() => choices.filter((c) => !exclude.includes(c.id)), [choices, exclude]);
   const change = (typed: string) => {
     const hit = options.find((c) => c.label === typed);
@@ -355,7 +357,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         </div>}
         {hidable(id, !!(c.page || c.quality), t("eventDetails"), t("tipCitationDetails"),
           <div className="pair">
-            <label title={t("tipPage")} data-cap={t("srcPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(id); patchRow(i, { page: e.target.value }); }} /></label>
+            <label title={t("tipPage")} data-cap={t("srcPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(id); patchRow(i, { page: e.target.value, ...(c.source.trim() ? {} : { source: autoSource(sources, e.target.value) }) }); }} /></label>
             <label title={t("tipQuality")}><span>{t("quality")}</span>
               <select value={c.quality} onChange={(e) => { pin(id); patchRow(i, { quality: e.target.value }); }}>
                 <option value="">–</option>

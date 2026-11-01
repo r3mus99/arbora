@@ -1,0 +1,1 @@
+- **A web address typed as the page fills in the empty source.** Entering a link in the page field names the source after the site ("FamilySearch", or the host without "www." for other sites); an existing source of that name is reused, and a source already chosen or typed is never replaced. Nothing is fetched from the web.
