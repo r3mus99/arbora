@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import type { GedcomData } from "../core/gedcom";
 import { fold } from "../core/gedcom";
 import { SOURCE_KINDS, type SourceKind, type SourceOverview } from "../core/sources";
+import { isWebAddress } from "../core/sourceLinks";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
 import { CitationFields, Linked } from "./Sources";
@@ -13,6 +14,8 @@ interface Props {
   onPerson: (id: string) => void;
   /** the person selected in the tree: their sources and notes are shown first, the rest one click away */
   personId?: string | null;
+  /** adds or removes a web address of a source record (the source's xref, then the address) */
+  onLinks?: (xref: string, change: { add?: string; remove?: string }) => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
@@ -28,8 +31,37 @@ export function People({ ids, data, onPerson, t }: { ids: string[]; data: Gedcom
   </ul>;
 }
 
+type T = Props["t"];
+
+/** The links a source record holds that the panel may change: each can be removed, and a new address can be added. */
+function LinkEditor({ removable, onAdd, onRemove, t }: { removable: string[]; onAdd: (url: string) => void; onRemove: (url: string) => void; t: T }) {
+  const [text, setText] = useState("");
+  const [invalid, setInvalid] = useState(false);
+  const add = () => {
+    const url = text.trim();
+    if (!isWebAddress(url)) { setInvalid(true); return; }
+    onAdd(url);
+    setText("");
+    setInvalid(false);
+  };
+  return <div className="sp-links">
+    <div className="sp-label">{t("srcLinks")}</div>
+    {removable.length > 0 && <div className="src-links">{removable.map((url) => (
+      <span key={url} className="chip">{url.replace(/^https?:\/\//, "")}
+        <button type="button" className="icon-btn" aria-label={`${t("srcRemoveLink")}: ${url}`} title={t("srcRemoveLink")} onClick={() => onRemove(url)}>×</button></span>
+    ))}</div>}
+    <div className="finder">
+      <input type="url" inputMode="url" placeholder={t("srcLinkPlaceholder")} aria-label={t("srcLinkPlaceholder")} aria-invalid={invalid || undefined}
+             value={text} onChange={(e) => { setText(e.target.value); setInvalid(false); }}
+             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} />
+      <button type="button" className="chip" onClick={add}>{t("srcAddLink")}</button>
+    </div>
+    {invalid && <div className="sp-error" role="alert">{t("srcLinkInvalid")}</div>}
+  </div>;
+}
+
 /** Overview of all sources (with the people citing them) and all notes of the file, read-only. */
-export function SourcesPanel({ overview, data, onPerson, personId = null, t }: Props) {
+export function SourcesPanel({ overview, data, onPerson, onLinks, personId = null, t }: Props) {
   const [tab, setTab] = useState<Tab>("sources");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<string | null>(null);
@@ -90,6 +122,8 @@ export function SourcesPanel({ overview, data, onPerson, personId = null, t }: P
               </button>
               {open === s.key && <div className="sp-more">
                 <CitationFields c={s.citation} t={t} />
+                {onLinks && s.key.startsWith("@") && <LinkEditor removable={s.ownLinks} t={t}
+                  onAdd={(url) => onLinks(s.key, { add: url })} onRemove={(url) => onLinks(s.key, { remove: url })} />}
                 <People ids={s.people} data={data} onPerson={onPerson} t={t} />
               </div>}
             </li>
