@@ -1,1 +1,1 @@
-- **Merging two people is covered by a safety test.** Contacts, reference numbers, extra events and facts, and parents with their pedigree type are checked to survive a merge.
+- **The edit window no longer has contacts and reference numbers.** Phone, e-mail, fax, web, reference numbers (REFN), AFN and RFN are gone from the edit window, and reference numbers are gone from the record details. The lines stay in the file untouched, and merging two people still keeps them.
