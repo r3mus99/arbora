@@ -36,6 +36,8 @@ export interface PersonFields {
   nameParts: NameParts;
   /** age, cause and agency of birth, christening, death and burial */
   details: Record<EventKey, EventDetailFields>;
+  /** the source citations written under birth, christening, death and burial */
+  eventCitations: Record<EventKey, CitationRow[]>;
   /** the other events of the person (baptism, residence, custom, …) */
   events: EventRow[];
   /** the families the person is a child of, with the kind of descent */
@@ -79,17 +81,19 @@ export interface EventRow extends EventFields, EventDetailFields {
   title: string;
   /** the text on the line itself: the address of a residence, what a custom event is about */
   value: string;
+  /** the source citations written under the event */
+  citations: CitationRow[];
 }
 
 /** the tags of the other events, in the order they are offered */
 export const OTHER_EVENT_TAGS = ["RESI", ...EXTRA_EVENT_TAGS, "EVEN"];
 
-/** a source citation directly under the person: `source` is the pointer to a source record (@S1@) or the text of the citation */
+/** a source citation directly under the person or under one of their events: `source` is the pointer to a source record (@S1@) or the text of the citation */
 export interface CitationRow {
-  /** the index among the person's SOUR lines, -1 for a new one */
+  /** the index among the SOUR lines of the same parent, -1 for a new one */
   origin: number;
   source: string;
-  /** PAGE: where in the source */
+  /** PAGE: where in the source; a web link to the record goes here as well */
   page: string;
   /** QUAY: how reliable, "0" to "3", or "" */
   quality: string;
@@ -155,6 +159,10 @@ const detailFields = (ev: GedNode | null): EventDetailFields => ({
   age: (ev && childOf(ev, "AGE")?.value) || "", cause: (ev && childOf(ev, "CAUS")?.value) || "", agency: (ev && childOf(ev, "AGNC")?.value) || "",
 });
 const eventFields = (rec: GedNode, tag: string) => datePlace(childOf(rec, tag));
+/** the source citations (SOUR lines) under a person, an event or any other node */
+const citationRows = (node: GedNode | null): CitationRow[] => (node ? childrenOf(node, "SOUR") : []).map((c, origin) => ({
+  origin, source: c.value, page: childOf(c, "PAGE")?.value || "", quality: childOf(c, "QUAY")?.value.trim() || "",
+}));
 
 /** "Ján Pavol /Kováč/ ml." → given, surname and what follows the surname */
 function splitName(value: string): { given: string; surname: string; suffix: string } {
@@ -197,17 +205,16 @@ export function personFields(rec: GedNode): PersonFields {
     aliases: akaNames(rec).map((n, origin) => ({ origin, ...nameParts(n) })),
     nameParts: namePartFields(mainName(rec)),
     details: Object.fromEntries(PERSON_EVENTS.map((key) => [key, detailFields(childOf(rec, EVENT_TAGS[key]))])) as Record<EventKey, EventDetailFields>,
+    eventCitations: Object.fromEntries(PERSON_EVENTS.map((key) => [key, citationRows(childOf(rec, EVENT_TAGS[key]))])) as Record<EventKey, CitationRow[]>,
     events: rec.children.filter((c) => OTHER_EVENT_TAGS.includes(c.tag)).map((c, origin) => ({
       origin, tag: c.tag, title: c.tag === "EVEN" ? childOf(c, "TYPE")?.value || "" : "",
-      value: c.value === "Y" ? "" : c.value, ...datePlace(c), ...detailFields(c),
+      value: c.value === "Y" ? "" : c.value, ...datePlace(c), ...detailFields(c), citations: citationRows(c),
     })),
     parents: childrenOf(rec, "FAMC").map((c, origin) => ({
       origin, fam: c.value.trim(), pedigree: childOf(c, "PEDI")?.value.trim().toLowerCase() || "",
     })),
     associations: childrenOf(rec, "ASSO").map((c, origin) => ({ origin, id: c.value.trim(), role: childOf(c, "RELA")?.value.trim() || "" })),
-    citations: childrenOf(rec, "SOUR").map((c, origin) => ({
-      origin, source: c.value, page: childOf(c, "PAGE")?.value || "", quality: childOf(c, "QUAY")?.value.trim() || "",
-    })),
+    citations: citationRows(rec),
     attributes: rec.children.filter((c) => ATTRIBUTE_TAGS.includes(c.tag))
       .map((c, origin) => ({ origin, tag: c.tag, value: c.value === "Y" ? "" : c.value, ...datePlace(c) }))
       .filter((a) => a.value || a.date || a.place),
@@ -331,11 +338,12 @@ function setDetails(ev: GedNode, before: EventDetailFields, after: EventDetailFi
 }
 
 function setEvent(rec: GedNode, tag: string, before: EventFields, after: EventFields,
-                  beforeD: EventDetailFields = NO_DETAILS, afterD: EventDetailFields = NO_DETAILS): GedNode {
+                  beforeD: EventDetailFields = NO_DETAILS, afterD: EventDetailFields = NO_DETAILS,
+                  beforeC: CitationRow[] = [], afterC: CitationRow[] = []): GedNode {
   const same = (["age", "cause", "agency"] as const).every((k) => beforeD[k] === afterD[k].trim());
-  if (before.date === after.date && before.place === after.place && same) return rec;
+  if (before.date === after.date && before.place === after.place && same && sameCitations(beforeC, afterC)) return rec;
   const i = rec.children.findIndex((c) => c.tag === tag);
-  const ev = setDetails(setDatePlace(i >= 0 ? rec.children[i] : gedNode(tag), before, after), beforeD, afterD);
+  const ev = setCitations(setDetails(setDatePlace(i >= 0 ? rec.children[i] : gedNode(tag), before, after), beforeD, afterD), beforeC, afterC);
   // an event left without anything in it ("1 DEAT Y" says the person died, so it stays)
   const empty = !ev.children.length && !ev.value;
   if (i < 0) return empty ? rec : { ...rec, children: insert(rec.children, ev) };
@@ -343,7 +351,8 @@ function setEvent(rec: GedNode, tag: string, before: EventFields, after: EventFi
                                    : rec.children.map((c, j) => (j === i ? ev : c)) };
 }
 
-const sameEvent = (a: EventRow, b: EventRow) => (["title", "value", "date", "place", "age", "cause", "agency"] as const).every((k) => a[k] === b[k]);
+const sameEvent = (a: EventRow, b: EventRow) => (["title", "value", "date", "place", "age", "cause", "agency"] as const).every((k) => a[k] === b[k])
+  && sameCitations(a.citations, b.citations);
 
 /** The other event lines from the rows: kept ones updated, removed ones deleted, new ones added after the other events. */
 function setEvents(rec: GedNode, before: EventRow[], after: EventRow[]): GedNode {
@@ -360,6 +369,7 @@ function setEvents(rec: GedNode, before: EventRow[], after: EventRow[]): GedNode
     if (!row) continue;
     if (!was || sameEvent(row, was)) { children.push(c); continue; }
     let ev = setDetails(setDatePlace(row.value === was.value ? c : { ...c, value: row.value }, was, row), was, row);
+    ev = setCitations(ev, was.citations, row.citations);
     if (row.title !== was.title) ev = setChild(ev, "TYPE", row.title, 0);
     children.push(ev);
   }
@@ -368,6 +378,7 @@ function setEvents(rec: GedNode, before: EventRow[], after: EventRow[]): GedNode
     let ev = gedNode(row.tag, row.value);
     ev = setDetails(setDatePlace(ev, { date: "", place: "" }, row), NO_DETAILS, row);
     if (row.tag === "EVEN" && row.title) ev = setChild(ev, "TYPE", row.title, 0);
+    ev = setCitations(ev, [], row.citations);
     // after the last event of the person, else before the lines that always come last
     const last = out.children.map((c) => OTHER_EVENT_TAGS.includes(c.tag) || ["BIRT", "CHR", "DEAT", "BURI"].includes(c.tag)).lastIndexOf(true);
     const at = last >= 0 ? last + 1 : out.children.findIndex((c) => LATE.has(c.tag));
@@ -509,10 +520,17 @@ function setCitation(cite: GedNode, before: CitationRow, after: CitationRow): Ge
   return out;
 }
 
-/** The citations from the rows: kept ones updated, removed ones deleted, new ones added with the other SOURs. */
+const tidyCitations = (rows: CitationRow[]) => rows.map((r) => ({ ...r, source: r.source.trim(), page: r.page.trim(), quality: r.quality.trim() }));
+const sameCitation = (a: CitationRow, b: CitationRow) => a.source === b.source && a.page === b.page && a.quality === b.quality;
+const sameCitations = (a: CitationRow[], b: CitationRow[]) => {
+  const rows = tidyCitations(b);
+  return a.length === rows.length && rows.every((r, i) => r.origin === a[i].origin && sameCitation(r, a[i]));
+};
+
+/** The citations of a person or an event from the rows: kept ones updated, removed ones deleted, new ones added with the other SOURs. */
 function setCitations(rec: GedNode, before: CitationRow[], after: CitationRow[]): GedNode {
-  const rows = after.map((r) => ({ ...r, source: r.source.trim(), page: r.page.trim(), quality: r.quality.trim() }));
-  const same = (a: CitationRow, b: CitationRow) => a.source === b.source && a.page === b.page && a.quality === b.quality;
+  const rows = tidyCitations(after);
+  const same = sameCitation;
   if (rows.length === before.length && rows.every((r, i) => r.origin === before[i].origin && same(r, before[i]))) return rec;
   let k = -1;
   const children: GedNode[] = [];
@@ -670,7 +688,7 @@ const tidy = (e: EventFields): EventFields => ({ date: e.date.trim(), place: e.p
 export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFields): GedNode {
   let out = setName(rec, before, after);
   if (after.sex !== before.sex) out = setChild(out, "SEX", after.sex);
-  for (const key of PERSON_EVENTS) out = setEvent(out, EVENT_TAGS[key], before[key], tidy(after[key]), before.details[key], after.details[key]);
+  for (const key of PERSON_EVENTS) out = setEvent(out, EVENT_TAGS[key], before[key], tidy(after[key]), before.details[key], after.details[key], before.eventCitations[key], after.eventCitations[key]);
   out = setEvents(out, before.events, after.events);
   out = setDeceased(out, before.deceased, after.deceased);
   out = setOccupations(out, before.occupations, after.occupations);

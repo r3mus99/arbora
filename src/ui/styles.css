@@ -777,6 +777,7 @@ section.check { margin: 0 0 14px; }
 .editor .head-act, .editor .reveal { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; }
 .editor .head-act { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; min-height: 24px; }
 .editor .head-act .icon, .collapsible .sec-extra .icon { width: var(--icon-sm); height: var(--icon-sm); }
+.edit-body .editor .cite-add { padding: 4px 0 4px 10px; }
 .editor .head-act:disabled { color: var(--muted); opacity: .5; cursor: default; }
 /* the action of a whole part ("Add family") sits at the right end of its title row, the chevron stays after the title */
 .collapsible > summary.sec-head::after { grid-column: 3; grid-row: 1; }

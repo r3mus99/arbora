@@ -1,6 +1,6 @@
 import { Hash, Phone, ArrowDownUp, Baby, BookMarked, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Tag, Tags, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, Fragment, type KeyboardEvent, type ReactNode } from "react";
 import {
   CONTACT_TAGS, OTHER_EVENT_TAGS, PEDIGREES, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
   type Alias, type AssocRow, type AttributeRow, type CitationRow, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
@@ -202,6 +202,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     if (!form.deceased) {
       after.death = after.burial = { date: "", place: "" };
       after.details = { ...form.details, death: NO_DETAILS, burial: NO_DETAILS };
+      after.eventCitations = { ...form.eventCitations, death: [], burial: [] };
     }
     after.events = form.events.map((e) => (e.origin < 0 ? { ...e, date: parseDate(e.date, lang).value } : {
       ...e, date: date(e.date, shownEv(e.origin), initial.stored.events.find((x) => x.origin === e.origin)!.date),
@@ -300,8 +301,43 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     set("contacts", form.contacts.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   const setRef = (i: number, patch: Partial<ReferenceRow>) =>
     set("references", form.references.map((r, j) => (j === i ? { ...r, ...patch } : r)));
-  const setCite = (i: number, patch: Partial<CitationRow>) =>
-    set("citations", form.citations.map((c, j) => (j === i ? { ...c, ...patch } : c)));
+  /** the source citations of the person or of one event: a source from the list (or the text of a citation), the page or web link, the quality */
+  const citeRows = (rows: CitationRow[], setRows: (rows: CitationRow[]) => void, idp: string) => {
+    const patchRow = (i: number, patch: Partial<CitationRow>) => setRows(rows.map((c, j) => (j === i ? { ...c, ...patch } : c)));
+    return rows.map((c, i) => {
+      const id = `${idp}${c.origin < 0 ? `new${i}` : c.origin}`;
+      return <Fragment key={id}>
+        <div className="item-head">
+          {/* a pointer to a source record is chosen from the list, a citation written as text stays text */}
+          {/^@[^@]+@$/.test(c.source) || (c.origin < 0 && sources.length > 0)
+            ? <select className="fill" value={c.source} aria-label={t("sources")} title={t("tipSource")} onChange={(e) => patchRow(i, { source: e.target.value })}>
+                {!sources.some((s) => s.xref === c.source) && <option value={c.source}>{c.source}</option>}
+                {sources.map((s) => <option key={s.xref} value={s.xref}>{s.title}</option>)}
+              </select>
+            : <input type="text" autoComplete="off" value={c.source} aria-label={t("sources")} title={t("tipSource")} onChange={(e) => patchRow(i, { source: e.target.value })} />}
+          <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                  onClick={() => setRows(rows.filter((_, j) => j !== i))}>
+            <Trash2 className="icon" aria-hidden="true" /></button>
+        </div>
+        {hidable(id, !!(c.page || c.quality), t("eventDetails"), t("tipCitationDetails"),
+          <div className="pair">
+            <label title={t("tipPage")} data-cap={t("srcPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(id); patchRow(i, { page: e.target.value }); }} /></label>
+            <label title={t("tipQuality")}><span>{t("quality")}</span>
+              <select value={c.quality} onChange={(e) => { pin(id); patchRow(i, { quality: e.target.value }); }}>
+                <option value="">–</option>
+                {QUALITY.map((q) => <option key={q} value={q}>{t(`quality${q}` as StringKey)}</option>)}
+              </select></label>
+          </div>)}
+      </Fragment>;
+    });
+  };
+  const newCite = (): CitationRow => ({ origin: -1, source: sources[0]?.xref || "", page: "", quality: "" });
+  /** the citations under one of the four fixed events, with the button that adds one */
+  const eventCites = (key: (typeof PERSON_EVENTS)[number]) => {
+    const rows = form.eventCitations[key], setRows = (r: CitationRow[]) => set("eventCitations", { ...form.eventCitations, [key]: r });
+    return <>{citeRows(rows, setRows, `ec${key}`)}
+      <div className="full cite-add"><button type="button" className="head-act" onClick={() => setRows([...rows, newCite()])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div></>;
+  };
   const setAlias = (i: number, patch: Partial<Alias>) =>
     set("aliases", form.aliases.map((a, j) => (j === i ? { ...a, ...patch } : a)));
   const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}, divorce: Partial<EventFields> = {}) =>
@@ -328,11 +364,12 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {key === "christening" && <label className="full" title={t("tipReligion")} data-cap={t("religion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
       {details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
+      {eventCites(key)}
     </fieldset>;
   };
   /** christening and burial are listed among the other events, as rows that keep their own fields */
   const [fixedOn, setFixedOn] = useState<string[]>([]);
-  const hasEv = (k: "christening" | "burial") => !!(form[k].date || form[k].place || hasDetails(form.details[k]) || (k === "christening" && form.religion));
+  const hasEv = (k: "christening" | "burial") => !!(form[k].date || form[k].place || hasDetails(form.details[k]) || form.eventCitations[k].length > 0 || (k === "christening" && form.religion));
   const fixedKeys = (["christening", "burial"] as const).filter((k) => (k !== "burial" || form.deceased) && (fixedOn.includes(k) || hasEv(k)));
   const fixedRow = (key: "christening" | "burial") => {
     const from = COPY_FROM[key]!;
@@ -344,7 +381,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           <Copy className="icon" aria-hidden="true" />{t(from[1])}</button>
         <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                 onClick={() => { setFixedOn(fixedOn.filter((k) => k !== key));
-                  setForm({ ...form, [key]: { date: "", place: "" }, details: { ...form.details, [key]: NO_DETAILS }, ...(key === "christening" ? { religion: "" } : {}) }); }}>
+                  setForm({ ...form, [key]: { date: "", place: "" }, details: { ...form.details, [key]: NO_DETAILS }, eventCitations: { ...form.eventCitations, [key]: [] }, ...(key === "christening" ? { religion: "" } : {}) }); }}>
           <Trash2 className="icon" aria-hidden="true" /></button>
       </div>
       <DateField value={form[key].date} shown={initial.shown[key].date} lang={lang} t={t}
@@ -354,6 +391,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {key === "christening" && <label className="full" title={t("tipReligion")} data-cap={t("religion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
       {details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
+      {eventCites(key)}
     </div></fieldset>;
   };
   /** the place of a residence of the parents, the father's first; empty when they have none in the file */
@@ -572,7 +610,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {form.deceased && fixedKeys.includes("burial") && fixedRow("burial")}
       <fieldset className="list">
         <legend>{ico(CalendarDays)}{t("otherEvents")}{acts(<button type="button" className="head-act" onClick={() => set("events",
-          [...form.events, { origin: -1, tag: OTHER_EVENT_TAGS[0], title: "", value: "", date: "", place: "", age: "", cause: "", agency: "" }])}><Plus className="icon" aria-hidden="true" />{t("addEvent")}</button>)}</legend>
+          [...form.events, { origin: -1, tag: OTHER_EVENT_TAGS[0], title: "", value: "", date: "", place: "", age: "", cause: "", agency: "", citations: [] }])}><Plus className="icon" aria-hidden="true" />{t("addEvent")}</button>)}</legend>
         {form.events.map((e, i) => (
           <div className="item" key={e.origin < 0 ? `new${i}` : e.origin}>
             <div className="item-head">
@@ -602,6 +640,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             <label title={t(e.tag === "RESI" ? "resiPlaceHint" : "tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={e.place} list={PLACES}
                      onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
             {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
+            {citeRows(e.citations, (r) => setEv(i, { citations: r }), `eo${rowId(e, i)}-`)}
+            <div className="full cite-add"><button type="button" className="head-act" onClick={() => setEv(i, { citations: [...e.citations, newCite()] })}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div>
           </div>
         ))}
       </fieldset>
@@ -781,33 +821,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {section("notes", <>
       <label title={t("tipNote")} data-cap={t("note")}><textarea autoComplete="off" placeholder={t("note")} aria-label={t("note")} rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
       <fieldset className="list">
-        <legend>{ico(BookMarked)}{t("sources")}{acts(<button type="button" className="head-act" onClick={() => set("citations",
-          [...form.citations, { origin: -1, source: sources[0]?.xref || "", page: "", quality: "" }])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button>)}</legend>
-        {form.citations.map((c, i) => (
-          <div className="item" key={c.origin < 0 ? `new${i}` : c.origin}>
-            <div className="item-head">
-              {/* a pointer to a source record is chosen from the list, a citation written as text stays text */}
-              {/^@[^@]+@$/.test(c.source) || (c.origin < 0 && sources.length > 0)
-                ? <select className="fill" value={c.source} aria-label={t("sources")} title={t("tipSource")} onChange={(e) => setCite(i, { source: e.target.value })}>
-                    {!sources.some((s) => s.xref === c.source) && <option value={c.source}>{c.source}</option>}
-                    {sources.map((s) => <option key={s.xref} value={s.xref}>{s.title}</option>)}
-                  </select>
-                : <input type="text" autoComplete="off" value={c.source} aria-label={t("sources")} title={t("tipSource")} onChange={(e) => setCite(i, { source: e.target.value })} />}
-              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                      onClick={() => set("citations", form.citations.filter((_, j) => j !== i))}>
-                <Trash2 className="icon" aria-hidden="true" /></button>
-            </div>
-            {hidable(`ci${c.origin < 0 ? `new${i}` : c.origin}`, !!(c.page || c.quality), t("eventDetails"), t("tipCitationDetails"),
-              <div className="pair">
-                <label title={t("tipPage")} data-cap={t("srcPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(`ci${c.origin < 0 ? `new${i}` : c.origin}`); setCite(i, { page: e.target.value }); }} /></label>
-                <label title={t("tipQuality")}><span>{t("quality")}</span>
-                  <select value={c.quality} onChange={(e) => { pin(`ci${c.origin < 0 ? `new${i}` : c.origin}`); setCite(i, { quality: e.target.value }); }}>
-                    <option value="">–</option>
-                    {QUALITY.map((q) => <option key={q} value={q}>{t(`quality${q}` as StringKey)}</option>)}
-                  </select></label>
-              </div>)}
-          </div>
-        ))}
+        <legend>{ico(BookMarked)}{t("sources")}{acts(<button type="button" className="head-act" onClick={() => set("citations", [...form.citations, newCite()])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button>)}</legend>
+        {citeRows(form.citations, (r) => set("citations", r), "ci")}
       </fieldset>
       </>)}
       {section("other", <>
