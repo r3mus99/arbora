@@ -1,1 +1,1 @@
-- **The file check no longer looks at Polish surname endings.** The Slovak and Czech rules (-ová, -á) stay.
+- **Internal cleanup of the surname ending rule code.**

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.93.3 – 2026-11-01
+
+- **Internal cleanup of the surname ending rule code.**
+
 ## 2.93.2 – 2026-11-01
 
 - **The file check no longer looks at Polish surname endings.** The Slovak and Czech rules (-ová, -á) stay.
