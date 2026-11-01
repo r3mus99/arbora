@@ -19,7 +19,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 └──┴───────────────┴───────────────────────────────────────────┴───────────────┘
 ```
 
-- **Top bar** (the first row of the frame, `--head-h` high, one line under it across the frame; global, not about one person): app name, the open file, the home person (`.home-chip` after the file: a click opens the people list, the next click on a person sets it; the house button right after it goes to that person), undo / redo, save GED, save PDF, save SVG (tree poster),
+- **Top bar** (the first row of the frame, `--head-h` high, one line under it across the frame; global, not about one person): app name, the open file, the home person (`.home-chip` after the file: with no home person yet, a click sets the selected person at once; otherwise a click opens the people list and the next click on a person sets it; the house button right after it goes to that person), undo / redo, save GED, save PDF, save SVG (tree poster),
   language. Order is fixed: identity, file, history, output, preferences. Anything that changes the whole document
   or the app belongs here.
 - **Rail** (left, icon column): one icon per mini-app. Opens and closes the mini-app panel.

@@ -643,7 +643,12 @@ export function App() {
             <span className="count"><Users className="icon" aria-hidden="true" />{Object.keys(data.people).length}</span>
           </FileDrop>}
           {data && <button type="button" className={`home-chip${homeId ? "" : " empty"}${pickingHome ? " on" : ""}`}
-                           aria-pressed={pickingHome} onClick={() => { showList(true); setPickingHome(true); }}
+                           aria-pressed={pickingHome}
+                           onClick={() => {
+                             // no home person yet and one is selected: that person becomes the home person at once
+                             if (!homeId && focusId) { setMarks((m) => changeHome(m, focusId)); return; }
+                             showList(true); setPickingHome(true);
+                           }}
                            title={t("homeSet")} aria-label={t("homeSet")}>
             <User className="icon" aria-hidden="true" />
             <strong>{homeId ? data.people[homeId].name || "?" : t("homeSet")}</strong>
