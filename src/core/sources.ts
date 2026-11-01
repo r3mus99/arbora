@@ -210,20 +210,20 @@ export function matchSources(choices: SourceChoice[], text: string, limit = 8): 
 
 /** the words a generated source title starts with, per language */
 const TITLE_WORDS: Record<string, Record<SourceTitleEvent, string>> = {
-  sk: { birth: "Narodenie", christening: "Krst", death: "Úmrtie", burial: "Pohreb", marriage: "Svadba", divorce: "Rozvod" },
-  cs: { birth: "Narození", christening: "Křest", death: "Úmrtí", burial: "Pohřeb", marriage: "Svatba", divorce: "Rozvod" },
-  pl: { birth: "Urodzenie", christening: "Chrzest", death: "Zgon", burial: "Pogrzeb", marriage: "Ślub", divorce: "Rozwód" },
-  hu: { birth: "Születés", christening: "Keresztelő", death: "Halál", burial: "Temetés", marriage: "Esküvő", divorce: "Válás" },
-  de: { birth: "Geburt", christening: "Taufe", death: "Tod", burial: "Begräbnis", marriage: "Hochzeit", divorce: "Scheidung" },
-  en: { birth: "Birth", christening: "Christening", death: "Death", burial: "Burial", marriage: "Wedding", divorce: "Divorce" },
-  fr: { birth: "Naissance", christening: "Baptême", death: "Décès", burial: "Inhumation", marriage: "Mariage", divorce: "Divorce" },
-  it: { birth: "Nascita", christening: "Battesimo", death: "Morte", burial: "Sepoltura", marriage: "Matrimonio", divorce: "Divorzio" },
-  es: { birth: "Nacimiento", christening: "Bautismo", death: "Defunción", burial: "Entierro", marriage: "Boda", divorce: "Divorcio" },
-  pt: { birth: "Nascimento", christening: "Batismo", death: "Falecimento", burial: "Sepultamento", marriage: "Casamento", divorce: "Divórcio" },
-  nl: { birth: "Geboorte", christening: "Doop", death: "Overlijden", burial: "Begrafenis", marriage: "Huwelijk", divorce: "Echtscheiding" },
-  uk: { birth: "Народження", christening: "Хрещення", death: "Смерть", burial: "Поховання", marriage: "Шлюб", divorce: "Розлучення" },
+  sk: { person: "Osoba", birth: "Narodenie", christening: "Krst", death: "Úmrtie", burial: "Pohreb", marriage: "Svadba", divorce: "Rozvod" },
+  cs: { person: "Osoba", birth: "Narození", christening: "Křest", death: "Úmrtí", burial: "Pohřeb", marriage: "Svatba", divorce: "Rozvod" },
+  pl: { person: "Osoba", birth: "Urodzenie", christening: "Chrzest", death: "Zgon", burial: "Pogrzeb", marriage: "Ślub", divorce: "Rozwód" },
+  hu: { person: "Személy", birth: "Születés", christening: "Keresztelő", death: "Halál", burial: "Temetés", marriage: "Esküvő", divorce: "Válás" },
+  de: { person: "Person", birth: "Geburt", christening: "Taufe", death: "Tod", burial: "Begräbnis", marriage: "Hochzeit", divorce: "Scheidung" },
+  en: { person: "Person", birth: "Birth", christening: "Christening", death: "Death", burial: "Burial", marriage: "Wedding", divorce: "Divorce" },
+  fr: { person: "Personne", birth: "Naissance", christening: "Baptême", death: "Décès", burial: "Inhumation", marriage: "Mariage", divorce: "Divorce" },
+  it: { person: "Persona", birth: "Nascita", christening: "Battesimo", death: "Morte", burial: "Sepoltura", marriage: "Matrimonio", divorce: "Divorzio" },
+  es: { person: "Persona", birth: "Nacimiento", christening: "Bautismo", death: "Defunción", burial: "Entierro", marriage: "Boda", divorce: "Divorcio" },
+  pt: { person: "Pessoa", birth: "Nascimento", christening: "Batismo", death: "Falecimento", burial: "Sepultamento", marriage: "Casamento", divorce: "Divórcio" },
+  nl: { person: "Persoon", birth: "Geboorte", christening: "Doop", death: "Overlijden", burial: "Begrafenis", marriage: "Huwelijk", divorce: "Echtscheiding" },
+  uk: { person: "Особа", birth: "Народження", christening: "Хрещення", death: "Смерть", burial: "Поховання", marriage: "Шлюб", divorce: "Розлучення" },
 };
-export type SourceTitleEvent = "birth" | "christening" | "death" | "burial" | "marriage" | "divorce";
+export type SourceTitleEvent = "person" | "birth" | "christening" | "death" | "burial" | "marriage" | "divorce";
 export const SOURCE_TITLE_LANGS = Object.keys(TITLE_WORDS);
 
 /** The generated name of a source cited under an event: the event word, then the people ("Wedding Jan Novak & Eva Novak"). `event` may be

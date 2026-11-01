@@ -131,7 +131,8 @@ describe("sourceTitle", () => {
     expect(sourceTitle("xx", "burial", "Jan Novak")).toBe("Burial Jan Novak");
     expect(sourceTitle("sk", "death")).toBe("Úmrtie");
   });
+  test("a source of the person itself", () => { expect(sourceTitle("sk", "person", "Jan Novak")).toBe("Osoba Jan Novak"); });
   test("every language has all six words", () => {
-    for (const l of SOURCE_TITLE_LANGS) for (const e of ["birth", "christening", "death", "burial", "marriage", "divorce"]) expect(sourceTitle(l, e)).not.toBe(e);
+    for (const l of SOURCE_TITLE_LANGS) for (const e of ["person", "birth", "christening", "death", "burial", "marriage", "divorce"]) expect(sourceTitle(l, e)).not.toBe(e);
   });
 });

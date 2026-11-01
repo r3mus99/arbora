@@ -872,7 +872,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {section("notes", <>
       <label title={t("tipNote")} data-cap={t("note")}><textarea autoComplete="off" placeholder={t("note")} aria-label={t("note")} rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
       <fieldset className="list">
-        <legend>{ico(BookMarked)}{t("sources")}{acts(<button type="button" className="head-act" onClick={() => set("citations", [...form.citations, newCite()])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button>)}</legend>
+        <legend>{ico(BookMarked)}{t("sources")}{acts(<button type="button" className="head-act" onClick={() => set("citations", [...form.citations, newCite(citeTitle("person", myName()))])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button>)}</legend>
         {citeRows(form.citations, (r) => set("citations", r), "ci")}
       </fieldset>
       </>)}
