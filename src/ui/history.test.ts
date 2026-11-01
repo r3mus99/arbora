@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { parseGedcom } from "../core/gedcom";
 import {
-  NO_BROWSING, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move, replay, startEdits, stepEdits, unsavedChanges, visit, withRecords,
+  canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, replay, startEdits, stepEdits, unsavedChanges, withRecords,
   applyOp, diffRecords, type Doc,
 } from "./history";
 import { APP_DEFAULTS, NUMBERING, storedOptions, toForm, toOptions, withOption } from "./options";
@@ -119,32 +119,6 @@ describe("edit history", () => {
     expect(merged.records[0]).toBe(changed[0]);
     expect(merged.eol).toBe("\n");
     expect(withRecords(a, []).records[0]).toBe(a.records[0]);
-  });
-});
-
-describe("browsing history", () => {
-  const p = (root: string, focus = root) => ({ root, focus });
-
-  test("back and forward over the places visited", () => {
-    let h = visit(NO_BROWSING, p("@I1@"));
-    h = visit(h, p("@I2@"));
-    h = visit(h, p("@I2@", "@I5@"));
-    expect(h.list).toHaveLength(3);
-    const back = move(h, -1)!;
-    expect(back.place).toEqual(p("@I2@"));
-    expect(move(back.browsing, 1)!.place).toEqual(p("@I2@", "@I5@"));
-    expect(move(h, 1)).toBeNull();
-    expect(move(move(back.browsing, -1)!.browsing, -1)).toBeNull();
-  });
-
-  test("the same place twice is one step, and a new place drops those ahead", () => {
-    let h = visit(visit(NO_BROWSING, p("@I1@")), p("@I1@"));
-    expect(h.list).toHaveLength(1);
-    h = visit(h, p("@I2@"));
-    h = move(h, -1)!.browsing;
-    h = visit(h, p("@I3@"));
-    expect(h.list.map((x) => x.root)).toEqual(["@I1@", "@I3@"]);
-    expect(h.at).toBe(1);
   });
 });
 
