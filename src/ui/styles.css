@@ -675,7 +675,11 @@ section.check { margin: 0 0 14px; }
 .star { color: var(--star); fill: currentColor; }
 .tree-row .star { width: var(--icon-sm); height: var(--icon-sm); margin-left: 4px; vertical-align: -2px; }
 .detail-name { display: flex; align-items: center; gap: 4px; min-width: 0; }
-.detail-name h3 { min-width: 0; overflow-wrap: anywhere; }
+.detail-name h3 { min-width: 0; display: flex; align-items: baseline; gap: 4px; }
+.detail-name h3 > :not(.detail-title) .icon { margin-left: 0; }
+/* the name may wrap when it is long, the sex symbol stays beside it and never drops onto a line of its own */
+.detail-name h3 .detail-title { min-width: 0; overflow-wrap: anywhere; }
+.detail-name h3 > :not(.detail-title) { flex: none; }
 .star-btn .icon { color: var(--muted); fill: none; }
 .star-btn.on .icon, .row-star.on .icon { color: var(--star); fill: currentColor; }
 .row-star { flex: none; width: var(--ctl-h-sm); height: var(--ctl-h-sm); padding: 0; display: grid; place-items: center; border: 0;

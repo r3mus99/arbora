@@ -249,11 +249,11 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
         <button type="button" className="icon-btn back-btn" onClick={onBack} title={t("backToList")} aria-label={t("backToList")}>
           <ChevronLeft className="icon" aria-hidden="true" /></button>
         <div className="detail-name">
-        <h3>{prefix && `${prefix} `}
+        <h3><span className="detail-title">{prefix && `${prefix} `}
           {live && f ? <InlineName key={`${id}|${f.given}|${f.surname}`} given={f.given} surname={f.surname} label={t("edit")}
                                    givenLabel={t("givenName")} surnameLabel={t("surname")} givens={givenList(f.sex)} surnames={surnameList(f.sex)}
                                    onCommit={(given, surname) => change({ given, surname })}>{p.name || "?"}</InlineName>
-            : <>{p.name || "?"}</>}
+            : <>{p.name || "?"}</>}</span>
           {live && f ? <SexPick sex={f.sex} label={t("sex")} t={t} onPick={(sex) => change({ sex })} />
             : SexIcon && <SexIcon className={`icon sex-${p.sex}`} aria-label={t(p.sex === "M" ? "male" : "female")} />}
         </h3>
