@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.87.0 – 2026-11-01
+
+- **The home person box sets the selected person as the home person, with one click.** The house button beside it appears once a home person is set and goes to that person.
+
 ## 2.86.0 – 2026-11-01
 
 - **The magic wand beside a source title in the person detail is gone.** Renaming a source stays one click on its title, and the suggested names remain available in the Sources list.
