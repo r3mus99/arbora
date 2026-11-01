@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.93.5 – 2026-11-01
+
+- **Merging two people is covered by a safety test.** Contacts, reference numbers, extra events and facts, and parents with their pedigree type are checked to survive a merge.
+
 ## 2.93.4 – 2026-11-01
 
 - **The file check no longer suggests moving a parent's source to the child's event.** The sources in the file are untouched.
