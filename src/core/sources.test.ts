@@ -10,6 +10,7 @@ import { SOURCES_GED } from "./fixtures/sources";
 const text = decode(SOURCES_GED);
 const records = parseGedcom(text);
 const lookup = lookupOf(records);
+const annotationsOfFact = (r: GedNode, tag: string) => eventAnnotations(r, tag, lookup);
 const rec = (xref: string) => records.find((r) => r.xref === xref)!;
 
 describe("sources and notes", () => {
@@ -27,9 +28,10 @@ describe("sources and notes", () => {
       .toEqual(["Shared note about the baptism\nin the parish."]);
   });
 
-  test("a person's own annotations gather the record, names and other lines, not the timeline events", () => {
+  test("a person's own annotations gather the record and names, not the timeline events or facts", () => {
     const a = personAnnotations(rec("@I1@"), lookup);
-    expect(a.notes).toEqual(["Remembered in the family chronicle.\nSecond line of the note.", "Worked at the mill."]);
+    expect(a.notes).toEqual(["Remembered in the family chronicle.\nSecond line of the note."]);
+    expect(annotationsOfFact(rec("@I1@"), "OCCU").notes).toEqual(["Worked at the mill."]);
     expect(a.sources.map((s) => s.title)).toEqual(["Family tradition", "Census 1869"]);
     expect(a.sources[1].page).toBe("entry 4");
   });
