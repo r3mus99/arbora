@@ -789,7 +789,7 @@ export function App() {
               </div>
               <TreeView rows={shown} focusId={focusId} starred={favourites} scrollKey={treeScroll} scrollTo={jumpRow}
                         numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
-                        onFocus={(id) => id === focusId ? deselect() : focus(id, false)} onToggle={toggle}
+                        onFocus={pickListed} onToggle={toggle}
                         onJump={(r) => jump(r.targetIndex)} t={t} />
             </div>}
             {focusId && <SourceEditContext.Provider value={srcEdit}><PersonDetail key={focusId} data={data} id={focusId} homeId={homeId}
