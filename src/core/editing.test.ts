@@ -400,6 +400,45 @@ describe("marriage and divorce details of a family", () => {
   });
 });
 
+describe("source citations under the marriage and the divorce", () => {
+  const base = "0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 MARR\n2 DATE 1900\n2 SOUR @S1@\n3 PAGE https://example.org/m/1\n1 DIV Y\n2 DATE 1910\n2 SOUR @S1@\n";
+  const rec = () => parseGedcom(base)[0];
+
+  test("reads the citations of MARR and DIV", () => {
+    const f = familyFields(rec());
+    expect(f.citations.marriage).toEqual([{ origin: 0, source: "@S1@", page: "https://example.org/m/1", quality: "" }]);
+    expect(f.citations.divorce).toEqual([{ origin: 0, source: "@S1@", page: "", quality: "" }]);
+  });
+
+  test("an unchanged family is returned as it is", () => {
+    const r = rec(), f = familyFields(r);
+    expect(applyFamily(r, f, { ...f })).toBe(r);
+    expect(writeGedcom([r])).toBe(base);
+  });
+
+  test("a new citation goes under MARR as a SOUR line and a removed one disappears", () => {
+    const r = parseGedcom("0 @F1@ FAM\n1 HUSB @I1@\n1 MARR\n2 DATE 1900\n")[0], f = familyFields(r);
+    const cite = { origin: -1, source: "@S2@", page: "p. 4", quality: "2" };
+    const out = applyFamily(r, f, { ...f, citations: { ...f.citations, marriage: [cite] } });
+    expect(writeGedcom([out])).toBe("0 @F1@ FAM\n1 HUSB @I1@\n1 MARR\n2 DATE 1900\n2 SOUR @S2@\n3 PAGE p. 4\n3 QUAY 2\n");
+    const back = applyFamily(out, familyFields(out), { ...familyFields(out), citations: { marriage: [], divorce: [] } });
+    expect(writeGedcom([back])).toBe(writeGedcom([rewritten(r)]));
+  });
+
+  test("a citation under a new marriage event creates MARR, and under a new divorce creates DIV Y", () => {
+    const r = parseGedcom("0 @F1@ FAM\n1 HUSB @I1@\n")[0], f = familyFields(r);
+    const cite = { origin: -1, source: "Parish book", page: "", quality: "" };
+    const out = applyFamily(r, f, { ...f, divorced: true, citations: { marriage: [cite], divorce: [cite] } });
+    expect(writeGedcom([out])).toBe("0 @F1@ FAM\n1 HUSB @I1@\n1 MARR\n2 SOUR Parish book\n1 DIV Y\n2 SOUR Parish book\n");
+  });
+
+  test("editing the page of a divorce citation leaves the marriage lines alone", () => {
+    const r = rec(), f = familyFields(r);
+    const out = applyFamily(r, f, { ...f, citations: { ...f.citations, divorce: [{ ...f.citations.divorce[0], page: "x" }] } });
+    expect(writeGedcom([out])).toBe(base.replace("2 DATE 1910\n2 SOUR @S1@\n", "2 DATE 1910\n2 SOUR @S1@\n3 PAGE x\n"));
+  });
+});
+
 describe("spouses and children of a family", () => {
   const text = [
     "0 @I1@ INDI\n1 NAME A /X/\n1 FAMS @F1@", "0 @I2@ INDI\n1 NAME B /X/\n1 FAMS @F1@",
