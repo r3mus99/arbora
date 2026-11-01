@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.93.0 – 2026-11-01
+
+- **The bulk spelling fix is gone.** The Bulk fix tool (its toolbar icon, the groups of spellings of surnames, given names and places, and the country-name translations behind it) was removed to keep Arbora simple. The file check, the overview and the edit window are unchanged, and no data in a file is touched.
+
 ## 2.92.1 – 2026-11-01
 
 - **Arbora now speaks only Slovak and English.** The other ten interface languages are gone, together with their page texts, PDF texts and flags. A language saved in the browser that no longer exists is replaced by the browser's language (Slovak, otherwise English). Gendered surname suggestions follow the Slovak interface or the surnames in the file; the Polish rule that depended on the interface language is removed.
