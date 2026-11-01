@@ -1,0 +1,1 @@
+- **Merging two people is covered by a safety test.** Contacts, reference numbers, extra events and facts, and parents with their pedigree type are checked to survive a merge.

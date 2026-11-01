@@ -49,3 +49,74 @@ describe("merging two people", () => {
     expect(() => mergePeople(recs(), "@I1@", "@I3@")).toThrow("cannot be merged");
   });
 });
+
+/**
+ * Safety net for merging: everything the removed person has that the kept person does not must survive the merge,
+ * whatever the editor offers to edit. The people have different parents so that nothing is shared by chance.
+ */
+const RICH = [
+  "0 HEAD", "1 CHAR UTF-8",
+  "0 @I1@ INDI", "1 NAME Jan /Test/", "1 SEX M", "1 PHON 111 111", "1 REFN A-1", "2 TYPE file", "1 FAMC @F1@",
+  "0 @I2@ INDI", "1 NAME Johann /Test/", "1 SEX M",
+  "1 PHON 222 222", "1 EMAIL johann@example.com", "1 FAX 333", "1 WWW https://example.com/johann",
+  "1 AFN 1234", "1 RFN 5678", "1 REFN B-2", "2 TYPE library", "1 REFN C-3",
+  "1 BAPM", "2 DATE 5 JAN 1900", "2 PLAC Town",
+  "1 CENS", "2 DATE 1910",
+  "1 EDUC school", "1 NATI Austrian", "1 TITL Dr.",
+  "1 FAMC @F2@", "2 PEDI adopted", "1 FAMC @F3@", "2 PEDI foster",
+  "0 @I3@ INDI", "1 NAME Pavol /Test/", "1 SEX M", "1 FAMS @F1@",
+  "0 @I4@ INDI", "1 NAME Karol /Test/", "1 SEX M", "1 FAMS @F2@",
+  "0 @I5@ INDI", "1 NAME Jozef /Test/", "1 SEX M", "1 FAMS @F3@",
+  "0 @F1@ FAM", "1 HUSB @I3@", "1 CHIL @I1@",
+  "0 @F2@ FAM", "1 HUSB @I4@", "1 CHIL @I2@",
+  "0 @F3@ FAM", "1 HUSB @I5@", "1 CHIL @I2@",
+  "0 TRLR",
+].join("\n") + "\n";
+
+describe("merging keeps the rows the removed person had", () => {
+  const merge = () => writeGedcom(mergePeople(parseGedcom(RICH), "@I1@", "@I2@"));
+  const kept = (out: string) => out.split("\n0 ").find((b) => b.startsWith("@I1@ INDI"))!.split("\n");
+
+  test("contacts of both people", () => {
+    const lines = kept(merge());
+    for (const l of ["1 PHON 111 111", "1 PHON 222 222", "1 EMAIL johann@example.com", "1 FAX 333", "1 WWW https://example.com/johann"]) {
+      expect(lines).toContain(l);
+    }
+  });
+
+  test("reference numbers, archive and record file numbers", () => {
+    const lines = kept(merge());
+    expect(lines).toContain("1 AFN 1234");
+    expect(lines).toContain("1 RFN 5678");
+    expect(lines.join("\n")).toContain("1 REFN A-1\n2 TYPE file");
+    expect(lines.join("\n")).toContain("1 REFN B-2\n2 TYPE library");
+    expect(lines).toContain("1 REFN C-3");
+  });
+
+  test("extra events and facts", () => {
+    const text = kept(merge()).join("\n");
+    expect(text).toContain("1 BAPM\n2 DATE 5 JAN 1900\n2 PLAC Town");
+    expect(text).toContain("1 CENS\n2 DATE 1910");
+    for (const l of ["1 EDUC school", "1 NATI Austrian", "1 TITL Dr."]) expect(text).toContain(l);
+  });
+
+  test("the parents of both people, with their pedigree type", () => {
+    const out = merge();
+    const text = kept(out).join("\n");
+    expect(text).toContain("1 FAMC @F1@");
+    expect(text).toContain("1 FAMC @F2@\n2 PEDI adopted");
+    expect(text).toContain("1 FAMC @F3@\n2 PEDI foster");
+    // the families list the kept person as their child
+    expect(out).toContain("0 @F2@ FAM\n1 HUSB @I4@\n1 CHIL @I1@");
+    expect(out).toContain("0 @F3@ FAM\n1 HUSB @I5@\n1 CHIL @I1@");
+    expect(out).not.toContain("@I2@");
+  });
+
+  test("merging in the other direction loses nothing either", () => {
+    const out = writeGedcom(mergePeople(parseGedcom(RICH), "@I2@", "@I1@"));
+    const lines = out.split("\n0 ").find((b) => b.startsWith("@I2@ INDI"))!;
+    for (const l of ["1 PHON 111 111", "1 PHON 222 222", "1 REFN A-1\n2 TYPE file", "1 AFN 1234", "1 FAMC @F1@", "1 FAMC @F2@\n2 PEDI adopted", "1 EDUC school"]) {
+      expect(lines).toContain(l);
+    }
+  });
+});
