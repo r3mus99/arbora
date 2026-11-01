@@ -1,1 +1,1 @@
-- **Sources can be cited for a marriage, a divorce or a residence from the Sources panel.** A marriage or divorce is cited under one of the person's families.
+- **Sources have their own wide edit window.** The Sources panel opens it with + for a new source and with "Edit source" for an existing one. It edits the title, author, publication, web links and notes, shows and changes the people and events the source is cited for (including marriages, divorces and residences), and deletes the source with its citations. The person's edit window no longer lists sources.
