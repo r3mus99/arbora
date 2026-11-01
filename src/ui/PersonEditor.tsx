@@ -6,7 +6,7 @@ import {
   type Alias, type AssocRow, type AttributeRow, type CitationRow, citationsWithoutSource, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
-import { autoSource, matchSources, type SourceChoice } from "../core/sources";
+import { matchSources, type SourceChoice } from "../core/sources";
 import type { Lang } from "../core/texts";
 import { surnameForSex, surnamesFor } from "../core/surnames";
 import { ATTRIBUTE_TAGS } from "../core/facts";
@@ -85,8 +85,6 @@ function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnP
   const list = useId();
   const shown = choices.find((c) => c.id === value)?.label || "";
   const [text, setText] = useState(shown);
-  // a title filled in from outside (a web address typed as the page) shows at once
-  useEffect(() => { setText(shown); }, [shown]);
   const options = useMemo(() => choices.filter((c) => !exclude.includes(c.id)), [choices, exclude]);
   const change = (typed: string) => {
     const hit = options.find((c) => c.label === typed);
@@ -357,7 +355,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         </div>}
         {hidable(id, !!(c.page || c.quality), t("eventDetails"), t("tipCitationDetails"),
           <div className="pair">
-            <label title={t("tipPage")} data-cap={t("srcPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(id); patchRow(i, { page: e.target.value, ...(c.source.trim() ? {} : { source: autoSource(sources, e.target.value) }) }); }} /></label>
+            <label title={t("tipPage")} data-cap={t("srcPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(id); patchRow(i, { page: e.target.value }); }} /></label>
             <label title={t("tipQuality")}><span>{t("quality")}</span>
               <select value={c.quality} onChange={(e) => { pin(id); patchRow(i, { quality: e.target.value }); }}>
                 <option value="">–</option>
@@ -367,20 +365,24 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </Fragment>;
     });
   };
-  const newCite = (): CitationRow => ({ origin: -1, source: "", page: "", quality: "" });
+  /** a new citation under an event is named after it, e.g. "Marriage Jan Novak & Eva Novak"; an existing source of that name is cited instead of a duplicate */
+  const newCite = (title = ""): CitationRow => ({ origin: -1, source: sources.find((s) => s.title === title)?.xref ?? title, page: "", quality: "" });
+  const myName = () => `${form.given} ${form.surname}`.trim() || data.people[record.xref ?? ""]?.name || "";
+  const citeTitle = (label: StringKey, ...names: string[]) => [t(label), names.filter(Boolean).join(" & ")].filter(Boolean).join(" ");
+  const marriageNames = (f: FamilyFields) => [f.husb, f.wife].map((id) => (id === record.xref ? myName() : data.people[id]?.name ?? ""));
   /** the citations under one of the four fixed events, with the button that adds one */
   const eventCites = (key: (typeof PERSON_EVENTS)[number]) =>
-    addCites(form.eventCitations[key], (r) => set("eventCitations", { ...form.eventCitations, [key]: r }), `ec${key}`);
-  const addCites = (rows: CitationRow[], setRows: (r: CitationRow[]) => void, idp: string) => {
+    addCites(form.eventCitations[key], (r) => set("eventCitations", { ...form.eventCitations, [key]: r }), `ec${key}`, citeTitle(EVENT_LABEL[key], myName()));
+  const addCites = (rows: CitationRow[], setRows: (r: CitationRow[]) => void, idp: string, title = "") => {
     return <>{citeRows(rows, setRows, idp)}
-      <div className="full cite-add"><button type="button" className="head-act" onClick={() => setRows([...rows, newCite()])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div></>;
+      <div className="full cite-add"><button type="button" className="head-act" onClick={() => setRows([...rows, newCite(title)])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div></>;
   };
   const setAlias = (i: number, patch: Partial<Alias>) =>
     set("aliases", form.aliases.map((a, j) => (j === i ? { ...a, ...patch } : a)));
   const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}, divorce: Partial<EventFields> = {}) =>
     setFams(fams.map((f, j) => (j === i ? { ...f, ...patch, marriage: { ...f.marriage, ...marriage }, divorce: { ...f.divorce, ...divorce } } : f)));
   const famCites = (i: number, key: "marriage" | "divorce") =>
-    addCites(fams[i].citations[key], (r) => setFam(i, { citations: { ...fams[i].citations, [key]: r } }), `fc${key}${i}`);
+    addCites(fams[i].citations[key], (r) => setFam(i, { citations: { ...fams[i].citations, [key]: r } }), `fc${key}${i}`, citeTitle(key, ...marriageNames(fams[i])));
   const setFamDetails = (i: number, key: "marriage" | "divorce", patch: Partial<EventDetailFields>) =>
     setFam(i, { details: { ...fams[i].details, [key]: { ...fams[i].details[key], ...patch } } });
   const event = (key: (typeof PERSON_EVENTS)[number]) => {
@@ -687,7 +689,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                      onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
             {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
             {citeRows(e.citations, (r) => setEv(i, { citations: r }), `eo${rowId(e, i)}-`)}
-            <div className="full cite-add"><button type="button" className="head-act" onClick={() => setEv(i, { citations: [...e.citations, newCite()] })}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div>
+            <div className="full cite-add"><button type="button" className="head-act" onClick={() => setEv(i, { citations: [...e.citations, newCite(citeTitle(OTHER_LABEL[e.tag], myName()))] })}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div>
           </div>
         ))}
       </fieldset>

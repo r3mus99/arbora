@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { autoSource, matchSources, titleFromUrl } from "./sources";
+import { matchSources } from "./sources";
 import {
   applyPerson, decode, eventAnnotations, sourceOverview, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
   personFields, writeGedcom, type GedNode,
@@ -116,26 +116,5 @@ describe("matchSources", () => {
     expect(matchSources(choices, "old")[0].xref).toBe("@B@");
     expect(matchSources(choices, "reg")[0].xref).toBe("@B@");
     expect(matchSources(choices, "xyz")).toEqual([]);
-  });
-});
-
-describe("titleFromUrl and autoSource", () => {
-  const choices = [{ xref: "@S1@", title: "FamilySearch" }, { xref: "@S2@", title: "Parish register" }];
-  test("names well-known sites", () => {
-    expect(titleFromUrl("https://www.familysearch.org/ark:/61903/1:1:ABC")).toBe("FamilySearch");
-    expect(titleFromUrl("https://sub.ancestry.com/x")).toBe("Ancestry");
-  });
-  test("unknown hosts show the host without www", () => {
-    expect(titleFromUrl("see https://www.example.org/page?id=1.")).toBe("example.org");
-    expect(titleFromUrl("http://archive.example.org/a")).toBe("archive.example.org");
-  });
-  test("no address, no title", () => {
-    expect(titleFromUrl("p. 12")).toBe("");
-    expect(titleFromUrl("")).toBe("");
-  });
-  test("an existing source of the same title is reused, not duplicated", () => {
-    expect(autoSource(choices, "https://familysearch.org/x")).toBe("@S1@");
-    expect(autoSource(choices, "https://example.org/x")).toBe("example.org");
-    expect(autoSource(choices, "p. 3")).toBe("");
   });
 });

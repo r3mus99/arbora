@@ -99,28 +99,6 @@ export function marriageAnnotations(fam: GedNode, lookup: Lookup): Annotations {
   return mergeAnnotations(annotations(fam, lookup), eventAnnotations(fam, "MARR", lookup));
 }
 
-const KNOWN_SITES: [string, string][] = [["familysearch.org", "FamilySearch"], ["ancestry.com", "Ancestry"], ["ancestry.co.uk", "Ancestry"],
-  ["myheritage.com", "MyHeritage"], ["geni.com", "Geni"], ["findagrave.com", "Find a Grave"], ["wikitree.com", "WikiTree"], ["matricula-online.eu", "Matricula"],
-  ["archive.org", "Internet Archive"], ["wikipedia.org", "Wikipedia"]];
-
-/** A source title from the first web address in the text: the name of a well-known site, otherwise the host without "www."; "" when there is no address.
- * Nothing is fetched, the title comes from the address alone. */
-export function titleFromUrl(text: string): string {
-  const href = linkParts(text).find((p) => p.href)?.href;
-  if (!href) return "";
-  let host: string;
-  try { host = new URL(href).hostname.toLowerCase().replace(/^www\./, ""); } catch { return ""; }
-  if (!host) return "";
-  return KNOWN_SITES.find(([h]) => host === h || host.endsWith(`.${h}`))?.[1] ?? host;
-}
-
-/** The value for an empty source field once a web address is entered as the page: the existing source of that title, otherwise the title as new text. */
-export function autoSource(choices: SourceChoice[], page: string): string {
-  const title = titleFromUrl(page);
-  if (!title) return "";
-  return choices.find((s) => s.title.toLocaleLowerCase() === title.toLocaleLowerCase())?.xref ?? title;
-}
-
 export type TextPart = { text: string; href?: string };
 
 /** The text cut into plain pieces and web addresses (http, https); punctuation after an address stays outside it. */
