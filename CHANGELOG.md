@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.64.0 – 2026-11-01
+
+- **A baby's age is shown in months or days.** Between birth and baptism, or at death, an age under one year is shown in months, and under one month in days, instead of "0 years", in the person's events and on the poster. When the dates cannot tell (a year or a month alone), no age is shown.
+
 ## 2.63.0 – 2026-11-01
 
 - **Parents and children in the person detail show Father/Mother and Son/Daughter.** The timeline rows now read "Father · place", "Mother · place", "Son", "Daughter" (in all 12 languages) instead of "Groom's birth", "Bride's birth", "Son born" and "Daughter born".
