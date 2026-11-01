@@ -1,0 +1,1 @@
+- **A source shown at an event is no longer repeated in "Sources and notes".** The card under the timeline keeps only the sources that are not shown at any event of the person.
