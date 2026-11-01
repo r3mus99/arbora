@@ -632,6 +632,10 @@ section.check { margin: 0 0 14px; }
 .sp-tabs .chart-switch button { flex: 1; }
 .sp .finder { border-top: 1px solid var(--border); }
 .sp-tabs { flex: none; }
+.sp-kinds { flex: none; display: flex; flex-wrap: wrap; gap: var(--gap); padding: 0 var(--pad) var(--pad); }
+button.chip { margin-left: 0; background: var(--panel); color: var(--muted); cursor: pointer; font-family: inherit; }
+button.chip:hover { border-color: var(--accent); }
+button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .sp-list { list-style: none; margin: 0; padding: 4px 0; }
 .sp-list > li { border-bottom: 1px solid var(--border); }
 .sp-list > li.open { background: var(--accent-soft); }

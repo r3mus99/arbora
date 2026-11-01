@@ -1,1 +1,1 @@
-- **Renaming all sources is easier to find and to control.** The Sources panel shows a full-width "Rename all" button with the count, and the preview says "N of M selected" with "Select all" and "Select none".
+- **A person's sources and notes moved from the detail to the sources and notes panel.** The detail is shorter and the name gets more room. When a person is selected, the panel starts filtered to that person; a chip with the name switches the filter off.

@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.81.0 – 2026-11-01
+
+- **A person's sources and notes moved from the detail to the sources and notes panel.** The detail is shorter and the name gets more room. When a person is selected, the panel starts filtered to that person; a chip with the name switches the filter off.
+
+## 2.80.1 – 2026-11-01
+
+- **A source shown at an event is no longer repeated in "Sources and notes".** The card under the timeline keeps only the sources that are not shown at any event of the person.
+
+## 2.80.0 – 2026-11-01
+
+- **Sources can be filtered by the kind of event they are cited under.** In Sources and notes, chips for birth and baptism, death and burial, marriage and other (also citations on the person themselves) show only the sources cited under those events; a source cited under several kinds appears under each.
+
+## 2.79.0 – 2026-11-01
+
+- **Source titles are named by the event and the year.** A source cited under one event gets "Birth Jan Novak (1900)", "Christening …", "Wedding …" with the year of that event in brackets. The title is edited in place in the person detail, with a pencil, and a suggested name is offered when it differs. The bulk rename in the Sources list is gone.
+
 ## 2.78.0 – 2026-11-01
 
 - **Renaming all sources is easier to find and to control.** The Sources panel shows a full-width "Rename all" button with the count, and the preview says "N of M selected" with "Select all" and "Select none".

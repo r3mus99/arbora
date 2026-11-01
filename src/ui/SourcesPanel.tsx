@@ -2,7 +2,7 @@ import { BookMarked, ListFilter, StickyNote } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { GedcomData } from "../core/gedcom";
 import { fold } from "../core/gedcom";
-import type { SourceOverview } from "../core/sources";
+import { SOURCE_KINDS, type SourceKind, type SourceOverview } from "../core/sources";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
 import { CitationFields, Linked } from "./Sources";
@@ -11,10 +11,14 @@ interface Props {
   overview: SourceOverview;
   data: GedcomData;
   onPerson: (id: string) => void;
+  /** the person selected in the tree: their sources and notes are shown first, the rest one click away */
+  personId?: string | null;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
 type Tab = "sources" | "notes";
+
+const KIND_KEY = { birth: "srcKindBirth", death: "srcKindDeath", marriage: "srcKindMarriage", other: "srcKindOther" } as const;
 
 /** The people under one entry, as links. */
 export function People({ ids, data, onPerson, t }: { ids: string[]; data: GedcomData } & Pick<Props, "onPerson" | "t">) {
@@ -25,14 +29,23 @@ export function People({ ids, data, onPerson, t }: { ids: string[]; data: Gedcom
 }
 
 /** Overview of all sources (with the people citing them) and all notes of the file, read-only. */
-export function SourcesPanel({ overview, data, onPerson, t }: Props) {
+export function SourcesPanel({ overview, data, onPerson, personId = null, t }: Props) {
   const [tab, setTab] = useState<Tab>("sources");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<string | null>(null);
+  const [kinds, setKinds] = useState<SourceKind[]>([]);
+  // on by default whenever a person is selected; the chip switches it off to see the whole file
+  const [allFile, setAllFile] = useState(false);
+  const scoped = personId !== null && !allFile;
+  const personName = personId ? data.people[personId]?.name || "?" : "";
   const q = fold(query.trim());
-  const sources = useMemo(() => overview.sources.filter((s) => !q
-    || fold([s.citation.title, s.citation.author, s.citation.publication, s.citation.repository].join(" ")).includes(q)), [overview, q]);
-  const notes = useMemo(() => overview.notes.filter((n) => !q || fold(n.text).includes(q)), [overview, q]);
+  // how many sources are cited under each kind of event; a filter only makes sense with at least two kinds in the file
+  const kindCounts = useMemo(() => SOURCE_KINDS.map((k) => ({ kind: k, n: overview.sources.filter((s) => s.kinds.includes(k)).length })).filter((k) => k.n), [overview]);
+  const sources = useMemo(() => overview.sources.filter((s) => (!scoped || s.people.includes(personId!))
+    && (!kinds.length || kinds.some((k) => s.kinds.includes(k))) && (!q
+    || fold([s.citation.title, s.citation.author, s.citation.publication, s.citation.repository].join(" ")).includes(q))), [overview, q, kinds, scoped, personId]);
+  const toggleKind = (k: SourceKind) => { setKinds(kinds.includes(k) ? kinds.filter((x) => x !== k) : [...kinds, k]); setOpen(null); };
+  const notes = useMemo(() => overview.notes.filter((n) => (!scoped || n.people.includes(personId!)) && (!q || fold(n.text).includes(q))), [overview, q, scoped, personId]);
   const toggle = (key: string) => setOpen(open === key ? null : key);
   const shown = tab === "sources" ? sources.length : notes.length;
   const empty = !overview.sources.length && !overview.notes.length;
@@ -50,6 +63,15 @@ export function SourcesPanel({ overview, data, onPerson, t }: Props) {
             ))}
           </div>
         </div>
+        {tab === "sources" && kindCounts.length > 1 && <div className="sp-kinds" role="group" aria-label={t("event")}>
+          {kindCounts.map(({ kind, n }) => (
+            <button key={kind} type="button" className="chip" aria-pressed={kinds.includes(kind)} onClick={() => toggleKind(kind)}>
+              {t(KIND_KEY[kind])} {n}</button>
+          ))}
+        </div>}
+        {personId !== null && <div className="sp-kinds" role="group" aria-label={personName}>
+          <button type="button" className="chip" aria-pressed={scoped} onClick={() => setAllFile(scoped)}>{personName}</button>
+        </div>}
         <div className="finder">
           <ListFilter className="icon" aria-hidden="true" />
           <input type="search" placeholder={t("srcFilter")} autoComplete="off" value={query}
