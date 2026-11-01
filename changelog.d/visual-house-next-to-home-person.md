@@ -1,0 +1,1 @@
+- **The home person box sets the selected person as the home person, with one click.** The house button beside it appears once a home person is set and goes to that person.

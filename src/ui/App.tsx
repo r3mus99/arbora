@@ -142,9 +142,7 @@ export function App() {
   const [chosenTool, setTool] = useState<"people" | "check" | "fix" | "overview" | "sources" | "places" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
   const tool = narrow ? "people" : chosenTool;
   const listOpen = tool === "people", showCheck = tool === "check", showFix = tool === "fix", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
-  // true while the people list is open to choose the home person: the next click on a person sets it
-  const [pickingHome, setPickingHome] = useState(false);
-  const showList = (on: boolean) => { setPickingHome(false); setTool(on ? "people" : null); updateStore({ listOpen: on }); };
+  const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
   const setShowFix = (on: boolean) => setTool(on ? "fix" : listOpen ? "people" : null);
   const setShowOverview = (on: boolean) => setTool(on ? "overview" : listOpen ? "people" : null);
@@ -623,10 +621,7 @@ export function App() {
   };
   /** a click on the selected person in the chart or in a list of people deselects it, which closes the detail */
   const deselect = () => { setFocusId(null); setJumpRow(null); };
-  const pickListed = (id: string) => {
-    if (pickingHome) { setMarks((m) => changeHome(m, id)); setPickingHome(false); return; }
-    if (id === focusId) deselect(); else pick(id);
-  };
+  const pickListed = (id: string) => { if (id === focusId) deselect(); else pick(id); };
   const star = (id: string) => setMarks((m) => toggleFav(m, id));
 
   return (
@@ -642,20 +637,14 @@ export function App() {
             <strong>{loadedName === null ? t("sampleName") : loadedName}</strong>
             <span className="count"><Users className="icon" aria-hidden="true" />{Object.keys(data.people).length}</span>
           </FileDrop>}
-          {data && <button type="button" className={`home-chip${homeId ? "" : " empty"}${pickingHome ? " on" : ""}`}
-                           aria-pressed={pickingHome}
-                           onClick={() => {
-                             // no home person yet and one is selected: that person becomes the home person at once
-                             if (!homeId && focusId) { setMarks((m) => changeHome(m, focusId)); return; }
-                             showList(true); setPickingHome(true);
-                           }}
+          {data && <button type="button" className={`home-chip${homeId ? "" : " empty"}`} disabled={!focusId}
+                           onClick={() => { if (focusId) setMarks((m) => changeHome(m, focusId)); }}
                            title={t("homeSet")} aria-label={t("homeSet")}>
             <User className="icon" aria-hidden="true" />
             <strong>{homeId ? data.people[homeId].name || "?" : t("homeSet")}</strong>
           </button>}
-          {data && <button type="button" className="icon-btn" disabled={!homeId} onClick={() => homeId && makeRoot(homeId)}
-                  title={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}
-                  aria-label={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}>
+          {data && homeId && <button type="button" className="icon-btn" onClick={() => makeRoot(homeId)}
+                  title={t("returnHome", { name: data.people[homeId].name || "?" })} aria-label={t("returnHome", { name: data.people[homeId].name || "?" })}>
             <Home className="icon" aria-hidden="true" /></button>}
           {data && statusText && <span className={status?.err ? "status err" : "status"} role="status">{statusText}</span>}
           <div className="head-tools">
