@@ -1,1 +1,1 @@
-- **A source with a page or link but no source title is no longer lost on Save.** Save now waits and marks the empty source field, instead of silently dropping the citation.
+- **Notes under events can be edited.** The Details of a birth, christening, death, burial, other event, marriage or divorce now has a multi-line Note field; a link to a shared note record is left untouched.
