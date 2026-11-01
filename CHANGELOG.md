@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.80.1 – 2026-11-01
+
+- **A source shown at an event is no longer repeated in "Sources and notes".** The card under the timeline keeps only the sources that are not shown at any event of the person.
+
 ## 2.80.0 – 2026-11-01
 
 - **Sources can be filtered by the kind of event they are cited under.** In Sources and notes, chips for birth and baptism, death and burial, marriage and other (also citations on the person themselves) show only the sources cited under those events; a source cited under several kinds appears under each.
