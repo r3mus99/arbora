@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
-import { FileDown, FileText, FileImage, FileUp, Home, LayoutDashboard,
+import { FileDown, FileText, FileImage, FileUp, Home, LayoutDashboard, Pin,
          Loader2, BookMarked, History, Trash2, Clock, ListChecks, MapPin, Redo2, Replace, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
@@ -645,6 +645,10 @@ export function App() {
                       title={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}
                       aria-label={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}>
                 <Home className="icon" aria-hidden="true" /></button>
+              <button type="button" className={`icon-btn${focusId && homeId === focusId ? " on" : ""}`} disabled={!focusId}
+                      aria-pressed={!!focusId && homeId === focusId} onClick={() => focusId && setHome(homeId === focusId ? null : focusId)}
+                      title={t(focusId && homeId === focusId ? "homeUnset" : "homeSet")} aria-label={t(focusId && homeId === focusId ? "homeUnset" : "homeSet")}>
+                <Pin className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn" disabled={!canUndo(edits)} onClick={() => undoRedo(-1)}
                       title={withShortcut(t("undo"), "undo", MAC)} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn" disabled={!canRedo(edits)} onClick={() => undoRedo(1)}
@@ -788,8 +792,7 @@ export function App() {
                         onFocus={(id) => id === focusId ? deselect() : focus(id, false)} onToggle={toggle}
                         onJump={(r) => jump(r.targetIndex)} t={t} />
             </div>}
-            {focusId && <SourceEditContext.Provider value={srcEdit}><PersonDetail key={focusId} data={data} id={focusId} starred={favourites.has(focusId)}
-                                      onStar={() => star(focusId)} homeId={homeId} onSetHome={setHome}
+            {focusId && <SourceEditContext.Provider value={srcEdit}><PersonDetail key={focusId} data={data} id={focusId} homeId={homeId}
                                       record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} onChange={commit} suggest={suggest}
                                       onEdit={() => setWindowId(focusId)} onBack={deselect} t={t} /></SourceEditContext.Provider>}
