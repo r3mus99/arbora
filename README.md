@@ -111,8 +111,7 @@ between relatives) is written out only once; later occurrences refer to it.
    place, religion, occupation, note) can also be changed in place.
 6. A repeated ancestor shows a link **see no. X** instead of their branch (with
    Ahnentafel or d'Aboville numbering, otherwise **see above / below**) that
-   jumps to the written-out branch and highlights it. The arrows next to the
-   title (or Alt+← / Alt+→) go back and forward through the people you viewed.
+   jumps to the written-out branch and highlights it.
 7. The chart and the PDF share all settings, so the PDF matches the chart.
 8. **PDF** creates the PDF and **SVG** the tree poster; both download at once.
 
@@ -262,7 +261,7 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),
                     edit window (EditWindow, PersonEditor), icon-rail tools (people, overview, file check,
                     changes, sources, places, settings), UI translations (i18n.ts) and flags; the logic that
-                    needs no DOM is in history.ts (undo, back/forward) and options.ts, with tests
+                    needs no DOM is in history.ts (undo, redo) and options.ts, with tests
 public/             static files: DejaVu Sans and Alkatra fonts, sample GEDCOM and PDFs, licenses
 ```
 

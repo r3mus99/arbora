@@ -97,7 +97,7 @@ No other radius, height or padding number is used for a control. Dialogs use `--
   SlidersHorizontal = settings (tool bar), FileDown = save GED, FileText = save PDF, Undo2 / Redo2 = history, X = close or remove,
   MapPin = place, Clock = recent people, Star = favourite person (the generic event in the timeline is CalendarDays). Do not reuse an icon for a different meaning (the old file-check wand and the overview's
   shield must not be mixed).
-- Icon-only buttons always have `title` (tooltip) and `aria-label` with the same text, and a shortcut in the title when there is one.
+- Icon-only buttons always have `title` (tooltip) and `aria-label` with the same text.
 - A full date in the detail (day, month and year) has the weekday as its native `title` tooltip (`weekdayTip` in `core/format.ts`, language of the app); an editable date shows it instead of "Date". Years, months, "about" and ranges have none.
 
 ## 6. Controls
@@ -169,10 +169,10 @@ Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexi
 - **Settings panel** (`SettingsPanel`): one `.set-group` on the `--bg` panel body, no headings and no legend: every setting applies to the chart on the screen, the PDF and the SVG poster alike, so none says where it applies. Order: the Ancestors / Descendants switch (`.chart-switch.set-kind`), the generations (segmented 3 to 10 and "all", `.set-gens`, with a one-line `.set-hint` that the poster draws at most 10), then the numbering (it depends on the chart kind), labels, dates and the places checkbox. A choice of a few numbers is the segmented switch, not a select. A checkbox label is a short phrase; its explanation is the tooltip. The tree toolbar above the chart has no controls of its own, only `.chart-summary` ("Ancestors · 4 generations", `--radius-pill`, a sliders icon) which opens the Settings panel. Options that only make sense for a bigger poster (end the branch at a repeated person, corner lists: five generations or more) are hidden below that, and ignored there.
 - **Tree poster**: not a mini-app. Its download is the SVG button in the top bar after GED and PDF (same `.icon-btn.save-btn`, a file-image icon, tooltip = title plus hint). Its few settings (generations, end branch at a repeated person, corner lists) are the last group of the settings panel; every click draws new branches.
 
-## 7b. Motion and keyboard shortcuts
+## 7b. Motion
 
 - **Motion** is short and only helps the eye follow what changed: a tool panel slides in from the left, the edit window and the wide tool panels from the right, the detail fades in when another person is chosen (`--motion`, .16 s, opacity and a few pixels of movement). Never animate the width of a column or the rows of the tree and the lists. Every animation uses `--motion`, and under `prefers-reduced-motion: reduce` the token is 0 and the animations are off. The busy spinner keeps turning, because it says "working".
-- **Shortcuts** (`src/ui/shortcuts.ts`, ⌘ on a Mac, Ctrl elsewhere): ⌘Z undo, ⇧⌘Z / Ctrl+Y redo, ⌘F search in the list of people, ⌘S download the GED, ⌘, settings. Undo and redo are left to a text field that has the focus. The others work with a file open on a wide screen and not while the edit window is open (its fields are not part of the file yet). On a phone or small tablet (below 900 px) there are no shortcuts. The tooltip of a button that has a shortcut ends with it in brackets, e.g. "Settings (⌘,)"; a new shortcut goes into `shortcuts.ts` with a test and into its button's tooltip. Do not take a shortcut the browser needs for text (⌘A, C, V, X) or for the page (⌘W, T, R, L).
+- **No keyboard shortcuts**. Every action is a visible button; the browser keeps its own keys (Ctrl+Z in a text field, Ctrl+S, Ctrl+F).
 
 ## 8. Tree view and detail
 

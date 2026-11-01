@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileImage, FileUp, Home, LayoutDashboard, User,
@@ -18,7 +18,7 @@ import { SourceWindow } from "./SourceWindow";
 import { placeOverview } from "../core/placelist";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
-import { NO_BROWSING, NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move as moveIn, replay, startEdits, stepEdits, unsavedChanges, visit, withRecords, type Browsing, type Doc, type Edits, type Op, type Place } from "./history";
+import { NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, replay, startEdits, stepEdits, unsavedChanges, withRecords, type Doc, type Edits, type Op } from "./history";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { gensSummary, storedOptions, toForm, toOptions, withOption, type Form } from "./options";
 import { ChangesPanel } from "./ChangesPanel";
@@ -42,7 +42,6 @@ import { SettingsPanel } from "./SettingsPanel";
 import { clearLog, fingerprint, forgetFile, recallFile, recallLog, rememberFile, saveLog, type EditLog } from "./lastFile";
 import { readStore, updateStore } from "./store";
 import { TreeView } from "./TreeView";
-import { isMac, shortcutOf, withShortcut, worksInField } from "./shortcuts";
 
 type Vars = Record<string, string | number>;
 const fill = (s: string, vars: Vars) => s.replace(/\{(\w+)\}/g, (_, k: string) => (k in vars ? String(vars[k]) : `{${k}}`));
@@ -87,7 +86,6 @@ async function loadAlkatra() {
 
 /** the width up to which the app shows the list and the detail one at a time, see docs/design-guidelines.md */
 const NARROW = "(max-width: 900px)";
-const MAC = isMac();
 
 export function App() {
   const [lang, setLang] = useState<Lang>(() => {
@@ -117,7 +115,6 @@ export function App() {
   const [treeScroll, setTreeScroll] = useState(0);
   // row to scroll to and highlight after "see no. X"
   const [jumpRow, setJumpRow] = useState<number | null>(null);
-  const [hist, setHist] = useState<Browsing>(NO_BROWSING);
   const [query, setQuery] = useState("");
   // recently visited, favourite and home people of this file, kept in the browser only
   const [marks, setMarks] = useState<Marks>(NO_MARKS);
@@ -279,7 +276,6 @@ export function App() {
     setMarks(visited(marksOf(readStore().marks, fileKey(name)), root));
     setMarkedFor(root);
     setJumpRow(null);
-    setHist({ list: [{ root, focus: root }], at: 0 });
     setScrollKey((k) => k + 1);
     setTreeScroll((k) => k + 1);
     resetResult();
@@ -458,8 +454,6 @@ export function App() {
     return () => window.removeEventListener("beforeunload", onLeave);
   }, [dirty]);
 
-  const remember = (place: Place) => setHist((h) => visit(h, place));
-
   // a person shown in the detail counts as visited; the marks are saved per file
   const markKey = fileKey(loadedName);
   const [markedFor, setMarkedFor] = useState(selectedId);
@@ -479,7 +473,6 @@ export function App() {
     setJumpRow(null);
     setTreeScroll((k) => k + 1);
     updateStore({ root: id });
-    remember({ root: id, focus: id });
   };
   const chosen = selectedId && data ? data.people[selectedId] : null;
 
@@ -492,49 +485,6 @@ export function App() {
     if (target.personId) pick(target.personId);
     setJumpRow(index);
   };
-  const move = (step: number) => {
-    const arrived = moveIn(hist, step);
-    if (!arrived || !data?.people[arrived.place.root]) return;
-    const { place } = arrived;
-    setHist(arrived.browsing);
-    setSelectedId(place.root);
-    setSelectedId(place.focus);
-    setJumpRow(null);
-    updateStore({ root: place.root });
-    setTreeScroll((k) => k + 1);
-  };
-  // Alt + arrow, as in the browser; ⌘/Ctrl + Z, Y, F, S and , (src/ui/shortcuts.ts). An effect event always sees the current state.
-  const onKey = useEffectEvent((e: KeyboardEvent) => {
-    const action = e.defaultPrevented ? null : shortcutOf(e, MAC);
-    if (action) {
-      // undo and redo stay with a text field, where they undo typing; the others only work with a file open, on a wide screen and
-      // outside the edit window (its fields are not part of the file yet)
-      const field = e.target instanceof HTMLElement && e.target.closest("input, textarea, select");
-      if (field && !worksInField(action)) return;
-      if (action === "undo" || action === "redo") {
-        e.preventDefault();
-        undoRedo(action === "redo" ? 1 : -1);
-        return;
-      }
-      if (!data || narrow || windowId) return;
-      e.preventDefault();
-      if (action === "find") {
-        showList(true);
-        finderRef.current?.focus();
-        finderRef.current?.select();
-      } else if (action === "save") downloadGedcom();
-      else setShowSettings(!showSettings);
-      return;
-    }
-    if (!e.altKey || e.ctrlKey || e.metaKey || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
-    e.preventDefault();
-    move(e.key === "ArrowLeft" ? -1 : 1);
-  });
-  useEffect(() => {
-    const handle = (e: KeyboardEvent) => onKey(e);
-    window.addEventListener("keydown", handle);
-    return () => window.removeEventListener("keydown", handle);
-  }, []);
   const makeRoot = (id: string) => {
     select(id);
     setScrollKey((k) => k + 1);
@@ -584,11 +534,11 @@ export function App() {
           <div className="head-tools">
             {data && <div className="tools" role="toolbar">
               <button type="button" className="icon-btn" disabled={!canUndo(edits)} onClick={() => undoRedo(-1)}
-                      title={withShortcut(t("undo"), "undo", MAC)} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
+                      title={t("undo")} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn" disabled={!canRedo(edits)} onClick={() => undoRedo(1)}
-                      title={withShortcut(t("redo"), "redo", MAC)} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
+                      title={t("redo")} aria-label={t("redo")}><Redo2 className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn save-btn" onClick={downloadGedcom}
-                      title={`${withShortcut(t("exportGed"), "save", MAC)}${dirty ? ` (${unsavedText})` : ""}. ${t("exportTip")}`}
+                      title={`${t("exportGed")}${dirty ? ` (${unsavedText})` : ""}. ${t("exportTip")}`}
                       aria-label={dirty ? `${t("exportGed")} (${unsavedText})` : t("exportGed")}>
                 <FileDown className="icon" aria-hidden="true" />
                 GED{dirty && <span className="badge" aria-hidden="true">{changes > 99 ? "99+" : changes}</span>}</button>
@@ -640,7 +590,7 @@ export function App() {
             <div className="side">
               <nav className="toolbar" aria-label={t("showList")}>
                 <button type="button" className={listOpen ? "on" : undefined} aria-pressed={listOpen}
-                        title={listOpen ? t("hideList") : withShortcut(t("showList"), "find", MAC)} aria-label={t(listOpen ? "hideList" : "showList")}
+                        title={listOpen ? t("hideList") : t("showList")} aria-label={t(listOpen ? "hideList" : "showList")}
                         onClick={() => showList(!listOpen)}><Search className="icon" aria-hidden="true" /></button>
                 <button type="button" className={showRecent ? "on" : undefined} aria-pressed={showRecent}
                         title={t("recent")} aria-label={t("recent")} onClick={() => setShowRecent(!showRecent)}>
@@ -663,7 +613,7 @@ export function App() {
                         title={`${t("changes")}: ${changes}`} aria-label={t("changes")} onClick={() => setShowChanges(!showChanges)}>
                   <ListChecks className="icon" aria-hidden="true" />{changes > 0 && <span className="badge">{changes > 99 ? "99+" : changes}</span>}</button>}
                 <button type="button" className={showSettings ? "on" : undefined} aria-pressed={showSettings}
-                        title={withShortcut(t("settings"), "settings", MAC)} aria-label={t("settings")} onClick={() => setShowSettings(!showSettings)}>
+                        title={t("settings")} aria-label={t("settings")} onClick={() => setShowSettings(!showSettings)}>
                   <SlidersHorizontal className="icon" aria-hidden="true" /></button>
               </nav>
               {showOverview && stats && <aside className="rail-wrap ov-wrap" aria-label={t("overview")}>
