@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.96.1 – 2026-11-01
+
+- **The map link is gone.** Events no longer show a pin that opened the place on a map; the places in the file, including any coordinates, are kept untouched.
+
 ## 2.96.0 – 2026-11-01
 
 - **The tree no longer has collapsible branches.** The − / + on the connector, the "+N" count and Shift-click for a whole generation are gone; the chart always shows the whole tree, as the PDF does.
