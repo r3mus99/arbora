@@ -134,6 +134,8 @@ describe("sourceTitle", () => {
   test("a source of the person itself", () => { expect(sourceTitle("sk", "person", "Jan Novak")).toBe("Osoba Jan Novak"); });
   test("every language has all six words", () => {
     for (const l of SOURCE_TITLE_LANGS) for (const e of ["person", "birth", "christening", "death", "burial", "marriage", "divorce"]) expect(sourceTitle(l, e)).not.toBe(e);
+  });
+});
 
 describe("citation links", () => {
   const cite = (over: Partial<Citation>): Citation => ({ title: "", author: "", publication: "", repository: "", page: "", text: "", notes: [], ...over });
