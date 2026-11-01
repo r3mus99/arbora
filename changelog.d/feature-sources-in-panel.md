@@ -1,1 +1,0 @@
-- **Sources are edited in the Sources panel only.** A source's title, author, publication, notes and web links are changed there, and the timeline shows the same text. The person's edit window no longer lists sources; a source is cited for a person or for their birth, christening, death or burial from the panel. Citations already in the file are kept as they are.
