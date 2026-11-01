@@ -47,10 +47,10 @@ describe("person detail timeline", () => {
     }));
 
     expect(html).toContain(
-      'class="tl-date"><span>1918</span> · <span class="person-ref"><button class="link person" type="button">Bob Sample</button></span></div><div class="tl-what">Marriage<span> · at 18</span></div>',
+      'class="tl-date"><span>1918</span> · <span class="person-ref"><button class="link person" type="button">Bob Sample</button></span></div><div class="tl-what">Marriage<span> · at 18 y.</span></div>',
     );
     expect(html).toContain(
-      'class="tl-date"><span>1920</span> · <span class="person-ref"><button class="link person" type="button">Child Sample</button></span></div><div class="tl-what">Child born<span> · at 20</span></div>',
+      'class="tl-date"><span>1920</span> · <span class="person-ref"><button class="link person" type="button">Child Sample</button></span></div><div class="tl-what">Child born<span> · at 20 y.</span></div>',
     );
   });
 
@@ -64,8 +64,8 @@ describe("person detail timeline", () => {
       t: (key: StringKey) => STRINGS.en[key] ?? key,
     }));
     expect(html).toContain("<span>1900 · </span>");
-    expect(html).toContain('<div class="tl-what">Bride&#x27;s birth<span> · Brno</span></div>');
-    expect(html).toContain('<div class="tl-what">Groom&#x27;s birth</div>');
+    expect(html).toContain('<div class="tl-what">Mother<span> · Brno</span></div>');
+    expect(html).toContain('<div class="tl-what">Father</div>');
     expect(html).toContain("Bob</button> (16y)</span> &amp; <span class=\"person-ref\"><button class=\"link person\" type=\"button\">Alice</button> (18y)");
   });
 

@@ -297,6 +297,13 @@ describe("poster age and title", () => {
     expect(dates("ABT 1907", "12 MAR 1986")).toContain(", 79 y.");
     expect(dates("1907", "1900")).not.toContain(" y.");
     expect(dates("1907", "")).not.toContain(" y.");
+    expect(dates("1907", "1907")).not.toContain(" y."); // under a year and the dates cannot tell more
+  });
+
+  test("a baby has its age in months or days, when the dates tell it", () => {
+    expect(dates("5 MAR 1907", "20 AUG 1907")).toContain(", 5 mo.");
+    expect(dates("5 MAR 1907", "20 AUG 1907", "sk")).toContain(", 5 mes.");
+    expect(dates("5 MAR 1907", "11 MAR 1907")).toContain(", 6 d.");
   });
 
   test("the title stands in its own frame with the number of ancestors and generations under it", () => {
@@ -741,7 +748,7 @@ describe("poster places line on the big plates", () => {
     const lines = on.texts.filter((t) => t.y > root.y - root.h / 2 && t.y < root.y + root.h / 2 + 1 && Math.abs(t.x - root.x) < root.w / 2);
     const by = (text: string) => lines.find((t) => t.text === text);
     expect(by("*1887")?.fill).toBe(POSTER_COLORS.birth);
-    expect(by("\u20201922, 35 y.")?.fill).toBe(POSTER_COLORS.death);
+    expect(by("\u20201922, 34 y.")?.fill).toBe(POSTER_COLORS.death);
     const places = by("* Persenbeug Castle   \u2020 Funchal")!;
     expect(places.fill).toBe(POSTER_COLORS.place);
     expect(places.y).toBeGreaterThan(by("*1887")!.y);

@@ -1,1 +1,1 @@
-- **Downloaded PDF and poster file names now contain the person, ancestors or descendants and the number of generations** (e.g. `maria-theresia_ancestors_7g.pdf`).
+- **A baby's age is shown in months or days.** Between birth and baptism, or at death, an age under one year is shown in months, and under one month in days, instead of "0 years", in the person's events and on the poster. When the dates cannot tell (a year or a month alone), no age is shown.
