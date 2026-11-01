@@ -1,1 +1,0 @@
-- **Sources in the edit window show more.** A cited source now wraps its full title instead of cutting it, and shows the source's web link or publication line and the citation's note under it (read only).

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.69.0 – 2026-11-01
+
+- **Sources in the edit window show more.** A cited source now wraps its full title instead of cutting it, and shows the source's web link or publication line and the citation's note under it (read only).
+
 ## 2.68.0 – 2026-11-01
 
 Source citations can now be added and edited under the marriage and the divorce in the edit window, the same way as under other events.

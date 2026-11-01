@@ -1,1 +1,1 @@
-Source citations can now be added and edited under the marriage and the divorce in the edit window, the same way as under other events.
+- **Sources in the edit window show more.** A cited source now wraps its full title instead of cutting it, and shows the source's web link or publication line and the citation's note under it (read only).
