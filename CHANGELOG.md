@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.85.0 – 2026-11-01
+
+- **The return-home house sits right after the home person box in the top bar.** It is no longer among the undo and save buttons.
+- **Clicking the home person box sets the selected person at once when no home person is set yet.** With a home person set, the click opens the list of people to choose another.
+
 ## 2.84.0 – 2026-11-01
 
 - **Sources in the edit window start folded and are visually separated.** Each source is its own bordered card showing just the source and its link; Page and Reliability open with the Details button. Editing, removing and "Add source" work as before.
