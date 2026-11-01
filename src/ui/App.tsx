@@ -793,8 +793,8 @@ export function App() {
                         onJump={(r) => jump(r.targetIndex)} t={t} />
             </div>}
             {focusId && <SourceEditContext.Provider value={srcEdit}><PersonDetail key={focusId} data={data} id={focusId} homeId={homeId}
-                                      record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
-                                      onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} onChange={commit} suggest={suggest}
+                                      record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} lang={lang}
+                                      onFocus={(id) => focus(id, true)} onChange={commit} suggest={suggest}
                                       onEdit={() => setWindowId(focusId)} onBack={deselect} t={t} /></SourceEditContext.Provider>}
             </>}
         </div>}

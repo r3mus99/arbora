@@ -1,5 +1,5 @@
 import {
-  Award, Baby, Briefcase, Church, Cross, Crosshair, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Pencil,
+  Award, Baby, Briefcase, Church, Cross, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Pencil,
   ChevronLeft, StickyNote, CalendarDays, Tag, Users, type LucideIcon,
 } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
@@ -30,12 +30,10 @@ interface Props {
   lookup: Lookup;
   /** the people whose ASSO lines name this person */
   inbound: Association[];
-  rootId: string;
   /** the home person: the people on the way from them to this one are marked */
   homeId: string | null;
   lang: Lang;
   onFocus: (id: string) => void;
-  onMakeRoot: (id: string) => void;
   /** inline edits: the changed records, one undo step each */
   onChange: (changed: GedNode[]) => void;
   /** surnames and places in the file, offered while typing */
@@ -63,7 +61,7 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, lookup, inbound, rootId, homeId, lang, onFocus, onMakeRoot, onChange, suggest, onEdit, onBack, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, onFocus, onChange, suggest, onEdit, onBack, t }: Props) {
   const p = data.people[id];
   const homeAncestors = useMemo(() => {
     const generations = new Map<string, number>();
@@ -260,9 +258,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, homeId
         <div className="tools">
           <button type="button" className="icon-btn" onClick={onEdit} title={t("edit")} aria-label={t("edit")}>
             <Pencil className="icon" aria-hidden="true" /></button>
-          {id !== rootId && <button type="button" className="icon-btn" onClick={() => onMakeRoot(id)}
-                                    title={t("makeRoot")} aria-label={t("makeRoot")}>
-            <Crosshair className="icon" aria-hidden="true" /></button>}
         </div>
       </div>
       {live && <SuggestLists suggest={suggest} lang={lang} />}
