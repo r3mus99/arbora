@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.78.0 – 2026-11-01
+
+- **Renaming all sources is easier to find and to control.** The Sources panel shows a full-width "Rename all" button with the count, and the preview says "N of M selected" with "Select all" and "Select none".
+
 ## 2.77.0 – 2026-11-01
 
 - **Sources show every filled field, no Details fold-out.** Under the source title the person detail and the Sources panel list the page, author, publication, repository and quality as short labelled lines, web addresses as chips, and skip text that only repeats another line; the file itself is never changed.
