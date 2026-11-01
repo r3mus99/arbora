@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.67.0 – 2026-11-01
+
+- **The sex symbol stays beside the name in the person detail heading.** It no longer drops onto a line of its own; a long name wraps and the symbol stays next to it.
+
 ## 2.66.0 – 2026-11-01
 
 - **Add a source to any event.** In the edit window, birth, christening, death, burial and every other event now have an "Add source" button: pick a source and put the page or a web link to the record in the Page field. Existing citations under events can be edited too; everything else in the file stays untouched.

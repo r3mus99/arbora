@@ -1,1 +1,0 @@
-- **The sex symbol stays beside the name in the person detail heading.** It no longer drops onto a line of its own; a long name wraps and the symbol stays next to it.
