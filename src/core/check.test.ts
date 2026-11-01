@@ -122,12 +122,13 @@ describe("surname endings", () => {
     expect(issues.map((i) => [i.kind, i.fixable])).toEqual([["surnameNotMale", false]]);
   });
 
-  test("a file without the habit is not checked, and Polish endings are", () => {
+  test("a file without the habit is not checked", () => {
     expect(kinds(wrap(person(1, "Mary", "Smith", "F") + person(2, "Anna", "Nový", "F")))).toEqual([]);
+  });
+
+  test("Polish endings are not checked", () => {
     const pl = person(1, "Anna", "Kowalska", "F") + person(2, "Ewa", "Nowacka", "F") + person(3, "Maria", "Zielińska", "F");
-    const issues = checkGedcom(parseGedcom(wrap(pl + person(4, "Ola", "Wiśniewski", "F") + person(5, "Jan", "Kowalska", "M"))))
-      .filter((i) => i.kind.startsWith("surname"));
-    expect(issues.map((i) => [i.kind, i.person])).toEqual([["surnameNotFemale", "@I4@"], ["surnameNotMale", "@I5@"]]);
+    expect(run(pl + person(4, "Ola", "Wiśniewski", "F") + person(5, "Jan", "Kowalska", "M"))).toEqual([]);
   });
 });
 

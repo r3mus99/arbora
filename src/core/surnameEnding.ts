@@ -1,6 +1,6 @@
 /**
  * Whether a surname has the ending that fits the person's sex, for languages where the two differ
- * (Slovak and Czech Kováč / Kováčová and Nový / Nová, Polish Kowalski / Kowalska). Each language is
+ * (Slovak and Czech Kováč / Kováčová and Nový / Nová). Each language is
  * one rule in `RULES`; a rule applies to a file only when the file shows the habit (see `evidence`),
  * so a file in another language, or with another habit, gets no false alarms.
  */
@@ -35,18 +35,7 @@ const slovakCzech: Rule = {
   },
 };
 
-/** Polish: -ski / -cki / -dzki for a man, -ska / -cka / -dzka for a woman. */
-const polish: Rule = {
-  evidence: /(sk|ck|dzk)a$/i,
-  forWoman(s) {
-    return /(sk|ck|dzk)i$/i.test(s) ? { wrong: true, fixes: [s.replace(/i$/i, (m) => (m === "I" ? "A" : "a"))] } : NONE;
-  },
-  forMan(s) {
-    return /(sk|ck|dzk)a$/i.test(s) ? { wrong: true, fixes: [s.replace(/a$/i, (m) => (m === "A" ? "I" : "i"))] } : NONE;
-  },
-};
-
-const RULES: Rule[] = [slovakCzech, polish];
+const RULES: Rule[] = [slovakCzech];
 
 export interface SurnameVerdict {
   /** the surname does not fit the sex */
@@ -72,8 +61,8 @@ export function surnameJudge(people: { surname: string; sex: string }[]): (surna
       // a fix is offered only when the file has the form already, spelled that way
       const fix = v.fixes.map((f) => known.get(f.toLowerCase())).find((f) => f && f !== surname) || "";
       // a woman with a plain consonant surname is flagged only when her form is there; the rest could be a foreign name
-      if (sex === "F" && !fix && !surname.toLowerCase().endsWith("ý") && !/(sk|ck|dzk)i$/i.test(surname)) continue;
-      return { wrong: true, fix: fix || (sex === "F" && /ý$|(sk|ck|dzk)i$/i.test(surname) ? v.fixes[0] : "") };
+      if (sex === "F" && !fix && !surname.toLowerCase().endsWith("ý")) continue;
+      return { wrong: true, fix: fix || (sex === "F" && /ý$/i.test(surname) ? v.fixes[0] : "") };
     }
     return null;
   };
