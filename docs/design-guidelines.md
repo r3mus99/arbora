@@ -98,6 +98,7 @@ No other radius, height or padding number is used for a control. Dialogs use `--
   MapPin = place, Clock = recent people, Star = favourite person (the generic event in the timeline is CalendarDays). Do not reuse an icon for a different meaning (the old file-check wand and the overview's
   shield must not be mixed).
 - Icon-only buttons always have `title` (tooltip) and `aria-label` with the same text, and a shortcut in the title when there is one.
+- A full date in the detail (day, month and year) has the weekday as its native `title` tooltip (`weekdayTip` in `core/format.ts`, language of the app); an editable date shows it instead of "Date". Years, months, "about" and ranges have none.
 
 ## 6. Controls
 

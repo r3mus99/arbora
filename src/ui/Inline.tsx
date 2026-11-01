@@ -11,13 +11,15 @@ interface Props {
   /** called once when editing ends by Enter or by leaving the fields; false = Esc */
   onClose: (commit: boolean) => void;
   className?: string;
+  /** tooltip of the value at rest when it says more than the label, e.g. the weekday of a date */
+  restTip?: string;
 }
 
 /**
  * Enter or leaving the group of fields commits, Esc cancels. While open, the fields are in a
  * wrapper that tells blur between moving to another field of the group and leaving it.
  */
-export function Inline({ children, label, edit, onClose, className }: Props) {
+export function Inline({ children, label, edit, onClose, className, restTip }: Props) {
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLSpanElement>(null);
   const closed = useRef(false);
@@ -29,7 +31,7 @@ export function Inline({ children, label, edit, onClose, className }: Props) {
     onClose(commit);
   };
   if (!open) {
-    return <button type="button" className={`inline-value${className ? ` ${className}` : ""}`} title={label} aria-label={label}
+    return <button type="button" className={`inline-value${className ? ` ${className}` : ""}`} title={restTip || label} aria-label={label}
                    onClick={() => setOpen(true)}>{children}</button>;
   }
   return <span ref={box} className={`inline-fields${className ? ` ${className}` : ""}`}
@@ -70,16 +72,18 @@ export function InlineName({ given, surname, label, givenLabel, surnameLabel, gi
 }
 
 /** One text value (a date, a place) edited in place; `value` is what the field starts with, `children` how it is shown. */
-export function InlineText({ value, label, list, hint, tip, onCommit, children }: {
+export function InlineText({ value, label, list, hint, tip, restTip, onCommit, children }: {
   value: string; label: string; list?: string; onCommit: (value: string) => void; children: ReactNode;
   /** a line under the field while it is edited, e.g. how a typed date is understood */
   hint?: (typed: string) => { text: string; warn: boolean } | null;
   /** tooltip of the open field, when it says more than the label */
   tip?: string;
+  /** tooltip of the value at rest, when it says more than the label */
+  restTip?: string;
 }) {
   const [v, setV] = useState(value);
   useEffect(() => setV(value), [value]);
-  return <Inline label={label} onClose={(ok) => { if (ok) onCommit(v); else setV(value); }}
+  return <Inline label={label} restTip={restTip} onClose={(ok) => { if (ok) onCommit(v); else setV(value); }}
                  edit={() => {
                    const h = hint?.(v);
                    return <>

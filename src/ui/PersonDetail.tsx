@@ -10,7 +10,7 @@ import { mapUrl, municipality } from "../core/places";
 import { nameDetails } from "../core/names";
 import { personAttributes, type Attribute } from "../core/facts";
 import { dateParts, yearsBetween } from "../core/date";
-import { fmt, formatDate } from "../core/format";
+import { fmt, formatDate, weekdayTip } from "../core/format";
 import { childOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
@@ -144,10 +144,12 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
   /** whether the date and place of a timeline item can be edited here */
   const editable = (e: TimelineItem) => live && e.kind !== "child" && (e.kind === "marriage" ? !!lookup(e.key)
     : e.kind === "residence" || e.kind === "event" || e.kind === "famEvent" ? !!e.node && (!e.family || !!lookup(e.family)) : true);
+  /** a date as text; its tooltip is the weekday of an exact day */
+  const dated = (stored: string) => <span title={weekdayTip(stored, lang) || undefined}>{formatDate(stored, true, lang)}</span>;
   /** a date shown as text that can be changed in place; `set` gets the new date as GEDCOM */
   const dateInline = (stored: string, set: (date: string) => void) => {
     const shown = dateInput(stored, lang);
-    return <InlineText value={shown} label={t("date")} tip={t("dateHint")} hint={(typed) => dateHint(typed, shown, lang, t)} onCommit={(v) => { if (v !== shown) set(parseDate(v, lang).value); }}>
+    return <InlineText value={shown} label={t("date")} restTip={weekdayTip(stored, lang)} tip={t("dateHint")} hint={(typed) => dateHint(typed, shown, lang, t)} onCommit={(v) => { if (v !== shown) set(parseDate(v, lang).value); }}>
       {formatDate(stored, true, lang)}</InlineText>;
   };
   const placeInline = (stored: string, set: (place: string) => void) =>
@@ -178,7 +180,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
   const LINE_TAGS = { age: "AGE", cause: "CAUS", agency: "AGNC" } as const;
   /** date and place of a fact; with `set` (and an open detail) they can be changed in place */
   const when = (e: EventFields | null, set?: (patch: Partial<EventFields>) => void) => e && (e.date || e.place) ? <div className="fact-value">
-    {e.date && <span>{live && set ? dateInline(e.date, (date) => set({ date })) : formatDate(e.date, true, lang)}</span>}
+    {e.date && <span>{live && set ? dateInline(e.date, (date) => set({ date })) : dated(e.date)}</span>}
     {e.place && <span className="place">{live && set ? placeInline(e.place, (place) => set({ place })) : municipality(e.place)}</span>}
   </div> : null;
   const years = (q: Person) => {
@@ -303,14 +305,14 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
             const q = data.people[pid];
             return <Row key={pid} icon={Baby} tone={q?.sex ? `tl-birth tl-sex-${q.sex}` : "tl-birth"}>
               <div className="tl-date">
-                {q?.birth?.date && <span>{formatDate(q.birth.date, true, lang)} · </span>}{link(pid, false)}</div>
+                {q?.birth?.date && <span>{dated(q.birth.date)} · </span>}{link(pid, false)}</div>
               <div className="tl-what">{t(pid === birthFam?.husb ? "birthGroom" : "birthBride")}
                 {q?.birth?.place && <span> · {municipality(q.birth.place)}</span>}</div>
             </Row>;
           })}
           {birthFam?.marriage && (birthFam.marriage.date || birthFam.marriage.place) && <Row icon={Heart} tone="tl-marriage">
             <div className="tl-date">
-              {birthFam.marriage.date && <span>{formatDate(birthFam.marriage.date, true, lang)} · </span>}
+              {birthFam.marriage.date && <span>{dated(birthFam.marriage.date)} · </span>}
               {spouseAtWedding(birthFam.husb)}
               {birthFam.husb && birthFam.wife && " & "}
               {spouseAtWedding(birthFam.wife)}</div>
@@ -328,7 +330,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
               <div className={`tl-body${src ? " has-src" : ""}`}>
                 {/* Line 1: when and who/where; line 2: what happened, age and extras. */}
                 {e.date || e.other || e.place ? <div className="tl-date">
-                  {e.date && <span>{editable(e) ? dateField(e) : formatDate(e.date, true, lang)}</span>}
+                  {e.date && <span>{editable(e) ? dateField(e) : dated(e.date)}</span>}
                   {e.other ? <>{e.date && " · "}{link(e.other, false)}</>
                     : e.place && <span className="muted">{e.date && " · "}{editable(e) ? placeField(e) : municipality(e.place)}</span>}
                 </div> : null}
