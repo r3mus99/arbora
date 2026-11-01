@@ -1,1 +1,0 @@
-- **Cleanup after the removed features.** The README no longer mentions the keyboard shortcuts for undo and redo, six lint warnings are gone, and a new test checks that editing a person keeps contact, reference number, pedigree, event and fact lines that the editor no longer shows.
