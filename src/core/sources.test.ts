@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { citationFields, citationLinks, matchSources, sourceTitle, SOURCE_TITLE_LANGS, withoutLinks, type Citation } from "./sources";
+import { withoutShownSources, citationFields, citationLinks, matchSources, sourceTitle, SOURCE_TITLE_LANGS, withoutLinks, type Citation } from "./sources";
 import {
   applyPerson, decode, eventAnnotations, sourceOverview, sourceKind, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
   personFields, writeGedcom, type GedNode,
@@ -227,5 +227,17 @@ describe("citation fields", () => {
     expect(f[0].text).not.toContain("https://");
     expect(f[0].text).toContain("Entry for Jan Sample");
     expect(citationFields(cite({ title: "Parish book of Sampleton", page: "Parish book" }))).toEqual([]);
+  });
+});
+
+describe("sources already shown on the timeline", () => {
+  const cite = (xref: string, title = "", page = ""): Citation => ({ xref, title: title || xref, author: "", publication: "", repository: "", page, quality: "", text: "", notes: [] });
+  test("a source shown at an event leaves the card, the others and the notes stay", () => {
+    const a = { sources: [cite("@S1@"), cite("@S2@", "Other")], notes: ["note"] };
+    expect(withoutShownSources(a, [cite("@S1@", "", "p. 3")])).toEqual({ sources: [cite("@S2@", "Other")], notes: ["note"] });
+  });
+  test("a citation written as text is matched by its title", () => {
+    expect(withoutShownSources({ sources: [cite("", "Church book")], notes: [] }, [cite("", "Church book")]).sources).toEqual([]);
+    expect(withoutShownSources({ sources: [cite("", "Church book")], notes: [] }, [cite("@S1@")]).sources).toHaveLength(1);
   });
 });

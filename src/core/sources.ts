@@ -82,6 +82,14 @@ export function mergeAnnotations(...list: Annotations[]): Annotations {
   return { sources: once(list.flatMap((a) => a.sources)), notes: once(list.flatMap((a) => a.notes)) };
 }
 
+/** The same source: the same source record, or (for a citation written as text) the same title. */
+const sameSource = (a: Citation, b: Citation) => (a.xref || b.xref ? a.xref === b.xref : a.title === b.title);
+
+/** `a` without the sources that `shown` already displays elsewhere (e.g. on the timeline); the notes stay. */
+export function withoutShownSources(a: Annotations, shown: Citation[]): Annotations {
+  return { ...a, sources: a.sources.filter((c) => !shown.some((s) => sameSource(c, s))) };
+}
+
 /** Event tags of a person that the timeline shows; their notes and sources go on the event. */
 export const TIMELINE_TAGS = ["BIRT", "CHR", "DEAT", "BURI"];
 
