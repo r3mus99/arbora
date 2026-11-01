@@ -1,0 +1,1 @@
+- **The return-home house sits right after the home person box in the top bar.** It is no longer among the undo and save buttons.

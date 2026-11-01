@@ -648,13 +648,13 @@ export function App() {
             <User className="icon" aria-hidden="true" />
             <strong>{homeId ? data.people[homeId].name || "?" : t("homeSet")}</strong>
           </button>}
+          {data && <button type="button" className="icon-btn" disabled={!homeId} onClick={() => homeId && makeRoot(homeId)}
+                  title={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}
+                  aria-label={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}>
+            <Home className="icon" aria-hidden="true" /></button>}
           {data && statusText && <span className={status?.err ? "status err" : "status"} role="status">{statusText}</span>}
           <div className="head-tools">
             {data && <div className="tools" role="toolbar">
-              <button type="button" className="icon-btn" disabled={!homeId} onClick={() => homeId && makeRoot(homeId)}
-                      title={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}
-                      aria-label={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}>
-                <Home className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn" disabled={!canUndo(edits)} onClick={() => undoRedo(-1)}
                       title={withShortcut(t("undo"), "undo", MAC)} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn" disabled={!canRedo(edits)} onClick={() => undoRedo(1)}
