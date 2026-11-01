@@ -753,7 +753,7 @@ export function App() {
                 <PlacesPanel places={placeList} data={data} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
-                <SourcesPanel overview={srcOverview} data={data} onPerson={(id) => pick(id)} t={t} />
+                <SourcesPanel key={focusId ?? ""} overview={srcOverview} data={data} onPerson={(id) => pick(id)} personId={focusId} t={t} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={focusId} scrollKey={scrollKey}

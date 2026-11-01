@@ -3,7 +3,6 @@ import { createContext, useContext, useRef, useState } from "react";
 import { Inline } from "./Inline";
 import { citationFields, citationLinks, hasAnnotations, linkParts, readableNotes, withoutLinks, type Annotations, type Citation, type CitationField } from "../core/sources";
 import type { StringKey } from "./i18n";
-import { SectionHead } from "./Section";
 
 type T = (key: StringKey) => string;
 
@@ -66,17 +65,6 @@ function Entries({ a, t }: { a: Annotations; t: T }) {
       {a.sources.map((c, i) => <CitationView key={i} c={c} t={t} />)}</ul>}
     {a.notes.map((n, i) => <div key={i} className="note-text src-note"><Linked text={n} /></div>)}
   </div>;
-}
-
-const count = (a: Annotations) => a.sources.length + a.notes.length;
-
-/** The block under the timeline: everything that belongs to the person as a whole. */
-export function PersonSources({ a, t }: { a: Annotations; t: T }) {
-  if (!hasAnnotations(a)) return null;
-  return <details className="sources section" open>
-    <summary className="sec-head"><SectionHead icon={BookMarked} title={t("srcNotes")} extra={`· ${count(a)}`} /></summary>
-    <div className="sec-body"><Entries a={a} t={t} /></div>
-  </details>;
 }
 
 /** A small button on a timeline event; it opens the event's sources and notes below it. */

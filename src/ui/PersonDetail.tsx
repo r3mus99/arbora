@@ -13,13 +13,13 @@ import { dateParts, formatAge, yearsBetween } from "../core/date";
 import { fmt, formatDate, weekdayTip } from "../core/format";
 import { childOf, childrenOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
-import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, mergeAnnotations, personAnnotations, withoutShownSources, type Lookup } from "../core/sources";
+import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, mergeAnnotations, type Lookup } from "../core/sources";
 import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { dateHint, givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
 import { InlineName, InlineNote, InlineText } from "./Inline";
 import { Row, Section } from "./Section";
-import { EventSources, Linked, PersonSources } from "./Sources";
+import { EventSources, Linked } from "./Sources";
 
 interface Props {
   data: GedcomData;
@@ -230,8 +230,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
     const tag = EVENT_TAG[kind];
     return record && tag ? eventAnnotations(record, tag, lookup) : null;
   };
-  // sources already shown at an event of the timeline are not repeated in the sources card
-  const shownSources = life.flatMap((e) => extras(e.kind, e.key, e.node, e.other)?.sources ?? []);
   // a title such as "Dr." is written before the name
   const prefix = record ? nameDetails(record).parts.find((n) => n.kind === "prefix")?.value : "";
   const SexIcon = p.sex === "M" ? Mars : p.sex === "F" ? Venus : null;
@@ -406,8 +404,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
         })()}
         {f?.note && <Section icon={StickyNote} title={t("note")}>{live ? <InlineNote className="note-text" value={f.note} label={t("note")} onCommit={(v) => { if (v.trim() !== f.note.trim()) change({ note: v }); }}>
             <Linked text={f.note} /></InlineNote> : <div className="note-text"><Linked text={f.note} /></div>}</Section>}
-        {record && <PersonSources t={t} a={(({ sources, notes }) => ({
-          sources, notes: notes.filter((n) => n !== f?.note.trim()) }))(withoutShownSources(personAnnotations(record, lookup), shownSources))} />}
         {(() => {
           const info = record ? recordInfo(record) : [];
           const KEYS = { changed: "infoChanged", reference: "infoReference", recordId: "infoRecordId", uid: "infoUid",
