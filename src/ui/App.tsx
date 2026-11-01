@@ -360,7 +360,7 @@ export function App() {
   const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
   const srcEdit = useMemo(() => ({ rename: (xref: string, title: string) => {
     const rec = doc?.records.find((r) => r.xref === xref);
-    if (doc && rec) replaceRecords(applySourceRenames(doc.records, [{ xref, from: childOf(rec, "TITL")?.value.trim() ?? "", to: title, weak: false }]));
+    if (doc && rec) replaceRecords(applySourceRenames(doc.records, [{ xref, from: childOf(rec, "TITL")?.value.trim() ?? "", to: title }]));
   } }), [doc]);
   const sourceEntry = useMemo(() => (doc && sourceWin?.xref ? sourceOverview(doc.records).sources.find((s) => s.key === sourceWin.xref) : undefined), [doc, sourceWin]);
   const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);

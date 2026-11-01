@@ -1,0 +1,1 @@
+- **The bulk rename of sources is gone.** The Sources list no longer offers to rename all sources at once; a single source is still renamed from the Sources panel.
