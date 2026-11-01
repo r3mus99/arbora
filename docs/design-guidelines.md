@@ -23,7 +23,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
   language. Order is fixed: identity, file, history, output, preferences. Anything that changes the whole document
   or the app belongs here.
 - **Rail** (left, icon column): one icon per mini-app. Opens and closes the mini-app panel.
-- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, recent, overview, sources and notes, places, settings: every one exactly
+- **Mini-app panel**: opens next to the rail. Either a *side panel* (people list, recent, sources and notes, settings: every one exactly
   `--panel-w` = 320px wide) or a *wide panel* (file check, later: people table, editor) that replaces the tree and
   detail and takes the full width right of the rail. Only one mini-app is open at a time.
 - **Main component** (centre): the tree view. It is the only thing that is always there; it is never
@@ -38,7 +38,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 
 | Token | Value | Used for |
 | --- | --- | --- |
-| `--panel-w` | 320px | width of every side panel of the tool bar (list of people, overview, sources and notes, places, settings); one value, never a width per panel |
+| `--panel-w` | 320px | width of every side panel of the tool bar (list of people, sources and notes, settings); one value, never a width per panel |
 | `--head-h` | 52px | header row of every panel (rail first icon, search box, chart switch, person name, wide panel title); one continuous line under them across the frame |
 | `--ctl-h` | 36px | square icon buttons and rail icons only |
 | `--field-h` | 30px | height of every text control: inputs, selects, textareas (minimum), text buttons, switches (same height, radius and 14px text for field, button and switch) |
@@ -92,11 +92,11 @@ No other radius, height or padding number is used for a control. Dialogs use `--
 - Size: `--icon` 18px in controls and headers, `--icon-sm` 14px inline in text, chips and badges, 15px inside
   detail rows (`--d-icon-row`). The welcome drop zone icon (36px) is the only large one.
 - Colour: `currentColor`; muted when idle, accent when active, event colour on timeline rows. An icon never
-  has its own background circle except in the overview tile.
-- One meaning, one icon: Search = find a person, LayoutDashboard = overview, ShieldCheck / ShieldAlert = file check,
+  has its own background circle.
+- One meaning, one icon: Search = find a person, ShieldCheck / ShieldAlert = file check,
   SlidersHorizontal = settings (tool bar), FileDown = save GED, FileText = save PDF, Undo2 / Redo2 = history, X = close or remove,
-  MapPin = place, Clock = recent people, Star = favourite person (the generic event in the timeline is CalendarDays). Do not reuse an icon for a different meaning (the old file-check wand and the overview's
-  shield must not be mixed).
+  MapPin = place, Clock = recent people, Star = favourite person (the generic event in the timeline is CalendarDays). Do not reuse an icon for a different meaning (the old file-check wand and a shield
+  must not be mixed).
 - Icon-only buttons always have `title` (tooltip) and `aria-label` with the same text.
 - A full date in the detail (day, month and year) has the weekday as its native `title` tooltip (`weekdayTip` in `core/format.ts`, language of the app); an editable date shows it instead of "Date". Years, months, "about" and ranges have none.
 
@@ -183,7 +183,7 @@ Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexi
 
 ## 9. Adding a new mini-app
 
-1. Add one icon button to the rail (`.toolbar`), in the order of use (find, overview, check, then new ones). Pick a lucide icon that is not used yet; add a `title` + `aria-label`; a status badge uses `--warn`.
+1. Add one icon button to the rail (`.toolbar`), in the order of use (find, check, then new ones). Pick a lucide icon that is not used yet; add a `title` + `aria-label`; a status badge uses `--warn`.
 2. Decide the width: **side panel** (always `--panel-w` = 320px, never its own width, opens between rail and tree; the tree stays visible) if it works next to the tree, otherwise **wide panel** (full width right of the rail; tree and detail are hidden).
 3. Build it as a component with a `PanelHead` (fixed, section 7) and a scrolling `.panel-body`; use only the controls from section 6.
 4. State: `on` on the rail icon while open; clicking it again closes it; opening another mini-app closes this one.

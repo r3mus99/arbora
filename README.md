@@ -11,7 +11,7 @@ Everything runs in your browser; the file is never uploaded anywhere.
 
 - **View** the ancestors or descendants of anyone, as a tree,
   with a searchable list of people, a timeline of each person, recent people and
-  favourites, and a file overview with statistics.
+  favourites.
 - **Edit** about 40 GEDCOM tags in one edit window: names, events, occupations
   and facts, marriages, children, parents, associations, notes, sources and
   other details. Add, delete and merge people and families. Everything is one
@@ -92,28 +92,22 @@ between relatives) is written out only once; later occurrences refer to it.
    the language.
 2. The icon rail opens one tool at a time: the list of **people** with a search
    by name, place or year; **recent** people and favourites (the star next to a
-   name); the **file overview**; the **file check**; the
-   **changes** made since the file was opened; **sources and notes**; **places**;
-   and **settings**.
-3. The **file overview** shows the number of people (men and women), families
-   and generations (the longest parent–child line), the years the file covers,
-   the oldest ancestor (click to make them no. 1 of the chart), the number of
-   problems found by the file check, and the most common surnames and places.
-   A surname is a link to the search.
-4. The chart is laid out the same way as the PDF. Switch between **Ancestors**
+   name); the **file check**; the **changes** made since the file was opened;
+   **sources and notes**; and **settings**.
+3. The chart is laid out the same way as the PDF. Switch between **Ancestors**
    and **Descendants** and choose the number of generations in **Settings**. At first
    person no. 1 is the one chosen last time, otherwise the first in the file.
-5. Clicking a person shows their details on the right, with icons: parents,
+4. Clicking a person shows their details on the right, with icons: parents,
    marriages with children, and a timeline of birth, marriages, children,
    occupations, residences, death and burial with the age at each event.
    Relatives are links; the crosshair button makes the person no. 1 of the
    chart and the pencil opens the edit window. Small values (name, sex, date,
    place, religion, occupation, note) can also be changed in place.
-6. A repeated ancestor shows a link **see no. X** instead of their branch (with
+5. A repeated ancestor shows a link **see no. X** instead of their branch (with
    Ahnentafel or d'Aboville numbering, otherwise **see above / below**) that
    jumps to the written-out branch and highlights it.
-7. The chart and the PDF share all settings, so the PDF matches the chart.
-8. **PDF** creates the PDF and **SVG** the tree poster; both download at once.
+6. The chart and the PDF share all settings, so the PDF matches the chart.
+7. **PDF** creates the PDF and **SVG** the tree poster; both download at once.
 
 ### Editing and GEDCOM export
 
@@ -250,7 +244,7 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   edit.ts           editing records, typed dates, writing GEDCOM
   check.ts          file check and safe fixes
   merge.ts          merging two people; structure.ts / facts.ts / sources.ts: tags, events, citations
-  placelist.ts      the list of places; stats.ts: the file overview
+  stats.ts          surname of a NAME value
   format.ts         options, dates, places, the text of a person's line
   chart.ts          ancestor and descendant chart rows
   pdf.ts            page layout and PDF
@@ -259,8 +253,8 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   texts.ts          PDF texts in Slovak and English
   *.test.ts         tests on the sample and made-up data
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),
-                    edit window (EditWindow, PersonEditor), icon-rail tools (people, overview, file check,
-                    changes, sources, places, settings), UI translations (i18n.ts) and flags; the logic that
+                    edit window (EditWindow, PersonEditor), icon-rail tools (people, file check,
+                    changes, sources, settings), UI translations (i18n.ts) and flags; the logic that
                     needs no DOM is in history.ts (undo, redo) and options.ts, with tests
 public/             static files: DejaVu Sans and Alkatra fonts, sample GEDCOM and PDFs, licenses
 ```
