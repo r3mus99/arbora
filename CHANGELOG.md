@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.74.0 – 2026-11-01
+
+Sources and notes of an occupation, religion or other fact (education, title, …) now appear on that fact instead of in the general "Sources and notes" section.
+
 ## 2.73.0 – 2026-11-01
 
 - **A new source under an event is named after it.** Adding a source to a marriage fills in "Wedding Jan Novak & Eva Novak", to a birth "Birth Jan Novak", and so on in all 12 languages (in Slovak "Svadba…", "Narodenie…"); the name stays editable, and a source of that name already in the file is cited instead of a duplicate.
