@@ -1,0 +1,1 @@
+- **The person heading looks the same however long the name is.** A long name that wraps keeps the sex symbol right after its last word, the dashed underline runs under every line, and the icons stay aligned with the first line.

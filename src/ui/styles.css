@@ -217,10 +217,12 @@ footer a { color: var(--accent); }
 .detail { padding: 0 var(--pad) 12px; font-size: 14px; background: var(--panel); min-height: 0; overflow-y: auto; }
 /* the detail has two text sizes: 14px for the content and 12px for titles, labels and small print */
 .detail h3 { font-size: 19px; margin: 0; }
-.detail-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--head-h);
+.detail-head { --name-lh: 26px; --name-pad: calc((var(--head-h) - var(--name-lh)) / 2); --tool-top: calc((var(--head-h) - var(--ctl-h)) / 2);
+               display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; min-height: var(--head-h);
                margin: 0 calc(-1 * var(--pad)) 8px; padding: 0 var(--pad); border-bottom: 1px solid var(--border);
                position: sticky; top: 0; z-index: 1; background: var(--panel); }
-.detail-head .tools { display: flex; gap: 4px; flex: none; }
+.detail-head .tools { display: flex; gap: 4px; flex: none; margin-top: var(--tool-top); }
+.detail-head .back-btn { margin-top: var(--tool-top); }
 .detail .id { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
 .detail .id .lifespan { font-variant-numeric: tabular-nums; }
 .detail h3 .icon { margin-left: 6px; width: var(--icon); height: var(--icon); vertical-align: -1px; }
@@ -679,12 +681,18 @@ section.check { margin: 0 0 14px; }
 /* favourites: one star colour; the star is a filled glyph, on screen only */
 .star { color: var(--star); fill: currentColor; }
 .tree-row .star { width: var(--icon-sm); height: var(--icon-sm); margin-left: 4px; vertical-align: -2px; }
-.detail-name { display: flex; align-items: center; gap: 4px; min-width: 0; }
-.detail-name h3 { min-width: 0; display: flex; align-items: baseline; gap: 4px; }
-.detail-name h3 > :not(.detail-title) .icon { margin-left: 0; }
-/* the name may wrap when it is long, the sex symbol stays beside it and never drops onto a line of its own */
-.detail-name h3 .detail-title { min-width: 0; overflow-wrap: anywhere; }
-.detail-name h3 > :not(.detail-title) { flex: none; }
+/* the heading: the icons sit on the first line of the name (one line = centred in the head, a long name grows downwards);
+   the name is plain inline text so a wrapped name keeps the sex symbol right after its last word and the dashed
+   underline runs under every line */
+.detail-name { display: flex; align-items: flex-start; gap: 4px; min-width: 0; }
+.detail-name h3 { min-width: 0; display: block; line-height: var(--name-lh); padding: var(--name-pad) 0; }
+.detail-name h3 .icon { vertical-align: -3px; margin-left: 0; }
+.detail-title { overflow-wrap: anywhere; }
+.detail-name .inline-name { display: contents; }
+.inline-name .name-text { cursor: text; text-decoration: underline dashed var(--border); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+.inline-name:hover .name-text { text-decoration-color: var(--muted); }
+.inline-name:focus-visible .name-text { outline: 2px solid var(--focus); border-radius: 2px; }
+.inline-sex { vertical-align: -4px; }
 .star-btn .icon { color: var(--muted); fill: none; }
 .star-btn.on .icon, .row-star.on .icon { color: var(--star); fill: currentColor; }
 .row-star { flex: none; width: var(--ctl-h-sm); height: var(--ctl-h-sm); padding: 0; display: grid; place-items: center; border: 0;
@@ -719,7 +727,7 @@ section.check { margin: 0 0 14px; }
 .inline-fields input:focus { outline: none; }
 .inline-fields input::-webkit-calendar-picker-indicator { display: none !important; }
 .detail-head { position: relative; }
-.inline-sex { display: inline-block; vertical-align: middle; }
+.inline-sex { display: inline-block; }
 .inline-sex .inline-value { border-bottom: 0; cursor: pointer; display: inline-flex; border-radius: var(--radius); }
 .inline-sex .inline-value:hover { background: var(--accent-soft); }
 .inline-pop { position: absolute; top: calc(100% - 4px); left: 12px; z-index: 5; background: var(--panel); font: 400 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
