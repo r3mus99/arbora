@@ -192,6 +192,23 @@ export interface SourceEntry {
   citations: number;
   /** ids of the people citing it: a family's citation counts for both spouses */
   people: string[];
+  /** the kinds of event it is cited under, in the order of SOURCE_KINDS; empty for a source nobody cites */
+  kinds: SourceKind[];
+}
+
+/** What a source is cited for: a birth or baptism, a death or burial, a marriage, or anything else (also a citation on the person themselves). */
+export const SOURCE_KINDS = ["birth", "death", "marriage", "other"] as const;
+export type SourceKind = (typeof SOURCE_KINDS)[number];
+
+const KIND_OF_TAG: Record<string, SourceKind> = {
+  BIRT: "birth", CHR: "birth", BAPM: "birth",
+  DEAT: "death", BURI: "death", CREM: "death",
+  MARR: "marriage", MARB: "marriage", MARC: "marriage", MARL: "marriage", MARS: "marriage", ENGA: "marriage",
+};
+
+/** The kind of a citation from the event line it sits under (`""` when it sits on the record itself, `fam` for a family). */
+export function sourceKind(eventTag: string, fam = false): SourceKind {
+  return KIND_OF_TAG[eventTag] ?? (!eventTag && fam ? "marriage" : "other");
 }
 
 /** one note text with the people it is written under */
@@ -210,22 +227,23 @@ export interface SourceOverview {
  * text citation once, with the number of citations and the people; each note text once, with its people.
  */
 export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(records)): SourceOverview {
-  const sources = new Map<string, SourceEntry & { who: Set<string> }>();
+  const sources = new Map<string, Omit<SourceEntry, "people" | "kinds"> & { who: Set<string>; kinds: Set<SourceKind> }>();
   const notes = new Map<string, { text: string; who: Set<string> }>();
   const entry = (key: string, cite: GedNode) => {
     let e = sources.get(key);
-    if (!e) sources.set(key, e = { key, citation: citation(cite, lookup), citations: 0, people: [], who: new Set() });
+    if (!e) sources.set(key, e = { key, citation: citation(cite, lookup), citations: 0, who: new Set(), kinds: new Set() });
     return e;
   };
   for (const r of records) if (r.tag === "SOUR" && r.xref) {
     // a source record nobody cites still belongs in the list
     entry(r.xref, { tag: "SOUR", value: r.xref, xref: null, children: [] });
   }
-  const walk = (node: GedNode, owners: string[]) => {
+  const walk = (node: GedNode, owners: string[], event: string, fam: boolean) => {
     for (const c of node.children) {
       if (c.tag === "SOUR" && c.value.trim()) {
         const e = entry(isLink(c.value) ? c.value : c.value.trim(), c);
         e.citations++;
+        e.kinds.add(sourceKind(event, fam));
         owners.forEach((o) => e.who.add(o));
       } else if (c.tag === "NOTE") {
         const text = textOf(c, lookup);
@@ -235,16 +253,16 @@ export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(rec
           notes.set(text, n);
         }
       }
-      walk(c, owners);
+      walk(c, owners, event || c.tag, fam);
     }
   };
   for (const r of records) {
-    if (r.tag === "INDI" && r.xref) walk(r, [r.xref]);
-    else if (r.tag === "FAM") walk(r, [childOf(r, "HUSB")?.value, childOf(r, "WIFE")?.value].filter((x): x is string => !!x));
+    if (r.tag === "INDI" && r.xref) walk(r, [r.xref], "", false);
+    else if (r.tag === "FAM") walk(r, [childOf(r, "HUSB")?.value, childOf(r, "WIFE")?.value].filter((x): x is string => !!x), "", true);
   }
   const byTitle = (a: { citation: Citation }, b: { citation: Citation }) => a.citation.title.localeCompare(b.citation.title);
   return {
-    sources: [...sources.values()].map(({ who, ...e }) => ({ ...e, people: [...who] })).sort(byTitle),
+    sources: [...sources.values()].map(({ who, kinds, ...e }) => ({ ...e, people: [...who], kinds: SOURCE_KINDS.filter((k) => kinds.has(k)) })).sort(byTitle),
     notes: [...notes.values()].map((n) => ({ text: n.text, people: [...n.who] })).sort((a, b) => a.text.localeCompare(b.text)),
   };
 }
