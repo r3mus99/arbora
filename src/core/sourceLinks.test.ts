@@ -19,7 +19,7 @@ describe("links of a source record", () => {
     const out = addSourceLink(records, "@S1@", NEW);
     expect(rec(out, "@S1@").children.filter((c) => c.tag === "NOTE").map((c) => c.value)).toEqual([NEW]);
     expect(rec(out, "@S1@").children.find((c) => c.tag === "WWW")?.value).toBe("https://example.org/register");
-    records.forEach((r, i) => { if (r.xref !== "@S1@") expect(out[i]).toBe(r); });
+    expect(out.every((r, i) => r.xref === "@S1@" || r === records[i])).toBe(true);
   });
 
   test("adding the same address twice changes nothing", () => {
