@@ -293,6 +293,11 @@ export function addLine(rec: GedNode, tag: string, value: string): GedNode {
   return rewritten(rec, insert(rec.children, gedNode(tag, value)));
 }
 
+/** A record with one more sub-record, put where GEDCOM usually has it; written anew. */
+export function addChild(rec: GedNode, added: GedNode): GedNode {
+  return rewritten(rec, insert(rec.children, added));
+}
+
 function insert(children: GedNode[], added: GedNode): GedNode[] {
   const rank = ORDER.indexOf(added.tag);
   // after the lines with the same tag, else before the first one that comes later

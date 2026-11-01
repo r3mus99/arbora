@@ -130,3 +130,39 @@ describe("surname endings", () => {
     expect(issues.map((i) => [i.kind, i.person])).toEqual([["surnameNotFemale", "@I4@"], ["surnameNotMale", "@I5@"]]);
   });
 });
+
+describe("a source of the parent that is about the child", () => {
+  const SOUR = "0 @S1@ SOUR\n1 TITL Parish book\n1 PUBL Church books, Entry for Anna and Peter, 11 May 1753.\n";
+  const ged = (kidEvents: string, extra = "") => wrap(
+    "0 @I1@ INDI\n1 NAME Peter /Test/\n1 SEX M\n1 FAMS @F1@\n1 SOUR @S1@\n2 PAGE p. 5\n" +
+    "0 @I2@ INDI\n1 NAME Anna /Test/\n1 SEX F\n1 FAMS @F1@\n" +
+    `0 @I3@ INDI\n1 NAME Eva /Test/\n1 SEX F\n${kidEvents}1 FAMC @F1@\n` +
+    "0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 CHIL @I3@\n" + extra + SOUR);
+  const found = (g: string) => checkGedcom(parseGedcom(g)).filter((i) => i.kind === "sourceOfChild");
+
+  test("is found by the date, preferring the christening, and added to the child and the other parent", () => {
+    const g = ged("1 BIRT\n2 DATE 10 MAY 1753\n1 CHR\n2 DATE 11 MAY 1753\n");
+    const [issue] = found(g);
+    expect(issue).toMatchObject({ person: "@I1@", fixable: true, args: { other: "@I3@", tag: "CHR", source: "@S1@" } });
+    const fixed = fixIssue(parseGedcom(g), issue);
+    expect(found(writeGedcom(fixed))).toEqual([]);
+    const text = writeGedcom(fixed);
+    expect(text).toContain("1 CHR\n2 DATE 11 MAY 1753\n2 SOUR @S1@\n3 PAGE p. 5\n");
+    expect(text).toContain("0 @I2@ INDI\n1 NAME Anna /Test/\n1 SEX F\n1 FAMS @F1@\n1 SOUR @S1@\n2 PAGE p. 5\n0 @I3@");
+    // the father keeps his citation, the untouched records are written back as they were
+    expect(text).toContain("1 FAMS @F1@\n1 SOUR @S1@\n2 PAGE p. 5\n0 @I2@");
+  });
+
+  test("uses the birth when there is no christening, and accepts one day of difference", () => {
+    expect(found(ged("1 BIRT\n2 DATE 12 MAY 1753\n"))[0]?.args.tag).toBe("BIRT");
+  });
+
+  test("stays quiet for vague dates, twins, a source already there and the parent's own event", () => {
+    expect(found(ged("1 BIRT\n2 DATE ABT 1753\n"))).toEqual([]);
+    expect(found(ged("1 BIRT\n2 DATE MAY 1753\n"))).toEqual([]);
+    expect(found(ged("1 BIRT\n2 DATE 11 MAY 1753\n1 CHR\n2 SOUR @S1@\n"))).toEqual([]);
+    expect(found(ged("1 BIRT\n2 DATE 11 MAY 1753\n").replace("1 CHIL @I3@\n", "1 CHIL @I3@\n1 CHIL @I4@\n")
+      + "0 @I4@ INDI\n1 BIRT\n2 DATE 11 MAY 1753\n1 FAMC @F1@\n")).toEqual([]);
+    expect(found(ged("1 BIRT\n2 DATE 11 MAY 1753\n").replace("1 FAMS @F1@\n1 SOUR", "1 BIRT\n2 DATE 11 MAY 1753\n1 FAMS @F1@\n1 SOUR"))).toEqual([]);
+  });
+});
