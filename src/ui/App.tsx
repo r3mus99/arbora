@@ -383,7 +383,7 @@ export function App() {
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
   const sourceList = useMemo(() => (windowId && doc ? sourceChoices(doc.records) : []), [windowId, doc]);
-  const srcRenames = useMemo(() => (doc && showSources ? sourceRenames(doc.records, lang, (id) => data.people[id]?.name ?? "") : []), [doc, showSources, lang, data]);
+  const srcRenames = useMemo(() => (doc && showSources ? sourceRenames(doc.records, lang, (id) => data?.people[id]?.name ?? "") : []), [doc, showSources, lang, data]);
   const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);
   // the list closes once everything is fixed
 
