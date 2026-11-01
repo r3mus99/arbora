@@ -1,9 +1,9 @@
-import { Hash, Phone, ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Tag, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Tag, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
-  CONTACT_TAGS, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
-  type Alias, type AssocRow, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
+  RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
+  type Alias, type AssocRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
@@ -286,10 +286,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </>}
     </>;
   };
-  const setContact = (i: number, patch: Partial<ContactRow>) =>
-    set("contacts", form.contacts.map((c, j) => (j === i ? { ...c, ...patch } : c)));
-  const setRef = (i: number, patch: Partial<ReferenceRow>) =>
-    set("references", form.references.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   const setAlias = (i: number, patch: Partial<Alias>) =>
     set("aliases", form.aliases.map((a, j) => (j === i ? { ...a, ...patch } : a)));
   const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}, divorce: Partial<EventFields> = {}) =>
@@ -490,7 +486,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     if (f.parents.length || f.associations.length) start.add("parents");
     if (f.occupations.length) start.add("facts");
     if (f.note || f.citations.length) start.add("notes");
-    if (f.restriction || f.address || f.contacts.length || f.references.length || f.afn || f.rfn) start.add("other");
+    if (f.restriction || f.address) start.add("other");
     return start;
   });
   /** text actions at the right end of a group's title row */
@@ -747,40 +743,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           </select></label>)}
       {hidable("pAddr", !!form.address, t("address"), t("tipAddress"),
         <label title={t("tipAddress")} data-cap={t("address")}><textarea autoComplete="off" placeholder={t("address")} aria-label={t("address")} rows={2} value={form.address} onChange={(e) => { pin("pAddr"); set("address", e.target.value); }} /></label>)}
-      <fieldset className="list">
-        <legend>{ico(Phone)}{t("contacts")}{acts(<button type="button" className="head-act" onClick={() => set("contacts", [...form.contacts, { origin: -1, tag: CONTACT_TAGS[0], value: "" }])}><Plus className="icon" aria-hidden="true" />{t("addContact")}</button>)}</legend>
-        {form.contacts.map((c, i) => (
-          <div className="item" key={c.origin < 0 ? `new${i}` : c.origin}>
-            <div className="item-head">
-              <select value={c.tag} disabled={c.origin >= 0} aria-label={t("contacts")} title={t("tipContactKind")} onChange={(e) => setContact(i, { tag: e.target.value })}>
-                {CONTACT_TAGS.map((tag) => <option key={tag} value={tag}>{t(`contact_${tag}` as StringKey)}</option>)}
-              </select>
-              <input type="text" autoComplete="off" value={c.value} aria-label={t(`contact_${c.tag}` as StringKey)} title={t("tipContactValue")} onChange={(e) => setContact(i, { value: e.target.value })} />
-              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                      onClick={() => set("contacts", form.contacts.filter((_, j) => j !== i))}>
-                <Trash2 className="icon" aria-hidden="true" /></button>
-            </div>
-          </div>
-        ))}
-      </fieldset>
-      <fieldset className="list">
-        <legend>{ico(Hash)}{t("references")}{acts(<button type="button" className="head-act" onClick={() => set("references", [...form.references, { origin: -1, value: "", type: "" }])}><Plus className="icon" aria-hidden="true" />{t("addReference")}</button>)}</legend>
-        {form.references.map((r, i) => (
-          <div className="item" key={r.origin < 0 ? `new${i}` : r.origin}>
-            <div className="item-head">
-              <input type="text" autoComplete="off" value={r.value} aria-label={t("references")} title={t("tipRefValue")} onChange={(e) => setRef(i, { value: e.target.value })} />
-              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                      onClick={() => set("references", form.references.filter((_, j) => j !== i))}>
-                <Trash2 className="icon" aria-hidden="true" /></button>
-            </div>
-            <label className="full" title={t("tipRefType")} data-cap={t("refType")}><input placeholder={t("refType")} aria-label={t("refType")} type="text" autoComplete="off" value={r.type} onChange={(e) => setRef(i, { type: e.target.value })} /></label>
-          </div>
-        ))}
-      </fieldset>
-      <div className="pair">
-        <label title={t("tipAfn")} data-cap={t("afn")}><input placeholder={t("afn")} aria-label={t("afn")} type="text" autoComplete="off" value={form.afn} onChange={(e) => set("afn", e.target.value)} /></label>
-        <label title={t("tipRfn")} data-cap={t("rfn")}><input placeholder={t("rfn")} aria-label={t("rfn")} type="text" autoComplete="off" value={form.rfn} onChange={(e) => set("rfn", e.target.value)} /></label>
-      </div>
       </>)}
       <SuggestLists suggest={suggest} lang={lang} />
     </form>

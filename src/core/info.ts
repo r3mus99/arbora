@@ -2,11 +2,11 @@
 
 import { childOf, type GedNode } from "./gedcom";
 
-export interface InfoLine { key: "changed" | "reference" | "recordId" | "uid" | "media"; value: string }
+export interface InfoLine { key: "changed" | "recordId" | "uid" | "media"; value: string }
 
 const text = (node: GedNode) => node.value.trim();
 
-/** CHAN (date and time), REFN (with its TYPE), RIN, _UID and OBJE lines, in that order; none when empty. */
+/** CHAN (date and time), RIN, _UID and OBJE lines, in that order; none when empty. */
 export function recordInfo(rec: GedNode): InfoLine[] {
   const out: InfoLine[] = [];
   for (const c of rec.children) {
@@ -16,9 +16,6 @@ export function recordInfo(rec: GedNode): InfoLine[] {
       const time = date && childOf(date, "TIME");
       const value = [date && text(date), time && text(time)].filter(Boolean).join(" ");
       if (value) out.push({ key: "changed", value });
-    } else if (c.tag === "REFN" && text(c)) {
-      const type = childOf(c, "TYPE")?.value.trim();
-      out.push({ key: "reference", value: type ? `${text(c)} (${type})` : text(c) });
     } else if (c.tag === "RIN" && text(c)) out.push({ key: "recordId", value: text(c) });
     else if ((c.tag === "_UID" || c.tag === "_UUID") && text(c)) out.push({ key: "uid", value: text(c) });
     else if (c.tag === "OBJE") {

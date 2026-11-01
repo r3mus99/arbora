@@ -53,12 +53,6 @@ const GED = `0 HEAD
 2 RELA godfather
 1 RESN confidential
 1 ADDR Home 1
-1 PHON 123
-1 EMAIL a@b.test
-1 REFN 77
-2 TYPE own
-1 AFN 1A
-1 RFN 2B
 1 FAMC @F2@
 2 PEDI birth
 1 FAMS @F1@
@@ -112,7 +106,7 @@ describe("tooltips of the edit window", () => {
   }));
 
   test("the fixture shows the whole form", () => {
-    for (const word of ["Teacher", "Main street 1", "godfather", "a@b.test", "1A"]) expect(html).toContain(word);
+    for (const word of ["Teacher", "Main street 1", "godfather"]) expect(html).toContain(word);
     expect((html.match(fields) || []).length).toBeGreaterThan(40);
   });
 

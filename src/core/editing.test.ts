@@ -556,9 +556,9 @@ describe("parents and associations of a person", () => {
   });
 });
 
-describe("restriction, contacts and reference numbers of a person", () => {
+describe("restriction and address of a person", () => {
   const text = [
-    "0 @I1@ INDI\n1 NAME A /X/\n1 SEX M\n1 ADDR 1 Main St\n2 CITY Testville\n1 PHON 111\n1 EMAIL a@example.org\n1 FAMS @F1@\n1 REFN 7\n2 TYPE old\n1 CHAN\n2 DATE 1 JAN 2000",
+    "0 @I1@ INDI\n1 NAME A /X/\n1 SEX M\n1 ADDR 1 Main St\n2 CITY Testville\n1 PHON 111\n1 EMAIL a@example.org\n1 FAMS @F1@\n1 RFN RF9\n1 AFN AF9\n1 REFN 7\n2 TYPE old\n1 CHAN\n2 DATE 1 JAN 2000",
     "0 @F1@ FAM\n1 HUSB @I1@", "",
   ].join("\n");
   const rec = () => parseGedcom(text)[0];
@@ -567,20 +567,17 @@ describe("restriction, contacts and reference numbers of a person", () => {
   test("reads the lines", () => {
     const f = personFields(rec());
     expect(f.address).toBe("1 Main St");
-    expect(f.contacts).toEqual([{ origin: 0, tag: "PHON", value: "111" }, { origin: 1, tag: "EMAIL", value: "a@example.org" }]);
-    expect(f.references).toEqual([{ origin: 0, value: "7", type: "old" }]);
-    expect([f.restriction, f.afn, f.rfn]).toEqual(["", "", ""]);
+    expect(f.restriction).toBe("");
   });
 
-  test("changing and removing keeps the lines under ADDR and the rest", () => {
+  test("changing the address keeps the lines under ADDR and the contact and reference lines, which the editor does not show", () => {
     const r = rec(), f = personFields(r);
-    const out = applyPerson(r, f, {
-      ...f, address: "2 Side St", contacts: [{ ...f.contacts[0], value: "222" }], references: [{ ...f.references[0], type: "new" }],
-    });
-    expect(lines(out)).toEqual(["NAME A /X/", "SEX M", "ADDR 2 Side St", "PHON 222", "FAMS @F1@", "REFN 7", "CHAN"]);
-    expect(out.children[2].children.map((c) => c.tag)).toEqual(["CITY"]);
-    expect(out.children[5].children.map((c) => c.value)).toEqual(["new"]);
-    expect(applyPerson(r, f, { ...f, contacts: f.contacts.map((c) => ({ ...c })) })).toBe(r);
+    const out = applyPerson(r, f, { ...f, address: "2 Side St", restriction: "Privacy" });
+    expect(lines(out)).toEqual(["RESN privacy", "NAME A /X/", "SEX M", "ADDR 2 Side St", "PHON 111", "EMAIL a@example.org", "FAMS @F1@",
+                                "RFN RF9", "AFN AF9", "REFN 7", "CHAN"]);
+    expect(out.children.find((c) => c.tag === "ADDR")!.children.map((c) => c.tag)).toEqual(["CITY"]);
+    expect(out.children.find((c) => c.tag === "REFN")!.children.map((c) => c.value)).toEqual(["old"]);
+    expect(applyPerson(r, f, { ...f })).toBe(r);
   });
 
   test("an emptied ADDR with parts under it stays, a plain one goes", () => {
@@ -590,18 +587,11 @@ describe("restriction, contacts and reference numbers of a person", () => {
     expect(lines(applyPerson(plain, g, { ...g, address: "" }))).toEqual(["NAME A /X/"]);
   });
 
-  test("new lines go where GEDCOM has them, and adding then removing gives the record back", () => {
+  test("adding then removing the restriction gives the record back", () => {
     const r = rec(), f = personFields(r);
-    const out = applyPerson(r, f, {
-      ...f, restriction: "Privacy", afn: "AF1", rfn: "RF1",
-      contacts: [...f.contacts, { origin: -1, tag: "WWW", value: "https://example.org" }],
-      references: [...f.references, { origin: -1, value: "8", type: "" }],
-    });
-    expect(lines(out)).toEqual(["RESN privacy", "NAME A /X/", "SEX M", "ADDR 1 Main St", "PHON 111", "EMAIL a@example.org", "WWW https://example.org",
-                                "FAMS @F1@", "RFN RF1", "AFN AF1", "REFN 7", "REFN 8", "CHAN"]);
+    const out = applyPerson(r, f, { ...f, restriction: "Privacy" });
     const g = personFields(out);
-    const back = applyPerson(out, g, { ...g, restriction: "", afn: "", rfn: "", contacts: g.contacts.slice(0, 2), references: g.references.slice(0, 1) });
-    expect(lines(back)).toEqual(lines(r));
+    expect(lines(applyPerson(out, g, { ...g, restriction: "" }))).toEqual(lines(r));
   });
 });
 

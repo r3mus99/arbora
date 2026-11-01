@@ -65,10 +65,9 @@ describe("showing a file", () => {
 });
 
 describe("technical lines", () => {
-  test("changed, reference, record id, unique id and media", () => {
+  test("changed, record id, unique id and media", () => {
     expect(recordInfo(parseGedcom(FILE)[1])).toEqual([
       { key: "media", value: "photo.jpg (Portrait)" },
-      { key: "reference", value: "42 (own)" },
       { key: "recordId", value: "7" },
       { key: "uid", value: "ABC-123" },
       { key: "changed", value: "2 JAN 2020 10:20:30" },
