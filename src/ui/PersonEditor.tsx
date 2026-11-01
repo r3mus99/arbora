@@ -1,6 +1,6 @@
 import { Hash, Phone, ArrowDownUp, Baby, BookMarked, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Tag, Tags, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
-import { useEffect, useId, useMemo, useRef, useState, Fragment, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   CONTACT_TAGS, OTHER_EVENT_TAGS, PEDIGREES, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
   type Alias, type AssocRow, type AttributeRow, type CitationRow, citationsWithoutSource, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
@@ -338,7 +338,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     const info = (source: string) => (/^@[^@]+@$/.test(source) ? sources.find((s) => s.xref === source)?.detail ?? "" : "");
     return rows.map((c, i) => {
       const id = `${idp}${c.origin < 0 ? `new${i}` : c.origin}`;
-      return <Fragment key={id}>
+      /** the details (page, quality) stay folded until the user opens them, even when filled */
+      const detailsShown = openDetails.includes(id) && !closed.includes(id);
+      return <div className="cite-card" key={id}>
         <div className="item-head">
           <SourcePick choices={sources} value={c.source} label={t("sources")} tip={t("tipSource")} invalid={askSource && citationsWithoutSource([c]).length > 0} onChange={(v) => patchRow(i, { source: v })} />
           <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
@@ -350,7 +352,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           {info(c.source) && <div>{withLinks(info(c.source))}</div>}
           {c.note && <div>{withLinks(c.note)}</div>}
         </div>}
-        {hidable(id, !!(c.page || c.quality), t("eventDetails"), t("tipCitationDetails"),
+        {revealBtn(id, detailsShown, t("eventDetails"), t("tipCitationDetails"))}
+        {detailsShown &&
           <div className="pair">
             <label title={t("tipPage")} data-cap={t("srcPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(id); patchRow(i, { page: e.target.value }); }} /></label>
             <label title={t("tipQuality")}><span>{t("quality")}</span>
@@ -358,8 +361,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                 <option value="">–</option>
                 {QUALITY.map((q) => <option key={q} value={q}>{t(`quality${q}` as StringKey)}</option>)}
               </select></label>
-          </div>)}
-      </Fragment>;
+          </div>}
+      </div>;
     });
   };
   /** a new citation under an event is named after it, e.g. "Marriage Jan Novak & Eva Novak"; an existing source of that name is cited instead of a duplicate */

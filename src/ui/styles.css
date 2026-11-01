@@ -811,6 +811,8 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .editor .cite-missing { color: var(--danger); }
 .editor input.invalid { border-color: var(--danger); box-shadow: 0 0 0 1px var(--danger); }
 .editor .cite-info a { color: var(--accent); }
+.editor .cite-card { grid-column: 1 / -1; display: grid; gap: 6px; padding: 8px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); min-width: 0; }
+.editor .cite-card .cite-info { padding: 0 6px 2px; }
 .edit-body .editor .cite-add { padding: 4px 0 4px 10px; }
 .editor .head-act:disabled { color: var(--muted); opacity: .5; cursor: default; }
 /* the action of a whole part ("Add family") sits at the right end of its title row, the chevron stays after the title */
