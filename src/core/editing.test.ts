@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyFamily, applyPerson, decode, familyFields, OTHER_EVENT_TAGS, parseGedcom, personFields, relinkFamily, relinkParents, rewritten, sourceChoices, writeGedcom, type FamilyFields, type GedNode,
+  applyFamily, applyPerson, citationsWithoutSource, decode, familyFields, OTHER_EVENT_TAGS, parseGedcom, personFields, relinkFamily, relinkParents, rewritten, sourceChoices, writeGedcom, type FamilyFields, type GedNode,
   type PersonFields,
 } from "./index";
 import { RICH_GED } from "./fixtures/rich";
@@ -373,6 +373,31 @@ describe("source citations of an event", () => {
     const out = applyPerson(r, f, { ...f, eventCitations: { ...f.eventCitations, birth: [...f.eventCitations.birth, { origin: -1, source: "Family Bible", page: "", quality: "" }] } });
     expect(lines(birt(out))).toEqual(["DATE 1900", "SOUR @S1@", "SOUR Family Bible", "NOTE n"]);
     expect(applyPerson(r, f, { ...f })).toBe(r);
+  });
+});
+
+describe("source citations of a family", () => {
+  const text = "0 HEAD\n0 @S1@ SOUR\n1 TITL Parish book\n0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 MARR\n2 DATE 1900\n1 DIV Y\n";
+  const rec = () => parseGedcom(text).find((c) => c.tag === "FAM")!;
+  const cite = { origin: -1, source: "@S1@", page: "https://example.org/record/9", quality: "2" };
+
+  test("a source added to the marriage or the divorce is written under MARR or DIV", () => {
+    const r = rec(), f = familyFields(r);
+    const out = applyFamily(r, f, { ...f, citations: { marriage: [cite], divorce: [cite] } });
+    expect(writeGedcom([out])).toBe("0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 MARR\n2 DATE 1900\n2 SOUR @S1@\n3 PAGE https://example.org/record/9\n3 QUAY 2\n1 DIV Y\n2 SOUR @S1@\n3 PAGE https://example.org/record/9\n3 QUAY 2\n");
+    expect(familyFields(out).citations.marriage).toEqual([{ ...cite, origin: 0 }]);
+  });
+
+  test("a source added to a marriage that has no date or place yet is written too", () => {
+    const r = parseGedcom("0 @F1@ FAM\n1 HUSB @I1@\n")[0], f = familyFields(r);
+    const out = applyFamily(r, f, { ...f, citations: { ...f.citations, marriage: [cite] } });
+    expect(writeGedcom([out])).toBe("0 @F1@ FAM\n1 HUSB @I1@\n1 MARR\n2 SOUR @S1@\n3 PAGE https://example.org/record/9\n3 QUAY 2\n");
+  });
+
+  test("a row with a page but no source is found, so the form can ask for the source instead of dropping it", () => {
+    expect(citationsWithoutSource([{ origin: -1, source: "", page: "https://example.org/x", quality: "" }])).toHaveLength(1);
+    expect(citationsWithoutSource([{ origin: -1, source: "  ", page: "", quality: "3" }])).toHaveLength(1);
+    expect(citationsWithoutSource([{ origin: -1, source: "", page: "", quality: "" }, cite])).toHaveLength(0);
   });
 });
 

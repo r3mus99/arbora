@@ -531,6 +531,10 @@ function setCitation(cite: GedNode, before: CitationRow, after: CitationRow): Ge
   return out;
 }
 
+/** The citation rows that carry a page, a web link or a quality but name no source: saving would drop them, so the form asks for the source first. */
+export const citationsWithoutSource = (rows: CitationRow[]): CitationRow[] =>
+  rows.filter((r) => !r.source.trim() && (r.page.trim() || r.quality.trim()));
+
 const tidyCitations = (rows: CitationRow[]) => rows.map((r) => ({ ...r, source: r.source.trim(), page: r.page.trim(), quality: r.quality.trim() }));
 const sameCitation = (a: CitationRow, b: CitationRow) => a.source === b.source && a.page === b.page && a.quality === b.quality;
 const sameCitations = (a: CitationRow[], b: CitationRow[]) => {
