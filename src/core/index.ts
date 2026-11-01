@@ -21,7 +21,6 @@ export * from "./sourceLinks";
 export * from "./places";
 export * from "./names";
 export * from "./info";
-export * from "./placelist";
 export * from "./palette";
 export * from "./poster";
 export * from "./posterDescendants";

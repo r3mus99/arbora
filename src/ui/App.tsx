@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
-import { FileDown, FileText, FileImage, FileUp, Home, LayoutDashboard, User,
-         Loader2, BookMarked, History, Trash2, Clock, ListChecks, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
+import { FileDown, FileText, FileImage, FileUp, Home, User,
+         Loader2, BookMarked, History, Trash2, Clock, ListChecks, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -16,8 +16,6 @@ import type { Fonts } from "../core/pdf";
 import { sourceOverview } from "../core/sources";
 import { deleteSource, saveSource, sourceCites } from "../core/sourceLinks";
 import { SourceWindow } from "./SourceWindow";
-import { placeOverview } from "../core/placelist";
-import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
 import { NO_BROWSING, NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move as moveIn, replay, startEdits, stepEdits, unsavedChanges, visit, withRecords, type Browsing, type Doc, type Edits, type Op, type Place } from "./history";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
@@ -29,11 +27,9 @@ import { NO_MARKS, fileKey, marksOf, setHome as changeHome, toggleFav, visited, 
 import { RecentPanel } from "./RecentPanel";
 import { LanguageMenu } from "./LanguageMenu";
 import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./theme";
-import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
 import { applySourceRenames } from "../core/sourceTitles";
 import { SourceEditContext } from "./Sources";
-import { PlacesPanel } from "./PlacesPanel";
 import { buildPoster, posterSvg } from "../core/poster";
 import { buildDescendantsPoster } from "../core/posterDescendants";
 import { PersonDetail } from "./PersonDetail";
@@ -128,7 +124,6 @@ export function App() {
   const [marks, setMarks] = useState<Marks>(NO_MARKS);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
-  // the file overview opens after each load
   const finderRef = useRef<HTMLInputElement>(null);
   // the list of people starts as a narrow rail with a magnifier; the choice is remembered
   // one tool panel is open at a time: the list of people, the file check, or none
@@ -140,15 +135,13 @@ export function App() {
     mq.addEventListener("change", on);
     return () => mq.removeEventListener("change", on);
   }, []);
-  const [chosenTool, setTool] = useState<"people" | "check" | "overview" | "sources" | "places" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
+  const [chosenTool, setTool] = useState<"people" | "check" | "sources" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
   const tool = narrow ? "people" : chosenTool;
-  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
+  const listOpen = tool === "people", showCheck = tool === "check", showSources = tool === "sources", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
-  const setShowOverview = (on: boolean) => setTool(on ? "overview" : listOpen ? "people" : null);
   const setShowSettings = (on: boolean) => setTool(on ? "settings" : listOpen ? "people" : null);
   const setShowSources = (on: boolean) => setTool(on ? "sources" : listOpen ? "people" : null);
-  const setShowPlaces = (on: boolean) => setTool(on ? "places" : listOpen ? "people" : null);
   const setShowChanges = (on: boolean) => setTool(on ? "changes" : listOpen ? "people" : null);
   const setShowRecent = (on: boolean) => setTool(on ? "recent" : listOpen ? "people" : null);
   useEffect(() => { if (listOpen && !narrow) finderRef.current?.focus(); }, [listOpen, narrow]);
@@ -356,8 +349,6 @@ export function App() {
   const suggest = useMemo(() => suggestions(doc?.records || []), [doc]);
   const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
   const problems = issues.length;
-  const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
-  const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
   const srcEdit = useMemo(() => ({ rename: (xref: string, title: string) => {
     const rec = doc?.records.find((r) => r.xref === xref);
     if (doc && rec) replaceRecords(applySourceRenames(doc.records, [{ xref, from: childOf(rec, "TITL")?.value.trim() ?? "", to: title }]));
@@ -670,9 +661,6 @@ export function App() {
                 <button type="button" className={showRecent ? "on" : undefined} aria-pressed={showRecent}
                         title={t("recent")} aria-label={t("recent")} onClick={() => setShowRecent(!showRecent)}>
                   <Clock className="icon" aria-hidden="true" /></button>
-                <button type="button" className={showOverview ? "on" : undefined} aria-pressed={showOverview}
-                        title={t("overview")} aria-label={t("overview")} onClick={() => setShowOverview(!showOverview)}>
-                  <LayoutDashboard className="icon" aria-hidden="true" /></button>
                 <button type="button" className={`${showCheck ? "on " : ""}${problems ? "warn" : ""}`.trim() || undefined}
                         aria-pressed={showCheck} title={problems ? t("checkCount", { n: problems }) : t("checkOk")}
                         aria-label={t("check")} onClick={() => setShowCheck(!showCheck)}>
@@ -681,9 +669,6 @@ export function App() {
                 <button type="button" className={showSources ? "on" : undefined} aria-pressed={showSources}
                         title={t("srcNotes")} aria-label={t("srcNotes")} onClick={() => setShowSources(!showSources)}>
                   <BookMarked className="icon" aria-hidden="true" /></button>
-                <button type="button" className={showPlaces ? "on" : undefined} aria-pressed={showPlaces}
-                        title={t("places")} aria-label={t("places")} onClick={() => setShowPlaces(!showPlaces)}>
-                  <MapPin className="icon" aria-hidden="true" /></button>
                 {(dirty || showChanges) && <button type="button" className={showChanges ? "on" : undefined} aria-pressed={showChanges}
                         title={`${t("changes")}: ${changes}`} aria-label={t("changes")} onClick={() => setShowChanges(!showChanges)}>
                   <ListChecks className="icon" aria-hidden="true" />{changes > 0 && <span className="badge">{changes > 99 ? "99+" : changes}</span>}</button>}
@@ -691,12 +676,6 @@ export function App() {
                         title={withShortcut(t("settings"), "settings", MAC)} aria-label={t("settings")} onClick={() => setShowSettings(!showSettings)}>
                   <SlidersHorizontal className="icon" aria-hidden="true" /></button>
               </nav>
-              {showOverview && stats && <aside className="rail-wrap ov-wrap" aria-label={t("overview")}>
-                <Overview stats={stats} data={data} problems={problems} t={t}
-                          onProblems={() => setShowCheck(true)}
-                          onPerson={(id) => makeRoot(id)}
-                          onSurname={(name) => { setQuery(name); showList(true); finderRef.current?.focus(); }} />
-              </aside>}
               {showRecent && <aside className="rail-wrap" aria-label={t("recent")}>
                 <RecentPanel entries={recent} data={data} lang={lang} selectedId={selectedId}
                              onPerson={pickListed} onStar={star} t={t} />
@@ -706,9 +685,6 @@ export function App() {
               </aside>}
               {showSettings && <aside className="rail-wrap" aria-label={t("settings")}>
                 <SettingsPanel form={form} lang={lang} onChange={setOpt} t={t} />
-              </aside>}
-              {showPlaces && placeList && <aside className="rail-wrap sp-wrap" aria-label={t("places")}>
-                <PlacesPanel places={placeList} data={data} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
                 <SourcesPanel key={selectedId ?? ""} overview={srcOverview} data={data} onPerson={(id) => pick(id)} personId={selectedId} t={t}
