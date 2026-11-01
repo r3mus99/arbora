@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.93.4 – 2026-11-01
+
+- **The file check no longer suggests moving a parent's source to the child's event.** The sources in the file are untouched.
+
 ## 2.93.3 – 2026-11-01
 
 - **Internal cleanup of the surname ending rule code.**

@@ -1,1 +1,0 @@
-- **The file check no longer suggests moving a parent's source to the child's event.** The sources in the file are untouched.
