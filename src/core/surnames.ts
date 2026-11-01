@@ -1,4 +1,4 @@
-/** Gendered surnames: Slovak and Czech add -ová to a man's surname and change -ý to -á, Polish changes -ski to -ska.
+/** Gendered surnames: Slovak and Czech add -ová to a man's surname and change -ý to -á.
  *  Used to offer a woman only female forms and a man only male forms while typing. */
 import type { Lang } from "./texts";
 
@@ -6,24 +6,14 @@ type Form = "m" | "f" | "n"; // male form, female form, same for both
 
 const VOWELS = /[aeiouyáäéíóôúýěů]$/i;
 
-/** Slovak and Czech rules apply for those UI languages, or when the file itself has -ová surnames. */
-function rules(lang: Lang | undefined, surnames: string[]): { sk: boolean; pl: boolean } {
-  return {
-    sk: lang === "sk" || lang === "cs" || surnames.some((s) => /ová$/i.test(s)),
-    pl: lang === "pl",
-  };
+/** Slovak and Czech rules apply for the Slovak UI, or when the file itself has -ová surnames. */
+function rules(lang: Lang | undefined, surnames: string[]): { sk: boolean } {
+  return { sk: lang === "sk" || surnames.some((s) => /ová$/i.test(s)) };
 }
 
-function formOf(s: string, r: { sk: boolean; pl: boolean }): Form {
-  if (r.sk) {
-    if (/(ová|á)$/i.test(s)) return "f";
-    if (s.toLowerCase().endsWith("ý") || !VOWELS.test(s)) return "m";
-    return "n";
-  }
-  if (r.pl) {
-    if (/(sk|ck|dzk)a$/i.test(s)) return "f";
-    if (/(sk|ck|dzk)i$/i.test(s)) return "m";
-  }
+function formOf(s: string): Form {
+  if (/(ová|á)$/i.test(s)) return "f";
+  if (s.toLowerCase().endsWith("ý") || !VOWELS.test(s)) return "m";
   return "n";
 }
 
@@ -32,20 +22,14 @@ const swap = (s: string, from: RegExp, to: string) => {
   return s.replace(from, upper ? to.toUpperCase() : to);
 };
 
-function toFemale(s: string, r: { sk: boolean; pl: boolean }): string {
-  if (r.sk) {
-    if (s.toLowerCase().endsWith("ý")) return swap(s, /ý$/i, "á");
-    return swap(s, /$/, "ová");
-  }
-  return swap(s, /i$/i, "a");
+function toFemale(s: string): string {
+  if (s.toLowerCase().endsWith("ý")) return swap(s, /ý$/i, "á");
+  return swap(s, /$/, "ová");
 }
 
-function toMale(s: string, r: { sk: boolean; pl: boolean }): string {
-  if (r.sk) {
-    if (/ová$/i.test(s)) return s.slice(0, -3);
-    return swap(s, /á$/i, "ý");
-  }
-  return swap(s, /a$/i, "i");
+function toMale(s: string): string {
+  if (/ová$/i.test(s)) return s.slice(0, -3);
+  return swap(s, /á$/i, "ý");
 }
 
 /** The surnames to offer for a person of this sex (`M`/`F`): surnames in the file with the matching form first
@@ -54,12 +38,12 @@ function toMale(s: string, r: { sk: boolean; pl: boolean }): string {
 export function surnamesFor(surnames: string[], sex: string, lang?: Lang): string[] {
   const want: Form | null = sex === "M" ? "m" : sex === "F" ? "f" : null;
   const r = rules(lang, surnames);
-  if (!want || (!r.sk && !r.pl)) return surnames;
+  if (!want || !r.sk) return surnames;
   const own: string[] = [], made: string[] = [];
   for (const s of surnames) {
-    const form = formOf(s, r);
+    const form = formOf(s);
     if (form === "n" || form === want) own.push(s);
-    else made.push(want === "f" ? toFemale(s, r) : toMale(s, r));
+    else made.push(want === "f" ? toFemale(s) : toMale(s));
   }
   const have = new Set(own);
   const sort = (list: string[]) => [...new Set(list)].sort((a, b) => a.localeCompare(b));
@@ -71,8 +55,8 @@ export function surnamesFor(surnames: string[], sex: string, lang?: Lang): strin
 export function surnameForSex(surname: string, sex: string, surnames: string[], lang?: Lang): string {
   const want: Form | null = sex === "M" ? "m" : sex === "F" ? "f" : null;
   const r = rules(lang, surnames);
-  if (!want || !surname || (!r.sk && !r.pl)) return surname;
-  const form = formOf(surname, r);
+  if (!want || !surname || !r.sk) return surname;
+  const form = formOf(surname);
   if (form === "n" || form === want) return surname;
-  return want === "f" ? toFemale(surname, r) : toMale(surname, r);
+  return want === "f" ? toFemale(surname) : toMale(surname);
 }

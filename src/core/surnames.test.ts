@@ -29,9 +29,8 @@ test("the file itself can tell that surnames are gendered, whatever the UI langu
   expect(surnamesFor(["Rybár", "Hrabová"], "F", "en")).toEqual(["Hrabová", "Rybárová"]);
 });
 
-test("Polish -ski / -ska", () => {
-  expect(surnamesFor(["Lasek", "Wolski"], "F", "pl")).toEqual(["Lasek", "Wolska"]);
-  expect(surnamesFor(["Lasek", "Wolska"], "M", "pl")).toEqual(["Lasek", "Wolski"]);
+test("Polish -ski / -ska surnames are left as they are", () => {
+  expect(surnamesFor(["Lasek", "Wolski"], "F", "en")).toEqual(["Lasek", "Wolski"]);
 });
 
 test("upper case surnames keep their case", () => {
