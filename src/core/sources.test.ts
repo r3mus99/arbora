@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { matchSources } from "./sources";
 import {
   applyPerson, decode, eventAnnotations, sourceOverview, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
   personFields, writeGedcom, type GedNode,
@@ -95,5 +96,25 @@ describe("sources overview", () => {
     const witnesses = ov.notes.find((n) => n.text.startsWith("Witnesses"))!;
     expect(witnesses.people.sort()).toEqual(["@I1@", "@I2@"]);
     expect(ov.notes.map((n) => n.text)).toContain("Shared note about the baptism\nin the parish.");
+  });
+});
+
+describe("matchSources", () => {
+  const choices = [
+    ...Array.from({ length: 30 }, (_, i) => ({ xref: `@S${i}@`, title: `Parish book of Springfield ${i}` })),
+    { xref: "@A@", title: "Census of Shelbyville" },
+    { xref: "@B@", title: "Old Springfield register" },
+    { xref: "@C@", title: "Parish book of Springfield 3" },
+  ];
+  test("offers nothing for an empty text", () => { expect(matchSources(choices, "  ")).toEqual([]); });
+  test("offers at most 8, equal titles once", () => {
+    const m = matchSources(choices, "springfield");
+    expect(m).toHaveLength(8);
+    expect(new Set(m.map((s) => s.title)).size).toBe(8);
+  });
+  test("puts titles starting with the text first", () => {
+    expect(matchSources(choices, "old")[0].xref).toBe("@B@");
+    expect(matchSources(choices, "reg")[0].xref).toBe("@B@");
+    expect(matchSources(choices, "xyz")).toEqual([]);
   });
 });

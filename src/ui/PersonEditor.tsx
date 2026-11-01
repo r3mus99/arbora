@@ -6,7 +6,7 @@ import {
   type Alias, type AssocRow, type AttributeRow, type CitationRow, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
-import type { SourceChoice } from "../core/sources";
+import { matchSources, type SourceChoice } from "../core/sources";
 import type { Lang } from "../core/texts";
 import { surnameForSex, surnamesFor } from "../core/surnames";
 import { ATTRIBUTE_TAGS } from "../core/facts";
@@ -95,6 +95,23 @@ function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnP
     <input type="text" value={text} list={list} aria-label={label || placeholder} placeholder={placeholder} autoComplete="off" autoFocus={focus} onChange={(e) => change(e.target.value)} />
     <datalist id={list}>{text.length >= 2 && options.slice(0, 5000).map((c) => <option key={c.id} value={c.label} />)}</datalist>
   </label>;
+}
+
+/** Citing a source: type to find one of the file (a few matches only), or write the text of a new one. */
+function SourcePick({ choices, value, label, tip, onChange }: { choices: SourceChoice[]; value: string; label: string; tip: string; onChange: (value: string) => void }) {
+  const list = useId();
+  const shown = /^@[^@]+@$/.test(value) ? choices.find((s) => s.xref === value)?.title ?? value : value;
+  const [text, setText] = useState(shown);
+  const options = useMemo(() => matchSources(choices, text), [choices, text]);
+  const change = (typed: string) => {
+    setText(typed);
+    const hit = choices.find((s) => s.title === typed);
+    onChange(hit ? hit.xref : typed);
+  };
+  return <>
+    <input className="fill" type="text" value={text} list={list} autoComplete="off" aria-label={label} title={tip} onChange={(e) => change(e.target.value)} />
+    <datalist id={list}>{options.map((s) => <option key={s.xref} value={s.title} />)}</datalist>
+  </>;
 }
 
 /** the form's id, so the icon buttons in the detail header can submit it */
@@ -308,13 +325,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       const id = `${idp}${c.origin < 0 ? `new${i}` : c.origin}`;
       return <Fragment key={id}>
         <div className="item-head">
-          {/* a pointer to a source record is chosen from the list, a citation written as text stays text */}
-          {/^@[^@]+@$/.test(c.source) || (c.origin < 0 && sources.length > 0)
-            ? <select className="fill" value={c.source} aria-label={t("sources")} title={t("tipSource")} onChange={(e) => patchRow(i, { source: e.target.value })}>
-                {!sources.some((s) => s.xref === c.source) && <option value={c.source}>{c.source}</option>}
-                {sources.map((s) => <option key={s.xref} value={s.xref}>{s.title}</option>)}
-              </select>
-            : <input type="text" autoComplete="off" value={c.source} aria-label={t("sources")} title={t("tipSource")} onChange={(e) => patchRow(i, { source: e.target.value })} />}
+          <SourcePick choices={sources} value={c.source} label={t("sources")} tip={t("tipSource")} onChange={(v) => patchRow(i, { source: v })} />
           <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                   onClick={() => setRows(rows.filter((_, j) => j !== i))}>
             <Trash2 className="icon" aria-hidden="true" /></button>
@@ -331,7 +342,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </Fragment>;
     });
   };
-  const newCite = (): CitationRow => ({ origin: -1, source: sources[0]?.xref || "", page: "", quality: "" });
+  const newCite = (): CitationRow => ({ origin: -1, source: "", page: "", quality: "" });
   /** the citations under one of the four fixed events, with the button that adds one */
   const eventCites = (key: (typeof PERSON_EVENTS)[number]) => {
     const rows = form.eventCitations[key], setRows = (r: CitationRow[]) => set("eventCitations", { ...form.eventCitations, [key]: r });
