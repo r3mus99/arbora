@@ -14,7 +14,6 @@ export * from "./collapse";
 export * from "./pdf";
 export * from "./check";
 export * from "./stats";
-export * from "./variants";
 export * from "./timeline";
 export * from "./facts";
 export * from "./associations";

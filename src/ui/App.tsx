@@ -2,7 +2,7 @@ import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } fro
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileImage, FileUp, Home, LayoutDashboard, User,
-         Loader2, BookMarked, History, Trash2, Clock, ListChecks, MapPin, Redo2, Replace, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, BookMarked, History, Trash2, Clock, ListChecks, MapPin, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
@@ -19,12 +19,10 @@ import { SourceWindow } from "./SourceWindow";
 import { placeOverview } from "../core/placelist";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
-import { renameVariants, spellings, variantGroups, type VariantKind } from "../core/variants";
 import { NO_BROWSING, NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move as moveIn, replay, startEdits, stepEdits, unsavedChanges, visit, withRecords, type Browsing, type Doc, type Edits, type Op, type Place } from "./history";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { gensSummary, storedOptions, toForm, toOptions, withOption, type Form } from "./options";
 import { ChangesPanel } from "./ChangesPanel";
-import { BulkFix } from "./BulkFix";
 import { CheckPanel } from "./CheckPanel";
 import { FileDrop } from "./FileDrop";
 import { NO_MARKS, fileKey, marksOf, setHome as changeHome, toggleFav, visited, withMarks, listing, type Marks } from "./marks";
@@ -142,12 +140,11 @@ export function App() {
     mq.addEventListener("change", on);
     return () => mq.removeEventListener("change", on);
   }, []);
-  const [chosenTool, setTool] = useState<"people" | "check" | "fix" | "overview" | "sources" | "places" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
+  const [chosenTool, setTool] = useState<"people" | "check" | "overview" | "sources" | "places" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
   const tool = narrow ? "people" : chosenTool;
-  const listOpen = tool === "people", showCheck = tool === "check", showFix = tool === "fix", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
+  const listOpen = tool === "people", showCheck = tool === "check", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
-  const setShowFix = (on: boolean) => setTool(on ? "fix" : listOpen ? "people" : null);
   const setShowOverview = (on: boolean) => setTool(on ? "overview" : listOpen ? "people" : null);
   const setShowSettings = (on: boolean) => setTool(on ? "settings" : listOpen ? "people" : null);
   const setShowSources = (on: boolean) => setTool(on ? "sources" : listOpen ? "people" : null);
@@ -358,31 +355,7 @@ export function App() {
   const recordOf = useMemo(() => new Map((doc?.records || []).filter((r) => r.xref).map((r) => [r.xref!, r])), [doc]);
   const suggest = useMemo(() => suggestions(doc?.records || []), [doc]);
   const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
-  // bulk fix: spellings of one surname or place
-  const [hidden, setHidden] = useState<Set<string>>(() => new Set(readStore().hiddenVariants || []));
-  const [keepAka, setKeepAka] = useState(() => readStore().keepAka !== false);
-  const variants = useMemo(() => ({
-    surname: doc ? variantGroups(doc.records, "surname") : [], given: doc ? variantGroups(doc.records, "given") : [], place: doc ? variantGroups(doc.records, "place") : [],
-  }), [doc]);
-  const spelled = useMemo(() => {
-    const sorted = (kind: VariantKind) => (doc ? [...spellings(doc.records, kind).keys()].sort((a, b) => a.localeCompare(b)) : []);
-    return { surname: sorted("surname"), given: sorted("given"), place: sorted("place") };
-  }, [doc]);
-  const found = {
-    issues: issues.length,
-    surname: variants.surname.filter((g) => !hidden.has(g.key)).length,
-    given: variants.given.filter((g) => !hidden.has(g.key)).length,
-    place: variants.place.filter((g) => !hidden.has(g.key)).length,
-  };
-  // the file check counts problems, the bulk fix counts groups of spellings that wait for a decision
-  const problems = found.issues, spellingGroups = found.surname + found.given + found.place;
-  // the panel opens also when only hidden groups are left, to show them again
-  const hide = (key: string, on: boolean) => {
-    const next = new Set(hidden);
-    if (on) next.add(key); else next.delete(key);
-    setHidden(next);
-    updateStore({ hiddenVariants: [...next] });
-  };
+  const problems = issues.length;
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
   const srcEdit = useMemo(() => ({ rename: (xref: string, title: string) => {
@@ -687,7 +660,7 @@ export function App() {
             <button type="button" onClick={loadSample}>{t("sample")}</button>
           </div>
         </div>}
-        {data && chosen && <div className={`viewer${selectedId || showCheck || showFix ? " has-detail" : " no-detail"}`}>
+        {data && chosen && <div className={`viewer${selectedId || showCheck ? " has-detail" : " no-detail"}`}>
             {/* one sidebar: a narrow bar of tools and, next to it, the panel of the active tool (second click closes it) */}
             <div className="side">
               <nav className="toolbar" aria-label={t("showList")}>
@@ -705,11 +678,6 @@ export function App() {
                         aria-label={t("check")} onClick={() => setShowCheck(!showCheck)}>
                   {problems ? <ShieldAlert className="icon" aria-hidden="true" /> : <ShieldCheck className="icon" aria-hidden="true" />}
                   {problems > 0 && <span className="badge">{problems}</span>}</button>
-                <button type="button" className={`${showFix ? "on " : ""}${spellingGroups ? "warn" : ""}`.trim() || undefined}
-                        aria-pressed={showFix} title={spellingGroups ? t("bulkCount", { n: spellingGroups }) : t("batchRename")}
-                        aria-label={t("batchRename")} onClick={() => setShowFix(!showFix)}>
-                  <Replace className="icon" aria-hidden="true" />
-                  {spellingGroups > 0 && <span className="badge">{spellingGroups}</span>}</button>
                 <button type="button" className={showSources ? "on" : undefined} aria-pressed={showSources}
                         title={t("srcNotes")} aria-label={t("srcNotes")} onClick={() => setShowSources(!showSources)}>
                   <BookMarked className="icon" aria-hidden="true" /></button>
@@ -724,8 +692,8 @@ export function App() {
                   <SlidersHorizontal className="icon" aria-hidden="true" /></button>
               </nav>
               {showOverview && stats && <aside className="rail-wrap ov-wrap" aria-label={t("overview")}>
-                <Overview stats={stats} data={data} problems={found} t={t}
-                          onProblems={() => (found.issues ? setShowCheck(true) : setShowFix(true))}
+                <Overview stats={stats} data={data} problems={problems} t={t}
+                          onProblems={() => setShowCheck(true)}
                           onPerson={(id) => makeRoot(id)}
                           onSurname={(name) => { setQuery(name); showList(true); finderRef.current?.focus(); }} />
               </aside>}
@@ -759,21 +727,17 @@ export function App() {
                                    setSourceWin(null);
                                  }}
                                  onDelete={() => { if (sourceWin.xref) replaceRecords(deleteSource(doc.records, sourceWin.xref)); setSourceWin(null); }}
-                                 onClose={() => setSourceWin(null)} hidden={showCheck || showFix || !!windowId} t={t} />}
+                                 onClose={() => setSourceWin(null)} hidden={showCheck || !!windowId} t={t} />}
             {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
                                  lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} onSave={(changed, added) => { setWindowId(null); commit(changed, added); }}
                                  allocate={(tag, pending) => (tag === "FAM" ? freeXref(doc!.records, "FAM", "F", pending) : freeXref(doc!.records, "INDI", "I", pending))}
                                  onClose={() => setWindowId(null)} onDeletePerson={() => removePerson(windowId)}
                                  records={doc!.records} onMerge={(drop, pick) => mergeInto(windowId, drop, pick)}
-                                 onAddFamily={() => newFamily(windowId)} onDeleteFamily={removeFamily} hidden={showCheck || showFix} t={t} />}
-            {showCheck || showFix ? <aside className="check-wide" aria-label={t(showFix ? "batchRename" : "check")}>
-              {showFix ? <BulkFix data={data} t={t} variants={variants} values={spelled} hidden={hidden} onHide={hide}
-                                  onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
-                                  keepAka={keepAka} onKeepAka={(on) => { setKeepAka(on); updateStore({ keepAka: on }); }}
-                                  onFocus={pick} />
-                : <CheckPanel issues={issues} data={data} t={t} onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
-                              onFocus={pick} />}
+                                 onAddFamily={() => newFamily(windowId)} onDeleteFamily={removeFamily} hidden={showCheck} t={t} />}
+            {showCheck ? <aside className="check-wide" aria-label={t("check")}>
+              <CheckPanel issues={issues} data={data} t={t} onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
+                          onFocus={pick} />
             </aside> : <>
             {!narrow && <div className="mid">
               <div className="chart-bar">
