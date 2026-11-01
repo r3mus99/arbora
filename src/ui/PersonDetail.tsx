@@ -145,7 +145,10 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
   const editable = (e: TimelineItem) => live && e.kind !== "child" && (e.kind === "marriage" ? !!lookup(e.key)
     : e.kind === "residence" || e.kind === "event" || e.kind === "famEvent" ? !!e.node && (!e.family || !!lookup(e.family)) : true);
   /** a date as text; its tooltip is the weekday of an exact day */
-  const dated = (stored: string) => <span title={weekdayTip(stored, lang) || undefined}>{formatDate(stored, true, lang)}</span>;
+  const dated = (stored: string) => {
+    const tip = weekdayTip(stored, lang), text = formatDate(stored, true, lang);
+    return tip ? <span title={tip}>{text}</span> : text;
+  };
   /** a date shown as text that can be changed in place; `set` gets the new date as GEDCOM */
   const dateInline = (stored: string, set: (date: string) => void) => {
     const shown = dateInput(stored, lang);
