@@ -1,1 +1,1 @@
-- **A person's sources and notes moved from the detail to the sources and notes panel.** The detail is shorter and the name gets more room. When a person is selected, the panel starts filtered to that person; a chip with the name switches the filter off.
+- **The person header shows only the name and the edit pencil.** The sex symbol, the favourite star and the centring button are gone from the header. Sex is set in the edit window, favourites in the people list and recent panel. The home-person button moved to the top bar, next to the return-home button.

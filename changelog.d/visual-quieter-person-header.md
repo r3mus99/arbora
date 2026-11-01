@@ -1,1 +1,0 @@
-- **The person header shows only the name and the edit pencil.** The sex symbol, the favourite star and the centring button are gone from the header. Sex is set in the edit window, favourites in the people list and recent panel. The home-person button moved to the top bar, next to the return-home button.
