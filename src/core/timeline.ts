@@ -6,7 +6,7 @@ import { placeCoords, type Coords } from "./places";
 import { childOf, type GedNode, type GedcomData } from "./gedcom";
 
 export type TimelineKind = "birth" | "christening" | "marriage" | "child" | "death" | "burial"
-  | "residence" | "event" | "famEvent";
+  | "residence" | "famEvent";
 
 export interface TimelineItem {
   kind: TimelineKind;
@@ -20,19 +20,19 @@ export interface TimelineItem {
   divorced: boolean;
   /** the family of a marriage or a child, for React keys */
   key: string;
-  /** a custom event: its TYPE, or its value when it has no TYPE */
+  /** a custom family event: its TYPE, or its value when it has no TYPE */
   title?: string;
   /** where the place is on the map, when the file says */
   coords?: Coords;
   /** people named as witnesses of a marriage (_WITN) */
   witnesses?: string[];
-  /** the GEDCOM tag of a standard event shown as "event" (BAPM, CENS, …) */
+  /** the GEDCOM tag of a family event (DIV, ENGA, …) */
   tag?: string;
   /** age, cause, agency and address written under the event, as small labelled lines */
   details?: EventDetail[];
   /** a residence: the text written on the line itself (an address), when there is one */
   detail?: string;
-  /** the GEDCOM line of a residence or custom event, to read its sources and notes from */
+  /** the GEDCOM line of a residence or family event, to read its sources and notes from */
   node?: GedNode;
   /** a family event (divorce, custom): the xref of the family record whose line `node` is */
   family?: string;
@@ -47,14 +47,8 @@ export function weddingAges(wedding: string | undefined, people: { name: string;
 
 export interface EventDetail { key: "age" | "cause" | "agency" | "address"; value: string }
 
-/** Standard events beyond birth, christening, marriage, death and burial, titled by their tag. */
-export const EXTRA_EVENT_TAGS = ["BAPM", "BLES", "CREM", "ADOP", "CONF", "FCOM", "ORDN", "CENS", "EMIG", "IMMI",
-                                 "NATU", "GRAD", "RETI", "PROB", "WILL"];
-
-/** Lines of a person that are events or facts in their own right, shown on the timeline in file order. */
-const OWN_EVENTS: Record<string, "residence" | "event"> = { RESI: "residence", EVEN: "event" };
-for (const tag of EXTRA_EVENT_TAGS) OWN_EVENTS[tag] = "event";
-export const OWN_EVENT_TAGS: string[] = Object.keys(OWN_EVENTS);
+/** Lines of a person shown on the timeline in file order besides the life events: residences only. */
+export const OWN_EVENT_TAGS: string[] = ["RESI"];
 
 /** Family events shown on the timeline of both spouses besides the marriage itself. */
 export const FAMILY_EVENT_TAGS = ["DIV", "ENGA", "MARB", "MARC", "MARL", "MARS", "ANUL"];
@@ -103,26 +97,20 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
 
   add("birth", fields ? fields.birth : p.birth, "birth");
   if (fields) add("christening", fields.christening, "christening");
-  // residences and custom events (EVEN with a TYPE) of the record, as they are written
+  // residences of the record, as they are written
   record?.children.forEach((node, i) => {
-    const tag = node.tag;
-    if (!(tag in OWN_EVENTS)) return;
+    if (node.tag !== "RESI") return;
     const e = { date: childOf(node, "DATE")?.value || "", place: childOf(node, "PLAC")?.value || "" };
-    const type = childOf(node, "TYPE")?.value || "";
-    const value = node.value === "Y" ? "" : node.value;
-    const title = tag === "EVEN" ? type || value : "";
-    const detail = tag === "RESI" ? value : tag === "EVEN" && type ? value : "";
+    const detail = node.value === "Y" ? "" : node.value;
     const details = eventDetails(node);
     const noted = !!(childOf(node, "SOUR") || childOf(node, "NOTE"));
-    if (!e.date && !e.place && !title && !detail && !details.length && !noted && !EXTRA_EVENT_TAGS.includes(tag)) return;
-    add(OWN_EVENTS[tag], e, `${tag}${i}`, null, false, true);
+    if (!e.date && !e.place && !detail && !details.length && !noted) return;
+    add("residence", e, `RESI${i}`, null, false, true);
     const item = items[items.length - 1];
-    if (title) item.title = title;
     if (detail) item.detail = detail;
     if (details.length) item.details = details;
     const at = placeCoords(node, family);
     if (at) item.coords = at;
-    if (EXTRA_EVENT_TAGS.includes(tag)) item.tag = tag;
     item.node = node;
   });
   for (const fid of p.fams) {
@@ -180,7 +168,7 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
   }
 
   // Undated marriages and children take the place of the event before them; an undated birth
-  // or christening goes first, an undated death, residence or custom event after every dated event except the burial,
+  // or christening goes first, an undated death, residence after every dated event except the burial,
   // and an undated burial last.
   const dated = items.map((item) => sortKey(item.date));
   const latest = Math.max(-Infinity, ...dated.filter((k, i): k is number => k !== null && items[i].kind !== "burial"));
@@ -189,7 +177,7 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     let k = dated[i];
     if (k !== null) last = k;
     else if (item.kind === "birth" || item.kind === "christening") k = -Infinity;
-    else if (item.kind === "death" || item.kind === "residence" || item.kind === "event") k = latest;
+    else if (item.kind === "death" || item.kind === "residence") k = latest;
     else if (item.kind === "burial") k = Infinity;
     else k = last;
     return { item, k, i };

@@ -1,14 +1,13 @@
-import { Hash, Phone, ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Tag, Tags, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { Hash, Phone, ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Tag, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
-  CONTACT_TAGS, OTHER_EVENT_TAGS, PEDIGREES, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
-  type Alias, type AssocRow, type AttributeRow, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
+  CONTACT_TAGS, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
+  type Alias, type AssocRow, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
 import { surnameForSex, surnamesFor } from "../core/surnames";
-import { ATTRIBUTE_TAGS } from "../core/facts";
 import { yearOf } from "../core/date";
 import { SECTIONS } from "./editSections";
 import type { StringKey } from "./i18n";
@@ -127,10 +126,6 @@ export function SuggestLists({ suggest, lang }: { suggest: Suggest; lang: Lang }
 
 const NO_DETAILS: EventDetailFields = { age: "", cause: "", agency: "", note: "" };
 const DETAILS: [Exclude<keyof EventDetailFields, "note">, StringKey, StringKey][] = [["age", "detAge", "tipAge"], ["cause", "detCause", "tipCause"], ["agency", "detAgency", "tipAgency"]];
-/** the names of the other events, as in the timeline */
-const OTHER_LABEL = Object.fromEntries(OTHER_EVENT_TAGS.map((tag) => [tag,
-  (tag === "RESI" ? "residence" : tag === "EVEN" ? "event" : `ev${tag}`) as StringKey])) as Record<string, StringKey>;
-
 /** christening and burial can take the date and place of birth and death */
 const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "death", StringKey]>> = {
   christening: ["birth", "copyBirth"], burial: ["death", "copyDeath"],
@@ -155,7 +150,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     for (const key of PERSON_EVENTS) shown[key] = shownEvent(f[key], lang);
     shown.occupations = f.occupations.map((o) => ({ ...o, ...shownEvent(o, lang) }));
     shown.events = f.events.map((e) => ({ ...e, ...shownEvent(e, lang) }));
-    shown.attributes = f.attributes.map((a) => ({ ...a, ...shownEvent(a, lang) }));
     const fams = families.map((r) => {
       const ff = familyFields(r);
       return { stored: ff, shown: { ...ff, marriage: shownEvent(ff.marriage, lang), divorce: shownEvent(ff.divorce, lang) } };
@@ -186,7 +180,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   useEffect(() => onDirty?.(changes), [changes, onDirty]);
 
   const shownEv = (origin: number) => initial.shown.events.find((x) => x.origin === origin)!.date;
-  const shownAttr = (origin: number) => initial.shown.attributes.find((x) => x.origin === origin)!.date;
   /** the typed date as GEDCOM, or the stored one when the field was not touched */
   const date = (typed: string, shown: string, stored: string) => (typed === shown ? stored : parseDate(typed, lang).value);
 
@@ -205,9 +198,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     }));
     after.occupations = form.occupations.map((o) => (o.origin < 0 ? { ...o, date: parseDate(o.date, lang).value } : {
       ...o, date: date(o.date, initial.shown.occupations[o.origin].date, initial.stored.occupations[o.origin].date),
-    }));
-    after.attributes = form.attributes.map((a) => (a.origin < 0 ? { ...a, date: parseDate(a.date, lang).value } : {
-      ...a, date: date(a.date, shownAttr(a.origin), initial.stored.attributes.find((x) => x.origin === a.origin)!.date),
     }));
     const changed: GedNode[] = [];
     const rec = applyPerson(record, initial.stored, after);
@@ -255,8 +245,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const setPart = (patch: Partial<PersonFields["nameParts"]>) => set("nameParts", { ...form.nameParts, ...patch });
   const setOcc = (i: number, patch: Partial<Occupation>) =>
     set("occupations", form.occupations.map((o, j) => (j === i ? { ...o, ...patch } : o)));
-  const setAttr = (i: number, patch: Partial<AttributeRow>) =>
-    set("attributes", form.attributes.map((a, j) => (j === i ? { ...a, ...patch } : a)));
   const setEv = (i: number, patch: Partial<EventRow>) =>
     set("events", form.events.map((e, j) => (j === i ? { ...e, ...patch } : e)));
   const [openDetails, setOpenDetails] = useState<string[]>([]);
@@ -500,7 +488,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     const f = initial.shown, start = new Set(OPEN_AT_START);
     if (families.length) start.add("families");
     if (f.parents.length || f.associations.length) start.add("parents");
-    if (f.occupations.length || f.attributes.length) start.add("facts");
+    if (f.occupations.length) start.add("facts");
     if (f.note || f.citations.length) start.add("notes");
     if (f.restriction || f.address || f.contacts.length || f.references.length || f.afn || f.rfn) start.add("other");
     return start;
@@ -573,35 +561,30 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {form.deceased && event("death")}
       {form.deceased && fixedKeys.includes("burial") && fixedRow("burial")}
       <fieldset className="list">
-        <legend>{ico(CalendarDays)}{t("otherEvents")}{acts(<button type="button" className="head-act" onClick={() => set("events",
-          [...form.events, { origin: -1, tag: OTHER_EVENT_TAGS[0], title: "", value: "", date: "", place: "", age: "", cause: "", agency: "", note: "", citations: [] }])}><Plus className="icon" aria-hidden="true" />{t("addEvent")}</button>)}</legend>
+        <legend>{ico(CalendarDays)}{t("residences")}{acts(<button type="button" className="head-act" onClick={() => set("events",
+          [...form.events, { origin: -1, tag: "RESI", value: "", date: "", place: "", age: "", cause: "", agency: "", note: "", citations: [] }])}><Plus className="icon" aria-hidden="true" />{t("addResidence")}</button>)}</legend>
         {form.events.map((e, i) => (
           <div className="item" key={e.origin < 0 ? `new${i}` : e.origin}>
             <div className="item-head">
-              <select value={e.tag} disabled={e.origin >= 0} aria-label={t("eventKind")} title={t("tipEventKind")}
-                      onChange={(ev) => setEv(i, { tag: ev.target.value })}>
-                {OTHER_EVENT_TAGS.map((tag) => <option key={tag} value={tag}>{t(OTHER_LABEL[tag])}</option>)}
-              </select>
-              {e.tag === "RESI" && <button type="button" className="head-act" disabled={!parentsResidence || e.place === parentsResidence}
+              <span className="grow">{t("residence")}</span>
+              <button type="button" className="head-act" disabled={!parentsResidence || e.place === parentsResidence}
                 title={parentsResidence ? `${t("copyParentsResidence")}: ${parentsResidence}` : t("copyParentsResidenceNone")} onClick={() => setEv(i, { place: parentsResidence })}>
-                <Copy className="icon" aria-hidden="true" />{t("copyParentsResidence")}</button>}
+                <Copy className="icon" aria-hidden="true" />{t("copyParentsResidence")}</button>
               <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                       onClick={() => set("events", form.events.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
-            {e.tag === "EVEN" && <label className="full" title={t("tipEventTitle")} data-cap={t("eventKind")}><input placeholder={t("eventKind")} aria-label={t("eventKind")} type="text" autoComplete="off" value={e.title} onChange={(ev) => setEv(i, { title: ev.target.value })} /></label>}
-            {e.tag === "EVEN" && <label className="full" title={t("tipEventText")} data-cap={t("eventText")}><input placeholder={t("eventText")} aria-label={t("eventText")} type="text" autoComplete="off" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
             {/* a residence: the address (street and number) is separate from the place (town), and is not shown twice when it is the same text */}
-            {e.tag === "RESI" && <>
+            <>
               {(() => { const id = `addr:${rowId(e, i)}`, shown = (!!e.value && e.value !== e.place || openAddr.includes(rowId(e, i))) && !closed.includes(id);
                 return <>
                   <div className="full">{revealBtn(id, shown, t("detAddress"), t(e.value ? "sameAsPlace" : "addrHint"))}</div>
                   {shown && <label className="full" title={t("addrHint")} data-cap={t("detAddress")}><input placeholder={t("detAddress")} aria-label={t("detAddress")} type="text" autoComplete="off" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
                 </>; })()}
-            </>}
+            </>
             <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
                        t={t} onChange={(v) => setEv(i, { date: v })} />
-            <label title={t(e.tag === "RESI" ? "resiPlaceHint" : "tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={e.place} list={PLACES}
+            <label title={t("resiPlaceHint")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={e.place} list={PLACES}
                      onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
             {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
           </div>
@@ -703,11 +686,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           <div className="item" key={p.origin < 0 ? `new${i}` : p.origin}>
             <div className="item-head">
               <span className="grow">{familyLabel(p.fam)}</span>
-              <select value={p.pedigree} aria-label={t("pedigree")} title={t("tipPedigree")}
-                      onChange={(e) => set("parents", form.parents.map((q, j) => (j === i ? { ...q, pedigree: e.target.value } : q)))}>
-                <option value="">{t("pedigree")}</option>
-                {PEDIGREES.map((k) => <option key={k} value={k}>{t(`pedi_${k}` as StringKey)}</option>)}
-              </select>
               <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                       onClick={() => set("parents", form.parents.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
@@ -751,31 +729,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                          t={t} onChange={(v) => { pin(`oc${o.origin < 0 ? `new${i}` : o.origin}`); setOcc(i, { date: v }); }} />
               <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={o.place} list={PLACES}
                        onChange={(e) => { pin(`oc${o.origin < 0 ? `new${i}` : o.origin}`); setOcc(i, { place: e.target.value }); }} /></label>
-            </>)}
-          </div>
-        ))}
-      </fieldset>
-      <fieldset className="list">
-        <legend>{ico(Tags)}{t("attributes")}{acts(<button type="button" className="head-act" onClick={() => set("attributes",
-          [...form.attributes, { origin: -1, tag: ATTRIBUTE_TAGS[0], value: "", date: "", place: "" }])}><Plus className="icon" aria-hidden="true" />{t("addAttribute")}</button>)}</legend>
-        {form.attributes.map((a, i) => (
-          <div className="item" key={a.origin < 0 ? `new${i}` : a.origin}>
-            <div className="item-head">
-              <select value={a.tag} disabled={a.origin >= 0} aria-label={t("attributes")} title={t("tipAttrKind")}
-                      onChange={(e) => setAttr(i, { tag: e.target.value })}>
-                {ATTRIBUTE_TAGS.map((tag) => <option key={tag} value={tag}>{t(`attr${tag}` as StringKey)}</option>)}
-              </select>
-              <input type="text" autoComplete="off" value={a.value} aria-label={t("attributes")} title={t("tipAttrValue")}
-                     onChange={(e) => setAttr(i, { value: e.target.value })} />
-              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                      onClick={() => set("attributes", form.attributes.filter((_, j) => j !== i))}>
-                <Trash2 className="icon" aria-hidden="true" /></button>
-            </div>
-            {hidable(`at${a.origin < 0 ? `new${i}` : a.origin}`, !!(a.date || a.place), t("eventDetails"), t("tipRowDetails"), <>
-              <DateField value={a.date} shown={a.origin < 0 ? "" : shownAttr(a.origin)} lang={lang}
-                         t={t} onChange={(v) => { pin(`at${a.origin < 0 ? `new${i}` : a.origin}`); setAttr(i, { date: v }); }} />
-              <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={a.place} list={PLACES}
-                       onChange={(e) => { pin(`at${a.origin < 0 ? `new${i}` : a.origin}`); setAttr(i, { place: e.target.value }); }} /></label>
             </>)}
           </div>
         ))}

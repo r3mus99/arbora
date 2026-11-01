@@ -112,7 +112,7 @@ describe("tooltips of the edit window", () => {
   }));
 
   test("the fixture shows the whole form", () => {
-    for (const word of ["Teacher", "Medal", "godfather", "a@b.test", "1A"]) expect(html).toContain(word);
+    for (const word of ["Teacher", "Main street 1", "godfather", "a@b.test", "1A"]) expect(html).toContain(word);
     expect((html.match(fields) || []).length).toBeGreaterThan(40);
   });
 

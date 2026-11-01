@@ -1,5 +1,5 @@
 /** Merging two records of the same person: the second person is folded into the first and removed. */
-import { addLine, applyPerson, personFields, type EventFields, type PersonFields } from "./edit";
+import { addLine, addUnlisted, applyPerson, personFields, type EventFields, type PersonFields } from "./edit";
 import { rewritten, type GedNode } from "./gedcom";
 
 /** the single values that can differ between the two people; a conflict is shown to the user, who keeps one side */
@@ -21,6 +21,17 @@ export function mergeValue(f: PersonFields, field: MergeField): string {
 export function mergeConflicts(a: PersonFields, b: PersonFields): MergeField[] {
   return MERGE_FIELDS.filter((f) => mergeValue(a, f) && mergeValue(b, f) && mergeValue(a, f) !== mergeValue(b, f));
 }
+
+/**
+ * Lines of a person that neither the editor nor the detail view handle any more (events such as baptism or census,
+ * custom events, and facts such as education or title). They stay in the file as they are, and a merge carries over
+ * those of the removed person.
+ */
+export const UNMANAGED_TAGS = ["BAPM", "BLES", "CREM", "ADOP", "CONF", "FCOM", "ORDN", "CENS", "EMIG", "IMMI", "NATU", "GRAD",
+                               "RETI", "PROB", "WILL", "EVEN", "EDUC", "NATI", "TITL", "PROP", "CAST", "DSCR", "NCHI", "IDNO", "FACT"];
+
+/** a line with its sub-lines as text, to tell whether two people have the same one */
+const lineText = (n: GedNode): string => JSON.stringify([n.tag, n.value, n.children.map(lineText)]);
 
 const pointers = (rec: GedNode, tags: string[]) => rec.children.filter((c) => tags.includes(c.tag)).map((c) => c.value.trim());
 
@@ -65,7 +76,6 @@ export function mergedFields(a: PersonFields, b: PersonFields, pick: MergePick):
   out.occupations = union(a.occupations, b.occupations);
   out.aliases = union(a.aliases, b.aliases);
   out.events = union(a.events, b.events);
-  out.attributes = union(a.attributes, b.attributes);
   out.citations = union(a.citations, b.citations);
   out.contacts = union(a.contacts, b.contacts);
   out.references = union(a.references, b.references);
@@ -109,6 +119,10 @@ export function mergePeople(records: GedNode[], keep: string, drop: string, pick
   const fb = personFields(b);
   fb.associations = fb.associations.filter((x) => x.id !== keep);
   let merged = applyPerson(a, fa, mergedFields(fa, fb, pick));
+  // lines the editor does not model, such as other events and facts, are carried over unless the kept person has the same line
+  for (const line of b.children) {
+    if (UNMANAGED_TAGS.includes(line.tag) && !merged.children.some((c) => lineText(c) === lineText(line))) merged = addUnlisted(merged, line);
+  }
   // the families the removed person was a spouse in
   for (const fam of pointers(b, ["FAMS"])) {
     if (!pointers(merged, ["FAMS"]).includes(fam)) merged = addLine(merged, "FAMS", fam);

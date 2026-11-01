@@ -128,11 +128,10 @@ open by themselves:
 - **Person**: given name, surname (surnames from the file are suggested), sex
   and other forms of the name ("also known as", stored as `NAME` with
   `TYPE aka`).
-- **Events**: birth, christening, death, burial and any other event
-  (residence, baptism, emigration…), each with date, place and, behind
-  *Details*, age, cause and agency. Ticking *Deceased* without any details
+- **Events**: birth, christening, death, burial and residences, each with date,
+  place and, behind *Details*, age, cause and agency. Ticking *Deceased* without any details
   stores `1 DEAT Y`.
-- **Occupation and facts**: occupations and other attributes, each with its own
+- **Occupation and facts**: occupations and religion, each with its own
   date and place.
 - **Family**: every marriage as its own card with date, place, divorce and
   details, the spouse and the children (sorted by birth on request). A new

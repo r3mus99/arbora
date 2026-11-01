@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { dateParts, parseGedcom, personAttributes, personFields, readRecords, timeline, ageBetween, formatAge, weddingAges, yearsBetween } from "./index";
+import { dateParts, parseGedcom, personFields, readRecords, timeline, ageBetween, formatAge, weddingAges, yearsBetween } from "./index";
 
 describe("ages", () => {
   test.each([
@@ -146,7 +146,7 @@ ${[0, 1, 2, 3].map((n) => `1 CHIL @C${n}@`).join("\n")}
   expect(timeline(data, "@I1@", fields).map((i) => i.kind).slice(-2)).toEqual(["death", "burial"]);
 });
 
-describe("residences and custom events", () => {
+describe("residences", () => {
   const ged = `0 HEAD
 0 @I1@ INDI
 1 NAME Ota /Brandt/
@@ -173,21 +173,19 @@ describe("residences and custom events", () => {
   const rec = records.find((r) => r.xref === "@I1@")!;
   const items = timeline(data, "@I1@", personFields(rec), rec);
 
-  test("are listed in date order with their title, detail and place", () => {
-    expect(items.map((i) => [i.kind, i.date, i.place, i.title || "", i.detail || ""])).toEqual([
-      ["birth", "1900", "", "", ""],
-      ["event", "1925", "Harbor", "Immigration", ""],
-      ["residence", "1930", "Springfield, Ohio", "", ""],
-      ["residence", "", "Greenfield", "", "Mill Road 4"],
-      ["event", "", "", "military", ""],
-      ["residence", "", "", "", ""],
+  test("are listed in date order with their detail and place; custom events are not", () => {
+    expect(items.map((i) => [i.kind, i.date, i.place, i.detail || ""])).toEqual([
+      ["birth", "1900", "", ""],
+      ["residence", "1930", "Springfield, Ohio", ""],
+      ["residence", "", "Greenfield", "Mill Road 4"],
+      ["residence", "", "", ""],
     ]);
-    expect(items[1].age).toEqual({ n: 25, unit: "y" });
+    expect(items[1].age).toEqual({ n: 30, unit: "y" });
   });
 
   test("keep their line, so its notes can be read; empty lines are skipped", () => {
-    expect(items[1].node?.tag).toBe("EVEN");
-    expect(items.filter((i) => i.node).length).toBe(5);
+    expect(items[1].node?.tag).toBe("RESI");
+    expect(items.filter((i) => i.node).length).toBe(3);
   });
 
   test("without the record, nothing but the usual events", () => {
@@ -195,7 +193,7 @@ describe("residences and custom events", () => {
   });
 });
 
-describe("more events and attributes", () => {
+describe("details of the life events; other events and facts", () => {
   const ged = `0 HEAD
 0 @I1@ INDI
 1 NAME Ota /Brandt/
@@ -227,23 +225,14 @@ describe("more events and attributes", () => {
   const rec = records.find((r) => r.xref === "@I1@")!;
   const items = timeline(data, "@I1@", personFields(rec), rec);
 
-  test("standard events are listed with their tag and details", () => {
-    expect(items.map((i) => [i.kind, i.tag || "", i.date])).toEqual([
-      ["birth", "", "1900"], ["event", "IMMI", "1925"], ["event", "CONF", ""], ["death", "", "1980"],
-    ]);
-    expect(items[1].details).toEqual([{ key: "agency", value: "Port office" }]);
+  test("events other than the life events and residences are not on the timeline", () => {
+    expect(items.map((i) => [i.kind, i.date])).toEqual([["birth", "1900"], ["death", "1980"]]);
   });
 
   test("age, cause and address are read from birth and death too", () => {
     expect(items[0].details).toEqual([{ key: "age", value: "0" }]);
-    expect(items[3].details).toEqual([{ key: "cause", value: "Old age" },
+    expect(items[1].details).toEqual([{ key: "cause", value: "Old age" },
                                       { key: "address", value: "Hill Street 2, Second floor, Greenfield" }]);
-  });
-
-  test("attributes with a value, date or place", () => {
-    expect(personAttributes(rec).map((a) => [a.tag, a.value, a.date])).toEqual([
-      ["EDUC", "Teacher training", "1920"], ["TITL", "Dr.", ""], ["NCHI", "3", ""],
-    ]);
   });
 });
 

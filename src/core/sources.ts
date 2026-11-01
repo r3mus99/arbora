@@ -1,7 +1,6 @@
 /** Sources (SOUR) and notes (NOTE) attached to a record or an event, resolved to readable text. */
 
 import { childOf, childrenOf, type GedNode } from "./gedcom";
-import { ATTRIBUTE_TAGS } from "./facts";
 import { OWN_EVENT_TAGS } from "./timeline";
 
 /** a source citation with what the cited source record says about itself */
@@ -93,8 +92,8 @@ export function withoutShownSources(a: Annotations, shown: Citation[]): Annotati
 /** Event tags of a person that the timeline shows; their notes and sources go on the event. */
 export const TIMELINE_TAGS = ["BIRT", "CHR", "DEAT", "BURI"];
 
-/** Lines shown as facts (occupation, religion, education, …); their notes and sources go on the fact. */
-export const FACT_TAGS: string[] = ["OCCU", "RELI", ...ATTRIBUTE_TAGS];
+/** Lines shown as facts (occupation, religion); their notes and sources go on the fact. */
+export const FACT_TAGS: string[] = ["OCCU", "RELI"];
 
 /**
  * The person's own notes and sources: on the record, on its names and on every line that is neither

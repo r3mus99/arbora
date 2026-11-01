@@ -201,55 +201,46 @@ describe("the parts of a name", () => {
   });
 });
 
-describe("attributes of a person", () => {
+describe("events and facts the editor does not offer", () => {
   const GED = `0 HEAD
 0 @I1@ INDI
 1 NAME Jan /Novak/
 1 SEX M
 1 OCCU smith
+1 BAPM
+2 DATE 1 JAN 1890
 1 EDUC primary school
 2 DATE 1890
 1 NATI
 2 PLAC Brno
-1 FACT Y
-1 RELI Catholic
+1 EVEN Fair
+2 TYPE Award
+1 FAMC @F1@
+2 PEDI adopted
 1 NOTE x
+0 @F1@ FAM
+1 CHIL @I1@
 0 TRLR
 `;
   const rec = parseGedcom(GED)[1];
   const before = personFields(rec);
-  const change = (fn: (f: PersonFields) => Partial<PersonFields>) => applyPerson(rec, before, { ...before, ...fn(before) });
 
-  test("are listed with the index of their line, empty ones left out", () => {
-    expect(before.attributes.map((a) => [a.origin, a.tag, a.value, a.date, a.place])).toEqual([
-      [0, "EDUC", "primary school", "1890", ""], [1, "NATI", "", "", "Brno"],
-    ]);
+  test("are not part of the form", () => {
+    expect(before).not.toHaveProperty("attributes");
+    expect(before.events).toEqual([]);
   });
 
-  test("a changed value touches only its line", () => {
-    const changed = change((f) => ({ attributes: f.attributes.map((a) => (a.origin === 0 ? { ...a, value: "grammar school" } : a)) }));
-    const out = writeGedcom([changed]);
-    expect(out).toContain("1 EDUC grammar school\n2 DATE 1890\n1 NATI\n2 PLAC Brno\n1 FACT Y\n");
-    expect(rest(changed, ["EDUC"])).toEqual(rest(rec, ["EDUC"]));
+  test("stay in the file when something else is changed", () => {
+    const out = writeGedcom([applyPerson(rec, before, { ...before, given: "Johann", note: "y" })]);
+    for (const l of ["1 BAPM\n2 DATE 1 JAN 1890\n", "1 EDUC primary school\n2 DATE 1890\n", "1 NATI\n2 PLAC Brno\n", "1 EVEN Fair\n2 TYPE Award\n"]) {
+      expect(out).toContain(l);
+    }
   });
 
-  test("a removed one is deleted and the unlisted empty line stays", () => {
-    const out = writeGedcom([change((f) => ({ attributes: f.attributes.filter((a) => a.origin !== 0) }))]);
-    expect(out).not.toContain("EDUC");
-    expect(out).toContain("1 NATI\n2 PLAC Brno\n1 FACT Y\n");
-  });
-
-  test("a new one is written with its date and place, among the other attributes", () => {
-    const out = writeGedcom([change((f) => ({ attributes: [...f.attributes,
-      { origin: -1, tag: "PROP", value: "a mill", date: "1900", place: "Brno" }] }))]);
-    expect(out).toContain("1 NATI\n2 PLAC Brno\n1 PROP a mill\n2 DATE 1900\n2 PLAC Brno\n1 FACT Y\n");
-  });
-
-  test("changing back gives the record as it was", () => {
-    const changed = change((f) => ({ attributes: [...f.attributes.map((a) => ({ ...a, place: "Prague" })),
-      { origin: -1, tag: "PROP", value: "a mill", date: "", place: "" }] }));
-    const back = applyPerson(changed, personFields(changed), before);
-    expect(writeGedcom([back])).toBe(writeGedcom([rec]));
+  test("the pedigree type of a parent family stays", () => {
+    const out = writeGedcom([applyPerson(rec, before, { ...before, note: "y" })]);
+    expect(out).toContain("1 FAMC @F1@\n2 PEDI adopted\n");
+    expect(before.parents[0].pedigree).toBe("adopted");
   });
 });
 
@@ -258,8 +249,8 @@ describe("events of a person", () => {
   const load = (text: string) => parseGedcom(text).find((c) => c.tag === "INDI")!;
   const none = { age: "", cause: "", agency: "", note: "" };
 
-  test("offers residence first as the default event", () => {
-    expect(OTHER_EVENT_TAGS[0]).toBe("RESI");
+  test("only residences are listed", () => {
+    expect(OTHER_EVENT_TAGS).toEqual(["RESI"]);
   });
 
   test("adds details to a birth in the usual order and removes them again", () => {
@@ -271,21 +262,21 @@ describe("events of a person", () => {
     expect(rest(back, [])).toEqual(rest(rec, []));
   });
 
-  test("adds, edits and removes other events", () => {
+  test("adds, edits and removes residences", () => {
     const rec = load(ged("1 RESI Main St\n2 DATE 1920\n"));
     const f = personFields(rec);
     expect(f.events).toHaveLength(1);
     expect(f.events[0]).toMatchObject({ tag: "RESI", value: "Main St", date: "1920" });
-    const added = applyPerson(rec, f, { ...f, events: [...f.events, { origin: -1, tag: "EVEN", title: "Fair", value: "won", date: "", place: "Town", ...none, cause: "x", citations: [] }] });
-    const ev = added.children.find((c) => c.tag === "EVEN")!;
-    expect(ev.children.map((c) => c.tag)).toEqual(["TYPE", "PLAC", "CAUS"]);
-    expect(added.children.findIndex((c) => c.tag === "EVEN")).toBeLessThan(added.children.findIndex((c) => c.tag === "NOTE"));
+    const added = applyPerson(rec, f, { ...f, events: [...f.events, { origin: -1, tag: "RESI", value: "Mill 3", date: "", place: "Town", ...none, cause: "x", citations: [] }] });
+    const ev = added.children.filter((c) => c.tag === "RESI")[1];
+    expect(ev.children.map((c) => c.tag)).toEqual(["PLAC", "CAUS"]);
+    expect(added.children.lastIndexOf(ev)).toBeLessThan(added.children.findIndex((c) => c.tag === "NOTE"));
     const g = personFields(added);
     const edited = applyPerson(added, g, { ...g, events: g.events.map((e) => (e.tag === "RESI" ? { ...e, place: "Elsewhere" } : e)) });
     expect(edited.children.find((c) => c.tag === "RESI")!.children.map((c) => c.tag)).toEqual(["DATE", "PLAC"]);
     const h = personFields(edited);
     const gone = applyPerson(edited, h, { ...h, events: [] });
-    expect(gone.children.some((c) => c.tag === "RESI" || c.tag === "EVEN")).toBe(false);
+    expect(gone.children.some((c) => c.tag === "RESI")).toBe(false);
   });
 
   test("leaves the record alone when nothing changed", () => {

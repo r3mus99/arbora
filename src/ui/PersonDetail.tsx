@@ -1,14 +1,13 @@
 import {
-  Award, Baby, Briefcase, Church, Cross, Droplets, Flag, Flower2, GraduationCap, MapPin, Handshake, Hash, History, Heart, HeartCrack, Home, Landmark, Pencil,
-  ChevronLeft, StickyNote, CalendarDays, Tag, Users, type LucideIcon,
+  Baby, Briefcase, Church, Cross, Droplets, Flower2, MapPin, Handshake, History, Heart, HeartCrack, Home, Pencil,
+  ChevronLeft, StickyNote, Users, type LucideIcon,
 } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
-import { applyAttribute, applyEventLine, applyEventNode, applyFamily, applyPerson, type AttributeFields, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields, type Suggestions } from "../core/edit";
+import { applyEventLine, applyEventNode, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields, type Suggestions } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
 import { mapUrl, municipality } from "../core/places";
 import { nameDetails } from "../core/names";
-import { personAttributes, type Attribute } from "../core/facts";
 import { dateParts, formatAge, yearsBetween } from "../core/date";
 import { fmt, formatDate, weekdayTip } from "../core/format";
 import { childOf, childrenOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
@@ -52,12 +51,8 @@ function Fact({ icon, label, children }: { icon: LucideIcon; label: string; chil
 
 const DETAIL_KEYS = { age: "detAge", cause: "detCause", agency: "detAgency", address: "detAddress" } as const;
 
-const ATTRIBUTE_ICONS: Record<string, LucideIcon> = {
-  EDUC: GraduationCap, NATI: Flag, TITL: Award, PROP: Landmark, NCHI: Users, IDNO: Hash,
-};
-
 const ICONS: Record<TimelineKind, LucideIcon> = {
-  birth: Baby, christening: Droplets, residence: Home, event: CalendarDays, famEvent: Heart, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
+  birth: Baby, christening: Droplets, residence: Home, famEvent: Heart, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
@@ -138,7 +133,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
   };
   /** whether the date and place of a timeline item can be edited here */
   const editable = (e: TimelineItem) => live && e.kind !== "child" && (e.kind === "marriage" ? !!lookup(e.key)
-    : e.kind === "residence" || e.kind === "event" || e.kind === "famEvent" ? !!e.node && (!e.family || !!lookup(e.family)) : true);
+    : e.kind === "residence" || e.kind === "famEvent" ? !!e.node && (!e.family || !!lookup(e.family)) : true);
   /** a date as text; its tooltip is the weekday of an exact day */
   const dated = (stored: string) => {
     const tip = weekdayTip(stored, lang), text = formatDate(stored, true, lang);
@@ -155,13 +150,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
       {municipality(stored)}</InlineText>;
   const dateField = (e: TimelineItem) => dateInline(e.date, (date) => changeEvent(e, { date }));
   const placeField = (e: TimelineItem) => placeInline(e.place, (place) => changeEvent(e, { place }));
-  /** a changed value, date or place of an attribute line (EDUC, TITL, …) */
-  const changeAttribute = (a: Attribute, patch: Partial<AttributeFields>) => {
-    if (!record) return;
-    const before = { value: a.value, date: a.date, place: a.place };
-    const next = applyAttribute(record, a.node, before, { ...before, ...patch });
-    if (next !== record) onChange([next]);
-  };
   /** the event line of a timeline item and the record it is in, for its sub-lines (AGE, CAUS, AGNC) */
   const eventLine = (e: TimelineItem): { owner: GedNode; node: GedNode } | null => {
     if (e.kind === "birth" || e.kind === "christening" || e.kind === "death" || e.kind === "burial") {
@@ -237,7 +225,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
       case "burial": return t("burial");
       case "residence": return t("residence");
       case "famEvent": return title || (tag ? t(`ev${tag}` as StringKey) : t("event"));
-      case "event": return title || (tag ? t(`ev${tag}` as StringKey) : t("event"));
       case "death": return dated ? t("thDeath") : t(p.sex === "M" ? "deceasedM" : p.sex === "F" ? "deceasedF" : "deceased");
     }
   };
@@ -363,13 +350,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
         </Fact>}
         {!f && p.occupation && <Fact icon={Briefcase} label={t("occupation")}>
           <div className="fact-value">{p.occupation}</div></Fact>}
-        {record && personAttributes(record).map((a, i) => <Fact key={i} icon={ATTRIBUTE_ICONS[a.tag] || Tag}
-                                                              label={t(`attr${a.tag}` as StringKey)}>
-          {a.value && <div className="fact-value">{live ? <InlineText value={a.value} label={t(`attr${a.tag}` as StringKey)}
-            onCommit={(v) => changeAttribute(a, { value: v })}>{a.value}</InlineText> : a.value}</div>}
-          {when(a, (patch) => changeAttribute(a, patch))}
-          <EventSources a={annotations(a.node, lookup)} t={t} />
-        </Fact>)}
         {(() => {
           const roleText = (r: string) => r === "godparent" ? t("roleGodparent") : r === "witness" ? t("roleWitness")
             : r ? r[0].toUpperCase() + r.slice(1) : t("associations");

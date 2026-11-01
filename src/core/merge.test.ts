@@ -119,4 +119,10 @@ describe("merging keeps the rows the removed person had", () => {
       expect(lines).toContain(l);
     }
   });
+
+  test("a line both people have is not written twice", () => {
+    const same = RICH.replace("1 FAMC @F1@\n", "1 FAMC @F1@\n1 EDUC school\n");
+    const text = kept(writeGedcom(mergePeople(parseGedcom(same), "@I1@", "@I2@"))).join("\n");
+    expect(text.split("1 EDUC school").length - 1).toBe(1);
+  });
 });
