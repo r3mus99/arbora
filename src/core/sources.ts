@@ -202,6 +202,8 @@ export interface SourceEntry {
   people: string[];
   /** the kinds of event it is cited under, in the order of SOURCE_KINDS; empty for a source nobody cites */
   kinds: SourceKind[];
+  /** web addresses the source record holds as its own NOTE lines (the ones the Sources panel adds and removes) */
+  ownLinks: string[];
 }
 
 /** What a source is cited for: a birth or baptism, a death or burial, a marriage, or anything else (also a citation on the person themselves). */
@@ -234,6 +236,10 @@ export interface SourceOverview {
  * Every source and note of the file at a glance: each source record (also one nobody cites) and each
  * text citation once, with the number of citations and the people; each note text once, with its people.
  */
+/** The web addresses written as a whole NOTE line of a source record. */
+export const ownLinksOf = (rec: GedNode): string[] =>
+  rec.children.filter((c) => c.tag === "NOTE" && /^https?:\/\/\S+$/i.test(c.value.trim())).map((c) => c.value.trim());
+
 export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(records)): SourceOverview {
   const sources = new Map<string, Omit<SourceEntry, "people" | "kinds"> & { who: Set<string>; kinds: Set<SourceKind> }>();
   const notes = new Map<string, { text: string; who: Set<string> }>();
@@ -241,13 +247,13 @@ export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(rec
   const entry = (key: string, cite: GedNode) => {
     const c = citation(cite, lookup);
     let e = sources.get(key);
-    if (!e) sources.set(key, e = { key, citation: c, citations: 0, who: new Set(), kinds: new Set() });
+    if (!e) sources.set(key, e = { key, citation: c, citations: 0, who: new Set(), kinds: new Set(), ownLinks: [] });
     else e.citation = { ...e.citation, notes: [...new Set([...e.citation.notes, ...c.notes])] };
     return e;
   };
   for (const r of records) if (r.tag === "SOUR" && r.xref) {
     // a source record nobody cites still belongs in the list
-    entry(r.xref, { tag: "SOUR", value: r.xref, xref: null, children: [] });
+    entry(r.xref, { tag: "SOUR", value: r.xref, xref: null, children: [] }).ownLinks = ownLinksOf(r);
   }
   const walk = (node: GedNode, owners: string[], event: string, fam: boolean) => {
     for (const c of node.children) {

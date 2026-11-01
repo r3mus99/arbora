@@ -19,6 +19,7 @@ export * from "./timeline";
 export * from "./facts";
 export * from "./associations";
 export * from "./sources";
+export * from "./sourceLinks";
 export * from "./places";
 export * from "./names";
 export * from "./info";
