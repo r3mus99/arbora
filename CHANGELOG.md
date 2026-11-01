@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.77.0 – 2026-11-01
+
+- **Sources show every filled field, no Details fold-out.** Under the source title the person detail and the Sources panel list the page, author, publication, repository and quality as short labelled lines, web addresses as chips, and skip text that only repeats another line; the file itself is never changed.
+
 ## 2.76.0 – 2026-11-01
 
 - **The person heading looks the same however long the name is.** A long name that wraps keeps the sex symbol right after its last word, the dashed underline runs under every line, and the icons stay aligned with the first line.
