@@ -1,0 +1,1 @@
+- **Parents and children in the person detail show Father/Mother and Son/Daughter.** The timeline rows now read "Father · place", "Mother · place", "Son", "Daughter" (in all 12 languages) instead of "Groom's birth", "Bride's birth", "Son born" and "Daughter born".
