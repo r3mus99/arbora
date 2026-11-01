@@ -1,5 +1,6 @@
-import { BookMarked, ExternalLink, StickyNote } from "lucide-react";
-import { useState } from "react";
+import { BookMarked, ExternalLink, Pencil, StickyNote, WandSparkles } from "lucide-react";
+import { createContext, useContext, useRef, useState } from "react";
+import { Inline } from "./Inline";
 import { citationFields, citationLinks, hasAnnotations, linkParts, readableNotes, withoutLinks, type Annotations, type Citation, type CitationField } from "../core/sources";
 import type { StringKey } from "./i18n";
 import { SectionHead } from "./Section";
@@ -26,10 +27,34 @@ export function CitationFields({ c, t }: { c: Citation; t: T }) {
 const FIELD_LABEL: Record<CitationField["key"], StringKey> = {
   page: "srcPage", author: "srcAuthor", publication: "srcPublication", repository: "srcRepository", quality: "srcQuality" };
 
+/** What the detail needs to change a source: the name it would get now (where it differs), and the rename itself. */
+export interface SourceEditApi {
+  suggested: Map<string, string>;
+  rename: (xref: string, title: string) => void;
+}
+export const SourceEditContext = createContext<SourceEditApi | null>(null);
+
+/** The title of a source, edited in place with the pencil; a suggested name is offered below when it differs. */
+export function SourceTitle({ xref, title, t }: { xref: string; title: string; t: T }) {
+  const api = useContext(SourceEditContext);
+  const field = useRef<HTMLInputElement>(null);
+  const suggestion = xref && api?.suggested.get(xref);
+  if (!xref || !api) return <div className="src-title">{title}</div>;
+  return <div className="src-title src-title-row">
+    <Inline label={t("srcEditTitle")} className="src-title-edit" restTip={t("srcEditTitle")}
+            onClose={(commit) => { const v = field.current?.value.trim() ?? ""; if (commit && v && v !== title) api.rename(xref, v); }}
+            edit={() => <input ref={field} className="src-title-input" autoFocus defaultValue={title} aria-label={t("srcEditTitle")} />}>
+      {title}<Pencil className="icon src-pencil" aria-hidden="true" />
+    </Inline>
+    {suggestion && suggestion !== title && <button type="button" className="link src-suggest" title={t("srcUseSuggested")}
+        onClick={() => api.rename(xref, suggestion)}><WandSparkles className="icon" aria-hidden="true" />{suggestion}</button>}
+  </div>;
+}
+
 /** one cited source: the title, then every filled field */
 function CitationView({ c, t }: { c: Citation; t: T }) {
   return <li className="src-item">
-    <div className="src-title">{withoutLinks(c.title) || c.title}</div>
+    <SourceTitle xref={c.xref} title={withoutLinks(c.title) || c.title} t={t} />
     <CitationFields c={c} t={t} />
   </li>;
 }

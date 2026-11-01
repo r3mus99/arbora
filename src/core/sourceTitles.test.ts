@@ -56,7 +56,7 @@ describe("renaming sources like new ones", () => {
   const to = (x: string) => list.find((r) => r.xref === x);
 
   test("a source cited once under an event is named after it and the people", () => {
-    expect(to("@S2@")).toMatchObject({ from: "Jan Novak, Example Collection, birth", to: "Birth Jan Novak", weak: false });
+    expect(to("@S2@")).toMatchObject({ from: "Jan Novak, Example Collection, birth", to: "Birth Jan Novak (1900)", weak: false });
     expect(to("@S4@")).toMatchObject({ to: "Wedding Jan Novak & Eva Kral" });
     expect(to("@S6@")?.to).toBe("Death Jan Novak");
   });
@@ -71,8 +71,13 @@ describe("renaming sources like new ones", () => {
     expect(to("@S3@")).toBeUndefined();
   });
 
-  test("a name that another source already has gets a number", () => {
+  test("a name that another source already has gets a number; with a year, the number follows the year", () => {
     expect(to("@S7@")?.to).toBe("Birth Eva Kral (2)");
+  });
+
+  test("the year of the event is always in brackets, even when the name is not repeated", () => {
+    const dated = GED.replace("2 DATE 1 JAN 1900\n2 SOUR @S2@", "2 DATE 1 JAN 1900\n2 SOUR @S2@");
+    expect(sourceRenames(parseGedcom(dated), "en", nameOf).find((r) => r.xref === "@S2@")?.to).toBe("Birth Jan Novak (1900)");
   });
 
   test("the language of the app names the event", () => {
@@ -81,7 +86,7 @@ describe("renaming sources like new ones", () => {
 
   test("only the title changes, the old one is kept in a note, the rest is written back as it was", () => {
     const out = writeGedcom(applySourceRenames(records, list.filter((r) => r.xref === "@S2@")));
-    expect(out).toBe(GED.replace("1 TITL Jan Novak, Example Collection, birth", "1 TITL Birth Jan Novak\n1 NOTE Original title: Jan Novak, Example Collection, birth"));
+    expect(out).toBe(GED.replace("1 TITL Jan Novak, Example Collection, birth", "1 TITL Birth Jan Novak (1900)\n1 NOTE Original title: Jan Novak, Example Collection, birth"));
   });
 
   test("nothing to rename leaves the records as they are", () => {
