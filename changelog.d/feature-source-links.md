@@ -1,1 +1,0 @@
-- **Web links of a source can be added and removed in the Sources panel.** The timeline shows the same links on every event that cites the source.
