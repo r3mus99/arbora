@@ -1,0 +1,1 @@
+- **The tree no longer has collapsible branches.** The − / + on the connector, the "+N" count and Shift-click for a whole generation are gone; the chart always shows the whole tree, as the PDF does.

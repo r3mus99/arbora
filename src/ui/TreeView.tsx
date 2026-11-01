@@ -1,6 +1,6 @@
 import { CornerDownRight, Star } from "lucide-react";
-import { useEffect, useEffectEvent, useRef, type MouseEvent } from "react";
-import type { ShownRow } from "../core/collapse";
+import { useEffect, useEffectEvent, useRef } from "react";
+import type { Row } from "../core/chart";
 import type { StringKey } from "./i18n";
 
 // same geometry as the PDF, in screen pixels
@@ -10,13 +10,11 @@ const TICK = 10;
 const PAD = 12;
 const GAP = LINE * 0.45;
 const x = (gen: number) => PAD + (gen - 1) * STEP;
-// the root's text leaves room for its −/+ box
 const textX = (gen: number) => x(gen) + (gen > 1 ? TICK + 4 : 12);
-const BOX = 11;
 const mid = (row: number) => row * LINE + LINE / 2;
 
 interface Props {
-  rows: ShownRow[];
+  rows: Row[];
   focusId: string | null;
   /** favourite people get a star after their name (on screen only; the PDF never has it) */
   starred: ReadonlySet<string>;
@@ -27,14 +25,13 @@ interface Props {
   /** repeated people point to a number ("see no. 6") rather than "see above" */
   numbered: boolean;
   onFocus: (id: string) => void;
-  /** whole = the same for the whole generation */
-  onToggle: (row: ShownRow, whole: boolean) => void;
-  onJump: (row: ShownRow) => void;
+  /** `index` is the row to jump to */
+  onJump: (index: number) => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
 /** The chart rows as on the PDF page: indented lines joined by connectors; people are clickable. */
-export function TreeView({ rows, focusId, starred, scrollKey, scrollTo, numbered, onFocus, onToggle, onJump, t }: Props) {
+export function TreeView({ rows, focusId, starred, scrollKey, scrollTo, numbered, onFocus, onJump, t }: Props) {
   const box = useRef<HTMLDivElement>(null);
 
   // scroll only the chart box, so the page itself stays where it is; only a new `scrollKey` scrolls
@@ -63,13 +60,14 @@ export function TreeView({ rows, focusId, starred, scrollKey, scrollTo, numbered
   });
 
   // the line as styled pieces: bold name, coloured dates, italic places
-  const styled = (r: ShownRow) => r.parts.map((p, i) =>
+  const styled = (r: Row) => r.parts.map((p, i) =>
     p.kind === "plain" ? p.text : <span key={i} className={`s-${p.kind}`}>{p.text}</span>);
 
-  const seeText = (r: ShownRow) => {
+  const indexOf = new Map(rows.map((r, i) => [r, i]));
+  const seeText = (r: Row, index: number, targetIndex: number) => {
     const target = r.target!;
     if (numbered && target.ref) return t("seeNo", { n: target.ref });
-    return t(r.targetIndex < r.index ? "seeAbove" : "seeBelow");
+    return t(targetIndex < index ? "seeAbove" : "seeBelow");
   };
 
   return (
@@ -78,35 +76,23 @@ export function TreeView({ rows, focusId, starred, scrollKey, scrollTo, numbered
         <svg className="tree-lines" width={width} height={height} aria-hidden="true">
           <path d={lines.join("")} />
         </svg>
-        {rows.map((r) => {
+        {rows.map((r, index) => {
           const id = r.personId ?? r.spouseId ?? null;
-          const flash = scrollTo === r.index;
+          const flash = scrollTo === index;
           const cls = ["tree-row", r.spouse ? "spouse" : "", r.gen === 1 && !r.spouse ? "root" : "",
                        id && id === focusId ? "sel" : "", flash ? "flash" : ""].filter(Boolean).join(" ");
-          const toggle = (e: MouseEvent) => onToggle(r, e.shiftKey);
+          const targetIndex = r.target ? indexOf.get(r.target) ?? -1 : -1;
           return (
             // a new key replays the highlight animation on every jump
-            <div key={flash ? `${r.index}-${scrollKey}` : r.index} data-i={r.index} className={cls}
+            <div key={flash ? `${index}-${scrollKey}` : index} data-i={index} className={cls}
                  style={{ paddingLeft: textX(r.gen) }}>
               {id
                 ? <button type="button" className="name" onClick={() => onFocus(id)}>{styled(r)}</button>
                 : <span>{styled(r)}</span>}
               {id && starred.has(id) && <Star className="icon star" role="img" aria-label={t("favourite")} />}
-              {r.dup && r.target && <button type="button" className="jump" onClick={() => onJump(r)}>
-                <CornerDownRight className="icon" aria-hidden="true" />{seeText(r)}</button>}
+              {r.dup && r.target && <button type="button" className="jump" onClick={() => onJump(targetIndex)}>
+                <CornerDownRight className="icon" aria-hidden="true" />{seeText(r, index, targetIndex)}</button>}
               {r.dup && !r.target && <span className="dup"> ({t("repeated")})</span>}
-              {r.hidden > 0 && <button type="button" className="more" onClick={toggle}
-                                       title={t("hiddenN", { n: r.hidden })}>+{r.hidden}</button>}
-              {r.branch && <button type="button" className={r.hidden ? "fold closed" : "fold"} onClick={toggle}
-                                   style={{ left: x(r.gen) + 0.5 - BOX / 2 }}
-                                   aria-label={r.hidden ? `${t("expand")} – ${t("hiddenN", { n: r.hidden })}` : t("collapse")}
-                                   title={r.hidden ? `${t("expand")} – ${t("hiddenN", { n: r.hidden })}` : t("collapse")}>
-                {/* −/+ on the connector's corner */}
-                <svg width={BOX} height={BOX} aria-hidden="true">
-                  <rect x="0.5" y="0.5" width={BOX - 1} height={BOX - 1} rx="2" />
-                  <path d={`M3 ${BOX / 2}h${BOX - 6}` + (r.hidden ? `M${BOX / 2} 3v${BOX - 6}` : "")} />
-                </svg>
-              </button>}
             </div>
           );
         })}
