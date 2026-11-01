@@ -1,1 +1,1 @@
-- **Sources can be renamed like a new source.** In the Sources panel a magic wand renames all sources cited exactly once to the event and people ("Birth Jan Novak") after a preview, or one source from its opened row; one undo step, the old title stays in a note of the source.
+- **The person heading looks the same however long the name is.** A long name that wraps keeps the sex symbol right after its last word, the dashed underline runs under every line, and the icons stay aligned with the first line.
