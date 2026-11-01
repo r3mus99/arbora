@@ -1,1 +1,1 @@
-- **The bulk rename of sources is gone.** The Sources list no longer offers to rename all sources at once; a single source is still renamed from the Sources panel.
+- **The file check no longer looks at Polish surname endings.** The Slovak and Czech rules (-ová, -á) stay.
