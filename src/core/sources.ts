@@ -182,7 +182,7 @@ export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(rec
 
 /** a source record of the file, as offered when citing a source */
 /** a source record to cite: `detail` is its publication line (often the web link), shown under the title */
-export interface SourceChoice { xref: string; title: string; detail: string }
+export interface SourceChoice { xref: string; title: string; detail?: string }
 
 /** The source records of the file with their titles, sorted by title. */
 export function sourceChoices(records: GedNode[]): SourceChoice[] {
