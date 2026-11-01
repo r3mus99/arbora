@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.92.1 – 2026-11-01
+
+- **Arbora now speaks only Slovak and English.** The other ten interface languages are gone, together with their page texts, PDF texts and flags. A language saved in the browser that no longer exists is replaced by the browser's language (Slovak, otherwise English). Gendered surname suggestions follow the Slovak interface or the surnames in the file; the Polish rule that depended on the interface language is removed.
+
 ## 2.92.0 – 2026-11-01
 
 - **Sources have their own wide edit window.** The Sources panel opens it with + for a new source and with "Edit source" for an existing one. It edits the title, author, publication, web links and notes, shows and changes the people and events the source is cited for (including marriages, divorces and residences), and deletes the source with its citations. The person's edit window no longer lists sources.
