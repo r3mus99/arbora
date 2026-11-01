@@ -1,0 +1,1 @@
+- **Internal cleanup of the surname ending rule code.**
