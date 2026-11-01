@@ -8,8 +8,8 @@ import { PanelHead } from "./PanelHead";
 interface Props {
   stats: Stats;
   data: GedcomData;
-  /** what the file check found: issues and groups of surname and place spellings */
-  problems: { issues: number; surname: number; place: number };
+  /** the number of problems the file check found */
+  problems: number;
   onProblems: () => void;
   onPerson: (id: string) => void;
   onSurname: (surname: string) => void;
@@ -53,10 +53,7 @@ function Ranking({ icon, label, items, onPick, tip }:
 }
 
 /** Counts and most common names and places of the loaded file, shown after it is opened. */
-export function Overview({ stats: s, data, problems: found, onProblems, onPerson, onSurname, t }: Props) {
-  const problems = found.issues + found.surname + found.place;
-  const parts = ([["tabIssues", found.issues], ["tabSurnames", found.surname], ["tabPlaces", found.place]] as const)
-    .filter(([, n]) => n).map(([key, n]) => `${t(key).toLowerCase()} ${n}`).join(" · ");
+export function Overview({ stats: s, data, problems, onProblems, onPerson, onSurname, t }: Props) {
   const oldest = s.oldest && data.people[s.oldest.id];
   const span = s.firstYear === null ? "–" : s.firstYear === s.lastYear ? String(s.firstYear) : `${s.firstYear}–${s.lastYear}`;
   return (
@@ -76,7 +73,7 @@ export function Overview({ stats: s, data, problems: found, onProblems, onPerson
                          onClick={() => onPerson(oldest.id)} title={t("makeRoot")} />}
         <Tile icon={problems ? <ShieldAlert className="icon warn" aria-hidden="true" />
                              : <ShieldCheck className="icon" aria-hidden="true" />}
-              label={t("ovProblems")} value={problems || t("ovNone")} sub={parts || undefined}
+              label={t("ovProblems")} value={problems || t("ovNone")}
               onClick={problems ? onProblems : undefined} title={problems ? t("check") : undefined} />
       </div>
       <div className="ov-ranks">

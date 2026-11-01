@@ -18,8 +18,7 @@ Everything runs in your browser; the file is never uploaded anywhere.
   undo step, and the parts of the file you do not touch are written back
   byte for byte. Download the result as GEDCOM.
 - **Check** the file for broken links, impossible dates and odd surname endings,
-  fix what is safe with one click, and unify spelling variants of surnames,
-  given names and places in bulk.
+  and fix what is safe with one click.
 - **Browse** every place and every source and note of the file in their own
   lists.
 - **Print** the tree as a coloured A4 **PDF** chart, or as a decorative
@@ -93,7 +92,7 @@ between relatives) is written out only once; later occurrences refer to it.
    the language.
 2. The icon rail opens one tool at a time: the list of **people** with a search
    by name, place or year; **recent** people and favourites (the star next to a
-   name); the **file overview**; the **file check**; the **bulk fix**; the
+   name); the **file overview**; the **file check**; the
    **changes** made since the file was opened; **sources and notes**; **places**;
    and **settings**.
 3. The **file overview** shows the number of people (men and women), families
@@ -194,22 +193,6 @@ that can be undone. A missing header or `TRLR` is added, a link to nothing is
 removed, a missing link back is added and a date like `1885-12-12` is rewritten
 as `12 DEC 1885`, and a surname gets the form that fits the sex when that is certain (Nový → Nová, or a form the file already has). The list closes once everything is fixed.
 
-### Bulk data fix
-
-Its own tool in the icon rail, with **Surnames**, **Given names** and **Places** tabs: spellings of
-one name or town that differ only in accents, doubled letters or the old
-Hungarian spelling (Pavlovský / Pavlovszký, Kubíček / Kubiček, Lieskovice /
-Lieszkovicz) are shown as groups. The most used spelling is offered; click
-another one or type your own, use × to leave a spelling out, and **Unify**
-renames it in every record as one step that can be undone. For surnames the
-old spelling is kept as another name of the person (`1 NAME …` with
-`2 TYPE aka`, "also known as") unless you untick that option. The number of
-records that change opens a list of them. A man's and a woman's form
-(Kováčik / Kováčiková) are never put together. For places only the town, the
-first part of the place, is renamed; the district and country stay. A group
-that is not the same name can be hidden (the **Hidden** tab shows it again),
-and **Batch rename** changes any one spelling to another.
-
 **Privacy:** everything runs only in your browser. The GEDCOM file is not sent
 anywhere and the page has no server; you download the edited file yourself. The
 browser remembers only the settings and the ID of the last person
@@ -272,7 +255,6 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   date.ts           GEDCOM dates: their valid form, years, ISO dates
   edit.ts           editing records, typed dates, writing GEDCOM
   check.ts          file check and safe fixes
-  variants.ts       bulk fix: spelling variants of surnames, given names and places
   merge.ts          merging two people; structure.ts / facts.ts / sources.ts: tags, events, citations
   placelist.ts      the list of places; stats.ts: the file overview
   format.ts         options, dates, places, the text of a person's line
@@ -285,7 +267,7 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   *.test.ts         tests on the sample and made-up data
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),
                     edit window (EditWindow, PersonEditor), icon-rail tools (people, overview, file check,
-                    bulk fix, changes, sources, places, settings), UI translations (i18n.ts) and flags; the logic that
+                    changes, sources, places, settings), UI translations (i18n.ts) and flags; the logic that
                     needs no DOM is in history.ts (undo, back/forward) and options.ts, with tests
 public/             static files: DejaVu Sans and Alkatra fonts, sample GEDCOM and PDFs, licenses
 ```

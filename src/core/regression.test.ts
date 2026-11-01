@@ -7,7 +7,7 @@ import { PDFDocument } from "pdf-lib";
 import { describe, expect, test } from "vitest";
 import {
   LANGS, PDF_FONT_SIZE, PDF_MIN_FONT_SIZE, applyFamily, applyPerson, checkGedcom, parseDate, validDateValue, decode, familyFields, fixIssue, generate, lineEnding, load, parseGedcom,
-  personFields, readRecords, renameVariants, variantGroups, writeGedcom, type GedNode, type PersonFields,
+  personFields, readRecords, writeGedcom, type GedNode, type PersonFields,
 } from "./index";
 
 const sampleText = decode(readFileSync(new URL("../../public/sample.ged", import.meta.url)));
@@ -276,35 +276,6 @@ describe("fixing the file", () => {
   });
 });
 
-describe("unifying spellings", () => {
-  const GED = [
-    "0 HEAD",
-    "0 @I1@ INDI", "1 NAME Karl /Weidenbaum/", "1 BIRT", "2 PLAC Ostbach, Nordkreis",
-    "0 @I2@ INDI", "1 NAME Paul /Weydenbaum/", "1 BIRT", "2 PLAC Osttbach 12",
-    "0 @I3@ INDI", "1 NAME Otto /Weidenbaum/", "1 DEAT", "2 PLAC Ostbach",
-    "0 TRLR",
-  ].join("\n") + "\n";
-
-  test("a unified group is gone and unifying again changes nothing", () => {
-    for (const kind of ["surname", "place"] as const) {
-      const records = parseGedcom(GED);
-      const [group] = variantGroups(records, kind);
-      expect(group.variants).toHaveLength(2);
-      const [keep, ...rest] = group.variants.map((v) => v.value);
-      const once = renameVariants(records, kind, rest, keep);
-      expect(variantGroups(once, kind)).toEqual([]);
-      expect(renameVariants(once, kind, rest, keep)).toBe(once);
-    }
-  });
-
-  test("only the changed records are written anew", () => {
-    const records = parseGedcom(GED);
-    const out = renameVariants(records, "place", ["Osttbach 12"], "Ostbach");
-    expect(out.filter((r, i) => r !== records[i]).map((r) => r.xref)).toEqual(["@I2@"]);
-    expect(writeGedcom(out)).toBe(GED.replace("Osttbach 12", "Ostbach"));
-  });
-});
-
 describe("PDF layout", () => {
   test("a line too long for the page makes the font smaller, down to 6 pt", async () => {
     const long = "Maximilian Ferdinand Leopold Karl Joseph Wenzel Johann Nepomuk Franz Xaver";
@@ -350,11 +321,6 @@ describe("speed on a large file", () => {
     return [out, performance.now() - start];
   };
 
-  test("spelling variants", () => {
-    const [groups, ms] = timed(() => [...variantGroups(records, "surname"), ...variantGroups(records, "place")]);
-    expect(groups.length).toBeGreaterThan(10);
-    expect(ms).toBeLessThan(1500);
-  });
 
   test("file check", () => {
     const [issues, ms] = timed(() => checkGedcom(records));

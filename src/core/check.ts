@@ -6,10 +6,20 @@
 import { isoToGedcom, monthOf, validDateValue } from "./date";
 import { applyChildSource, childSources } from "./childSources";
 import { addLine } from "./edit";
-import { childOf, gedNode, mainName, rewritten, type GedNode } from "./gedcom";
+import { childOf, childrenOf, gedNode, mainName, rewritten, type GedNode } from "./gedcom";
 import { surnameJudge } from "./surnameEnding";
 import { surnameOf } from "./stats";
-import { renameSurname } from "./variants";
+
+/** One NAME with its surname renamed, in the slashes, in SURN, or as the last word. */
+function renameSurname(name: GedNode, from: Set<string>, to: string): GedNode {
+  const old = surnameOf(name);
+  if (!from.has(old)) return name;
+  let value = name.value;
+  if (/\/[^/]*\//.test(value)) value = value.replace(/\/([^/]*)\//, (all, s: string) => (s.trim() === old ? `/${to}/` : all));
+  else if (!childrenOf(name, "SURN").some((c) => c.value.trim() === old)) value = value.replace(/\S+(\s*)$/, `${to}$1`);
+  const kids = name.children.map((c) => (c.tag === "SURN" && from.has(c.value.trim()) ? { ...c, value: to } : c));
+  return { ...name, value, children: kids };
+}
 
 export type IssueKind =
   | "noHead" | "noTrlr" | "dupId" | "missingRef" | "oneWay" | "badDate"
