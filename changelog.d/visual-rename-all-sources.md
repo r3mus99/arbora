@@ -1,0 +1,1 @@
+- **Renaming all sources is easier to find and to control.** The Sources panel shows a full-width "Rename all" button with the count, and the preview says "N of M selected" with "Select all" and "Select none".
