@@ -921,3 +921,14 @@ section.check { margin: 0 0 14px; }
   .rail-wrap, .check-wide, .edit-window, .detail { animation: none; }
   .tree-row button, .drop { transition: none; }
 }
+
+/* renaming sources like new ones: the button above the list, the preview with old and new title, the one-source wand */
+.sp-wand { padding: 0 var(--pad) var(--pad); }
+.sp-wand button { display: inline-flex; align-items: center; gap: var(--gap); }
+.sp-wand .icon, .sp-wand-one .icon, .sp-rename .icon { width: var(--icon-sm); height: var(--icon-sm); flex: none; }
+.sp-hint { margin: 0; padding: 0 var(--pad) var(--pad); font-size: 13px; color: var(--muted); }
+.sp-rename { display: flex; align-items: flex-start; gap: 8px; padding: 8px var(--pad); font-size: 14px; }
+.sp-rename input { margin-top: 3px; }
+.sp-rename .sp-title { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.sp-rename .sp-title .icon { align-self: center; color: var(--muted); }
+.sp-wand-one { display: inline-flex; align-items: center; gap: var(--gap); text-align: left; margin-bottom: 4px; }

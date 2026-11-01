@@ -1,8 +1,9 @@
-import { BookMarked, ListFilter, StickyNote } from "lucide-react";
+import { ArrowRight, BookMarked, ListFilter, StickyNote, WandSparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { GedcomData } from "../core/gedcom";
 import { fold } from "../core/gedcom";
 import type { SourceOverview } from "../core/sources";
+import type { SourceRename } from "../core/sourceTitles";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
 import { Linked } from "./Sources";
@@ -11,6 +12,9 @@ interface Props {
   overview: SourceOverview;
   data: GedcomData;
   onPerson: (id: string) => void;
+  /** sources that can be renamed like a new one, and the rename of the chosen ones (one undo step) */
+  renames: SourceRename[];
+  onRename: (list: SourceRename[]) => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
@@ -25,10 +29,13 @@ export function People({ ids, data, onPerson, t }: { ids: string[]; data: Gedcom
 }
 
 /** Overview of all sources (with the people citing them) and all notes of the file, read-only. */
-export function SourcesPanel({ overview, data, onPerson, t }: Props) {
+export function SourcesPanel({ overview, data, onPerson, renames, onRename, t }: Props) {
   const [tab, setTab] = useState<Tab>("sources");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<string | null>(null);
+  /** the preview of renaming all: the sources left out (cited on a person only are left out at first) */
+  const [preview, setPreview] = useState<Set<string> | null>(null);
+  const rename = new Map(renames.map((r) => [r.xref, r]));
   const q = fold(query.trim());
   const sources = useMemo(() => overview.sources.filter((s) => !q
     || fold([s.citation.title, s.citation.author, s.citation.publication, s.citation.repository].join(" ")).includes(q)), [overview, q]);
@@ -55,7 +62,27 @@ export function SourcesPanel({ overview, data, onPerson, t }: Props) {
           <input type="search" placeholder={t("srcFilter")} autoComplete="off" value={query}
                  onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setQuery(""); }} />
         </div>
-        <ul className="sp-list panel-body">
+        {tab === "sources" && !preview && renames.length > 0 && <div className="sp-wand">
+          <button type="button" onClick={() => setPreview(new Set(renames.filter((r) => !r.weak).map((r) => r.xref)))}>
+            <WandSparkles className="icon" aria-hidden="true" />{t("srcRenameAll", { n: renames.length })}</button></div>}
+        {tab === "sources" && preview ? <>
+          <p className="sp-hint">{t("srcRenameHint")}</p>
+          <ul className="sp-list panel-body sp-renames">{renames.map((r) => (
+            <li key={r.xref}><label className="sp-rename">
+              <input type="checkbox" checked={preview.has(r.xref)} onChange={(e) => setPreview((p) => { const n = new Set(p); if (e.target.checked) n.add(r.xref); else n.delete(r.xref); return n; })} />
+              <span className="sp-main">
+                <span className="sp-sub">{r.from || "–"}</span>
+                <span className="sp-title"><ArrowRight className="icon" aria-hidden="true" />{r.to}
+                  {r.weak && <span className="chip warn">{t("srcRenameWeak")}</span>}</span>
+              </span></label></li>
+          ))}</ul>
+          <div className="bulk-foot">
+            <button type="button" onClick={() => setPreview(null)}>{t("cancel")}</button>
+            <button type="button" className="primary" disabled={!preview.size}
+                    onClick={() => { onRename(renames.filter((r) => preview.has(r.xref))); setPreview(null); }}>
+              <WandSparkles className="icon" aria-hidden="true" />{t("srcRenameDo", { n: preview.size })}</button>
+          </div>
+        </> : <ul className="sp-list panel-body">
           {tab === "sources" && sources.map((s) => (
             <li key={s.key} className={open === s.key ? "open" : undefined}>
               <button type="button" className="sp-row" aria-expanded={open === s.key} onClick={() => toggle(s.key)}>
@@ -69,6 +96,9 @@ export function SourcesPanel({ overview, data, onPerson, t }: Props) {
               {open === s.key && <div className="sp-more">
                 {s.citation.repository && <div className="src-line"><span>{t("srcRepository")}:</span> <Linked text={s.citation.repository} /></div>}
                 {s.citation.publication && <div className="src-line"><span>{t("srcPublication")}:</span> <Linked text={s.citation.publication} /></div>}
+                {rename.has(s.key) && <button type="button" className="link sp-wand-one" title={t("srcRenameTip")} aria-label={t("srcRenameTip")}
+                        onClick={() => onRename([rename.get(s.key)!])}>
+                  <WandSparkles className="icon" aria-hidden="true" />{rename.get(s.key)!.to}</button>}
                 <People ids={s.people} data={data} onPerson={onPerson} t={t} />
               </div>}
             </li>
@@ -86,7 +116,7 @@ export function SourcesPanel({ overview, data, onPerson, t }: Props) {
             </li>
           ))}
           {!shown && <li className="sp-none">{t("srcNothing")}</li>}
-        </ul>
+        </ul>}
       </>}
     </section>
   );

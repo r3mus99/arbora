@@ -31,6 +31,7 @@ import { LanguageMenu } from "./LanguageMenu";
 import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./theme";
 import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
+import { applySourceRenames, sourceRenames } from "../core/sourceTitles";
 import { PlacesPanel } from "./PlacesPanel";
 import { buildPoster, posterSvg } from "../core/poster";
 import { buildDescendantsPoster } from "../core/posterDescendants";
@@ -382,6 +383,7 @@ export function App() {
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
   const sourceList = useMemo(() => (windowId && doc ? sourceChoices(doc.records) : []), [windowId, doc]);
+  const srcRenames = useMemo(() => (doc && showSources ? sourceRenames(doc.records, lang, (id) => data?.people[id]?.name ?? "") : []), [doc, showSources, lang, data]);
   const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);
   // the list closes once everything is fixed
 
@@ -745,7 +747,8 @@ export function App() {
                 <PlacesPanel places={placeList} data={data} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
-                <SourcesPanel overview={srcOverview} data={data} onPerson={(id) => pick(id)} t={t} />
+                <SourcesPanel overview={srcOverview} data={data} onPerson={(id) => pick(id)} renames={srcRenames} t={t}
+                              onRename={(list) => doc && replaceRecords(applySourceRenames(doc.records, list))} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={focusId} scrollKey={scrollKey}
