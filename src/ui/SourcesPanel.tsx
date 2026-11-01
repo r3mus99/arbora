@@ -1,9 +1,8 @@
-import { BookMarked, ListFilter, StickyNote } from "lucide-react";
+import { BookMarked, ListFilter, Pencil, Plus, StickyNote } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { GedcomData } from "../core/gedcom";
 import { fold } from "../core/gedcom";
-import { SOURCE_KINDS, type SourceFields, type SourceKind, type SourceOverview } from "../core/sources";
-import { isWebAddress, type CiteEvent } from "../core/sourceLinks";
+import { SOURCE_KINDS, type SourceKind, type SourceOverview } from "../core/sources";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
 import { CitationFields, Linked } from "./Sources";
@@ -14,10 +13,10 @@ interface Props {
   onPerson: (id: string) => void;
   /** the person selected in the tree: their sources and notes are shown first, the rest one click away */
   personId?: string | null;
-  /** saves the text of a source record (its xref, then the new fields) */
-  onSave?: (xref: string, fields: SourceFields) => void;
-  /** cites the source for a person: the whole person ("") or one of its events */
-  onCite?: (xref: string, person: string, event: CiteEvent, family: string) => void;
+  /** opens the source window for a source record (its xref) or for a new one (null); the one place where sources are edited */
+  onEdit?: (xref: string | null) => void;
+  /** a window of the person is open, so a source cannot be edited now */
+  editDisabled?: boolean;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
@@ -33,124 +32,12 @@ export function People({ ids, data, onPerson, t }: { ids: string[]; data: Gedcom
   </ul>;
 }
 
-type T = Props["t"];
-
-/** The text of a source record, edited in place: title, author, publication, notes and web addresses. Save writes the record once. */
-function SourceForm({ value, onSave, onCancel, t }: { value: SourceFields; onSave: (f: SourceFields) => void; onCancel: () => void; t: T }) {
-  const [f, setF] = useState<SourceFields>(value);
-  const [link, setLink] = useState("");
-  const [linkBad, setLinkBad] = useState(false);
-  const [note, setNote] = useState("");
-  const addLink = () => {
-    const url = link.trim();
-    if (!url) return;
-    if (!isWebAddress(url)) { setLinkBad(true); return; }
-    setF((x) => ({ ...x, links: [...x.links.filter((l) => l !== url), url] }));
-    setLink("");
-    setLinkBad(false);
-  };
-  const addNote = () => {
-    const text = note.trim();
-    if (!text) return;
-    setF((x) => ({ ...x, notes: [...x.notes, text] }));
-    setNote("");
-  };
-  const save = () => {
-    // a web address still typed in the field is added too, so Save never drops it
-    const url = link.trim();
-    const links = url && isWebAddress(url) ? [...f.links.filter((l) => l !== url), url] : f.links;
-    onSave({ ...f, notes: f.notes.map((n) => n.trim()).filter(Boolean), links });
-  };
-  return <form className="sp-form" onSubmit={(e) => { e.preventDefault(); save(); }}>
-    <label className="sp-field"><span className="sp-label">{t("srcFieldTitle")}</span>
-      <input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></label>
-    <label className="sp-field"><span className="sp-label">{t("srcAuthor")}</span>
-      <input value={f.author} onChange={(e) => setF({ ...f, author: e.target.value })} /></label>
-    <label className="sp-field"><span className="sp-label">{t("srcPublication")}</span>
-      <input value={f.publication} onChange={(e) => setF({ ...f, publication: e.target.value })} /></label>
-    <div className="sp-field"><span className="sp-label">{t("srcLinks")}</span>
-      {f.links.length > 0 && <div className="src-links">{f.links.map((url) => (
-        <span key={url} className="chip">{url.replace(/^https?:\/\//, "")}
-          <button type="button" className="icon-btn" aria-label={`${t("srcRemoveLink")}: ${url}`} title={t("srcRemoveLink")}
-                  onClick={() => setF((x) => ({ ...x, links: x.links.filter((l) => l !== url) }))}>×</button></span>
-      ))}</div>}
-      <div className="finder sp-add">
-        <input type="url" inputMode="url" placeholder={t("srcLinkPlaceholder")} aria-label={t("srcLinkPlaceholder")} aria-invalid={linkBad || undefined}
-               value={link} onChange={(e) => { setLink(e.target.value); setLinkBad(false); }}
-               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addLink(); } }} />
-        <button type="button" className="chip" onClick={addLink}>{t("srcAddLink")}</button>
-      </div>
-      {linkBad && <div className="sp-error" role="alert">{t("srcLinkInvalid")}</div>}
-    </div>
-    <div className="sp-field"><span className="sp-label">{t("srcNotes")}</span>
-      {f.notes.map((n, i) => (
-        <div key={i} className="sp-note-row"><span>{n}</span>
-          <button type="button" className="icon-btn" aria-label={t("srcRemoveNote")} title={t("srcRemoveNote")}
-                  onClick={() => setF((x) => ({ ...x, notes: x.notes.filter((_, j) => j !== i) }))}>×</button></div>
-      ))}
-      <div className="finder sp-add">
-        <input placeholder={t("srcNotePlaceholder")} aria-label={t("srcNotePlaceholder")} value={note}
-               onChange={(e) => setNote(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addNote(); } }} />
-        <button type="button" className="chip" onClick={addNote}>{t("srcAddNote")}</button>
-      </div>
-    </div>
-    <div className="sp-actions">
-      <button type="button" className="chip" onClick={onCancel}>{t("cancel")}</button>
-      <button type="submit" className="chip sp-save" aria-pressed="true">{t("save")}</button>
-    </div>
-  </form>;
-}
-
-const CITE_EVENTS: { event: CiteEvent; label: StringKey }[] = [
-  { event: "", label: "srcCitePerson" }, { event: "BIRT", label: "thBirth" }, { event: "CHR", label: "christening" },
-  { event: "DEAT", label: "thDeath" }, { event: "BURI", label: "burial" },
-  { event: "MARR", label: "marriage" }, { event: "DIV", label: "divorce" }, { event: "RESI", label: "residence" },
-];
-
-/** Cites this source for one person and one of their events, picked from the file's people. */
-function CiteFor({ xref, data, t, onCite }: { xref: string; data: GedcomData; t: T; onCite: NonNullable<Props["onCite"]> }) {
-  const people = useMemo(() => Object.values(data.people).sort((a, b) => fold(a.name).localeCompare(fold(b.name))), [data]);
-  const [person, setPerson] = useState(people[0]?.id ?? "");
-  const [event, setEvent] = useState<CiteEvent>("");
-  // the families the person is a spouse in: a marriage or divorce is cited under one of them
-  const families = (data.people[person]?.fams ?? []).map((id) => {
-    const f = data.families[id];
-    const spouse = f && (f.husb === person ? f.wife : f.husb);
-    return { id, name: spouse ? data.people[spouse]?.name || "?" : "?" };
-  });
-  const family = event === "MARR" || event === "DIV" ? families[0]?.id ?? "" : "";
-  const [pickedFamily, setPickedFamily] = useState("");
-  const chosenFamily = families.some((f) => f.id === pickedFamily) ? pickedFamily : family;
-  const needsFamily = event === "MARR" || event === "DIV";
-  return <div className="sp-field sp-cite">
-    <span className="sp-label">{t("srcCiteFor")}</span>
-    <div className="sp-add">
-      <select aria-label={t("srcCiteFor")} value={person} onChange={(e) => { setPerson(e.target.value); setPickedFamily(""); }}>
-        {people.map((p) => <option key={p.id} value={p.id}>{p.name || "?"}</option>)}
-      </select>
-      <select aria-label={t("event")} value={event} onChange={(e) => setEvent(e.target.value as CiteEvent)}>
-        {CITE_EVENTS.map((c) => <option key={c.event} value={c.event}>{t(c.label)}</option>)}
-      </select>
-    </div>
-    {needsFamily && <div className="sp-add">
-      <select aria-label={t("srcCiteFamily")} value={chosenFamily} disabled={!families.length} onChange={(e) => setPickedFamily(e.target.value)}>
-        {families.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-      </select>
-    </div>}
-    <div className="sp-add">
-      <button type="button" className="chip" disabled={!person || (needsFamily && !chosenFamily)}
-              onClick={() => onCite(xref, person, event, chosenFamily)}>{t("srcCiteAdd")}</button>
-    </div>
-  </div>;
-}
 
 /** Overview of all sources (with the people citing them) and all notes of the file, read-only. */
-export function SourcesPanel({ overview, data, onPerson, onSave, onCite, personId = null, t }: Props) {
+export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, personId = null, t }: Props) {
   const [tab, setTab] = useState<Tab>("sources");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<string | null>(null);
-  // the source whose text is being edited in the panel (one at a time)
-  const [editing, setEditing] = useState<string | null>(null);
   const [kinds, setKinds] = useState<SourceKind[]>([]);
   // on by default whenever a person is selected; the chip switches it off to see the whole file
   const [allFile, setAllFile] = useState(false);
@@ -164,13 +51,16 @@ export function SourcesPanel({ overview, data, onPerson, onSave, onCite, personI
     || fold([s.citation.title, s.citation.author, s.citation.publication, s.citation.repository].join(" ")).includes(q))), [overview, q, kinds, scoped, personId]);
   const toggleKind = (k: SourceKind) => { setKinds(kinds.includes(k) ? kinds.filter((x) => x !== k) : [...kinds, k]); setOpen(null); };
   const notes = useMemo(() => overview.notes.filter((n) => (!scoped || n.people.includes(personId!)) && (!q || fold(n.text).includes(q))), [overview, q, scoped, personId]);
-  const toggle = (key: string) => { setEditing(null); setOpen(open === key ? null : key); };
+  const toggle = (key: string) => setOpen(open === key ? null : key);
   const shown = tab === "sources" ? sources.length : notes.length;
   const empty = !overview.sources.length && !overview.notes.length;
 
   return (
     <section className="panel-col sp" aria-label={t("srcNotes")}>
-      <PanelHead title={t("srcNotes")} />
+      <PanelHead title={t("srcNotes")}>
+        {onEdit && <div className="tools"><button type="button" className="icon-btn" title={t("srcNew")} aria-label={t("srcNew")} disabled={editDisabled}
+                onClick={() => onEdit(null)}><Plus className="icon" aria-hidden="true" /></button></div>}
+      </PanelHead>
       {empty ? <p className="sp-none panel-body">{t("srcEmpty")}</p> : <>
         <div className="sp-tabs">
           <div className="chart-switch" role="group">
@@ -207,13 +97,9 @@ export function SourcesPanel({ overview, data, onPerson, onSave, onCite, personI
                 <span className="sp-count">{s.citations}×</span>
               </button>
               {open === s.key && <div className="sp-more">
-                {editing === s.key && onSave ? <SourceForm value={s.fields} t={t}
-                    onSave={(f) => { onSave(s.key, f); setEditing(null); }} onCancel={() => setEditing(null)} />
-                  : <>
-                    <CitationFields c={s.citation} t={t} />
-                    {onSave && s.key.startsWith("@") && <button type="button" className="chip sp-edit" onClick={() => setEditing(s.key)}>{t("srcEditSource")}</button>}
-                    {onCite && s.key.startsWith("@") && <CiteFor xref={s.key} data={data} t={t} onCite={onCite} />}
-                  </>}
+                <CitationFields c={s.citation} t={t} />
+                {onEdit && s.key.startsWith("@") && <button type="button" className="sp-edit" disabled={editDisabled} onClick={() => onEdit(s.key)}>
+                  <Pencil className="icon" aria-hidden="true" />{t("srcEditSource")}</button>}
                 <People ids={s.people} data={data} onPerson={onPerson} t={t} />
               </div>}
             </li>

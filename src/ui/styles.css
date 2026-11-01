@@ -660,21 +660,9 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-note { white-space: pre-wrap; overflow-wrap: anywhere; }
 .sp-note.clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .sp-more { padding: 0 var(--pad) 10px calc(var(--pad) + var(--icon-sm) + 8px); font-size: 14px; }
-.sp-links { margin-top: 10px; display: grid; gap: 6px; }
-.sp-label { font-size: 12px; color: var(--muted); }
-.sp-links .chip { display: inline-flex; align-items: center; gap: 2px; }
-.sp-error { font-size: 12px; color: var(--danger); }
-.sp-form { display: grid; gap: 10px; margin-top: 10px; }
-.sp-field { display: grid; gap: 4px; min-width: 0; }
-.sp-add { display: flex; gap: 6px; }
-.sp-add input { flex: 1; min-width: 0; }
-.sp-note-row { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; }
-.sp-note-row span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.sp-actions { display: flex; justify-content: flex-end; gap: 8px; }
-.sp-save { font-weight: 600; }
-.sp-edit { margin-top: 10px; }
-.sp-cite { margin-top: 10px; }
-.sp-cite select { flex: 1; min-width: 0; }
+.sp-edit { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; padding: 0; min-height: 24px; background: none; border: 0; color: var(--accent); cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; }
+.sp-edit:disabled { opacity: .5; cursor: default; }
+.sp-edit .icon { width: var(--icon-sm); height: var(--icon-sm); }
 .sp-people { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; }
 .sp-people button.link { text-align: left; }
 .sp-none { padding: var(--pad); color: var(--muted); list-style: none; }

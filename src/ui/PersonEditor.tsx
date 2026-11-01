@@ -75,7 +75,7 @@ type NamePartKey = keyof PersonFields["nameParts"];
 const NAME_PARTS: [NamePartKey, StringKey, StringKey][] = [["prefix", "namePrefix", "tipNamePrefix"], ["suffix", "nameSuffix", "tipNameSuffix"], ["nickname", "nickname", "tipNickname"], ["surnamePrefix", "surnamePrefix", "tipSurnamePrefix"]];
 
 /** Picking a person of the file by typing a name; `onPick("")` when the field is emptied. */
-function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnPick, focus, onPick }: {
+export function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnPick, focus, onPick }: {
   choices: { id: string; label: string }[]; exclude: string[]; value: string; label: string; placeholder: string; tip: string;
   clearOnPick?: boolean; focus?: boolean; onPick: (id: string) => void;
 }) {

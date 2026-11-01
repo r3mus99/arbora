@@ -5,6 +5,7 @@
  */
 
 import { addChild } from "./edit";
+import { appended, freeXref } from "./structure";
 import { childOf, childrenOf, gedNode, rewritten, type GedNode } from "./gedcom";
 import type { SourceFields } from "./sources";
 
@@ -42,8 +43,30 @@ export function setSourceFields(records: GedNode[], xref: string, f: SourceField
 /** The event a source can be cited under from the Sources panel: the whole person, a fixed event, a marriage or divorce of a family, or a residence. */
 export type CiteEvent = "" | "BIRT" | "CHR" | "DEAT" | "BURI" | "MARR" | "DIV" | "RESI";
 
-/** a family event is written on the family record; the others on the person */
+/** where a source is cited: under the person (`event` "" or one of their events), or under a marriage or divorce of a family */
+export interface SourceCite { event: CiteEvent; person: string; family: string }
+
+const PERSON_EVENTS: CiteEvent[] = ["BIRT", "CHR", "DEAT", "BURI", "RESI"];
 const onFamily = (event: CiteEvent) => event === "MARR" || event === "DIV";
+export const citeKey = (c: SourceCite) => `${c.event}|${c.person}|${c.family}`;
+
+/** The places a source is cited from the Sources panel: under a person, one of their events, or a marriage or divorce. Other lines that cite it are not listed. */
+export function sourceCites(records: GedNode[], xref: string): SourceCite[] {
+  const cites = (node: GedNode) => childrenOf(node, "SOUR").some((c) => c.value === xref);
+  const out: SourceCite[] = [];
+  for (const rec of records) {
+    if (rec.tag === "INDI" && rec.xref) {
+      if (cites(rec)) out.push({ event: "", person: rec.xref, family: "" });
+      for (const event of PERSON_EVENTS) if (childrenOf(rec, event).some(cites)) out.push({ event, person: rec.xref, family: "" });
+    } else if (rec.tag === "FAM" && rec.xref) {
+      for (const event of ["MARR", "DIV"] as const) if (childrenOf(rec, event).some(cites)) out.push({ event, person: "", family: rec.xref });
+    }
+  }
+  return out;
+}
+
+const holderOf = (records: GedNode[], c: SourceCite) =>
+  records.find((rec) => (onFamily(c.event) ? rec.tag === "FAM" && rec.xref === c.family : rec.tag === "INDI" && rec.xref === c.person));
 
 /** `node` with the source added under its `event` line (the line is added when missing); null when it is already cited there */
 function citeOn(node: GedNode, event: CiteEvent, xref: string): GedNode | null {
@@ -55,17 +78,73 @@ function citeOn(node: GedNode, event: CiteEvent, xref: string): GedNode | null {
   return rewritten(node, node.children.map((c) => (c === ev ? addChild(ev, cite) : c)));
 }
 
-/**
- * The records with the source `xref` cited for the person `person`: under the person itself (`event` ""), under one of
- * their events, or under a marriage or divorce of `family` (a family the person is a spouse in). The line is added when
- * missing. A citation that is already there changes nothing.
- */
-export function addSourceCitation(records: GedNode[], xref: string, person: string, event: CiteEvent, family = ""): GedNode[] {
+/** The records with the source `xref` cited at `cite` (the event line is added when missing); nothing changes when it is already there or the person, family or source is not in the file. */
+export function addCite(records: GedNode[], xref: string, cite: SourceCite): GedNode[] {
   if (!records.some((rec) => rec.xref === xref && rec.tag === "SOUR")) return records;
-  const target = onFamily(event)
-    ? records.find((rec) => rec.xref === family && rec.tag === "FAM" && [childOf(rec, "HUSB")?.value, childOf(rec, "WIFE")?.value].includes(person))
-    : records.find((rec) => rec.xref === person && rec.tag === "INDI");
+  const target = holderOf(records, cite);
   if (!target) return records;
-  const next = citeOn(target, event, xref);
+  const next = citeOn(target, cite.event, xref);
   return next ? records.map((rec) => (rec === target ? next : rec)) : records;
+}
+
+/** `node` without the citations of `xref` (an event line that is left empty goes with it, a line with a value does not) */
+function stripCites(node: GedNode, xref: string, top = true): GedNode {
+  let changed = false;
+  const kept: GedNode[] = [];
+  for (const c of node.children) {
+    if (c.tag === "SOUR" && c.value === xref) { changed = true; continue; }
+    const inner = stripCites(c, xref, false);
+    if (inner !== c) {
+      changed = true;
+      if (top && !inner.children.length && !inner.value.trim()) continue;
+    }
+    kept.push(inner);
+  }
+  return changed ? rewritten(node, kept) : node;
+}
+
+/** The records with the source `xref` no longer cited at `cite`. */
+export function removeCite(records: GedNode[], xref: string, cite: SourceCite): GedNode[] {
+  const target = holderOf(records, cite);
+  if (!target) return records;
+  let next: GedNode;
+  if (!cite.event) {
+    const kept = target.children.filter((c) => !(c.tag === "SOUR" && c.value === xref));
+    if (kept.length === target.children.length) return records;
+    next = rewritten(target, kept);
+  } else {
+    const events = childrenOf(target, cite.event);
+    const stripped = events.map((ev) => stripCites(ev, xref, false));
+    if (stripped.every((ev, i) => ev === events[i])) return records;
+    const empty = (ev: GedNode) => !ev.children.length && !ev.value.trim();
+    next = rewritten(target, target.children.flatMap((c) => {
+      const at = events.indexOf(c);
+      return at < 0 ? [c] : empty(stripped[at]) ? [] : [stripped[at]];
+    }));
+  }
+  return records.map((rec) => (rec === target ? next : rec));
+}
+
+/** The records without the source `xref` and without every line that cites it (an event line left empty goes too). */
+export function deleteSource(records: GedNode[], xref: string): GedNode[] {
+  return records.filter((rec) => !(rec.tag === "SOUR" && rec.xref === xref)).map((rec) => stripCites(rec, xref));
+}
+
+/**
+ * Saves the source window as one change: the record `xref` (a new one when null) gets `fields`, and the places it is
+ * cited from go from `before` to `after`. Returns the records and the xref of the source.
+ */
+export function saveSource(records: GedNode[], xref: string | null, fields: SourceFields, before: SourceCite[], after: SourceCite[]): { records: GedNode[]; xref: string } {
+  let recs = records;
+  let id = xref;
+  if (!id) {
+    id = freeXref(recs, "SOUR", "S");
+    recs = appended(recs, { ...gedNode("SOUR"), xref: id });
+  }
+  recs = setSourceFields(recs, id, fields);
+  const had = new Set(before.map(citeKey));
+  const has = new Set(after.map(citeKey));
+  for (const c of before) if (!has.has(citeKey(c))) recs = removeCite(recs, id, c);
+  for (const c of after) if (!had.has(citeKey(c))) recs = addCite(recs, id, c);
+  return { records: recs, xref: id };
 }
