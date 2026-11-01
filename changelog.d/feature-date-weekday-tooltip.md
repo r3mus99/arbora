@@ -1,1 +1,0 @@
-- **A date shows its weekday on hover.** Point at a full date in the detail (for example 3 Mar 1842) and the tooltip names the day of the week, in the language of the app. Dates before 1582 are read as Julian. Years, months, "about" and ranges show nothing.

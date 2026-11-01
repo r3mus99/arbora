@@ -1,1 +1,1 @@
-- **A baby's age is shown in months or days.** Between birth and baptism, or at death, an age under one year is shown in months, and under one month in days, instead of "0 years", in the person's events and on the poster. When the dates cannot tell (a year or a month alone), no age is shown.
+- **A date shows its weekday on hover.** Point at a full date in the detail (for example 3 Mar 1842) and the tooltip names the day of the week, in the language of the app. Dates before 1582 are read as Julian. Years, months, "about" and ranges show nothing.
