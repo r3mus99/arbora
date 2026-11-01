@@ -1,4 +1,4 @@
-import { BookMarked, ExternalLink, StickyNote, WandSparkles } from "lucide-react";
+import { BookMarked, ExternalLink, StickyNote } from "lucide-react";
 import { createContext, useContext, useRef, useState } from "react";
 import { Inline } from "./Inline";
 import { citationFields, citationLinks, hasAnnotations, linkParts, readableNotes, withoutLinks, type Annotations, type Citation, type CitationField } from "../core/sources";
@@ -28,16 +28,14 @@ const FIELD_LABEL: Record<CitationField["key"], StringKey> = {
 
 /** What the detail needs to change a source: the name it would get now (where it differs), and the rename itself. */
 export interface SourceEditApi {
-  suggested: Map<string, string>;
   rename: (xref: string, title: string) => void;
 }
 export const SourceEditContext = createContext<SourceEditApi | null>(null);
 
-/** The title of a source: a click edits it in place, like a name; a magic wand writes the suggested name (event, people and year) when it differs. */
+/** The title of a source: a click edits it in place, like a name. */
 export function SourceTitle({ xref, title, t }: { xref: string; title: string; t: T }) {
   const api = useContext(SourceEditContext);
   const field = useRef<HTMLInputElement>(null);
-  const suggestion = xref && api?.suggested.get(xref);
   if (!xref || !api) return <div className="src-title">{title}</div>;
   return <div className="src-title src-title-row">
     <Inline label={t("srcEditTitle")} className="src-title-edit" restTip={t("srcEditTitle")}
@@ -45,9 +43,6 @@ export function SourceTitle({ xref, title, t }: { xref: string; title: string; t
             edit={() => <input ref={field} className="src-title-input" autoFocus defaultValue={title} aria-label={t("srcEditTitle")} />}>
       {title}
     </Inline>
-    {suggestion && suggestion !== title && <button type="button" className="icon-btn src-wand" title={`${t("srcUseSuggested")}: ${suggestion}`}
-        aria-label={`${t("srcUseSuggested")}: ${suggestion}`} onClick={() => api.rename(xref, suggestion)}>
-      <WandSparkles className="icon" aria-hidden="true" /></button>}
   </div>;
 }
 
