@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
-import { FileDown, FileText, FileImage, FileUp, Home, LayoutDashboard, Pin,
+import { FileDown, FileText, FileImage, FileUp, Home, LayoutDashboard, User,
          Loader2, BookMarked, History, Trash2, Clock, ListChecks, MapPin, Redo2, Replace, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
@@ -142,7 +142,9 @@ export function App() {
   const [chosenTool, setTool] = useState<"people" | "check" | "fix" | "overview" | "sources" | "places" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
   const tool = narrow ? "people" : chosenTool;
   const listOpen = tool === "people", showCheck = tool === "check", showFix = tool === "fix", showOverview = tool === "overview", showSources = tool === "sources", showPlaces = tool === "places", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
-  const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
+  // true while the people list is open to choose the home person: the next click on a person sets it
+  const [pickingHome, setPickingHome] = useState(false);
+  const showList = (on: boolean) => { setPickingHome(false); setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
   const setShowFix = (on: boolean) => setTool(on ? "fix" : listOpen ? "people" : null);
   const setShowOverview = (on: boolean) => setTool(on ? "overview" : listOpen ? "people" : null);
@@ -621,9 +623,11 @@ export function App() {
   };
   /** a click on the selected person in the chart or in a list of people deselects it, which closes the detail */
   const deselect = () => { setFocusId(null); setJumpRow(null); };
-  const pickListed = (id: string) => { if (id === focusId) deselect(); else pick(id); };
+  const pickListed = (id: string) => {
+    if (pickingHome) { setMarks((m) => changeHome(m, id)); setPickingHome(false); return; }
+    if (id === focusId) deselect(); else pick(id);
+  };
   const star = (id: string) => setMarks((m) => toggleFav(m, id));
-  const setHome = (id: string | null) => setMarks((m) => changeHome(m, id));
 
   return (
     <main className={data ? "loaded" : undefined}>
@@ -638,6 +642,12 @@ export function App() {
             <strong>{loadedName === null ? t("sampleName") : loadedName}</strong>
             <span className="count"><Users className="icon" aria-hidden="true" />{Object.keys(data.people).length}</span>
           </FileDrop>}
+          {data && <button type="button" className={`home-chip${homeId ? "" : " empty"}${pickingHome ? " on" : ""}`}
+                           aria-pressed={pickingHome} onClick={() => { showList(true); setPickingHome(true); }}
+                           title={t("homeSet")} aria-label={t("homeSet")}>
+            <User className="icon" aria-hidden="true" />
+            <strong>{homeId ? data.people[homeId].name || "?" : t("homeSet")}</strong>
+          </button>}
           {data && statusText && <span className={status?.err ? "status err" : "status"} role="status">{statusText}</span>}
           <div className="head-tools">
             {data && <div className="tools" role="toolbar">
@@ -645,10 +655,6 @@ export function App() {
                       title={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}
                       aria-label={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}>
                 <Home className="icon" aria-hidden="true" /></button>
-              <button type="button" className={`icon-btn${focusId && homeId === focusId ? " on" : ""}`} disabled={!focusId}
-                      aria-pressed={!!focusId && homeId === focusId} onClick={() => focusId && setHome(homeId === focusId ? null : focusId)}
-                      title={t(focusId && homeId === focusId ? "homeUnset" : "homeSet")} aria-label={t(focusId && homeId === focusId ? "homeUnset" : "homeSet")}>
-                <Pin className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn" disabled={!canUndo(edits)} onClick={() => undoRedo(-1)}
                       title={withShortcut(t("undo"), "undo", MAC)} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn" disabled={!canRedo(edits)} onClick={() => undoRedo(1)}

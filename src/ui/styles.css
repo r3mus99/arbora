@@ -479,6 +479,16 @@ button.link { display: inline; }
 .file-chip strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; color: var(--text);
                     font-weight: 600; }
 .file-chip > .icon { color: var(--accent); }
+/* the home person, next to the file: the same box; a click opens the people list to choose one */
+.home-chip { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 0 1 auto; padding: 0 12px; border: 1px solid var(--border);
+             border-radius: var(--radius); font: inherit; font-size: 14px; color: var(--text); background: var(--panel); min-height: var(--field-h); cursor: pointer; }
+.home-chip:hover { border-color: var(--accent); }
+.home-chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.home-chip strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; font-weight: 600; }
+.home-chip > .icon { color: var(--accent); flex: none; }
+.home-chip.empty { border-style: dashed; color: var(--muted); font-weight: 400; }
+.home-chip.empty strong { font-weight: 400; }
+.home-chip.empty > .icon { color: var(--muted); }
 .file-chip .count { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); flex: none;
                     font-variant-numeric: tabular-nums; }
 .file-chip .count .icon { width: var(--icon-sm); height: var(--icon-sm); vertical-align: 0; }
