@@ -11,7 +11,7 @@ import { nameDetails } from "../core/names";
 import { personAttributes, type Attribute } from "../core/facts";
 import { dateParts, formatAge, yearsBetween } from "../core/date";
 import { fmt, formatDate, weekdayTip } from "../core/format";
-import { childOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
+import { childOf, childrenOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, mergeAnnotations, personAnnotations, type Lookup } from "../core/sources";
 import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
@@ -370,13 +370,15 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
         {p.religion && <Fact icon={Church} label={t("religion")}><div className="fact-value">
           {live && f ? <InlineText value={f.religion} label={t("religion")} list={RELIGIONS}
                                    onCommit={(v) => { if (v.trim() !== f.religion) change({ religion: v }); }}>{p.religion}</InlineText>
-            : p.religion}</div></Fact>}
+            : p.religion}</div>
+          {record && <EventSources a={eventAnnotations(record, "RELI", lookup)} t={t} />}</Fact>}
         {f && f.occupations.length > 0 && <Fact icon={Briefcase} label={t("occupation")}>
           {f.occupations.map((o) => <div key={o.origin}>
             <div className="fact-value">{live ? <InlineText value={o.value} label={t("occupation")}
               onCommit={(v) => { if (v.trim() !== o.value) change({ occupations: f.occupations.map((x) => (x === o ? { ...x, value: v } : x)) }); }}>
               {o.value}</InlineText> : o.value}</div>
             {when(o, (patch) => change({ occupations: f.occupations.map((x) => (x === o ? { ...x, ...patch } : x)) }))}
+            {record && <EventSources a={annotations(childrenOf(record, "OCCU")[o.origin], lookup)} t={t} />}
           </div>)}
         </Fact>}
         {!f && p.occupation && <Fact icon={Briefcase} label={t("occupation")}>
@@ -386,6 +388,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
           {a.value && <div className="fact-value">{live ? <InlineText value={a.value} label={t(`attr${a.tag}` as StringKey)}
             onCommit={(v) => changeAttribute(a, { value: v })}>{a.value}</InlineText> : a.value}</div>}
           {when(a, (patch) => changeAttribute(a, patch))}
+          <EventSources a={annotations(a.node, lookup)} t={t} />
         </Fact>)}
         {(() => {
           const roleText = (r: string) => r === "godparent" ? t("roleGodparent") : r === "witness" ? t("roleWitness")
