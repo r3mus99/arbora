@@ -247,9 +247,9 @@ export function buildDescendantsPoster(data: GedcomData, rootId: string, options
     const spot = near.find(([px, py]) => free(px, py, width, height) &&
       !taken.some((t) => Math.abs(px - t.x) < (width + t.width) / 2 + 4 && Math.abs(py - t.y) < (height + t.height) / 2 + 2)) ?? [x, y];
     taken.push({ x: spot[0], y: spot[1], width, height });
-    const left = spot[0] - width / 2;
-    symbols.push(...symbolShapes("rings", left, spot[1], size));
-    marriages.push({ text, x: left + symbolW(size) + size * 0.3 + measure(text, size, false) / 2, y: spot[1] + size * 0.3, size, bold: false, fill: C.marriage });
+    const edge = spot[0] - width / 2;
+    symbols.push(...symbolShapes("rings", edge, spot[1], size));
+    marriages.push({ text, x: edge + symbolW(size) + size * 0.3 + measure(text, size, false) / 2, y: spot[1] + size * 0.3, size, bold: false, fill: C.marriage });
   }
 
   // ------------------------------------------------------------ plates and texts

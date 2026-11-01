@@ -12,8 +12,8 @@ function open(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB, 1);
     req.onupgradeneeded = () => req.result.createObjectStore(STORE);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    req.addEventListener("success", () => resolve(req.result));
+    req.addEventListener("error", () => reject(req.error));
   });
 }
 
@@ -24,8 +24,10 @@ async function run<T>(mode: IDBTransactionMode, make: (s: IDBObjectStore) => IDB
     return await new Promise<T>((resolve, reject) => {
       const tx = db.transaction(STORE, mode);
       const req = make(tx.objectStore(STORE));
-      tx.oncomplete = () => resolve(req.result);
-      tx.onerror = tx.onabort = () => reject(tx.error);
+      tx.addEventListener("complete", () => resolve(req.result));
+      const fail = () => reject(tx.error);
+      tx.addEventListener("error", fail);
+      tx.addEventListener("abort", fail);
     });
   } finally { db.close(); }
 }
