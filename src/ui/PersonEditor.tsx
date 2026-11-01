@@ -102,16 +102,27 @@ function SourcePick({ choices, value, label, tip, onChange }: { choices: SourceC
   const list = useId();
   const shown = /^@[^@]+@$/.test(value) ? choices.find((s) => s.xref === value)?.title ?? value : value;
   const [text, setText] = useState(shown);
+  const [editing, setEditing] = useState(!shown);
   const options = useMemo(() => matchSources(choices, text), [choices, text]);
   const change = (typed: string) => {
     setText(typed);
     const hit = choices.find((s) => s.title === typed);
     onChange(hit ? hit.xref : typed);
   };
+  // a chosen source reads as wrapped text, so a long title is never cut; a click or the keyboard turns it into the search field
+  if (!editing) return <div className="cite-title" role="button" tabIndex={0} title={tip} aria-label={`${label}: ${text}`}
+    onClick={() => setEditing(true)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setEditing(true); } }}>{text}</div>;
   return <>
-    <input className="fill" type="text" value={text} list={list} autoComplete="off" aria-label={label} title={tip} onChange={(e) => change(e.target.value)} />
+    <input className="fill" type="text" value={text} list={list} autoComplete="off" aria-label={label} title={tip} autoFocus={!!text}
+           onBlur={() => { if (text.trim()) setEditing(false); }} onChange={(e) => change(e.target.value)} />
     <datalist id={list}>{options.map((s) => <option key={s.xref} value={s.title} />)}</datalist>
   </>;
+}
+
+/** a text with its web links made clickable */
+function withLinks(text: string): ReactNode[] {
+  return text.split(/(https?:\/\/[^\s<>"]+)/g).map((part, i) => i % 2
+    ? <a key={i} href={part} target="_blank" rel="noopener noreferrer">{part}</a> : part);
 }
 
 /** the form's id, so the icon buttons in the detail header can submit it */
@@ -321,6 +332,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   /** the source citations of the person or of one event: a source from the list (or the text of a citation), the page or web link, the quality */
   const citeRows = (rows: CitationRow[], setRows: (rows: CitationRow[]) => void, idp: string) => {
     const patchRow = (i: number, patch: Partial<CitationRow>) => setRows(rows.map((c, j) => (j === i ? { ...c, ...patch } : c)));
+    /** what the cited source record says about itself (its publication line, usually the web link) */
+    const info = (source: string) => (/^@[^@]+@$/.test(source) ? sources.find((s) => s.xref === source)?.detail ?? "" : "");
     return rows.map((c, i) => {
       const id = `${idp}${c.origin < 0 ? `new${i}` : c.origin}`;
       return <Fragment key={id}>
@@ -330,6 +343,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                   onClick={() => setRows(rows.filter((_, j) => j !== i))}>
             <Trash2 className="icon" aria-hidden="true" /></button>
         </div>
+        {(info(c.source) || c.note) && <div className="cite-info">
+          {info(c.source) && <div>{withLinks(info(c.source))}</div>}
+          {c.note && <div>{withLinks(c.note)}</div>}
+        </div>}
         {hidable(id, !!(c.page || c.quality), t("eventDetails"), t("tipCitationDetails"),
           <div className="pair">
             <label title={t("tipPage")} data-cap={t("srcPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(id); patchRow(i, { page: e.target.value }); }} /></label>

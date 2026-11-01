@@ -301,8 +301,10 @@ describe("source citations of a person", () => {
   const tags = (r: GedNode) => r.children.map((c) => `${c.tag} ${c.value}`.trim());
 
   test("reads the citations and sourceChoices lists the source records", () => {
-    expect(personFields(rec()).citations).toEqual([{ origin: 0, source: "@S1@", page: "12", quality: "2" }]);
-    expect(sourceChoices(parseGedcom(text))).toEqual([{ xref: "@S1@", title: "Parish book" }]);
+    expect(personFields(rec()).citations).toEqual([{ origin: 0, source: "@S1@", page: "12", quality: "2", note: "c" }]);
+    expect(sourceChoices(parseGedcom(text))).toEqual([{ xref: "@S1@", title: "Parish book", detail: "" }]);
+    const withUrl = text.replace("1 TITL Parish book", "1 TITL Parish book\n1 PUBL https://example.org/books/1");
+    expect(sourceChoices(parseGedcom(withUrl))[0].detail).toBe("https://example.org/books/1");
   });
 
   test("changes page and quality, keeping the lines the form does not show", () => {
@@ -338,7 +340,7 @@ describe("source citations of an event", () => {
 
   test("reads the citations under an event apart from the person's own", () => {
     const f = personFields(rec());
-    expect(f.eventCitations.birth).toEqual([{ origin: 0, source: "@S1@", page: "https://example.org/record/1", quality: "3" }]);
+    expect(f.eventCitations.birth).toEqual([{ origin: 0, source: "@S1@", page: "https://example.org/record/1", quality: "3", note: "c" }]);
     expect(f.eventCitations.death).toEqual([]);
     expect(f.events[0].citations).toEqual([]);
     expect(f.citations).toHaveLength(1);

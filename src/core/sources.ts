@@ -181,12 +181,13 @@ export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(rec
 }
 
 /** a source record of the file, as offered when citing a source */
-export interface SourceChoice { xref: string; title: string }
+/** a source record to cite: `detail` is its publication line (often the web link), shown under the title */
+export interface SourceChoice { xref: string; title: string; detail: string }
 
 /** The source records of the file with their titles, sorted by title. */
 export function sourceChoices(records: GedNode[]): SourceChoice[] {
   return records.filter((r) => r.tag === "SOUR" && r.xref)
-    .map((r) => ({ xref: r.xref!, title: valueOf(r, "TITL") || valueOf(r, "ABBR") || r.xref! }))
+    .map((r) => ({ xref: r.xref!, title: valueOf(r, "TITL") || valueOf(r, "ABBR") || r.xref!, detail: valueOf(r, "PUBL") }))
     .sort((a, b) => a.title.localeCompare(b.title));
 }
 
