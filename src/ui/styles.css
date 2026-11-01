@@ -159,22 +159,6 @@ footer a { color: var(--accent); }
 .tree-row .jump .icon { width: var(--icon-sm); height: var(--icon-sm); }
 .tree-row .jump:hover { text-decoration: underline; }
 .tree-row { position: relative; }
-.tree-row button.fold { position: absolute; top: calc(50% - 5.5px); padding: 0; margin: 0; border: 0;
-                        border-radius: 2px; line-height: 0; background: none; }
-.tree-row .fold svg { display: block; }
-/* − only while pointing at the row (or on the selected one); + always */
-.tree-row .fold:not(.closed) { opacity: 0; }
-.tree-row:hover .fold, .tree-row.sel .fold, .tree-row .fold:focus-visible { opacity: 1; }
-.tree-row .more { font-size: 12px; color: var(--accent); margin-left: 6px; padding: 0 5px; line-height: 18px;
-                  border: 1px solid var(--accent); border-radius: var(--radius); vertical-align: 1px; display: inline-flex; }
-.tree-row .more:hover { background: var(--accent-soft); }
-.tree-row button.fold::before { content: ""; position: absolute; inset: -6px; }  /* larger tap target */
-.tree-row .fold rect { fill: var(--bg); stroke: var(--line); }
-.tree-row .fold path { stroke: var(--muted); stroke-width: 1.2; shape-rendering: crispEdges; }
-.tree-row button.fold:hover { background: none; }
-.tree-row .fold:hover rect, .tree-row .fold.closed rect { stroke: var(--accent); }
-.tree-row .fold:hover path, .tree-row .fold.closed path { stroke: var(--accent); }
-.tree-row .fold.closed rect { fill: var(--accent-soft); }
 
 .tree-row .dup { color: var(--muted); font-size: 12px; }
 .mid { min-width: 0; }
