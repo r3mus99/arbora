@@ -1,5 +1,5 @@
 /** Merging two records of the same person: the second person is folded into the first and removed. */
-import { addLine, applyPerson, personFields, type EventFields, type PersonFields } from "./edit";
+import { addChild, addLine, applyPerson, personFields, type EventFields, type PersonFields } from "./edit";
 import { rewritten, type GedNode } from "./gedcom";
 
 /** the single values that can differ between the two people; a conflict is shown to the user, who keeps one side */
@@ -48,6 +48,26 @@ const same = (x: unknown, y: unknown) => {
 const union = <T extends { origin: number }>(rows: T[], extra: T[]): T[] =>
   [...rows, ...extra.filter((e) => !rows.some((r) => same(r, e))).map((e) => ({ ...e, origin: -1 }))];
 
+/** contact and reference lines the editor does not show, but a merge must not lose */
+const CARRIED = ["PHON", "EMAIL", "FAX", "WWW", "REFN"];
+/** lines a person has once: the kept person's own wins */
+const CARRIED_ONCE = ["AFN", "RFN"];
+
+/** the line without its position in the file, to tell whether the kept person has the same line */
+const lineKey = (n: GedNode): string => JSON.stringify([n.tag, n.value.trim(), n.children.map(lineKey)]);
+
+/** the kept person with the contact lines, reference numbers, AFN and RFN of the removed one that it does not have yet */
+function carryLines(kept: GedNode, removed: GedNode): GedNode {
+  let out = kept;
+  for (const c of removed.children) {
+    const once = CARRIED_ONCE.includes(c.tag);
+    if (!once && !CARRIED.includes(c.tag)) continue;
+    if (once ? out.children.some((k) => k.tag === c.tag) : out.children.some((k) => lineKey(k) === lineKey(c))) continue;
+    out = addChild(out, { ...c, src: undefined });
+  }
+  return out;
+}
+
 /** the fields of the kept person after the merge: the picked values, the rows of both people */
 export function mergedFields(a: PersonFields, b: PersonFields, pick: MergePick): PersonFields {
   const out: PersonFields = { ...a, details: { ...a.details } };
@@ -67,14 +87,10 @@ export function mergedFields(a: PersonFields, b: PersonFields, pick: MergePick):
   out.events = union(a.events, b.events);
   out.attributes = union(a.attributes, b.attributes);
   out.citations = union(a.citations, b.citations);
-  out.contacts = union(a.contacts, b.contacts);
-  out.references = union(a.references, b.references);
   // the other person's parents (families they are a child of) and associations, except one that is the kept person
   out.parents = union(a.parents, b.parents);
   out.associations = union(a.associations, b.associations);
   out.address = a.address || b.address;
-  out.afn = a.afn || b.afn;
-  out.rfn = a.rfn || b.rfn;
   // the name the other person had is not lost: it stays as another form of the name when it was not picked
   if (mergeValue(a, "name") && mergeValue(b, "name") && mergeValue(a, "name") !== mergeValue(b, "name")) {
     const lost = takes("name") ? { given: a.given, surname: a.surname } : { given: b.given, surname: b.surname };
@@ -108,7 +124,7 @@ export function mergePeople(records: GedNode[], keep: string, drop: string, pick
   const fa = personFields(a);
   const fb = personFields(b);
   fb.associations = fb.associations.filter((x) => x.id !== keep);
-  let merged = applyPerson(a, fa, mergedFields(fa, fb, pick));
+  let merged = carryLines(applyPerson(a, fa, mergedFields(fa, fb, pick)), b);
   // the families the removed person was a spouse in
   for (const fam of pointers(b, ["FAMS"])) {
     if (!pointers(merged, ["FAMS"]).includes(fam)) merged = addLine(merged, "FAMS", fam);

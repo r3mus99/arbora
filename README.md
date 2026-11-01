@@ -14,7 +14,7 @@ Everything runs in your browser; the file is never uploaded anywhere.
   favourites, and a file overview with statistics.
 - **Edit** about 40 GEDCOM tags in one edit window: names, events, occupations
   and facts, marriages, children, parents, associations, notes, sources and
-  contact details. Add, delete and merge people and families. Everything is one
+  other details. Add, delete and merge people and families. Everything is one
   undo step, and the parts of the file you do not touch are written back
   byte for byte. Download the result as GEDCOM.
 - **Check** the file for broken links, impossible dates and odd surname endings,
@@ -142,8 +142,7 @@ open by themselves:
 - **Parents and associations**: the kind of relation to each parent and
   associations with other people.
 - **Notes and sources**: notes and source citations with page and quality.
-- **Other details**: restriction, address, phone, e-mail, web and reference
-  numbers.
+- **Other details**: restriction and address.
 
 A person can also be **added**, **deleted** (every pointer to them is cleaned
 up) and **merged** with a duplicate, choosing the value on every conflict side

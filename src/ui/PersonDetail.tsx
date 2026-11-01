@@ -385,7 +385,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
             <Linked text={f.note} /></InlineNote> : <div className="note-text"><Linked text={f.note} /></div>}</Section>}
         {(() => {
           const info = record ? recordInfo(record) : [];
-          const KEYS = { changed: "infoChanged", reference: "infoReference", recordId: "infoRecordId", uid: "infoUid",
+          const KEYS = { changed: "infoChanged", recordId: "infoRecordId", uid: "infoUid",
                          media: "infoMedia" } as const;
           return info.length > 0 && <details className="record-info">
             <summary>{t("recordInfo")}</summary>
