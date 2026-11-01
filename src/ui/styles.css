@@ -483,7 +483,7 @@ button.link { display: inline; }
 .home-chip { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 0 1 auto; padding: 0 12px; border: 1px solid var(--border);
              border-radius: var(--radius); font: inherit; font-size: 14px; color: var(--text); background: var(--panel); min-height: var(--field-h); cursor: pointer; }
 .home-chip:hover { border-color: var(--accent); }
-.home-chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.home-chip:disabled { cursor: default; opacity: .6; }
 .home-chip strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; font-weight: 600; }
 .home-chip > .icon { color: var(--accent); flex: none; }
 .home-chip.empty { border-style: dashed; color: var(--muted); font-weight: 400; }
