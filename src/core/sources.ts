@@ -204,7 +204,12 @@ export interface SourceEntry {
   kinds: SourceKind[];
   /** web addresses the source record holds as its own NOTE lines (the ones the Sources panel adds and removes) */
   ownLinks: string[];
+  /** what the source record itself holds, as the Sources panel edits it */
+  fields: SourceFields;
 }
+
+/** The editable text of a source record: title, author, publication, its notes and its web addresses. */
+export interface SourceFields { title: string; author: string; publication: string; notes: string[]; links: string[] }
 
 /** What a source is cited for: a birth or baptism, a death or burial, a marriage, or anything else (also a citation on the person themselves). */
 export const SOURCE_KINDS = ["birth", "death", "marriage", "other"] as const;
@@ -240,6 +245,16 @@ export interface SourceOverview {
 export const ownLinksOf = (rec: GedNode): string[] =>
   rec.children.filter((c) => c.tag === "NOTE" && /^https?:\/\/\S+$/i.test(c.value.trim())).map((c) => c.value.trim());
 
+/** The editable text of a source record (a pointer to a note record is not text and stays out of it). */
+export const sourceFieldsOf = (rec: GedNode): SourceFields => ({
+  title: valueOf(rec, "TITL") || valueOf(rec, "ABBR"),
+  author: valueOf(rec, "AUTH"),
+  publication: valueOf(rec, "PUBL"),
+  notes: rec.children.filter((c) => c.tag === "NOTE" && !isLink(c.value) && !/^https?:\/\/\S+$/i.test(c.value.trim()))
+    .map((c) => plainText(c.value).trim()).filter(Boolean),
+  links: ownLinksOf(rec),
+});
+
 export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(records)): SourceOverview {
   const sources = new Map<string, Omit<SourceEntry, "people" | "kinds"> & { who: Set<string>; kinds: Set<SourceKind> }>();
   const notes = new Map<string, { text: string; who: Set<string> }>();
@@ -247,13 +262,15 @@ export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(rec
   const entry = (key: string, cite: GedNode) => {
     const c = citation(cite, lookup);
     let e = sources.get(key);
-    if (!e) sources.set(key, e = { key, citation: c, citations: 0, who: new Set(), kinds: new Set(), ownLinks: [] });
+    if (!e) sources.set(key, e = { key, citation: c, citations: 0, who: new Set(), kinds: new Set(), ownLinks: [], fields: { title: "", author: "", publication: "", notes: [], links: [] } });
     else e.citation = { ...e.citation, notes: [...new Set([...e.citation.notes, ...c.notes])] };
     return e;
   };
   for (const r of records) if (r.tag === "SOUR" && r.xref) {
     // a source record nobody cites still belongs in the list
-    entry(r.xref, { tag: "SOUR", value: r.xref, xref: null, children: [] }).ownLinks = ownLinksOf(r);
+    const e = entry(r.xref, { tag: "SOUR", value: r.xref, xref: null, children: [] });
+    e.ownLinks = ownLinksOf(r);
+    e.fields = sourceFieldsOf(r);
   }
   const walk = (node: GedNode, owners: string[], event: string, fam: boolean) => {
     for (const c of node.children) {

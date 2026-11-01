@@ -13,8 +13,8 @@ import { mergePeople, type MergePick } from "../core/merge";
 import { outputFileName } from "../core/fileName";
 import { childOf, decode, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
-import { sourceChoices, sourceOverview } from "../core/sources";
-import { addSourceLink, removeSourceLink } from "../core/sourceLinks";
+import { sourceOverview } from "../core/sources";
+import { addSourceCitation, setSourceFields } from "../core/sourceLinks";
 import { placeOverview } from "../core/placelist";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
@@ -382,7 +382,6 @@ export function App() {
   };
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
-  const sourceList = useMemo(() => (windowId && doc ? sourceChoices(doc.records) : []), [windowId, doc]);
   const srcEdit = useMemo(() => ({ rename: (xref: string, title: string) => {
     const rec = doc?.records.find((r) => r.xref === xref);
     if (doc && rec) replaceRecords(applySourceRenames(doc.records, [{ xref, from: childOf(rec, "TITL")?.value.trim() ?? "", to: title, weak: false }]));
@@ -741,7 +740,8 @@ export function App() {
               </aside>}
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
                 <SourcesPanel key={selectedId ?? ""} overview={srcOverview} data={data} onPerson={(id) => pick(id)} personId={selectedId} t={t}
-                              onLinks={(xref, change) => { if (doc) replaceRecords(change.add ? addSourceLink(doc.records, xref, change.add) : removeSourceLink(doc.records, xref, change.remove ?? "")); }} />
+                              onSave={(xref, f) => { if (doc) replaceRecords(setSourceFields(doc.records, xref, f)); }}
+                              onCite={(xref, person, event) => { if (doc) replaceRecords(addSourceCitation(doc.records, xref, person, event)); }} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
@@ -750,7 +750,7 @@ export function App() {
             </div>
             {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
-                                 lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} sources={sourceList} onSave={(changed, added) => { setWindowId(null); commit(changed, added); }}
+                                 lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} onSave={(changed, added) => { setWindowId(null); commit(changed, added); }}
                                  allocate={(tag, pending) => (tag === "FAM" ? freeXref(doc!.records, "FAM", "F", pending) : freeXref(doc!.records, "INDI", "I", pending))}
                                  onClose={() => setWindowId(null)} onDeletePerson={() => removePerson(windowId)}
                                  records={doc!.records} onMerge={(drop, pick) => mergeInto(windowId, drop, pick)}
