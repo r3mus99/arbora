@@ -116,9 +116,8 @@ describe("formatting", () => {
   });
 
   test("a month without a day is shown with the month name in every language", () => {
-    expect(formatDate("OCT 1961", true, "de")).toBe("Okt. 1961");
-    expect(formatDate("OCT 1961", true, "hu")).toBe("1961. okt.");
-    expect(formatDate("OCT 1961", true, "uk")).toBe("жовт. 1961");
+    expect(formatDate("OCT 1961", true, "sk")).toBe("Okt. 1961");
+    expect(formatDate("OCT 1961", true, "en")).toBe("Oct 1961");
     for (const lang of LANGS) expect(formatDate("OCT 1961", true, lang), lang).not.toMatch(/\b10\b/);
   });
 
@@ -283,8 +282,7 @@ describe("weekdayTip", () => {
   test("names the weekday of a full date in the language", () => {
     expect(weekdayTip("12 OCT 2026", "en")).toBe("Monday, " + formatDMY("en", 12, 10, 2026));
     expect(weekdayTip("1 JAN 2000", "sk")).toMatch(/^Sobota, /);
-    expect(weekdayTip("1 JAN 2000", "de")).toMatch(/^Samstag, /);
-    expect(weekdayTip("1 JAN 2000", "uk")).toMatch(/^Субота, /);
+    expect(weekdayTip("1 JAN 2000", "en")).toMatch(/^Saturday, /);
     for (const lang of LANGS) expect(weekdayTip("1 JAN 2000", lang), lang).toMatch(/^\S+, /);
   });
   test("gives the real weekday of a known day", () => {

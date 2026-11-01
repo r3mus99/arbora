@@ -174,11 +174,12 @@ describe("sourceTitle", () => {
     expect(sourceTitle("en", "divorce", "A B", "C D")).toBe("Divorce A B & C D");
   });
   test("leaves out missing names; other events keep their own word; unknown language falls back to English", () => {
-    expect(sourceTitle("de", "marriage", "", "Eva Novak")).toBe("Hochzeit Eva Novak");
+    expect(sourceTitle("en", "marriage", "", "Eva Novak")).toBe("Wedding Eva Novak");
     expect(sourceTitle("sk", "Bydlisko", "Jan Novak")).toBe("Bydlisko Jan Novak");
     expect(sourceTitle("xx", "burial", "Jan Novak")).toBe("Burial Jan Novak");
     expect(sourceTitle("sk", "death")).toBe("Úmrtie");
   });
+  test("another language falls back to English", () => { expect(sourceTitle("de", "marriage", "Eva Novak")).toBe("Wedding Eva Novak"); });
   test("a source of the person itself", () => { expect(sourceTitle("sk", "person", "Jan Novak")).toBe("Osoba Jan Novak"); });
   test("every language has all six words", () => {
     for (const l of SOURCE_TITLE_LANGS) for (const e of ["person", "birth", "christening", "death", "burial", "marriage", "divorce"]) expect(sourceTitle(l, e)).not.toBe(e);

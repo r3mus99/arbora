@@ -24,7 +24,7 @@ Everything runs in your browser; the file is never uploaded anywhere.
   lists.
 - **Print** the tree as a coloured A4 **PDF** chart, or as a decorative
   **tree poster** in SVG for large-format printing.
-- **12 languages**, light and dark mode, and your data stays on your computer.
+- **Slovak and English** interface, light and dark mode, and your data stays on your computer.
 
 ![The edit window lies over the tree and the details](docs/screenshots/editor.png)
 
@@ -217,9 +217,8 @@ browser remembers only the settings and the ID of the last person
 
 ### Language
 
-The language is switched with the flag in the top right: Slovak, Czech, Polish,
-Hungarian, German, English, French, Italian, Spanish, Portuguese, Dutch and
-Ukrainian. The chosen language applies to the page and to the PDF (title,
+The language is switched with the flag in the top right: Slovak or English.
+The chosen language applies to the page and to the PDF (title,
 abbreviations, date format, page numbers). On the first visit it follows the
 browser's language.
 
@@ -282,7 +281,7 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   pdf.ts            page layout and PDF
   poster.ts         tree poster of ancestors: plates, seeded branches and leaves, SVG (posterFont.ts: glyph widths and outlines)
   posterDescendants.ts  tree poster of descendants: columns of persons, partners and children on the same plates and branches
-  texts.ts          PDF texts in 12 languages
+  texts.ts          PDF texts in Slovak and English
   *.test.ts         tests on the sample and made-up data
 src/ui/             the React page: chart (TreeView), person details (PersonDetail),
                     edit window (EditWindow, PersonEditor), icon-rail tools (people, overview, file check,

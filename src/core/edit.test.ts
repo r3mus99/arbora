@@ -196,18 +196,17 @@ describe("dates typed in the form", () => {
     expect(parseDate(input, "sk")).toEqual({ value, ok: true });
   });
 
-  test("qualifiers of other languages", () => {
-    expect(parseDate("1890 előtt", "hu").value).toBe("BEF 1890");
-    expect(parseDate("1891.05.14", "hu").value).toBe("14 MAY 1891");
-    expect(parseDate("vor 1890", "de").value).toBe("BEF 1890");
+  test("qualifiers of English", () => {
+    expect(parseDate("bef. 1890", "en").value).toBe("BEF 1890");
+    expect(parseDate("1891-05-14", "en").value).toBe("14 MAY 1891");
   });
 
   test("month names of the language, as the page shows them", () => {
     expect(parseDate("Okt. 1961", "sk").value).toBe("OCT 1961");
     expect(parseDate("okt 1961", "sk").value).toBe("OCT 1961");
     expect(parseDate("pred Máj 1890", "sk").value).toBe("BEF MAY 1890");
-    expect(parseDate("14 mai 1891", "fr").value).toBe("14 MAY 1891");
-    expect(parseDate("1961. okt.", "hu").value).toBe("OCT 1961");
+    expect(parseDate("14 May 1891", "en").value).toBe("14 MAY 1891");
+    expect(parseDate("Oct 1961", "en").value).toBe("OCT 1961");
     for (const lang of LANGS) {
       for (const value of ["OCT 1961", "ABT MAY 1890", "14 DEC 1891"]) {
         expect(parseDate(dateInput(value, lang), lang).value, `${lang} ${value}`).toBe(value);
@@ -218,7 +217,7 @@ describe("dates typed in the form", () => {
   test("anything else becomes a date phrase", () => {
     expect(parseDate("na Vianoce 1890", "sk")).toEqual({ value: "(na Vianoce 1890)", ok: false });
     expect(parseDate("31.13.1890", "sk").ok).toBe(false);
-    expect(parseDate("14 maj 1891", "fr").ok).toBe(false);
+    expect(parseDate("14 maj 1891", "en").ok).toBe(false);
   });
 
   test("days a month does not have and INT without its phrase are not dates", () => {
@@ -234,7 +233,7 @@ describe("dates typed in the form", () => {
     expect(dateInput("ABT 1890", "sk")).toBe("cca 1890");
     expect(dateInput("EST 1890", "sk")).toBe("EST 1890");
     expect(dateInput("FROM 1890 TO 1895", "sk")).toBe("FROM 1890 TO 1895");
-    expect(dateInput("14 MAY 1891", "fr")).toBe("14 mai 1891");
+    expect(dateInput("14 MAY 1891", "en")).toBe("14 May 1891");
   });
 
   test("a file saved by Arbora says so in its header", () => {
