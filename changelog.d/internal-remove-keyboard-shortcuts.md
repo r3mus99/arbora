@@ -1,1 +1,1 @@
-- **Keyboard shortcuts are gone.** Undo, redo, save, search and settings are reached with their buttons only (Alt + arrow for back and forward stays); a text field keeps its own undo, and the browser keeps its keys.
+- **Keyboard shortcuts are gone.** Undo, redo, save, search and settings are reached with their buttons only; a text field keeps its own undo, and the browser keeps its keys.

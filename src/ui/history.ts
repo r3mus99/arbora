@@ -1,8 +1,6 @@
-/** The two histories of the page, as plain functions: edits (undo, redo) and browsing (back, forward). */
+/** The history of edits (undo, redo), as plain functions. */
 import { recordChanges, type RecordChange } from "../core/changes";
 import type { GedNode } from "../core/gedcom";
-
-const LIMIT = 200;
 
 /** The loaded file: its records (replaced, never changed in place, by edits) and line ending. */
 export interface Doc { records: GedNode[]; eol: string }
@@ -112,24 +110,4 @@ export function discardUnsaved(edits: Edits): { doc: Doc; edits: Edits } {
 export function withRecords(doc: Doc, changed: GedNode[]): Doc {
   const by = new Map(changed.map((r) => [r.xref, r]));
   return { ...doc, records: doc.records.map((r) => (r.xref && by.get(r.xref)) || r) };
-}
-
-/** One step of the browsing history: whose chart and who is in the detail. */
-export interface Place { root: string; focus: string }
-export interface Browsing { list: Place[]; at: number }
-
-export const NO_BROWSING: Browsing = { list: [], at: -1 };
-
-/** A new place after the current one; places ahead are dropped, a repeat of the current place is not added. */
-export function visit(h: Browsing, place: Place): Browsing {
-  const cur = h.list[h.at];
-  if (cur && cur.root === place.root && cur.focus === place.focus) return h;
-  const list = [...h.list.slice(0, h.at + 1), place].slice(-LIMIT);
-  return { list, at: list.length - 1 };
-}
-
-/** Back (-1) or forward (1) by `step` places, and the place arrived at; null when there is none. */
-export function move(h: Browsing, step: number): { browsing: Browsing; place: Place } | null {
-  const place = h.list[h.at + step];
-  return place ? { browsing: { ...h, at: h.at + step }, place } : null;
 }

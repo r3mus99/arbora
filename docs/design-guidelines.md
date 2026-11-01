@@ -172,7 +172,7 @@ Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexi
 ## 7b. Motion
 
 - **Motion** is short and only helps the eye follow what changed: a tool panel slides in from the left, the edit window and the wide tool panels from the right, the detail fades in when another person is chosen (`--motion`, .16 s, opacity and a few pixels of movement). Never animate the width of a column or the rows of the tree and the lists. Every animation uses `--motion`, and under `prefers-reduced-motion: reduce` the token is 0 and the animations are off. The busy spinner keeps turning, because it says "working".
-- **No keyboard shortcuts** (except Alt + arrow for back/forward in the browsing history). Every action is a visible button; the browser keeps its own keys (Ctrl+Z in a text field, Ctrl+S, Ctrl+F).
+- **No keyboard shortcuts**. Every action is a visible button; the browser keeps its own keys (Ctrl+Z in a text field, Ctrl+S, Ctrl+F).
 
 ## 8. Tree view and detail
 

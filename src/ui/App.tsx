@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileImage, FileUp, Home, LayoutDashboard, User,
@@ -19,7 +19,7 @@ import { SourceWindow } from "./SourceWindow";
 import { placeOverview } from "../core/placelist";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
-import { NO_BROWSING, NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, move as moveIn, replay, startEdits, stepEdits, unsavedChanges, visit, withRecords, type Browsing, type Doc, type Edits, type Op, type Place } from "./history";
+import { NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, replay, startEdits, stepEdits, unsavedChanges, withRecords, type Doc, type Edits, type Op } from "./history";
 import { STRINGS, detect, isLang, type StringKey } from "./i18n";
 import { gensSummary, storedOptions, toForm, toOptions, withOption, type Form } from "./options";
 import { ChangesPanel } from "./ChangesPanel";
@@ -120,7 +120,6 @@ export function App() {
   // row to scroll to and highlight after "see no. X"
   const [jumpRow, setJumpRow] = useState<number | null>(null);
   const [folding, setFolding] = useState<Folding>({ key: "", paths: NO_PATHS });
-  const [hist, setHist] = useState<Browsing>(NO_BROWSING);
   const [query, setQuery] = useState("");
   // recently visited, favourite and home people of this file, kept in the browser only
   const [marks, setMarks] = useState<Marks>(NO_MARKS);
@@ -282,7 +281,6 @@ export function App() {
     setMarks(visited(marksOf(readStore().marks, fileKey(name)), root));
     setMarkedFor(root);
     setJumpRow(null);
-    setHist({ list: [{ root, focus: root }], at: 0 });
     setScrollKey((k) => k + 1);
     setTreeScroll((k) => k + 1);
     resetResult();
@@ -461,8 +459,6 @@ export function App() {
     return () => window.removeEventListener("beforeunload", onLeave);
   }, [dirty]);
 
-  const remember = (place: Place) => setHist((h) => visit(h, place));
-
   // a person shown in the detail counts as visited; the marks are saved per file
   const markKey = fileKey(loadedName);
   const [markedFor, setMarkedFor] = useState(selectedId);
@@ -482,7 +478,6 @@ export function App() {
     setJumpRow(null);
     setTreeScroll((k) => k + 1);
     updateStore({ root: id });
-    remember({ root: id, focus: id });
   };
   const chosen = selectedId && data ? data.people[selectedId] : null;
 
@@ -495,11 +490,6 @@ export function App() {
   const setPaths = (next: ReadonlySet<string>) => setFolding({ key: treeKey, paths: next });
   const shown = useMemo(() => visibleRows(rows, paths), [rows, paths]);
 
-  /** open the collapsed branches that hide a person's (first) row */
-  const showPerson = (id: string) => {
-    const row = rows.find((r) => !r.dup && (r.personId ?? r.spouseId) === id);
-    if (row && paths.size) setPaths(reveal(paths, row.path));
-  };
   const jump = (index: number) => {
     const target = rows[index];
     if (!target || !chosen) return;
@@ -514,29 +504,6 @@ export function App() {
     setPaths(next);
   };
 
-  const move = (step: number) => {
-    const arrived = moveIn(hist, step);
-    if (!arrived || !data?.people[arrived.place.root]) return;
-    const { place } = arrived;
-    setHist(arrived.browsing);
-    setSelectedId(place.root);
-    setSelectedId(place.focus);
-    setJumpRow(null);
-    updateStore({ root: place.root });
-    if (place.root === chosen?.id) showPerson(place.focus);
-    setTreeScroll((k) => k + 1);
-  };
-  // Alt + arrow, as in the browser. An effect event always sees the current state.
-  const onKey = useEffectEvent((e: KeyboardEvent) => {
-    if (!e.altKey || e.ctrlKey || e.metaKey || (e.key !== "ArrowLeft" && e.key !== "ArrowRight")) return;
-    e.preventDefault();
-    move(e.key === "ArrowLeft" ? -1 : 1);
-  });
-  useEffect(() => {
-    const handle = (e: KeyboardEvent) => onKey(e);
-    window.addEventListener("keydown", handle);
-    return () => window.removeEventListener("keydown", handle);
-  }, []);
   const makeRoot = (id: string) => {
     select(id);
     setScrollKey((k) => k + 1);
