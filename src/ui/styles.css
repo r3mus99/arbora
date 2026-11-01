@@ -527,9 +527,6 @@ section.check { margin: 0 0 14px; }
 .detail .tools .save .icon { color: var(--accent); }
 
 .name-parts { color: var(--muted); margin: -4px 0 10px; }
-.map-link { display: inline-flex; vertical-align: middle; margin-left: 4px; color: var(--muted); }
-.map-link .icon { width: var(--icon-sm); height: var(--icon-sm); }
-.map-link:hover { color: var(--accent, currentColor); }
 
 .record-info { font-size: 12px; color: var(--muted); margin-top: 8px; }
 .record-info summary { cursor: pointer; }

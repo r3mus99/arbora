@@ -1,0 +1,1 @@
+- **The map link is gone.** Events no longer show a pin that opened the place on a map; the places in the file, including any coordinates, are kept untouched.
