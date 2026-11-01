@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { matchSources } from "./sources";
+import { matchSources, sourceTitle, SOURCE_TITLE_LANGS } from "./sources";
 import {
   applyPerson, decode, eventAnnotations, sourceOverview, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
   personFields, writeGedcom, type GedNode,
@@ -116,5 +116,22 @@ describe("matchSources", () => {
     expect(matchSources(choices, "old")[0].xref).toBe("@B@");
     expect(matchSources(choices, "reg")[0].xref).toBe("@B@");
     expect(matchSources(choices, "xyz")).toEqual([]);
+  });
+});
+
+describe("sourceTitle", () => {
+  test("names the event and the people", () => {
+    expect(sourceTitle("sk", "marriage", "Jan Novak", "Eva Novak")).toBe("Svadba Jan Novak & Eva Novak");
+    expect(sourceTitle("sk", "birth", "Jan Novak")).toBe("Narodenie Jan Novak");
+    expect(sourceTitle("en", "divorce", "A B", "C D")).toBe("Divorce A B & C D");
+  });
+  test("leaves out missing names; other events keep their own word; unknown language falls back to English", () => {
+    expect(sourceTitle("de", "marriage", "", "Eva Novak")).toBe("Hochzeit Eva Novak");
+    expect(sourceTitle("sk", "Bydlisko", "Jan Novak")).toBe("Bydlisko Jan Novak");
+    expect(sourceTitle("xx", "burial", "Jan Novak")).toBe("Burial Jan Novak");
+    expect(sourceTitle("sk", "death")).toBe("Úmrtie");
+  });
+  test("every language has all six words", () => {
+    for (const l of SOURCE_TITLE_LANGS) for (const e of ["birth", "christening", "death", "burial", "marriage", "divorce"]) expect(sourceTitle(l, e)).not.toBe(e);
   });
 });

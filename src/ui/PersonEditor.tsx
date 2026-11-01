@@ -6,7 +6,7 @@ import {
   type Alias, type AssocRow, type AttributeRow, type CitationRow, citationsWithoutSource, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
-import { matchSources, type SourceChoice } from "../core/sources";
+import { matchSources, sourceTitle, type SourceChoice } from "../core/sources";
 import type { Lang } from "../core/texts";
 import { surnameForSex, surnamesFor } from "../core/surnames";
 import { ATTRIBUTE_TAGS } from "../core/facts";
@@ -368,11 +368,11 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   /** a new citation under an event is named after it, e.g. "Marriage Jan Novak & Eva Novak"; an existing source of that name is cited instead of a duplicate */
   const newCite = (title = ""): CitationRow => ({ origin: -1, source: sources.find((s) => s.title === title)?.xref ?? title, page: "", quality: "" });
   const myName = () => `${form.given} ${form.surname}`.trim() || data.people[record.xref ?? ""]?.name || "";
-  const citeTitle = (label: StringKey, ...names: string[]) => [t(label), names.filter(Boolean).join(" & ")].filter(Boolean).join(" ");
+  const citeTitle = (event: string, ...names: string[]) => sourceTitle(lang, event, ...names);
   const marriageNames = (f: FamilyFields) => [f.husb, f.wife].map((id) => (id === record.xref ? myName() : data.people[id]?.name ?? ""));
   /** the citations under one of the four fixed events, with the button that adds one */
   const eventCites = (key: (typeof PERSON_EVENTS)[number]) =>
-    addCites(form.eventCitations[key], (r) => set("eventCitations", { ...form.eventCitations, [key]: r }), `ec${key}`, citeTitle(EVENT_LABEL[key], myName()));
+    addCites(form.eventCitations[key], (r) => set("eventCitations", { ...form.eventCitations, [key]: r }), `ec${key}`, citeTitle(key, myName()));
   const addCites = (rows: CitationRow[], setRows: (r: CitationRow[]) => void, idp: string, title = "") => {
     return <>{citeRows(rows, setRows, idp)}
       <div className="full cite-add"><button type="button" className="head-act" onClick={() => setRows([...rows, newCite(title)])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div></>;
@@ -689,7 +689,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                      onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
             {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
             {citeRows(e.citations, (r) => setEv(i, { citations: r }), `eo${rowId(e, i)}-`)}
-            <div className="full cite-add"><button type="button" className="head-act" onClick={() => setEv(i, { citations: [...e.citations, newCite(citeTitle(OTHER_LABEL[e.tag], myName()))] })}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div>
+            <div className="full cite-add"><button type="button" className="head-act" onClick={() => setEv(i, { citations: [...e.citations, newCite(citeTitle(t(OTHER_LABEL[e.tag]), myName()))] })}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div>
           </div>
         ))}
       </fieldset>
