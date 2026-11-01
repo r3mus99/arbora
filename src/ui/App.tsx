@@ -31,7 +31,7 @@ import { LanguageMenu } from "./LanguageMenu";
 import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./theme";
 import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
-import { applySourceRenames, sourceRenames } from "../core/sourceTitles";
+import { applySourceRenames } from "../core/sourceTitles";
 import { SourceEditContext } from "./Sources";
 import { PlacesPanel } from "./PlacesPanel";
 import { buildPoster, posterSvg } from "../core/poster";
@@ -386,12 +386,10 @@ export function App() {
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
   const sourceList = useMemo(() => (windowId && doc ? sourceChoices(doc.records) : []), [windowId, doc]);
-  // the name each source would get now, where it differs from its title (person-only sources are not offered)
-  const srcSuggested = useMemo(() => new Map(doc ? sourceRenames(doc.records, lang, (id) => data?.people[id]?.name ?? "").filter((r) => !r.weak).map((r) => [r.xref, r.to]) : []), [doc, lang, data]);
-  const srcEdit = useMemo(() => ({ suggested: srcSuggested, rename: (xref: string, title: string) => {
+  const srcEdit = useMemo(() => ({ rename: (xref: string, title: string) => {
     const rec = doc?.records.find((r) => r.xref === xref);
     if (doc && rec) replaceRecords(applySourceRenames(doc.records, [{ xref, from: childOf(rec, "TITL")?.value.trim() ?? "", to: title, weak: false }]));
-  } }), [srcSuggested, doc]);
+  } }), [doc]);
   const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);
   // the list closes once everything is fixed
 
