@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.81.0 – 2026-11-01
+
+- **A person's sources and notes moved from the detail to the sources and notes panel.** The detail is shorter and the name gets more room. When a person is selected, the panel starts filtered to that person; a chip with the name switches the filter off.
+
 ## 2.80.1 – 2026-11-01
 
 - **A source shown at an event is no longer repeated in "Sources and notes".** The card under the timeline keeps only the sources that are not shown at any event of the person.
