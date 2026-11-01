@@ -1,1 +1,0 @@
-- **Add a source to any event.** In the edit window, birth, christening, death, burial and every other event now have an "Add source" button: pick a source and put the page or a web link to the record in the Page field. Existing citations under events can be edited too; everything else in the file stays untouched.

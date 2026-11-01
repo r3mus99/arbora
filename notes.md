@@ -1,1 +1,1 @@
-- **A date shows its weekday on hover.** Point at a full date in the detail (for example 3 Mar 1842) and the tooltip names the day of the week, in the language of the app. Dates before 1582 are read as Julian. Years, months, "about" and ranges show nothing.
+- **Add a source to any event.** In the edit window, birth, christening, death, burial and every other event now have an "Add source" button: pick a source and put the page or a web link to the record in the Page field. Existing citations under events can be edited too; everything else in the file stays untouched.
