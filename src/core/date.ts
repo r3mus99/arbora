@@ -71,3 +71,40 @@ export function yearsBetween(from: string | undefined | null, to: string | undef
   if (a.m && b.m && (b.m < a.m || (b.m === a.m && a.d && b.d && b.d < a.d))) years--;
   return years >= 0 ? years : null;
 }
+
+export type AgeUnit = "y" | "m" | "d";
+/** An age as a number of whole years, or of months when under a year, or of days when under a month. */
+export interface Age { n: number; unit: AgeUnit }
+
+/** A date that says what it says: no qualifier (ABT, BEF, ...), range or phrase. */
+const plainDate = (s: string | undefined | null) => !/\b(ABT|CAL|EST|BEF|AFT|BET|FROM|TO|INT)\b|\(/i.test(s || "");
+
+const dayNumber = (y: number, m: number, d: number) => {
+  const t = new Date(0);
+  t.setUTCFullYear(y, m - 1, d);
+  return Math.round(t.getTime() / 86400000);
+};
+
+/**
+ * The age between two GEDCOM dates: whole years; under a year whole months; under a month whole days.
+ * Months and days are only given when both dates are plain and complete enough (month, and day), since a
+ * year or a month alone cannot tell them. Null when unknown, negative (the later date comes first), or
+ * when it is under a year and the dates cannot tell more.
+ */
+export function ageBetween(from: string | undefined | null, to: string | undefined | null): Age | null {
+  const years = yearsBetween(from, to);
+  if (years === null) return null;
+  if (years >= 1) return { n: years, unit: "y" };
+  const a = dateParts(from), b = dateParts(to);
+  if (!a || !b || !a.m || !b.m || !plainDate(from) || !plainDate(to)) return null;
+  let months = (b.y - a.y) * 12 + b.m - a.m;
+  if (a.d && b.d && b.d < a.d) months--;
+  if (months < 0) return null;
+  if (months >= 1) return { n: months, unit: "m" };
+  if (!a.d || !b.d) return null;
+  const days = dayNumber(b.y, b.m, b.d) - dayNumber(a.y, a.m, a.d);
+  return days >= 0 ? { n: days, unit: "d" } : null;
+}
+
+/** "79 y.", "5 mo.", "12 d." with the units of a language */
+export const formatAge = (age: Age, units: { y: string; m: string; d: string }) => `${age.n} ${units[age.unit]}`;

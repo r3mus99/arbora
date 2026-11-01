@@ -12,8 +12,8 @@ export interface PdfTexts {
   corners: { line: string; origin: string; given: string; surnames: string; more: [one: string, few: string, many: string] };
   /** the mark in the bottom right corner of the poster, followed by the version and the date */
   createdWith: string;
-  /** years of age after the death year on the poster, e.g. "79 y." */
-  ageAbbr: string;
+  /** short units of an age: years, months, days, e.g. "79 y.", "5 mo.", "12 d." */
+  ageUnits: { y: string; m: string; d: string };
   /** the label on the generation ruler of the poster, {n} is the number */
   generation: string;
   /** under the ruler of the poster: {a} people known of {b} possible in a column */
@@ -39,7 +39,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["potomok", "potomkovia", "potomkov"],
     corners: { line: "Línia", origin: "Pôvod", given: "Krstné mená", surnames: "Priezviská", more: ["ďalšie", "ďalšie", "ďalších"] },
     createdWith: "Vytvorené v programe Arbora",
-    ageAbbr: "r.",
+    ageUnits: { y: "r.", m: "mes.", d: "d." },
     generation: "{n}. generácia",
     known: "{a} z {b}",
     page: "Strana {n} z {total}", see: "pozri str. {page}",
@@ -54,7 +54,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["potomek", "potomci", "potomků"],
     corners: { line: "Linie", origin: "Původ", given: "Křestní jména", surnames: "Příjmení", more: ["další", "další", "dalších"] },
     createdWith: "Vytvořeno v programu Arbora",
-    ageAbbr: "l.",
+    ageUnits: { y: "l.", m: "měs.", d: "d." },
     generation: "{n}. generace",
     known: "{a} z {b}",
     page: "Strana {n} z {total}", see: "viz str. {page}",
@@ -69,7 +69,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["potomek", "potomkowie", "potomków"],
     corners: { line: "Linia", origin: "Pochodzenie", given: "Imiona", surnames: "Nazwiska", more: ["inne", "inne", "innych"] },
     createdWith: "Utworzono w programie Arbora",
-    ageAbbr: "l.",
+    ageUnits: { y: "l.", m: "mies.", d: "d." },
     generation: "{n}. pokolenie",
     known: "{a} z {b}",
     page: "Strona {n} z {total}", see: "zob. s. {page}",
@@ -84,7 +84,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["leszármazott", "leszármazott", "leszármazott"],
     corners: { line: "Ág", origin: "Származás", given: "Keresztnevek", surnames: "Vezetéknevek", more: ["további", "további", "további"] },
     createdWith: "Készült az Arbora programmal",
-    ageAbbr: "é.",
+    ageUnits: { y: "é.", m: "hó", d: "n." },
     generation: "{n}. nemzedék",
     known: "{a} / {b}",
     page: "{n}/{total}. oldal", see: "lásd {page}. old.",
@@ -99,7 +99,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["Nachkomme", "Nachkommen", "Nachkommen"],
     corners: { line: "Linie", origin: "Herkunft", given: "Vornamen", surnames: "Familiennamen", more: ["weitere", "weitere", "weitere"] },
     createdWith: "Erstellt mit Arbora",
-    ageAbbr: "J.",
+    ageUnits: { y: "J.", m: "Mon.", d: "T." },
     generation: "{n}. Generation",
     known: "{a} von {b}",
     page: "Seite {n} von {total}", see: "siehe S. {page}",
@@ -114,7 +114,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["descendant", "descendants", "descendants"],
     corners: { line: "Line", origin: "Origin", given: "First names", surnames: "Surnames", more: ["more", "more", "more"] },
     createdWith: "Created with Arbora",
-    ageAbbr: "y.",
+    ageUnits: { y: "y.", m: "mo.", d: "d." },
     generation: "Generation {n}",
     known: "{a} of {b}",
     page: "Page {n} of {total}", see: "see p. {page}",
@@ -129,7 +129,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["descendant", "descendants", "descendants"],
     corners: { line: "Lignée", origin: "Origine", given: "Prénoms", surnames: "Noms de famille", more: ["autre", "autres", "autres"] },
     createdWith: "Créé avec Arbora",
-    ageAbbr: "a.",
+    ageUnits: { y: "a.", m: "m.", d: "j." },
     generation: "Génération {n}",
     known: "{a} sur {b}",
     page: "Page {n} sur {total}", see: "voir p. {page}",
@@ -145,7 +145,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["discendente", "discendenti", "discendenti"],
     corners: { line: "Linea", origin: "Origine", given: "Nomi", surnames: "Cognomi", more: ["altro", "altri", "altri"] },
     createdWith: "Creato con Arbora",
-    ageAbbr: "a.",
+    ageUnits: { y: "a.", m: "m.", d: "g." },
     generation: "{n}ª generazione",
     known: "{a} su {b}",
     page: "Pagina {n} di {total}", see: "vedi p. {page}",
@@ -160,7 +160,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["descendiente", "descendientes", "descendientes"],
     corners: { line: "Línea", origin: "Origen", given: "Nombres", surnames: "Apellidos", more: ["más", "más", "más"] },
     createdWith: "Creado con Arbora",
-    ageAbbr: "a.",
+    ageUnits: { y: "a.", m: "m.", d: "d." },
     generation: "Generación {n}",
     known: "{a} de {b}",
     page: "Página {n} de {total}", see: "ver p. {page}",
@@ -175,7 +175,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["descendente", "descendentes", "descendentes"],
     corners: { line: "Linha", origin: "Origem", given: "Nomes próprios", surnames: "Apelidos", more: ["mais", "mais", "mais"] },
     createdWith: "Criado com o Arbora",
-    ageAbbr: "a.",
+    ageUnits: { y: "a.", m: "m.", d: "d." },
     generation: "Geração {n}",
     known: "{a} de {b}",
     page: "Página {n} de {total}", see: "ver p. {page}",
@@ -190,7 +190,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["nakomeling", "nakomelingen", "nakomelingen"],
     corners: { line: "Lijn", origin: "Herkomst", given: "Voornamen", surnames: "Achternamen", more: ["meer", "meer", "meer"] },
     createdWith: "Gemaakt met Arbora",
-    ageAbbr: "j.",
+    ageUnits: { y: "j.", m: "mnd.", d: "d." },
     generation: "Generatie {n}",
     known: "{a} van {b}",
     page: "Pagina {n} van {total}", see: "zie p. {page}",
@@ -205,7 +205,7 @@ export const TEXTS: Record<Lang, PdfTexts> = {
     descendants: ["нащадок", "нащадки", "нащадків"],
     corners: { line: "Лінія", origin: "Походження", given: "Імена", surnames: "Прізвища", more: ["ще", "ще", "ще"] },
     createdWith: "Створено в Arbora",
-    ageAbbr: "р.",
+    ageUnits: { y: "р.", m: "міс.", d: "дн." },
     generation: "{n}-те покоління",
     known: "{a} з {b}",
     page: "Сторінка {n} з {total}", see: "див. с. {page}",
