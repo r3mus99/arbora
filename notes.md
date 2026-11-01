@@ -1,1 +1,1 @@
-- **Web links of a source can be added and removed in the Sources panel.** The timeline shows the same links on every event that cites the source.
+- **One selection for the whole screen.** The person you select in the list, the recent panel, the tree or a link in the detail is the centre of the tree, the one shown in the detail, the one highlighted in the list, and the one the home person box sets. A click on the selected person changes nothing.
