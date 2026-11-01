@@ -276,7 +276,7 @@ describe("events of a person", () => {
     const f = personFields(rec);
     expect(f.events).toHaveLength(1);
     expect(f.events[0]).toMatchObject({ tag: "RESI", value: "Main St", date: "1920" });
-    const added = applyPerson(rec, f, { ...f, events: [...f.events, { origin: -1, tag: "EVEN", title: "Fair", value: "won", date: "", place: "Town", ...none, cause: "x" }] });
+    const added = applyPerson(rec, f, { ...f, events: [...f.events, { origin: -1, tag: "EVEN", title: "Fair", value: "won", date: "", place: "Town", ...none, cause: "x", citations: [] }] });
     const ev = added.children.find((c) => c.tag === "EVEN")!;
     expect(ev.children.map((c) => c.tag)).toEqual(["TYPE", "PLAC", "CAUS"]);
     expect(added.children.findIndex((c) => c.tag === "EVEN")).toBeLessThan(added.children.findIndex((c) => c.tag === "NOTE"));
@@ -327,6 +327,50 @@ describe("source citations of a person", () => {
     const out = applyPerson(r, f, { ...f, citations: [{ ...f.citations[0], source: "Family Bible" }] });
     expect(out.children[2].value).toBe("Family Bible");
     expect(applyPerson(r, f, { ...f, citations: f.citations.map((c) => ({ ...c })) })).toBe(r);
+  });
+});
+
+describe("source citations of an event", () => {
+  const text = "0 HEAD\n0 @S1@ SOUR\n1 TITL Parish book\n0 @I1@ INDI\n1 NAME Anna /Test/\n1 BIRT\n2 DATE 1900\n2 SOUR @S1@\n3 PAGE https://example.org/record/1\n3 QUAY 3\n3 NOTE c\n2 NOTE n\n1 RESI Main St\n2 DATE 1920\n1 SOUR @S1@\n2 PAGE 5\n1 FAMS @F1@\n0 TRLR\n";
+  const rec = () => parseGedcom(text).find((c) => c.tag === "INDI")!;
+  const lines = (n: GedNode) => n.children.map((c) => `${c.tag} ${c.value}`.trim());
+  const birt = (r: GedNode) => r.children.find((c) => c.tag === "BIRT")!;
+
+  test("reads the citations under an event apart from the person's own", () => {
+    const f = personFields(rec());
+    expect(f.eventCitations.birth).toEqual([{ origin: 0, source: "@S1@", page: "https://example.org/record/1", quality: "3" }]);
+    expect(f.eventCitations.death).toEqual([]);
+    expect(f.events[0].citations).toEqual([]);
+    expect(f.citations).toHaveLength(1);
+  });
+
+  test("changes the link and keeps the lines the form does not show", () => {
+    const r = rec(), f = personFields(r);
+    const out = applyPerson(r, f, { ...f, eventCitations: { ...f.eventCitations, birth: [{ ...f.eventCitations.birth[0], page: "https://example.org/record/2" }] } });
+    expect(lines(birt(out))).toEqual(["DATE 1900", "SOUR @S1@", "NOTE n"]);
+    expect(lines(birt(out).children[1])).toEqual(["PAGE https://example.org/record/2", "QUAY 3", "NOTE c"]);
+    expect(out.children.find((c) => c.tag === "SOUR")).toBe(r.children.find((c) => c.tag === "SOUR"));
+  });
+
+  test("adds a citation to an event that had none, even to a new event, and removes one again", () => {
+    const r = rec(), f = personFields(r);
+    const cite = { origin: -1, source: "@S1@", page: "https://example.org/record/3", quality: "" };
+    const withDeath = applyPerson(r, f, { ...f, deceased: true, eventCitations: { ...f.eventCitations, death: [cite] } });
+    const deat = withDeath.children.find((c) => c.tag === "DEAT")!;
+    expect(lines(deat)).toEqual(["SOUR @S1@"]);
+    expect(lines(deat.children[0])).toEqual(["PAGE https://example.org/record/3"]);
+    const res = applyPerson(r, f, { ...f, events: f.events.map((e) => ({ ...e, citations: [cite] })) });
+    expect(lines(res.children.find((c) => c.tag === "RESI")!)).toEqual(["DATE 1920", "SOUR @S1@"]);
+    const g = personFields(res);
+    const back = applyPerson(res, g, { ...g, events: g.events.map((e) => ({ ...e, citations: [] })) });
+    expect(writeGedcom([back])).toBe(writeGedcom([r]));
+  });
+
+  test("a citation typed as text is written as typed, and an untouched record stays the same object", () => {
+    const r = rec(), f = personFields(r);
+    const out = applyPerson(r, f, { ...f, eventCitations: { ...f.eventCitations, birth: [...f.eventCitations.birth, { origin: -1, source: "Family Bible", page: "", quality: "" }] } });
+    expect(lines(birt(out))).toEqual(["DATE 1900", "SOUR @S1@", "SOUR Family Bible", "NOTE n"]);
+    expect(applyPerson(r, f, { ...f })).toBe(r);
   });
 });
 
