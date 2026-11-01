@@ -1,0 +1,1 @@
+Sources under an event are shorter: the title, the page or detail, and web addresses as small link chips named after the site. The publication text, retrieval times and the full original wording are kept under "Details".
