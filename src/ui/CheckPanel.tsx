@@ -30,7 +30,7 @@ export function CheckPanel({ issues, data, onFocus, onFix, t }: Props) {
     const a = i.args;
     const family = a.id && data.families[a.id];
     const text = t(i.kind as StringKey, {
-      ...a, id: (a.id || "").replace(/@/g, ""), value: a.value || "",
+      ...a, id: (a.id || "").replace(/@/g, ""), value: a.value || "", date: (a.date || "").replace(/\b([A-Z])([A-Z]{2})\b/, (_, x, y) => x + y.toLowerCase()),
       event: EVENT[a.tag] ? t(EVENT[a.tag]) : a.tag, who: WHO, other: OTHER,
     });
     // eslint-disable-next-line no-control-regex -- the markers are NUL characters on purpose, never in a text

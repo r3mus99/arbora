@@ -13,7 +13,7 @@ import { dateParts, formatAge, yearsBetween } from "../core/date";
 import { fmt, formatDate, weekdayTip } from "../core/format";
 import { childOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
-import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, personAnnotations, type Lookup } from "../core/sources";
+import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, mergeAnnotations, personAnnotations, type Lookup } from "../core/sources";
 import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { dateHint, givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
@@ -219,9 +219,14 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
   const life = timeline(data, id, f, record, lookup);
   // the tag of the person's own line, or the marriage family, that a timeline item shows
   const EVENT_TAG: Partial<Record<TimelineKind, string>> = { birth: "BIRT", christening: "CHR", death: "DEAT", burial: "BURI" };
-  const extras = (kind: TimelineKind, key: string, node?: GedNode) => {
+  const extras = (kind: TimelineKind, key: string, node?: GedNode, other?: string | null) => {
     if (node) return annotations(node, lookup);
     if (kind === "marriage") { const fam = lookup(key); return fam ? marriageAnnotations(fam, lookup) : null; }
+    // a child's line shows the sources of the child's christening and birth
+    if (kind === "child") {
+      const kid = other ? lookup(other) : undefined;
+      return kid ? { sources: mergeAnnotations(eventAnnotations(kid, "CHR", lookup), eventAnnotations(kid, "BIRT", lookup)).sources, notes: [] } : null;
+    }
     const tag = EVENT_TAG[kind];
     return record && tag ? eventAnnotations(record, tag, lookup) : null;
   };
@@ -326,7 +331,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
         {life.length > 0 && <Section icon={History} title={t("timeline")} rows className="timeline">
           {life.map((e) => {
             const Icon = e.tag === "DIV" ? HeartCrack : ICONS[e.kind];
-            const found = extras(e.kind, e.key, e.node);
+            const found = extras(e.kind, e.key, e.node, e.other);
             const src = found && hasAnnotations(found) ? found : null;
             const childSex = e.kind === "child" && e.other ? data.people[e.other]?.sex : "";
             return <Row key={e.key} icon={Icon} tone={`tl-${e.kind}${childSex ? ` tl-sex-${childSex}` : ""}`}>
