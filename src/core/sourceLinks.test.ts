@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { addSourceCitation, isWebAddress, setSourceFields } from "./sourceLinks";
+import { addCite, citeKey, deleteSource, removeCite, saveSource, sourceCites, isWebAddress, setSourceFields, type SourceCite } from "./sourceLinks";
 import { childOf, decode, lookupOf, parseGedcom, sourceOverview, annotations, citationLinks, writeGedcom, type GedNode } from "./index";
 import { SOURCES_GED } from "./fixtures/sources";
 
@@ -57,44 +57,79 @@ describe("editing a source record", () => {
   });
 });
 
-describe("citing a source for a person", () => {
-  const I2 = "@I2@";
-  test("the whole person, then a birth event that is added when missing", () => {
-    const whole = addSourceCitation(records, "@S2@", I2, "");
-    expect(rec(whole, I2).children.filter((c) => c.tag === "SOUR").map((c) => c.value)).toContain("@S2@");
-    const birth = addSourceCitation(whole, "@S2@", I2, "BIRT");
-    const ev = rec(birth, I2).children.find((c) => c.tag === "BIRT")!;
+const fam = () => records.find((r) => r.tag === "FAM")!.xref!;
+const whole = (person: string): SourceCite => ({ event: "", person, family: "" });
+const at = (event: SourceCite["event"], person: string): SourceCite => ({ event, person, family: "" });
+const marriage = (): SourceCite => ({ event: "MARR", person: "", family: fam() });
+
+describe("where a source is cited", () => {
+  test("the places are listed: the person, their events and a marriage", () => {
+    const keys = sourceCites(records, "@S1@").map(citeKey);
+    expect(keys).toContain(citeKey(at("BIRT", "@I1@")));
+    expect(keys).toContain(citeKey(marriage()));
+  });
+
+  test("citing the whole person and a birth event that is added when missing", () => {
+    const out = addCite(addCite(records, "@S2@", whole("@I2@")), "@S2@", at("BIRT", "@I2@"));
+    const ev = rec(out, "@I2@").children.find((c) => c.tag === "BIRT")!;
     expect(ev.children.map((c) => c.value)).toEqual(["@S2@"]);
-    const cited = annotations(ev, lookupOf(birth)).sources[0];
-    expect(cited.title).toBe("Census 1869");
+    expect(annotations(ev, lookupOf(out)).sources[0].title).toBe("Census 1869");
+    expect(sourceCites(out, "@S2@").map(citeKey)).toEqual(expect.arrayContaining([citeKey(whole("@I2@")), citeKey(at("BIRT", "@I2@"))]));
   });
 
-  test("citing the same source twice changes nothing, and an unknown person or source changes nothing", () => {
-    const once = addSourceCitation(records, "@S1@", "@I1@", "BIRT");
-    expect(addSourceCitation(once, "@S1@", "@I1@", "BIRT")).toBe(once);
-    expect(addSourceCitation(records, "@S1@", "@I99@", "")).toBe(records);
-    expect(addSourceCitation(records, "@S99@", "@I1@", "")).toBe(records);
-  });
-});
-
-describe("citing a marriage, divorce or residence", () => {
-  test("a marriage is cited on the family record, under a new MARR line when the family has none", () => {
-    const fam = records.find((r) => r.tag === "FAM")!;
-    const out = addSourceCitation(records, "@S2@", "@I1@", "MARR", fam.xref!);
-    const famOut = out.find((r) => r.xref === fam.xref)!;
-    expect(childOf(famOut, "MARR")!.children.map((c) => c.value)).toContain("@S2@");
-    // the existing marriage citation (@S1@) is kept
-    expect(childOf(famOut, "MARR")!.children.map((c) => c.value)).toContain("@S1@");
-    expect(addSourceCitation(out, "@S2@", "@I1@", "MARR", fam.xref!)).toBe(out);
+  test("citing twice, or for a person, family or source that is not in the file, changes nothing", () => {
+    const once = addCite(records, "@S1@", at("BIRT", "@I2@"));
+    expect(addCite(once, "@S1@", at("BIRT", "@I2@"))).toBe(once);
+    expect(addCite(records, "@S1@", whole("@I99@"))).toBe(records);
+    expect(addCite(records, "@S99@", whole("@I1@"))).toBe(records);
   });
 
-  test("a marriage of a family the person is not in changes nothing", () => {
-    const fam = records.find((r) => r.tag === "FAM")!;
-    expect(addSourceCitation(records, "@S2@", "@I3@", "MARR", fam.xref!)).toBe(records);
+  test("a marriage is cited on the family record and keeps the citation it had", () => {
+    const out = addCite(records, "@S2@", marriage());
+    const values = childOf(out.find((r) => r.xref === fam())!, "MARR")!.children.map((c) => c.value);
+    expect(values).toEqual(expect.arrayContaining(["@S1@", "@S2@"]));
   });
 
   test("a residence is added to the person", () => {
-    const out = addSourceCitation(records, "@S2@", "@I2@", "RESI");
-    expect(childOf(out.find((r) => r.xref === "@I2@")!, "RESI")!.children.map((c) => c.value)).toEqual(["@S2@"]);
+    const out = addCite(records, "@S2@", at("RESI", "@I2@"));
+    expect(childOf(rec(out, "@I2@"), "RESI")!.children.map((c) => c.value)).toEqual(["@S2@"]);
+  });
+
+  test("removing a citation drops only that source; an event line left empty goes, one with a date stays", () => {
+    const added = addCite(records, "@S2@", at("RESI", "@I2@"));
+    expect(childOf(rec(removeCite(added, "@S2@", at("RESI", "@I2@")), "@I2@"), "RESI")).toBeNull();
+    const out = removeCite(records, "@S1@", at("BIRT", "@I1@"));
+    const birth = childOf(rec(out, "@I1@"), "BIRT")!;
+    expect(birth.children.some((c) => c.tag === "SOUR")).toBe(false);
+    expect(birth.children.some((c) => c.tag === "DATE")).toBe(true);
+    expect(removeCite(records, "@S2@", at("BIRT", "@I1@"))).toBe(records);
+  });
+});
+
+describe("saving and deleting a source", () => {
+  test("a new source gets a free xref and its fields and citations", () => {
+    const fields = { title: "Census 1880", author: "", publication: "", notes: ["From the town hall"], links: [NEW] };
+    const { records: out, xref } = saveSource(records, null, fields, [], [at("BIRT", "@I2@")]);
+    expect(records.some((r) => r.xref === xref)).toBe(false);
+    expect(fieldsOf(xref, out)).toEqual(fields);
+    expect(sourceCites(out, xref).map(citeKey)).toEqual([citeKey(at("BIRT", "@I2@"))]);
+    expect(out.at(-1)!.tag).toBe("TRLR");
+  });
+
+  test("saving changes the fields and moves the citations from before to after in one go", () => {
+    const before = sourceCites(records, "@S1@");
+    const after = [at("BIRT", "@I2@")];
+    const { records: out } = saveSource(records, "@S1@", { ...fieldsOf("@S1@"), title: "Renamed" }, before, after);
+    expect(fieldsOf("@S1@", out).title).toBe("Renamed");
+    expect(sourceCites(out, "@S1@").map(citeKey)).toEqual([citeKey(at("BIRT", "@I2@"))]);
+  });
+
+  test("deleting a source removes the record and every citation of it, and nothing else", () => {
+    const out = deleteSource(records, "@S1@");
+    expect(out.some((r) => r.xref === "@S1@")).toBe(false);
+    expect(JSON.stringify(out)).not.toContain('"@S1@"');
+    expect(childOf(rec(out, "@I1@"), "BIRT")!.children.some((c) => c.tag === "DATE")).toBe(true);
+    expect(rec(out, "@S2@")).toBe(rec(records, "@S2@"));
+    expect(deleteSource(out, "@S1@")).toEqual(out);
   });
 });

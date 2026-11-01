@@ -14,7 +14,8 @@ import { outputFileName } from "../core/fileName";
 import { childOf, decode, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceOverview } from "../core/sources";
-import { addSourceCitation, setSourceFields } from "../core/sourceLinks";
+import { deleteSource, saveSource, sourceCites } from "../core/sourceLinks";
+import { SourceWindow } from "./SourceWindow";
 import { placeOverview } from "../core/placelist";
 import { overview } from "../core/stats";
 import { type Lang } from "../core/texts";
@@ -109,6 +110,8 @@ export function App() {
   // person whose facts are being edited in the detail panel
   // the edit window: the person it edits (it stays on that person while others are shown)
   const [windowId, setWindowId] = useState<string | null>(null);
+  /** the source window: a source record (xref) or a new source (null); never open together with the window of a person */
+  const [sourceWin, setSourceWin] = useState<{ xref: string | null } | null>(null);
   // file name, or null for the sample
   const [loadedName, setLoadedName] = useState<string | null>("");
   // the file kept in this browser (name, null for the sample), and whether it is still being read at start
@@ -386,6 +389,7 @@ export function App() {
     const rec = doc?.records.find((r) => r.xref === xref);
     if (doc && rec) replaceRecords(applySourceRenames(doc.records, [{ xref, from: childOf(rec, "TITL")?.value.trim() ?? "", to: title, weak: false }]));
   } }), [doc]);
+  const sourceEntry = useMemo(() => (doc && sourceWin?.xref ? sourceOverview(doc.records).sources.find((s) => s.key === sourceWin.xref) : undefined), [doc, sourceWin]);
   const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);
   // the list closes once everything is fixed
 
@@ -740,14 +744,22 @@ export function App() {
               </aside>}
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
                 <SourcesPanel key={selectedId ?? ""} overview={srcOverview} data={data} onPerson={(id) => pick(id)} personId={selectedId} t={t}
-                              onSave={(xref, f) => { if (doc) replaceRecords(setSourceFields(doc.records, xref, f)); }}
-                              onCite={(xref, person, event, family) => { if (doc) replaceRecords(addSourceCitation(doc.records, xref, person, event, family)); }} />
+                              onEdit={(xref) => setSourceWin({ xref })} editDisabled={!!windowId} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
                             favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} onAdd={newPerson} t={t} />
               </aside>}
             </div>
+            {sourceWin && doc && (!sourceWin.xref || sourceEntry) && <SourceWindow key={sourceWin.xref ?? "new"} data={data} xref={sourceWin.xref}
+                                 fields={sourceEntry?.fields ?? { title: "", author: "", publication: "", notes: [], links: [] }}
+                                 cites={sourceWin.xref ? sourceCites(doc.records, sourceWin.xref) : []} cited={sourceEntry?.citations ?? 0}
+                                 onSave={(fields, after) => {
+                                   replaceRecords(saveSource(doc.records, sourceWin.xref, fields, sourceWin.xref ? sourceCites(doc.records, sourceWin.xref) : [], after).records);
+                                   setSourceWin(null);
+                                 }}
+                                 onDelete={() => { if (sourceWin.xref) replaceRecords(deleteSource(doc.records, sourceWin.xref)); setSourceWin(null); }}
+                                 onClose={() => setSourceWin(null)} hidden={showCheck || showFix || !!windowId} t={t} />}
             {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
                                  lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} onSave={(changed, added) => { setWindowId(null); commit(changed, added); }}
