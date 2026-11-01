@@ -1,0 +1,1 @@
+- **Adding a source no longer dumps the whole list of sources.** The source field is now a text field that offers at most 8 matching sources while you type, and still accepts the text of a new source.

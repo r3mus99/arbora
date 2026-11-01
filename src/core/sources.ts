@@ -189,3 +189,20 @@ export function sourceChoices(records: GedNode[]): SourceChoice[] {
     .map((r) => ({ xref: r.xref!, title: valueOf(r, "TITL") || valueOf(r, "ABBR") || r.xref! }))
     .sort((a, b) => a.title.localeCompare(b.title));
 }
+
+/** Sources offered while typing a citation: titles that start with the text first, then ones with a word starting with it, then ones containing it;
+ * equal titles are offered once; at most `limit` of them, none for an empty text. */
+export function matchSources(choices: SourceChoice[], text: string, limit = 8): SourceChoice[] {
+  const q = text.trim().toLocaleLowerCase();
+  if (!q) return [];
+  const seen = new Set<string>();
+  const ranked: { c: SourceChoice; rank: number }[] = [];
+  for (const c of choices) {
+    const title = c.title.toLocaleLowerCase();
+    const at = title.indexOf(q);
+    if (at < 0 || seen.has(title)) continue;
+    seen.add(title);
+    ranked.push({ c, rank: at === 0 ? 0 : /[\s(\-,.]/.test(title[at - 1]) ? 1 : 2 });
+  }
+  return ranked.sort((a, b) => a.rank - b.rank).slice(0, limit).map((r) => r.c);
+}
