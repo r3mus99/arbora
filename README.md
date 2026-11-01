@@ -185,7 +185,7 @@ click lists them, and the names in the list open the person's details. It checks
   younger than 12, birth after the mother's death or more than a year after the
   father's. Approximate dates (`ABT`) are compared only when they are years apart;
 - surname endings that do not fit the sex, in languages where they differ:
-  Slovak and Czech (Horváth / Horváthová, Nový / Nová) and Polish (-ski / -ska),
+  Slovak and Czech (Horváth / Horváthová, Nový / Nová),
   only in files that show the habit and only for people with a known sex.
 
 What can be fixed safely has a magic wand on the right; each fix is one step
