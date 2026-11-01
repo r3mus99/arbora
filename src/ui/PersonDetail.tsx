@@ -1,12 +1,12 @@
 import {
-  Baby, Briefcase, Church, Cross, Droplets, Flower2, MapPin, Handshake, History, Heart, HeartCrack, Home, Pencil,
+  Baby, Briefcase, Church, Cross, Droplets, Flower2, Handshake, History, Heart, HeartCrack, Home, Pencil,
   ChevronLeft, StickyNote, Users, type LucideIcon,
 } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
 import { applyEventLine, applyEventNode, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields, type Suggestions } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
-import { mapUrl, municipality } from "../core/places";
+import { municipality } from "../core/places";
 import { nameDetails } from "../core/names";
 import { dateParts, formatAge, yearsBetween } from "../core/date";
 import { fmt, formatDate, weekdayTip } from "../core/format";
@@ -314,9 +314,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
                   {e.age !== null && <span> · {fmt(t("ageAt"), { n: formatAge(e.age, TEXTS[lang].ageUnits) })}</span>}
                   {e.detail && <> · {e.detail}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
-                  {e.coords && <a className="map-link" href={mapUrl(e.coords)} target="_blank" rel="noopener noreferrer"
-                                  title={t("showOnMap")} aria-label={t("showOnMap")}>
-                    <MapPin className="icon" aria-hidden="true" /></a>}
                 </div>
                 {e.witnesses && <div className="tl-details"><span>{t("witnesses")}:</span>{" "}
                   {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w)}</span>)}</div>}
