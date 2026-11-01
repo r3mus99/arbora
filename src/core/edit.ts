@@ -164,7 +164,7 @@ const eventFields = (rec: GedNode, tag: string) => datePlace(childOf(rec, tag));
 /** the source citations (SOUR lines) under a person, an event or any other node */
 const citationRows = (node: GedNode | null): CitationRow[] => (node ? childrenOf(node, "SOUR") : []).map((c, origin) => ({
   origin, source: c.value, page: childOf(c, "PAGE")?.value || "", quality: childOf(c, "QUAY")?.value.trim() || "",
-  note: (() => { const n = childOf(c, "NOTE")?.value.trim() || ""; return /^@[^@]+@$/.test(n) ? "" : n; })(),
+  ...(() => { const n = childOf(c, "NOTE")?.value.trim() || ""; return n && !/^@[^@]+@$/.test(n) ? { note: n } : {}; })(),
 }));
 
 /** "Ján Pavol /Kováč/ ml." → given, surname and what follows the surname */
