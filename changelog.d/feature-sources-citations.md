@@ -1,1 +1,0 @@
-- **Sources can be cited for a marriage, a divorce or a residence from the Sources panel.** A marriage or divorce is cited under one of the person's families.
