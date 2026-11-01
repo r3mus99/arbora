@@ -4,7 +4,6 @@
  */
 
 import { isoToGedcom, monthOf, validDateValue } from "./date";
-import { applyChildSource, childSources } from "./childSources";
 import { addLine } from "./edit";
 import { childOf, childrenOf, gedNode, mainName, rewritten, type GedNode } from "./gedcom";
 import { surnameJudge } from "./surnameEnding";
@@ -24,7 +23,7 @@ function renameSurname(name: GedNode, from: Set<string>, to: string): GedNode {
 export type IssueKind =
   | "noHead" | "noTrlr" | "dupId" | "missingRef" | "oneWay" | "badDate"
   | "deathBeforeBirth" | "beforeParent" | "parentYoung" | "afterMother" | "afterFather" | "spouseSex"
-  | "surnameNotFemale" | "surnameNotMale" | "sourceOfChild";
+  | "surnameNotFemale" | "surnameNotMale";
 
 export interface Issue {
   kind: IssueKind;
@@ -165,14 +164,9 @@ export function checkGedcom(records: GedNode[]): Issue[] {
       if (fd && before(plusYears(fd, 1), cb)) add("afterFather", "warn", c, { id: c, other: father });
     }
   }
-  // a source on a parent that is about the child's christening
-  for (const s of childSources(records)) {
-    add("sourceOfChild", "warn", s.parent, { id: s.parent, other: s.child, spouse: s.spouse ?? "", source: s.source,
-      value: s.title, tag: s.event, date: s.date });
-  }
   // whether each one can be fixed, without building the fixed file for each
   const at = indexOf(records);
-  for (const i of issues) i.fixable = i.kind === "sourceOfChild" || changes(records, repair(records, i, at));
+  for (const i of issues) i.fixable = changes(records, repair(records, i, at));
   return issues;
 }
 
@@ -255,11 +249,6 @@ const changes = (records: GedNode[], r: Repair | null): r is Repair => !!r && !(
  * link back added, and a date like 1885-12-12 rewritten as 12 DEC 1885, and a surname with the wrong ending replaced by the form the file already has.
  */
 export function fixIssue(records: GedNode[], issue: Issue): GedNode[] {
-  if (issue.kind === "sourceOfChild") {
-    const a = issue.args;
-    return applyChildSource(records, { parent: a.id, child: a.other, spouse: a.spouse || null, source: a.source, title: a.value,
-                                       event: a.tag === "BIRT" ? "BIRT" : "CHR", date: a.date }) ?? records;
-  }
   const r = repair(records, issue, indexOf(records));
   if (!changes(records, r)) return records;
   if ("add" in r) return r.add === "start" ? [r.rec, ...records] : [...records, r.rec];
