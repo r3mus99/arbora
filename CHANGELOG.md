@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.96.1 – 2026-11-01
+
+- **The map link is gone.** Events no longer show a pin that opened the place on a map; the places in the file, including any coordinates, are kept untouched.
+
+## 2.96.0 – 2026-11-01
+
+- **The tree no longer has collapsible branches.** The − / + on the connector, the "+N" count and Shift-click for a whole generation are gone; the chart always shows the whole tree, as the PDF does.
+
 ## 2.95.0 – 2026-11-01
 
 - **The person editor and detail are simpler.** The origin type (birth, adopted, foster) of a parent family, other events (baptism, census, custom events…) and other facts (education, nationality, title…) are no longer shown or edited; residences stay. The lines stay in the file unchanged, and merging two people still carries them over.

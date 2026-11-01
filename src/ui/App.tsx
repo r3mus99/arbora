@@ -3,7 +3,6 @@ import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileImage, FileUp, Home, User,
          Loader2, BookMarked, History, Trash2, Clock, ListChecks, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
-import { collapseAt, reveal, visibleRows } from "../core/collapse";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
 import { checkGedcom, fixIssue } from "../core/check";
@@ -45,9 +44,6 @@ type Vars = Record<string, string | number>;
 const fill = (s: string, vars: Vars) => s.replace(/\{(\w+)\}/g, (_, k: string) => (k in vars ? String(vars[k]) : `{${k}}`));
 
 interface Status { key: StringKey; vars: Vars; err: boolean }
-/** collapsed branches of one chart (`key`) */
-interface Folding { key: string; paths: ReadonlySet<string> }
-const NO_PATHS: ReadonlySet<string> = new Set();
 
 /** The edit log as it is kept in the browser. */
 const logOf = (e: Edits, of: string): EditLog => ({ of, ops: e.ops, at: e.at, saved: e.saved });
@@ -117,7 +113,6 @@ export function App() {
   const [treeScroll, setTreeScroll] = useState(0);
   // row to scroll to and highlight after "see no. X"
   const [jumpRow, setJumpRow] = useState<number | null>(null);
-  const [folding, setFolding] = useState<Folding>({ key: "", paths: NO_PATHS });
   const [hist, setHist] = useState<Browsing>(NO_BROWSING);
   const [query, setQuery] = useState("");
   // recently visited, favourite and home people of this file, kept in the browser only
@@ -482,31 +477,12 @@ export function App() {
   // ------------------------------------------------------------ on-screen chart
   const rows = useMemo(() => (data && chosen ? chartRows(data, chosen.id, toOptions(form, lang)) : []),
                        [data, chosen, form, lang]);
-  // collapsed branches belong to one chart; another person or chart kind starts fully expanded
-  const treeKey = chosen ? `${form.chart}|${chosen.id}` : "";
-  const paths = folding.key === treeKey ? folding.paths : NO_PATHS;
-  const setPaths = (next: ReadonlySet<string>) => setFolding({ key: treeKey, paths: next });
-  const shown = useMemo(() => visibleRows(rows, paths), [rows, paths]);
-
-  /** open the collapsed branches that hide a person's (first) row */
-  const showPerson = (id: string) => {
-    const row = rows.find((r) => !r.dup && (r.personId ?? r.spouseId) === id);
-    if (row && paths.size) setPaths(reveal(paths, row.path));
-  };
   const jump = (index: number) => {
     const target = rows[index];
     if (!target || !chosen) return;
-    setPaths(reveal(paths, target.path));
     if (target.personId) pick(target.personId);
     setJumpRow(index);
   };
-  const toggle = (row: { path: string; gen: number; hidden: number }, whole: boolean) => {
-    const next = new Set(paths);
-    const same = whole ? [...collapseAt(rows, row.gen)] : [row.path];
-    for (const p of same) if (row.hidden) next.delete(p); else next.add(p);
-    setPaths(next);
-  };
-
   const move = (step: number) => {
     const arrived = moveIn(hist, step);
     if (!arrived || !data?.people[arrived.place.root]) return;
@@ -516,7 +492,6 @@ export function App() {
     setSelectedId(place.focus);
     setJumpRow(null);
     updateStore({ root: place.root });
-    if (place.root === chosen?.id) showPerson(place.focus);
     setTreeScroll((k) => k + 1);
   };
   // Alt + arrow, as in the browser; ⌘/Ctrl + Z, Y, F, S and , (src/ui/shortcuts.ts). An effect event always sees the current state.
@@ -723,10 +698,10 @@ export function App() {
                   <SlidersHorizontal className="icon" aria-hidden="true" />
                 </button>
               </div>
-              <TreeView rows={shown} focusId={selectedId} starred={favourites} scrollKey={treeScroll} scrollTo={jumpRow}
+              <TreeView rows={rows} focusId={selectedId} starred={favourites} scrollKey={treeScroll} scrollTo={jumpRow}
                         numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
-                        onFocus={pickListed} onToggle={toggle}
-                        onJump={(r) => jump(r.targetIndex)} t={t} />
+                        onFocus={pickListed}
+                        onJump={jump} t={t} />
             </div>}
             {selectedId && <SourceEditContext.Provider value={srcEdit}><PersonDetail key={selectedId} data={data} id={selectedId} homeId={homeId}
                                       record={recordOf.get(selectedId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(selectedId) || []} lang={lang}
