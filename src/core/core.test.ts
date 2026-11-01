@@ -2,8 +2,8 @@ import { readFileSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
 import { describe, expect, test } from "vitest";
 import {
-  DEFAULTS, LANGS, TEXTS, chartRows, collapseAt, decode, findPeople, formatDate, formatPlace, generate, load,
-  parseGedcom, reveal, visibleRows, type ChartOptions,
+  DEFAULTS, LANGS, TEXTS, chartRows, collapseAt, decode, findPeople, formatDMY, formatDate, formatPlace, generate, load,
+  parseGedcom, reveal, visibleRows, weekdayTip, type ChartOptions,
 } from "./index";
 
 // sample data shipped with the site: Habsburgs from Wikidata
@@ -276,5 +276,34 @@ describe("PDF", () => {
 
   test("unknown person", async () => {
     await expect(generate(data, "@X@", {}, fonts)).rejects.toThrow("@X@");
+  });
+});
+
+describe("weekdayTip", () => {
+  test("names the weekday of a full date in the language", () => {
+    expect(weekdayTip("12 OCT 2026", "en")).toBe("Monday, " + formatDMY("en", 12, 10, 2026));
+    expect(weekdayTip("1 JAN 2000", "sk")).toMatch(/^Sobota, /);
+    expect(weekdayTip("1 JAN 2000", "de")).toMatch(/^Samstag, /);
+    expect(weekdayTip("1 JAN 2000", "uk")).toMatch(/^Субота, /);
+    for (const lang of LANGS) expect(weekdayTip("1 JAN 2000", lang), lang).toMatch(/^\S+, /);
+  });
+  test("gives the real weekday of a known day", () => {
+    // Franz Joseph I of Austria, born 18 Aug 1830 (Wednesday), died 21 Nov 1916 (Tuesday)
+    expect(weekdayTip("18 AUG 1830", "en")).toMatch(/^Wednesday/);
+    expect(weekdayTip("21 NOV 1916", "en")).toMatch(/^Tuesday/);
+    // the day before and the day of the switch to the Gregorian calendar
+    expect(weekdayTip("4 OCT 1582", "en")).toMatch(/^Thursday/);
+    expect(weekdayTip("15 OCT 1582", "en")).toMatch(/^Friday/);
+  });
+  test("reads a date before 1582 and a marked one as Julian", () => {
+    // Battle of Hastings, 14 Oct 1066 Julian, was a Saturday
+    expect(weekdayTip("14 OCT 1066", "en")).toMatch(/^Saturday/);
+    expect(weekdayTip("@#DJULIAN@ 1 JAN 1700", "en")).toMatch(/^Monday/);
+    expect(weekdayTip("@#DGREGORIAN@ 1 JAN 1700", "en")).toMatch(/^Friday/);
+  });
+  test("gives nothing for a date that is not an exact day", () => {
+    for (const v of ["", "1830", "AUG 1830", "ABT 18 AUG 1830", "BEF 18 AUG 1830", "BET 1 JAN 1830 AND 5 JAN 1830",
+      "(unknown)", "30 FEB 1830", "29 FEB 1900", "@#DHEBREW@ 1 TSH 5000", "12 XXX 1830"]) expect(weekdayTip(v, "en"), v).toBe("");
+    expect(weekdayTip("29 FEB 2000", "en")).toMatch(/^Tuesday/);
   });
 });

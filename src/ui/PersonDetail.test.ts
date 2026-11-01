@@ -169,4 +169,17 @@ describe("person detail timeline", () => {
     }));
     expect(distantHtml).toMatch(/title="2\. pradedko(?:&#10;|\n)→ Ancestor Person(?:&#10;|\n)→ Great-grandparent Person(?:&#10;|\n)→ Grandparent Person(?:&#10;|\n)→ Parent Person(?:&#10;|\n)→ Home Person \(2000\)"/);
   });
+
+  test("a full date has the weekday as its tooltip, a year has none", () => {
+    const records = parseGedcom(GED.replace("2 DATE 1918", "2 DATE 3 MAR 1918"));
+    const data = readRecords(records);
+    const html = renderToStaticMarkup(createElement(PersonDetail, {
+      data, id: "@I1@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [], rootId: "@I1@", starred: false,
+      onStar: () => {}, homeId: null, onSetHome: () => {}, lang: "en", onFocus: () => {}, onMakeRoot: () => {}, onChange: () => {},
+      suggest: suggestions(records), onEdit: () => {}, onBack: () => {},
+      t: (key: StringKey) => STRINGS.en[key] ?? key,
+    }));
+    expect(html).toMatch(/title="Sunday, [^"]*1918"/);
+    expect(html).not.toMatch(/title="[A-Z][a-z]+day, [^"]*1900"/);
+  });
 });

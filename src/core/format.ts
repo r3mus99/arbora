@@ -1,6 +1,6 @@
 /** Dates, places and the text of one person's line. */
 
-import { monthOf } from "./date";
+import { DAYS, monthOf } from "./date";
 import type { Family, GedEvent, Person } from "./gedcom";
 import { TEXTS, type Lang } from "./texts";
 
@@ -156,4 +156,37 @@ export function personSegments(p: Person | null, number: number | string | null,
 export function personLine(p: Person | null, number: number | string | null,
                            marriage: Family | null, o: ChartOptions): string {
   return personSegments(p, number, marriage, o).map((s) => s.text).join("");
+}
+
+const FIRST_GREGORIAN = 1582 * 10000 + 10 * 100 + 15;
+
+/**
+ * The tooltip of a full date: weekday and date in the language, e.g. "Thursday, 3 Mar 1842".
+ * Only an exact day gets one: a year, a month, "about", "before", "between", a phrase or another
+ * calendar than Julian/Gregorian gets none (""). A date before 15 Oct 1582 is read as Julian, as the
+ * sources of that time wrote it, and so is one marked @#DJULIAN@; later dates are Gregorian. The risk:
+ * countries switched at different times (Hungary 1587, Britain 1752, Russia 1918), so for a date between
+ * 1582 and the switch the weekday of the real day can differ from the one shown.
+ */
+export function weekdayTip(raw: string, lang: Lang): string {
+  const m = /^(?:@#D(JULIAN|GREGORIAN)@\s+)?(\d{1,2})\s+([A-Z]{3})\s+(\d{3,4})$/.exec((raw || "").toUpperCase().trim().replace(/\s+/g, " "));
+  if (!m) return "";
+  const month = monthOf(m[3]), day = +m[2], year = +m[4];
+  if (!month || year < 1) return "";
+  const julian = m[1] === "JULIAN" || (m[1] !== "GREGORIAN" && year * 10000 + month * 100 + day < FIRST_GREGORIAN);
+  const leap = julian ? year % 4 === 0 : year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  if (day < 1 || day > (month === 2 ? (leap ? 29 : 28) : DAYS[month - 1])) return "";
+  // Julian day number, then 0 = Sunday
+  const a = Math.floor((14 - month) / 12), y = year + 4800 - a, mm = month + 12 * a - 3;
+  const base = day + Math.floor((153 * mm + 2) / 5) + 365 * y + Math.floor(y / 4);
+  const jdn = base + (julian ? -32083 : -Math.floor(y / 100) + Math.floor(y / 400) - 32045);
+  const weekday = (jdn + 1) % 7;
+  let name: string;
+  try {
+    // 7 Jan 2024 was a Sunday
+    name = new Intl.DateTimeFormat(lang, { weekday: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2024, 0, 7 + weekday)));
+  } catch {
+    return "";
+  }
+  return `${name.charAt(0).toLocaleUpperCase(lang)}${name.slice(1)}, ${formatDMY(lang, day, month, year)}`;
 }
