@@ -1,1 +1,1 @@
-- **Adding a source no longer dumps the whole list of sources.** The source field is now a text field that offers at most 8 matching sources while you type, and still accepts the text of a new source.
+Source citations can now be added and edited under the marriage and the divorce in the edit window, the same way as under other events.

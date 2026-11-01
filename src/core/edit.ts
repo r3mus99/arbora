@@ -143,6 +143,8 @@ export interface FamilyFields {
   children: string[];
   /** age, cause and agency written under MARR and DIV */
   details: { marriage: EventDetailFields; divorce: EventDetailFields };
+  /** the source citations written under MARR and DIV */
+  citations: { marriage: CitationRow[]; divorce: CitationRow[] };
 }
 
 const EVENT_TAGS = { birth: "BIRT", christening: "CHR", death: "DEAT", burial: "BURI" } as const;
@@ -237,6 +239,7 @@ export function familyFields(rec: GedNode): FamilyFields {
     husb: childOf(rec, "HUSB")?.value.trim() || "", wife: childOf(rec, "WIFE")?.value.trim() || "",
     children: childrenOf(rec, "CHIL").map((c) => c.value.trim()).filter(Boolean),
     details: { marriage: detailFields(childOf(rec, "MARR")), divorce: detailFields(childOf(rec, "DIV")) },
+    citations: { marriage: citationRows(childOf(rec, "MARR")), divorce: citationRows(childOf(rec, "DIV")) },
   };
 }
 
@@ -741,14 +744,16 @@ export function applyEventLine(rec: GedNode, node: GedNode, tag: string, before:
 }
 
 export function applyFamily(rec: GedNode, before: FamilyFields, after: FamilyFields): GedNode {
-  let out = setEvent(rec, "MARR", before.marriage, tidy(after.marriage), before.details.marriage, after.details.marriage);
+  let out = setEvent(rec, "MARR", before.marriage, tidy(after.marriage), before.details.marriage, after.details.marriage,
+                      before.citations.marriage, after.citations.marriage);
   if (!after.divorced) {
     if (before.divorced) out = { ...out, children: out.children.filter((c) => c.tag !== "DIV") };
   } else {
     // "1 DIV Y" says the marriage ended; the date, place and details go under it
     if (!before.divorced) out = { ...out, children: insert(out.children, gedNode("DIV", "Y")) };
-    const was = before.divorced ? before : { ...before, divorce: { date: "", place: "" }, details: { ...before.details, divorce: NO_DETAILS } };
-    out = setEvent(out, "DIV", was.divorce, tidy(after.divorce), was.details.divorce, after.details.divorce);
+    const was = before.divorced ? before : { ...before, divorce: { date: "", place: "" }, details: { ...before.details, divorce: NO_DETAILS },
+                                      citations: { ...before.citations, divorce: [] } };
+    out = setEvent(out, "DIV", was.divorce, tidy(after.divorce), was.details.divorce, after.details.divorce, was.citations.divorce, after.citations.divorce);
   }
   for (const tag of ["HUSB", "WIFE"] as const) {
     const key = tag === "HUSB" ? "husb" : "wife";

@@ -361,15 +361,18 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   };
   const newCite = (): CitationRow => ({ origin: -1, source: "", page: "", quality: "" });
   /** the citations under one of the four fixed events, with the button that adds one */
-  const eventCites = (key: (typeof PERSON_EVENTS)[number]) => {
-    const rows = form.eventCitations[key], setRows = (r: CitationRow[]) => set("eventCitations", { ...form.eventCitations, [key]: r });
-    return <>{citeRows(rows, setRows, `ec${key}`)}
+  const eventCites = (key: (typeof PERSON_EVENTS)[number]) =>
+    addCites(form.eventCitations[key], (r) => set("eventCitations", { ...form.eventCitations, [key]: r }), `ec${key}`);
+  const addCites = (rows: CitationRow[], setRows: (r: CitationRow[]) => void, idp: string) => {
+    return <>{citeRows(rows, setRows, idp)}
       <div className="full cite-add"><button type="button" className="head-act" onClick={() => setRows([...rows, newCite()])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div></>;
   };
   const setAlias = (i: number, patch: Partial<Alias>) =>
     set("aliases", form.aliases.map((a, j) => (j === i ? { ...a, ...patch } : a)));
   const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}, divorce: Partial<EventFields> = {}) =>
     setFams(fams.map((f, j) => (j === i ? { ...f, ...patch, marriage: { ...f.marriage, ...marriage }, divorce: { ...f.divorce, ...divorce } } : f)));
+  const famCites = (i: number, key: "marriage" | "divorce") =>
+    addCites(fams[i].citations[key], (r) => setFam(i, { citations: { ...fams[i].citations, [key]: r } }), `fc${key}${i}`);
   const setFamDetails = (i: number, key: "marriage" | "divorce", patch: Partial<EventDetailFields>) =>
     setFam(i, { details: { ...fams[i].details, [key]: { ...fams[i].details[key], ...patch } } });
   const event = (key: (typeof PERSON_EVENTS)[number]) => {
@@ -701,7 +704,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           {(() => {
             const f = fams[i], id = `m${r.xref}`;
             // date, place and the rest of the marriage sit behind the Details button: open when they hold a value, and for a new empty family
-            const filled = !!(f.marriage.date || f.marriage.place || hasDetails(f.details.marriage) || f.divorced);
+            const filled = !!(f.marriage.date || f.marriage.place || hasDetails(f.details.marriage) || f.citations.marriage.length > 0 || f.divorced);
             const empty = !filled && !f[otherKey(f)] && f.children.length === 0;
             const shown = (filled || empty || openDetails.includes(id)) && !closed.includes(id);
             return <>
@@ -715,6 +718,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                   {DETAILS.map(([k, label, tip]) => <label key={k} title={t(tip)} data-cap={t(label)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={f.details.marriage[k]}
                            onChange={(e) => setFamDetails(i, "marriage", { [k]: e.target.value })} /></label>)}
                 </div>
+                {famCites(i, "marriage")}
                 <label className="check" title={t("tipDivorced")}><input type="checkbox" role="switch" checked={f.divorced}
                          onChange={(e) => setFam(i, { divorced: e.target.checked })} />
                   <span>{t("divorcedLabel")}</span></label>
@@ -725,6 +729,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                   <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={f.divorce.place} list={PLACES}
                            onChange={(e) => setFam(i, {}, {}, { place: e.target.value })} /></label>
                   {details(`d${r.xref}`, f.details.divorce, (patch) => setFamDetails(i, "divorce", patch))}
+                  {famCites(i, "divorce")}
                 </fieldset>}
               </>}
             </>;
