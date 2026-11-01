@@ -643,18 +643,23 @@ export function App() {
             <span className="count"><Users className="icon" aria-hidden="true" />{Object.keys(data.people).length}</span>
           </FileDrop>}
           {data && <button type="button" className={`home-chip${homeId ? "" : " empty"}${pickingHome ? " on" : ""}`}
-                           aria-pressed={pickingHome} onClick={() => { showList(true); setPickingHome(true); }}
+                           aria-pressed={pickingHome}
+                           onClick={() => {
+                             // no home person yet and one is selected: that person becomes the home person at once
+                             if (!homeId && focusId) { setMarks((m) => changeHome(m, focusId)); return; }
+                             showList(true); setPickingHome(true);
+                           }}
                            title={t("homeSet")} aria-label={t("homeSet")}>
             <User className="icon" aria-hidden="true" />
             <strong>{homeId ? data.people[homeId].name || "?" : t("homeSet")}</strong>
           </button>}
+          {data && <button type="button" className="icon-btn" disabled={!homeId} onClick={() => homeId && makeRoot(homeId)}
+                  title={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}
+                  aria-label={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}>
+            <Home className="icon" aria-hidden="true" /></button>}
           {data && statusText && <span className={status?.err ? "status err" : "status"} role="status">{statusText}</span>}
           <div className="head-tools">
             {data && <div className="tools" role="toolbar">
-              <button type="button" className="icon-btn" disabled={!homeId} onClick={() => homeId && makeRoot(homeId)}
-                      title={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}
-                      aria-label={homeId ? t("returnHome", { name: data.people[homeId].name || "?" }) : t("setHomeHint")}>
-                <Home className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn" disabled={!canUndo(edits)} onClick={() => undoRedo(-1)}
                       title={withShortcut(t("undo"), "undo", MAC)} aria-label={t("undo")}><Undo2 className="icon" aria-hidden="true" /></button>
               <button type="button" className="icon-btn" disabled={!canRedo(edits)} onClick={() => undoRedo(1)}

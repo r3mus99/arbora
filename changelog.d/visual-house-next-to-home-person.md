@@ -1,0 +1,2 @@
+- **The return-home house sits right after the home person box in the top bar.** It is no longer among the undo and save buttons.
+- **Clicking the home person box sets the selected person at once when no home person is set yet.** With a home person set, the click opens the list of people to choose another.
