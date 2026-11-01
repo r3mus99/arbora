@@ -1,6 +1,6 @@
 import { BookMarked, ExternalLink, StickyNote } from "lucide-react";
 import { useState } from "react";
-import { citationLinks, hasAnnotations, linkParts, withoutLinks, type Annotations, type Citation } from "../core/sources";
+import { citationFields, citationLinks, hasAnnotations, linkParts, readableNotes, withoutLinks, type Annotations, type Citation, type CitationField } from "../core/sources";
 import type { StringKey } from "./i18n";
 import { SectionHead } from "./Section";
 
@@ -10,25 +10,27 @@ type T = (key: StringKey) => string;
 export const Linked = ({ text }: { text: string }) => <>{linkParts(text).map((p, i) => p.href
   ? <a key={i} href={p.href} target="_blank" rel="noopener noreferrer">{p.text}</a> : p.text)}</>;
 
-/** one cited source: title, the detail (page) and links as small chips; the full original text is under Details */
-function CitationView({ c, t }: { c: Citation; t: T }) {
+/** the filled fields of a citation as labelled lines, then its links as small chips */
+export function CitationFields({ c, t }: { c: Citation; t: T }) {
   const links = citationLinks(c);
-  const page = withoutLinks(c.page);
-  // a note that is only a web address is already a chip
-  const notes = c.notes.filter((n) => withoutLinks(n));
-  const hidden = [c.publication, ...(c.page && page !== c.page ? [c.page] : []), ...c.notes.filter((n) => !withoutLinks(n))].filter(Boolean);
-  return <li className="src-item">
-    <div className="src-title">{withoutLinks(c.title) || c.title}</div>
-    {page && <div className="src-line">{page}</div>}
-    {[["srcAuthor", c.author], ["srcRepository", c.repository]].filter(([, v]) => v).map(([k, v]) =>
-      <div key={k} className="src-line"><span>{t(k as StringKey)}:</span> <Linked text={v} /></div>)}
+  return <>
+    {citationFields(c).map((f) => <div key={f.key} className="src-line"><span>{t(FIELD_LABEL[f.key])}:</span> {f.text}</div>)}
     {c.text && <blockquote className="src-text"><Linked text={c.text} /></blockquote>}
-    {notes.map((n, i) => <div key={i} className="src-note"><Linked text={n} /></div>)}
+    {readableNotes(c).map((n, i) => <div key={i} className="src-note">{n}</div>)}
     {links.length > 0 && <div className="src-links">{links.map((l) =>
       <a key={l.href} className="src-chip" href={l.href} target="_blank" rel="noopener noreferrer" title={l.href}>
         {l.label}{l.suffix && <span> · {l.suffix}</span>}<ExternalLink className="icon" aria-hidden="true" /></a>)}</div>}
-    {hidden.length > 0 && <details className="src-pub"><summary>{t("srcDetails")}</summary>
-      {hidden.map((h, i) => <div key={i}><Linked text={h} /></div>)}</details>}
+  </>;
+}
+
+const FIELD_LABEL: Record<CitationField["key"], StringKey> = {
+  page: "srcPage", author: "srcAuthor", publication: "srcPublication", repository: "srcRepository", quality: "srcQuality" };
+
+/** one cited source: the title, then every filled field */
+function CitationView({ c, t }: { c: Citation; t: T }) {
+  return <li className="src-item">
+    <div className="src-title">{withoutLinks(c.title) || c.title}</div>
+    <CitationFields c={c} t={t} />
   </li>;
 }
 

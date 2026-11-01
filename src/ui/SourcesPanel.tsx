@@ -6,7 +6,7 @@ import type { SourceOverview } from "../core/sources";
 import type { SourceRename } from "../core/sourceTitles";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
-import { Linked } from "./Sources";
+import { CitationFields, Linked } from "./Sources";
 
 interface Props {
   overview: SourceOverview;
@@ -94,8 +94,7 @@ export function SourcesPanel({ overview, data, onPerson, renames, onRename, t }:
                 <span className="sp-count">{s.citations}×</span>
               </button>
               {open === s.key && <div className="sp-more">
-                {s.citation.repository && <div className="src-line"><span>{t("srcRepository")}:</span> <Linked text={s.citation.repository} /></div>}
-                {s.citation.publication && <div className="src-line"><span>{t("srcPublication")}:</span> <Linked text={s.citation.publication} /></div>}
+                <CitationFields c={s.citation} t={t} />
                 {rename.has(s.key) && <button type="button" className="link sp-wand-one" title={t("srcRenameTip")} aria-label={t("srcRenameTip")}
                         onClick={() => onRename([rename.get(s.key)!])}>
                   <WandSparkles className="icon" aria-hidden="true" />{rename.get(s.key)!.to}</button>}
