@@ -132,7 +132,7 @@ export function citationLinks(c: Citation): CitationLink[] {
   return hrefs.map((href) => {
     const label = hostOf(href);
     const shared = hrefs.filter((h) => hostOf(h) === label).length > 1;
-    return { href, label, suffix: shared ? href.split(/[\/:]/).filter(Boolean).pop() ?? "" : "" };
+    return { href, label, suffix: shared ? href.split(/[/:]/).filter(Boolean).pop() ?? "" : "" };
   });
 }
 
