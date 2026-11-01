@@ -1,1 +1,1 @@
-Sources under an event are shorter: the title, the page or detail, and web addresses as small link chips named after the site. The publication text, retrieval times and the full original wording are kept under "Details".
+- **A new source under an event is named after it.** Adding a source to a marriage fills in "Wedding Jan Novak & Eva Novak", to a birth "Birth Jan Novak", and so on in all 12 languages (in Slovak "Svadba…", "Narodenie…"); the name stays editable, and a source of that name already in the file is cited instead of a duplicate.

@@ -1,1 +1,0 @@
-- **A new source under an event is named after it.** Adding a source to a marriage fills in "Wedding Jan Novak & Eva Novak", to a birth "Birth Jan Novak", and so on in all 12 languages (in Slovak "Svadba…", "Narodenie…"); the name stays editable, and a source of that name already in the file is cited instead of a duplicate.
