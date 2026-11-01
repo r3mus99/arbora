@@ -1,1 +1,0 @@
-- **Sources in the edit window start folded and are visually separated.** Each source is its own bordered card showing just the source and its link; Page and Reliability open with the Details button. Editing, removing and "Add source" work as before.

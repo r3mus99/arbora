@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.84.0 – 2026-11-01
+
+- **Sources in the edit window start folded and are visually separated.** Each source is its own bordered card showing just the source and its link; Page and Reliability open with the Details button. Editing, removing and "Add source" work as before.
+
 ## 2.83.0 – 2026-11-01
 
 - **The home person sits in the top bar, next to the file.** Its name is shown in a box like the file name. A click opens the list of people, and the next person you click becomes the home person. The house button beside it goes to that person.
