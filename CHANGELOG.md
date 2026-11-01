@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.95.0 – 2026-11-01
+
+- **The person editor and detail are simpler.** The origin type (birth, adopted, foster) of a parent family, other events (baptism, census, custom events…) and other facts (education, nationality, title…) are no longer shown or edited; residences stay. The lines stay in the file unchanged, and merging two people still carries them over.
+
 ## 2.94.0 – 2026-11-01
 
 - **The edit window no longer has contacts and reference numbers.** Phone, e-mail, fax, web, reference numbers (REFN), AFN and RFN are gone from the edit window, and reference numbers are gone from the record details. The lines stay in the file untouched, and merging two people still keeps them.
