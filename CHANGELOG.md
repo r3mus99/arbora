@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.96.3 – 2026-11-01
+
+- **The file overview and the list of places are gone.** The icon rail no longer has the Overview and Places tools; the file check, sources and notes, and everything else stay as they were.
+
 ## 2.96.2 – 2026-11-01
 
 - **The back and forward history through viewed people is gone.** Alt+← / Alt+→ no longer step through earlier people; undo and redo of edits are unchanged.
