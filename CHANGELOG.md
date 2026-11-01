@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.80.0 – 2026-11-01
+
+- **Sources can be filtered by the kind of event they are cited under.** In Sources and notes, chips for birth and baptism, death and burial, marriage and other (also citations on the person themselves) show only the sources cited under those events; a source cited under several kinds appears under each.
+
 ## 2.79.0 – 2026-11-01
 
 - **Source titles are named by the event and the year.** A source cited under one event gets "Birth Jan Novak (1900)", "Christening …", "Wedding …" with the year of that event in brackets. The title is edited in place in the person detail, with a pencil, and a suggested name is offered when it differs. The bulk rename in the Sources list is gone.
