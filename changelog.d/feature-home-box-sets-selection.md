@@ -1,0 +1,1 @@
+- **A click on a person in the tree now works like a click in the list.** The tree centres on that person and the detail, the list and the home person box follow.
