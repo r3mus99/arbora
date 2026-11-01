@@ -117,7 +117,6 @@ export function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [scrollKey, setScrollKey] = useState(0);
   // person shown in the detail panel next to the on-screen chart
-  const [focusId, setFocusId] = useState<string | null>(null);
   const [treeScroll, setTreeScroll] = useState(0);
   // row to scroll to and highlight after "see no. X"
   const [jumpRow, setJumpRow] = useState<number | null>(null);
@@ -282,7 +281,6 @@ export function App() {
     // the chart shows at once: last chosen person, else the first one in the file
     const root = last && parsed.people[last] ? last : Object.keys(parsed.people)[0];
     setSelectedId(root);
-    setFocusId(narrow ? null : root);
     setMarks(visited(marksOf(readStore().marks, fileKey(name)), root));
     setMarkedFor(root);
     setJumpRow(null);
@@ -327,7 +325,7 @@ export function App() {
     setDoc(null);
     setEdits(NO_EDITS);
     setRestored(0);
-    setFocusId(null);
+    setSelectedId(null);
     setSelectedId(null);
     setQuery("");
     setTool(null);
@@ -420,14 +418,12 @@ export function App() {
     if (!doc) return;
     setWindowId(null);
     replaceRecords(deletePerson(doc.records, id));
-    if (focusId === id) deselect();
     if (selectedId === id) setSelectedId(null);
   };
   const mergeInto = (keep: string, drop: string, pick: MergePick) => {
     if (!doc) return;
     setWindowId(null);
     replaceRecords(mergePeople(doc.records, keep, drop, pick));
-    if (focusId === drop) setFocusId(keep);
     if (selectedId === drop) select(keep);
   };
   const newFamily = (person: string) => doc && replaceRecords(addFamily(doc.records, person).records);
@@ -494,10 +490,10 @@ export function App() {
 
   // a person shown in the detail counts as visited; the marks are saved per file
   const markKey = fileKey(loadedName);
-  const [markedFor, setMarkedFor] = useState(focusId);
-  if (markedFor !== focusId) {
-    setMarkedFor(focusId);
-    if (focusId) setMarks((m) => visited(m, focusId));
+  const [markedFor, setMarkedFor] = useState(selectedId);
+  if (markedFor !== selectedId) {
+    setMarkedFor(selectedId);
+    if (selectedId) setMarks((m) => visited(m, selectedId));
   }
   useEffect(() => {
     if (data) updateStore({ marks: withMarks(readStore().marks, markKey, marks) });
@@ -508,7 +504,6 @@ export function App() {
 
   const select = (id: string) => {
     setSelectedId(id);
-    setFocusId(id);
     setJumpRow(null);
     setTreeScroll((k) => k + 1);
     updateStore({ root: id });
@@ -530,23 +525,12 @@ export function App() {
     const row = rows.find((r) => !r.dup && (r.personId ?? r.spouseId) === id);
     if (row && paths.size) setPaths(reveal(paths, row.path));
   };
-  const focus = (id: string, scroll: boolean) => {
-    setFocusId(id);
-    setJumpRow(null);
-    if (scroll) {
-      showPerson(id);
-      setTreeScroll((k) => k + 1);
-    }
-    if (chosen) remember({ root: chosen.id, focus: id });
-  };
   const jump = (index: number) => {
     const target = rows[index];
     if (!target || !chosen) return;
     setPaths(reveal(paths, target.path));
-    setFocusId(target.personId);
+    if (target.personId) pick(target.personId);
     setJumpRow(index);
-    setTreeScroll((k) => k + 1);
-    if (target.personId) remember({ root: chosen.id, focus: target.personId });
   };
   const toggle = (row: { path: string; gen: number; hidden: number }, whole: boolean) => {
     const next = new Set(paths);
@@ -561,7 +545,7 @@ export function App() {
     const { place } = arrived;
     setHist(arrived.browsing);
     setSelectedId(place.root);
-    setFocusId(place.focus);
+    setSelectedId(place.focus);
     setJumpRow(null);
     updateStore({ root: place.root });
     if (place.root === chosen?.id) showPerson(place.focus);
@@ -618,8 +602,8 @@ export function App() {
     setQuery("");
   };
   /** a click on the selected person in the chart or in a list of people deselects it, which closes the detail */
-  const deselect = () => { setFocusId(null); setJumpRow(null); };
-  const pickListed = (id: string) => { if (id === focusId) deselect(); else pick(id); };
+  // one selection: a click on the selected person changes nothing; any other person is selected
+  const pickListed = (id: string) => { if (id !== selectedId) pick(id); };
   const star = (id: string) => setMarks((m) => toggleFav(m, id));
 
   return (
@@ -635,8 +619,8 @@ export function App() {
             <strong>{loadedName === null ? t("sampleName") : loadedName}</strong>
             <span className="count"><Users className="icon" aria-hidden="true" />{Object.keys(data.people).length}</span>
           </FileDrop>}
-          {data && <button type="button" className={`home-chip${homeId ? "" : " empty"}`} disabled={!focusId}
-                           onClick={() => { if (focusId) setMarks((m) => changeHome(m, focusId)); }}
+          {data && <button type="button" className={`home-chip${homeId ? "" : " empty"}`} disabled={!selectedId}
+                           onClick={() => { if (selectedId) setMarks((m) => changeHome(m, selectedId)); }}
                            title={t("homeSet")} aria-label={t("homeSet")}>
             <User className="icon" aria-hidden="true" />
             <strong>{homeId ? data.people[homeId].name || "?" : t("homeSet")}</strong>
@@ -699,7 +683,7 @@ export function App() {
             <button type="button" onClick={loadSample}>{t("sample")}</button>
           </div>
         </div>}
-        {data && chosen && <div className={`viewer${focusId || showCheck || showFix ? " has-detail" : " no-detail"}`}>
+        {data && chosen && <div className={`viewer${selectedId || showCheck || showFix ? " has-detail" : " no-detail"}`}>
             {/* one sidebar: a narrow bar of tools and, next to it, the panel of the active tool (second click closes it) */}
             <div className="side">
               <nav className="toolbar" aria-label={t("showList")}>
@@ -742,7 +726,7 @@ export function App() {
                           onSurname={(name) => { setQuery(name); showList(true); finderRef.current?.focus(); }} />
               </aside>}
               {showRecent && <aside className="rail-wrap" aria-label={t("recent")}>
-                <RecentPanel entries={recent} data={data} lang={lang} selectedId={focusId}
+                <RecentPanel entries={recent} data={data} lang={lang} selectedId={selectedId}
                              onPerson={pickListed} onStar={star} t={t} />
               </aside>}
               {showChanges && <aside className="rail-wrap sp-wrap" aria-label={t("changes")}>
@@ -755,12 +739,12 @@ export function App() {
                 <PlacesPanel places={placeList} data={data} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
-                <SourcesPanel key={focusId ?? ""} overview={srcOverview} data={data} onPerson={(id) => pick(id)} personId={focusId} t={t}
+                <SourcesPanel key={selectedId ?? ""} overview={srcOverview} data={data} onPerson={(id) => pick(id)} personId={selectedId} t={t}
                               onSave={(xref, f) => { if (doc) replaceRecords(setSourceFields(doc.records, xref, f)); }}
                               onCite={(xref, person, event) => { if (doc) replaceRecords(addSourceCitation(doc.records, xref, person, event)); }} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
-                <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={focusId} scrollKey={scrollKey}
+                <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
                             favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} onAdd={newPerson} t={t} />
               </aside>}
             </div>
@@ -775,9 +759,9 @@ export function App() {
               {showFix ? <BulkFix data={data} t={t} variants={variants} values={spelled} hidden={hidden} onHide={hide}
                                   onRename={(kind, from, to) => doc && replaceRecords(renameVariants(doc.records, kind, from, to, keepAka))}
                                   keepAka={keepAka} onKeepAka={(on) => { setKeepAka(on); updateStore({ keepAka: on }); }}
-                                  onFocus={(id) => focus(id, true)} />
+                                  onFocus={pick} />
                 : <CheckPanel issues={issues} data={data} t={t} onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
-                              onFocus={(id) => focus(id, true)} />}
+                              onFocus={pick} />}
             </aside> : <>
             {!narrow && <div className="mid">
               <div className="chart-bar">
@@ -787,15 +771,15 @@ export function App() {
                   <SlidersHorizontal className="icon" aria-hidden="true" />
                 </button>
               </div>
-              <TreeView rows={shown} focusId={focusId} starred={favourites} scrollKey={treeScroll} scrollTo={jumpRow}
+              <TreeView rows={shown} focusId={selectedId} starred={favourites} scrollKey={treeScroll} scrollTo={jumpRow}
                         numbered={form.numbering === "ahnentafel" || form.numbering === "daboville"}
-                        onFocus={(id) => id === focusId ? deselect() : focus(id, false)} onToggle={toggle}
+                        onFocus={pickListed} onToggle={toggle}
                         onJump={(r) => jump(r.targetIndex)} t={t} />
             </div>}
-            {focusId && <SourceEditContext.Provider value={srcEdit}><PersonDetail key={focusId} data={data} id={focusId} homeId={homeId}
-                                      record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} lang={lang}
-                                      onFocus={(id) => focus(id, true)} onChange={commit} suggest={suggest}
-                                      onEdit={() => setWindowId(focusId)} onBack={deselect} t={t} /></SourceEditContext.Provider>}
+            {selectedId && <SourceEditContext.Provider value={srcEdit}><PersonDetail key={selectedId} data={data} id={selectedId} homeId={homeId}
+                                      record={recordOf.get(selectedId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(selectedId) || []} lang={lang}
+                                      onFocus={pick} onChange={commit} suggest={suggest}
+                                      onEdit={() => setWindowId(selectedId)} onBack={() => setSelectedId(null)} t={t} /></SourceEditContext.Provider>}
             </>}
         </div>}
       </section>
