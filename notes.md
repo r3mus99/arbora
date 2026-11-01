@@ -1,1 +1,1 @@
-- **The person editor and detail are simpler.** The origin type (birth, adopted, foster) of a parent family, other events (baptism, census, custom events…) and other facts (education, nationality, title…) are no longer shown or edited; residences stay. The lines stay in the file unchanged, and merging two people still carries them over.
+- **The tree no longer has collapsible branches.** The − / + on the connector, the "+N" count and Shift-click for a whole generation are gone; the chart always shows the whole tree, as the PDF does.

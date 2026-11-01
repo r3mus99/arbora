@@ -9,7 +9,7 @@ Everything runs in your browser; the file is never uploaded anywhere.
 
 ## What it does
 
-- **View** the ancestors or descendants of anyone, as a tree you can collapse,
+- **View** the ancestors or descendants of anyone, as a tree,
   with a searchable list of people, a timeline of each person, recent people and
   favourites, and a file overview with statistics.
 - **Edit** about 40 GEDCOM tags in one edit window: names, events, occupations
@@ -112,10 +112,7 @@ between relatives) is written out only once; later occurrences refer to it.
 6. A repeated ancestor shows a link **see no. X** instead of their branch (with
    Ahnentafel or d'Aboville numbering, otherwise **see above / below**) that
    jumps to the written-out branch and highlights it.
-7. The **−** on the connector before a name collapses that person's branch and
-   **+** expands it again; with Shift, the whole generation. The chart and the
-   PDF share all settings, so the PDF matches the chart (collapsed branches are
-   not carried into the PDF).
+7. The chart and the PDF share all settings, so the PDF matches the chart.
 8. **PDF** creates the PDF and **SVG** the tree poster; both download at once.
 
 ### Editing and GEDCOM export
@@ -256,7 +253,6 @@ src/core/           core without UI: GEDCOM → chart rows → PDF (pdf-lib + fo
   placelist.ts      the list of places; stats.ts: the file overview
   format.ts         options, dates, places, the text of a person's line
   chart.ts          ancestor and descendant chart rows
-  collapse.ts       collapsed branches: which rows stay visible
   pdf.ts            page layout and PDF
   poster.ts         tree poster of ancestors: plates, seeded branches and leaves, SVG (posterFont.ts: glyph widths and outlines)
   posterDescendants.ts  tree poster of descendants: columns of persons, partners and children on the same plates and branches
