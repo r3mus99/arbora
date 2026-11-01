@@ -140,7 +140,7 @@ describe("sourceTitle", () => {
 });
 
 describe("citation links", () => {
-  const cite = (over: Partial<Citation>): Citation => ({ title: "", author: "", publication: "", repository: "", page: "", quality: "", text: "", notes: [], ...over });
+  const cite = (over: Partial<Citation>): Citation => ({ xref: "", title: "", author: "", publication: "", repository: "", page: "", quality: "", text: "", notes: [], ...over });
 
   test("web addresses are found in any field, once each, labelled by site", () => {
     const links = citationLinks(cite({
@@ -163,7 +163,7 @@ describe("citation links", () => {
 });
 
 describe("citation fields", () => {
-  const cite = (over: Partial<Citation>): Citation => ({ title: "", author: "", publication: "", repository: "", page: "", quality: "", text: "", notes: [], ...over });
+  const cite = (over: Partial<Citation>): Citation => ({ xref: "", title: "", author: "", publication: "", repository: "", page: "", quality: "", text: "", notes: [], ...over });
 
   test("every filled field is a line, empty ones are not", () => {
     expect(citationFields(cite({ title: "Parish book", page: "p. 41", author: "A. Writer", repository: "State Archive", quality: "2" })).map((f) => [f.key, f.text]))
