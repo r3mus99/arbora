@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.67.1 – 2026-11-01
+
+- **Adding a source no longer dumps the whole list of sources.** The source field is now a text field that offers at most 8 matching sources while you type, and still accepts the text of a new source.
+
 ## 2.67.0 – 2026-11-01
 
 - **The sex symbol stays beside the name in the person detail heading.** It no longer drops onto a line of its own; a long name wraps and the symbol stays next to it.
