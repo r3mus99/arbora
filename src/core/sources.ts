@@ -12,6 +12,8 @@ export interface Citation {
   repository: string;
   /** PAGE: where in the source */
   page: string;
+  /** QUAY: 0 to 3, how reliable the citation is */
+  quality: string;
   /** DATA/TEXT: the quoted text */
   text: string;
   notes: string[];
@@ -56,6 +58,7 @@ function citation(cite: GedNode, lookup: Lookup): Citation {
     publication: valueOf(rec || null, "PUBL"),
     repository: (repoRec ? valueOf(repoRec, "NAME") : repo && !isLink(repo.value) ? repo.value : "") || "",
     page: valueOf(cite, "PAGE"),
+    quality: valueOf(cite, "QUAY"),
     text: plainText((data && childOf(data, "TEXT")?.value.trim()) || ""),
     notes: [...notesOf(cite, lookup), ...(rec ? notesOf(rec, lookup) : [])],
   };
@@ -145,6 +148,38 @@ export function withoutLinks(text: string): string {
   const rest = text.replace(URL_RE, "").replace(/\(\s*[:;,]?\s*\)/g, "").replace(/^[\s:;,.()-]+|[\s:;,(-]+$/g, "").replace(/\s{2,}/g, " ").trim();
   return /[\p{L}\p{N}]/u.test(rest) ? rest : "";
 }
+
+/** A labelled line of a citation under its title. */
+export interface CitationField { key: "page" | "author" | "publication" | "repository" | "quality"; text: string }
+
+const fold = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+
+/**
+ * Every filled field of the citation as a readable line, in a fixed order. Web addresses are left out of the lines
+ * (they are chips), and a line that only repeats what is already shown above it (or the title) is skipped.
+ * Only the display is cleaned; nothing is changed in the file.
+ */
+export function citationFields(c: Citation): CitationField[] {
+  const clean = (s: string) => withoutLinks(s).replace(/\(\s*[:;,]\s*/g, "(");
+  const raw: CitationField[] = [
+    { key: "page", text: clean(c.page) }, { key: "author", text: clean(c.author) },
+    { key: "publication", text: clean(c.publication) }, { key: "repository", text: clean(c.repository) },
+    { key: "quality", text: /^[0-3]$/.test(c.quality) ? `${c.quality} / 3` : c.quality },
+  ];
+  const shown: string[] = [fold(clean(c.title) || c.title)];
+  const out: CitationField[] = [];
+  for (const f of raw) {
+    const k = f.key === "quality" ? "" : fold(f.text);
+    if (!f.text) continue;
+    if (k && shown.some((o) => o.includes(k))) continue;
+    if (k) shown.push(k);
+    out.push(f);
+  }
+  return out;
+}
+
+/** The notes of a citation that say something besides a web address (those are chips). */
+export const readableNotes = (c: Citation) => c.notes.map((n) => withoutLinks(n)).filter(Boolean);
 
 /** one source of the file with the people who cite it */
 export interface SourceEntry {

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { citationLinks, matchSources, sourceTitle, SOURCE_TITLE_LANGS, withoutLinks, type Citation } from "./sources";
+import { citationFields, citationLinks, matchSources, sourceTitle, SOURCE_TITLE_LANGS, withoutLinks, type Citation } from "./sources";
 import {
   applyPerson, decode, eventAnnotations, sourceOverview, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
   personFields, writeGedcom, type GedNode,
@@ -140,7 +140,7 @@ describe("sourceTitle", () => {
 });
 
 describe("citation links", () => {
-  const cite = (over: Partial<Citation>): Citation => ({ title: "", author: "", publication: "", repository: "", page: "", text: "", notes: [], ...over });
+  const cite = (over: Partial<Citation>): Citation => ({ title: "", author: "", publication: "", repository: "", page: "", quality: "", text: "", notes: [], ...over });
 
   test("web addresses are found in any field, once each, labelled by site", () => {
     const links = citationLinks(cite({
@@ -159,5 +159,27 @@ describe("citation links", () => {
     expect(citationLinks(cite({ title: "Birth register", page: "p. 41" }))).toEqual([]);
     expect(withoutLinks("https://example.org/a")).toBe("");
     expect(withoutLinks("p. 41, https://example.org/a")).toBe("p. 41");
+  });
+});
+
+describe("citation fields", () => {
+  const cite = (over: Partial<Citation>): Citation => ({ title: "", author: "", publication: "", repository: "", page: "", quality: "", text: "", notes: [], ...over });
+
+  test("every filled field is a line, empty ones are not", () => {
+    expect(citationFields(cite({ title: "Parish book", page: "p. 41", author: "A. Writer", repository: "State Archive", quality: "2" })).map((f) => [f.key, f.text]))
+      .toEqual([["page", "p. 41"], ["author", "A. Writer"], ["repository", "State Archive"], ["quality", "2 / 3"]]);
+    expect(citationFields(cite({ title: "Parish book" }))).toEqual([]);
+  });
+
+  test("web addresses are not repeated in the lines, and text that repeats the title is skipped", () => {
+    const f = citationFields(cite({
+      title: 'Jan Sample, "Example Collection"',
+      publication: '"Example Collection", Example Archive (https://example.org/ark:/1/A1 : Sun Mar 10 13:18:48 UTC 2024), Entry for Jan Sample, 01 May 1894.',
+      page: "https://example.org/ark:/1/A1",
+    }));
+    expect(f.map((x) => x.key)).toEqual(["publication"]);
+    expect(f[0].text).not.toContain("https://");
+    expect(f[0].text).toContain("Entry for Jan Sample");
+    expect(citationFields(cite({ title: "Parish book of Sampleton", page: "Parish book" }))).toEqual([]);
   });
 });
