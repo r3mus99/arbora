@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.68.0 – 2026-11-01
+
+Source citations can now be added and edited under the marriage and the divorce in the edit window, the same way as under other events.
+
 ## 2.67.1 – 2026-11-01
 
 - **Adding a source no longer dumps the whole list of sources.** The source field is now a text field that offers at most 8 matching sources while you type, and still accepts the text of a new source.
