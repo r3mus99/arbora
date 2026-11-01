@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.63.0 – 2026-11-01
+
+- **Parents and children in the person detail show Father/Mother and Son/Daughter.** The timeline rows now read "Father · place", "Mother · place", "Son", "Daughter" (in all 12 languages) instead of "Groom's birth", "Bride's birth", "Son born" and "Daughter born".
+
 ## 2.62.0 – 2026-10-22
 
 - **Downloaded PDF and poster file names now contain the person, ancestors or descendants and the number of generations** (e.g. `maria-theresia_ancestors_7g.pdf`).
