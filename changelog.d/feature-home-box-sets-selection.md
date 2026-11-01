@@ -1,0 +1,1 @@
+- **One selection for the whole screen.** The person you select in the list, the recent panel, the tree or a link in the detail is the centre of the tree, the one shown in the detail, the one highlighted in the list, and the one the home person box sets. A click on the selected person changes nothing.
