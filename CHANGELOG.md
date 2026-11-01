@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.79.0 – 2026-11-01
+
+- **Source titles are named by the event and the year.** A source cited under one event gets "Birth Jan Novak (1900)", "Christening …", "Wedding …" with the year of that event in brackets. The title is edited in place in the person detail, with a pencil, and a suggested name is offered when it differs. The bulk rename in the Sources list is gone.
+
 ## 2.78.0 – 2026-11-01
 
 - **Renaming all sources is easier to find and to control.** The Sources panel shows a full-width "Rename all" button with the count, and the preview says "N of M selected" with "Select all" and "Select none".
