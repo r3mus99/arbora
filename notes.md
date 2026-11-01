@@ -1,2 +1,1 @@
-- **The return-home house sits right after the home person box in the top bar.** It is no longer among the undo and save buttons.
-- **Clicking the home person box sets the selected person at once when no home person is set yet.** With a home person set, the click opens the list of people to choose another.
+- **The magic wand beside a source title in the person detail is gone.** Renaming a source stays one click on its title, and the suggested names remain available in the Sources list.

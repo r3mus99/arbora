@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.86.0 – 2026-11-01
+
+- **The magic wand beside a source title in the person detail is gone.** Renaming a source stays one click on its title, and the suggested names remain available in the Sources list.
+
 ## 2.85.0 – 2026-11-01
 
 - **The return-home house sits right after the home person box in the top bar.** It is no longer among the undo and save buttons.
