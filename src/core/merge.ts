@@ -27,7 +27,7 @@ export function mergeConflicts(a: PersonFields, b: PersonFields): MergeField[] {
  * custom events, and facts such as education or title). They stay in the file as they are, and a merge carries over
  * those of the removed person.
  */
-export const UNMANAGED_TAGS = ["BLES", "CREM", "ADOP", "CONF", "FCOM", "ORDN", "CENS", "EMIG", "IMMI", "NATU", "GRAD",
+export const UNMANAGED_TAGS = ["BAPM", "BLES", "CREM", "ADOP", "CONF", "FCOM", "ORDN", "CENS", "EMIG", "IMMI", "NATU", "GRAD",
                                "RETI", "PROB", "WILL", "EVEN", "EDUC", "NATI", "TITL", "PROP", "CAST", "DSCR", "NCHI", "IDNO", "FACT"];
 
 /** a line with its sub-lines as text, to tell whether two people have the same one */

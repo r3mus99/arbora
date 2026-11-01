@@ -207,7 +207,7 @@ describe("events and facts the editor does not offer", () => {
 1 NAME Jan /Novak/
 1 SEX M
 1 OCCU smith
-1 CENS
+1 BAPM
 2 DATE 1 JAN 1890
 1 EDUC primary school
 2 DATE 1890
@@ -232,7 +232,7 @@ describe("events and facts the editor does not offer", () => {
 
   test("stay in the file when something else is changed", () => {
     const out = writeGedcom([applyPerson(rec, before, { ...before, given: "Johann", note: "y" })]);
-    for (const l of ["1 CENS\n2 DATE 1 JAN 1890\n", "1 EDUC primary school\n2 DATE 1890\n", "1 NATI\n2 PLAC Brno\n", "1 EVEN Fair\n2 TYPE Award\n"]) {
+    for (const l of ["1 BAPM\n2 DATE 1 JAN 1890\n", "1 EDUC primary school\n2 DATE 1890\n", "1 NATI\n2 PLAC Brno\n", "1 EVEN Fair\n2 TYPE Award\n"]) {
       expect(out).toContain(l);
     }
   });
@@ -249,8 +249,8 @@ describe("events of a person", () => {
   const load = (text: string) => parseGedcom(text).find((c) => c.tag === "INDI")!;
   const none = { age: "", cause: "", agency: "", note: "" };
 
-  test("residences and the baptism are listed", () => {
-    expect(OTHER_EVENT_TAGS).toEqual(["RESI", "BAPM"]);
+  test("only residences are listed", () => {
+    expect(OTHER_EVENT_TAGS).toEqual(["RESI"]);
   });
 
   test("adds details to a birth in the usual order and removes them again", () => {

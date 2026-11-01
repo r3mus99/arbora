@@ -206,8 +206,6 @@ describe("details of the life events; other events and facts", () => {
 2 ADDR Hill Street 2
 3 CONT Second floor
 3 CITY Greenfield
-1 BAPM
-2 DATE 1901
 1 IMMI
 2 DATE 1925
 2 PLAC Harbor
@@ -227,13 +225,13 @@ describe("details of the life events; other events and facts", () => {
   const rec = records.find((r) => r.xref === "@I1@")!;
   const items = timeline(data, "@I1@", personFields(rec), rec);
 
-  test("the baptism is on the timeline; other events are not", () => {
-    expect(items.map((i) => [i.kind, i.tag || "", i.date])).toEqual([["birth", "", "1900"], ["event", "BAPM", "1901"], ["death", "", "1980"]]);
+  test("events other than the life events and residences are not on the timeline", () => {
+    expect(items.map((i) => [i.kind, i.date])).toEqual([["birth", "1900"], ["death", "1980"]]);
   });
 
   test("age, cause and address are read from birth and death too", () => {
     expect(items[0].details).toEqual([{ key: "age", value: "0" }]);
-    expect(items[2].details).toEqual([{ key: "cause", value: "Old age" },
+    expect(items[1].details).toEqual([{ key: "cause", value: "Old age" },
                                       { key: "address", value: "Hill Street 2, Second floor, Greenfield" }]);
   });
 });

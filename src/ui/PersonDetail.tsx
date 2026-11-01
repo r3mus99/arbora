@@ -52,7 +52,7 @@ function Fact({ icon, label, children }: { icon: LucideIcon; label: string; chil
 const DETAIL_KEYS = { age: "detAge", cause: "detCause", agency: "detAgency", address: "detAddress" } as const;
 
 const ICONS: Record<TimelineKind, LucideIcon> = {
-  birth: Baby, christening: Droplets, residence: Home, event: Baby, famEvent: Heart, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
+  birth: Baby, christening: Droplets, residence: Home, famEvent: Heart, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
@@ -133,7 +133,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
   };
   /** whether the date and place of a timeline item can be edited here */
   const editable = (e: TimelineItem) => live && e.kind !== "child" && (e.kind === "marriage" ? !!lookup(e.key)
-    : e.kind === "residence" || e.kind === "event" || e.kind === "famEvent" ? !!e.node && (!e.family || !!lookup(e.family)) : true);
+    : e.kind === "residence" || e.kind === "famEvent" ? !!e.node && (!e.family || !!lookup(e.family)) : true);
   /** a date as text; its tooltip is the weekday of an exact day */
   const dated = (stored: string) => {
     const tip = weekdayTip(stored, lang), text = formatDate(stored, true, lang);
@@ -224,7 +224,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
       case "child": return t(sex === "M" ? "childBornM" : sex === "F" ? "childBornF" : "childBorn");
       case "burial": return t("burial");
       case "residence": return t("residence");
-      case "event":
       case "famEvent": return title || (tag ? t(`ev${tag}` as StringKey) : t("event"));
       case "death": return dated ? t("thDeath") : t(p.sex === "M" ? "deceasedM" : p.sex === "F" ? "deceasedF" : "deceased");
     }

@@ -6,7 +6,7 @@ import { placeCoords, type Coords } from "./places";
 import { childOf, type GedNode, type GedcomData } from "./gedcom";
 
 export type TimelineKind = "birth" | "christening" | "marriage" | "child" | "death" | "burial"
-  | "residence" | "event" | "famEvent";
+  | "residence" | "famEvent";
 
 export interface TimelineItem {
   kind: TimelineKind;
@@ -26,7 +26,7 @@ export interface TimelineItem {
   coords?: Coords;
   /** people named as witnesses of a marriage (_WITN) */
   witnesses?: string[];
-  /** the GEDCOM tag of the baptism or of a family event (DIV, ENGA, …) */
+  /** the GEDCOM tag of a family event (DIV, ENGA, …) */
   tag?: string;
   /** age, cause, agency and address written under the event, as small labelled lines */
   details?: EventDetail[];
@@ -47,13 +47,8 @@ export function weddingAges(wedding: string | undefined, people: { name: string;
 
 export interface EventDetail { key: "age" | "cause" | "agency" | "address"; value: string }
 
-/** Standard events shown besides the life events, titled by their tag: the baptism ceremony only. */
-export const EXTRA_EVENT_TAGS = ["BAPM"];
-
-/** Lines of a person shown on the timeline in file order besides the life events: residences and the baptism. */
-const OWN_EVENTS: Record<string, "residence" | "event"> = { RESI: "residence" };
-for (const tag of EXTRA_EVENT_TAGS) OWN_EVENTS[tag] = "event";
-export const OWN_EVENT_TAGS: string[] = Object.keys(OWN_EVENTS);
+/** Lines of a person shown on the timeline in file order besides the life events: residences only. */
+export const OWN_EVENT_TAGS: string[] = ["RESI"];
 
 /** Family events shown on the timeline of both spouses besides the marriage itself. */
 export const FAMILY_EVENT_TAGS = ["DIV", "ENGA", "MARB", "MARC", "MARL", "MARS", "ANUL"];
@@ -102,22 +97,20 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
 
   add("birth", fields ? fields.birth : p.birth, "birth");
   if (fields) add("christening", fields.christening, "christening");
-  // residences and the baptism of the record, as they are written
+  // residences of the record, as they are written
   record?.children.forEach((node, i) => {
-    const tag = node.tag;
-    if (!(tag in OWN_EVENTS)) return;
+    if (node.tag !== "RESI") return;
     const e = { date: childOf(node, "DATE")?.value || "", place: childOf(node, "PLAC")?.value || "" };
-    const detail = tag === "RESI" && node.value !== "Y" ? node.value : "";
+    const detail = node.value === "Y" ? "" : node.value;
     const details = eventDetails(node);
     const noted = !!(childOf(node, "SOUR") || childOf(node, "NOTE"));
-    if (!e.date && !e.place && !detail && !details.length && !noted && !EXTRA_EVENT_TAGS.includes(tag)) return;
-    add(OWN_EVENTS[tag], e, `${tag}${i}`, null, false, true);
+    if (!e.date && !e.place && !detail && !details.length && !noted) return;
+    add("residence", e, `RESI${i}`, null, false, true);
     const item = items[items.length - 1];
     if (detail) item.detail = detail;
     if (details.length) item.details = details;
     const at = placeCoords(node, family);
     if (at) item.coords = at;
-    if (EXTRA_EVENT_TAGS.includes(tag)) item.tag = tag;
     item.node = node;
   });
   for (const fid of p.fams) {
@@ -184,7 +177,7 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     let k = dated[i];
     if (k !== null) last = k;
     else if (item.kind === "birth" || item.kind === "christening") k = -Infinity;
-    else if (item.kind === "death" || item.kind === "residence" || item.kind === "event") k = latest;
+    else if (item.kind === "death" || item.kind === "residence") k = latest;
     else if (item.kind === "burial") k = Infinity;
     else k = last;
     return { item, k, i };
