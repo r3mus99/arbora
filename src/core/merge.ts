@@ -1,5 +1,5 @@
 /** Merging two records of the same person: the second person is folded into the first and removed. */
-import { addChild, addLine, applyPerson, personFields, type EventFields, type PersonFields } from "./edit";
+import { addChild, addLine, addUnlisted, applyPerson, personFields, type EventFields, type PersonFields } from "./edit";
 import { rewritten, type GedNode } from "./gedcom";
 
 /** the single values that can differ between the two people; a conflict is shown to the user, who keeps one side */
@@ -21,6 +21,13 @@ export function mergeValue(f: PersonFields, field: MergeField): string {
 export function mergeConflicts(a: PersonFields, b: PersonFields): MergeField[] {
   return MERGE_FIELDS.filter((f) => mergeValue(a, f) && mergeValue(b, f) && mergeValue(a, f) !== mergeValue(b, f));
 }
+
+/**
+ * Event and fact lines the editor and the detail view do not handle (other events such as census or custom events,
+ * and facts such as education or title): they stay in the file, and a merge carries over those of the removed person.
+ */
+const UNMANAGED_TAGS = ["BAPM", "BLES", "CREM", "ADOP", "CONF", "FCOM", "ORDN", "CENS", "EMIG", "IMMI", "NATU", "GRAD",
+                        "RETI", "PROB", "WILL", "EVEN", "EDUC", "NATI", "TITL", "PROP", "CAST", "DSCR", "NCHI", "IDNO", "FACT"];
 
 const pointers = (rec: GedNode, tags: string[]) => rec.children.filter((c) => tags.includes(c.tag)).map((c) => c.value.trim());
 
@@ -49,7 +56,7 @@ const union = <T extends { origin: number }>(rows: T[], extra: T[]): T[] =>
   [...rows, ...extra.filter((e) => !rows.some((r) => same(r, e))).map((e) => ({ ...e, origin: -1 }))];
 
 /** contact and reference lines the editor does not show, but a merge must not lose */
-const CARRIED = ["PHON", "EMAIL", "FAX", "WWW", "REFN"];
+const CARRIED = ["PHON", "EMAIL", "FAX", "WWW", "REFN", ...UNMANAGED_TAGS];
 /** lines a person has once: the kept person's own wins */
 const CARRIED_ONCE = ["AFN", "RFN"];
 
@@ -63,7 +70,7 @@ function carryLines(kept: GedNode, removed: GedNode): GedNode {
     const once = CARRIED_ONCE.includes(c.tag);
     if (!once && !CARRIED.includes(c.tag)) continue;
     if (once ? out.children.some((k) => k.tag === c.tag) : out.children.some((k) => lineKey(k) === lineKey(c))) continue;
-    out = addChild(out, { ...c, src: undefined });
+    out = UNMANAGED_TAGS.includes(c.tag) ? addUnlisted(out, { ...c, src: undefined }) : addChild(out, { ...c, src: undefined });
   }
   return out;
 }
@@ -85,7 +92,6 @@ export function mergedFields(a: PersonFields, b: PersonFields, pick: MergePick):
   out.occupations = union(a.occupations, b.occupations);
   out.aliases = union(a.aliases, b.aliases);
   out.events = union(a.events, b.events);
-  out.attributes = union(a.attributes, b.attributes);
   out.citations = union(a.citations, b.citations);
   // the other person's parents (families they are a child of) and associations, except one that is the kept person
   out.parents = union(a.parents, b.parents);

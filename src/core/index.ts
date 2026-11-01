@@ -15,7 +15,6 @@ export * from "./pdf";
 export * from "./check";
 export * from "./stats";
 export * from "./timeline";
-export * from "./facts";
 export * from "./associations";
 export * from "./sources";
 export * from "./sourceLinks";

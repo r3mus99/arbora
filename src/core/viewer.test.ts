@@ -4,7 +4,7 @@ import { describe, expect, test } from "vitest";
 import { RICH_GED } from "./fixtures/rich";
 import {
   applyFamily, applyPerson, associationsOf, familyFields, inboundAssociations, nameDetails, parseGedcom,
-  personAttributes, personFields, readRecords, recordInfo, timeline, writeGedcom,
+  personFields, readRecords, recordInfo, timeline, writeGedcom,
 } from "./index";
 
 const FILE = RICH_GED;
@@ -23,7 +23,7 @@ describe("showing a file", () => {
     for (const r of records.filter((x) => x.tag === "INDI")) {
       const fields = personFields(r);
       timeline(data, r.xref!, fields, r, lookup);
-      personAttributes(r); nameDetails(r); associationsOf(r); recordInfo(r);
+      nameDetails(r); associationsOf(r); recordInfo(r);
     }
     inboundAssociations(records);
     expect(writeGedcom(records)).toBe(FILE);
