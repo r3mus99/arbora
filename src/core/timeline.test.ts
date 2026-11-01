@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { dateParts, parseGedcom, personAttributes, personFields, readRecords, timeline, weddingAges, yearsBetween } from "./index";
+import { dateParts, parseGedcom, personAttributes, personFields, readRecords, timeline, ageBetween, formatAge, weddingAges, yearsBetween } from "./index";
 
 describe("ages", () => {
   test.each([
@@ -13,6 +13,35 @@ describe("ages", () => {
     ["", "1950", null],
   ])("%s → %s", (from, to, age) => {
     expect(yearsBetween(from, to)).toBe(age);
+  });
+
+  test.each([
+    ["7 APR 1939", "27 DEC 2021", { n: 82, unit: "y" }],
+    ["7 APR 1939", "6 APR 1940", { n: 11, unit: "m" }],
+    ["7 APR 1939", "7 JUN 1939", { n: 2, unit: "m" }],
+    ["28 JAN 1939", "3 FEB 1939", { n: 6, unit: "d" }],
+    ["28 FEB 1940", "1 MAR 1940", { n: 2, unit: "d" }], // leap year
+    ["28 FEB 1939", "1 MAR 1939", { n: 1, unit: "d" }],
+    ["12 MAR 1939", "12 MAR 1939", { n: 0, unit: "d" }],
+    ["30 DEC 1938", "2 JAN 1939", { n: 3, unit: "d" }],
+    ["APR 1939", "JUN 1939", { n: 2, unit: "m" }],
+    ["APR 1939", "APR 1939", null], // same month, no days: cannot tell
+    ["1939", "1939", null],
+    ["12 MAR 1939", "1939", null],
+    ["ABT 7 APR 1939", "9 APR 1939", null],
+    ["7 APR 1939", "BEF 9 APR 1939", null],
+    ["7 APR 1939", "6 APR 1939", null], // baptism before birth
+    ["7 APR 1939", "7 MAR 1939", null],
+    ["", "1939", null],
+  ])("age %s → %s", (from, to, age) => {
+    expect(ageBetween(from, to)).toEqual(age);
+  });
+
+  test("an age is written with the short units of a language", () => {
+    const sk = { y: "r.", m: "mes.", d: "d." };
+    expect(formatAge({ n: 79, unit: "y" }, sk)).toBe("79 r.");
+    expect(formatAge({ n: 5, unit: "m" }, sk)).toBe("5 mes.");
+    expect(formatAge({ n: 12, unit: "d" }, sk)).toBe("12 d.");
   });
 
   test("date parts", () => {
@@ -76,10 +105,10 @@ test("a life in date order, undated events after the one before them", () => {
   const items = timeline(data, "@I1@", personFields(rec));
   expect(items.map((i) => [i.kind, i.date, i.age, i.other])).toEqual([
     ["birth", "7 APR 1900", null, null],
-    ["marriage", "OCT 1922", 22, "@I2@"],
-    ["child", "1925", 25, "@I3@"],
+    ["marriage", "OCT 1922", { n: 22, unit: "y" }, "@I2@"],
+    ["child", "1925", { n: 25, unit: "y" }, "@I3@"],
     ["child", "", null, "@I4@"],
-    ["marriage", "1930", 30, "@I5@"],
+    ["marriage", "1930", { n: 30, unit: "y" }, "@I5@"],
     ["death", "", null, null],
   ]);
   expect(items[0].place).toBe("Greenfield");
@@ -153,7 +182,7 @@ describe("residences and custom events", () => {
       ["event", "", "", "military", ""],
       ["residence", "", "", "", ""],
     ]);
-    expect(items[1].age).toBe(25);
+    expect(items[1].age).toEqual({ n: 25, unit: "y" });
   });
 
   test("keep their line, so its notes can be read; empty lines are skipped", () => {

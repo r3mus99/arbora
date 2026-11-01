@@ -9,7 +9,7 @@ import { recordInfo } from "../core/info";
 import { mapUrl, municipality } from "../core/places";
 import { nameDetails } from "../core/names";
 import { personAttributes, type Attribute } from "../core/facts";
-import { dateParts, yearsBetween } from "../core/date";
+import { dateParts, formatAge, yearsBetween } from "../core/date";
 import { fmt, formatDate } from "../core/format";
 import { childOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
@@ -334,7 +334,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, rootId, starre
                 </div> : null}
                 <div className="tl-what">
                   {label(e.kind, !!e.date, e.other, e.title, e.tag)}
-                  {e.age !== null && <span> · {fmt(t("ageAt"), { n: e.age })}</span>}
+                  {e.age !== null && <span> · {fmt(t("ageAt"), { n: formatAge(e.age, TEXTS[lang].ageUnits) })}</span>}
                   {e.detail && <> · {e.detail}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
                   {e.coords && <a className="map-link" href={mapUrl(e.coords)} target="_blank" rel="noopener noreferrer"

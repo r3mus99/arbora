@@ -10,7 +10,7 @@
 import type { GedcomData, Person } from "./gedcom";
 import { formatDMY, formatDate, formatEvent, formatPlace, residencePlace, type ChartOptions } from "./format";
 import { normalize } from "./chart";
-import { yearOf } from "./date";
+import { ageBetween, formatAge, yearOf } from "./date";
 import { TEXTS } from "./texts";
 import { CORNER_HEAD_H, CORNER_HEAD_SIZE, CORNER_LABEL_SIZE, CORNER_PAD, CORNER_STEP, CORNER_VALUE_SIZE, cornerBlocks, cornerHeight, type CornerKey } from "./posterCorners";
 import type { PosterFonts } from "./posterFont";
@@ -767,9 +767,9 @@ function plateLines(plate: Plate, p: Person, o: ChartOptions, measure: PosterFon
   const C = POSTER_COLORS;
   const name = p.name || "?";
   const noPlaces = { ...o, showPlaces: false };
-  // the age is only known (and worth printing) when both years are
-  const by = yearOf(p.birth?.date), dy = yearOf(p.death?.date);
-  const age = by !== null && dy !== null && dy >= by && dy - by < 130 ? `, ${dy - by} ${TEXTS[o.lang].ageAbbr}` : "";
+  // the age is only known (and worth printing) when both years are; a baby gets months or days
+  const ageAtDeath = ageBetween(p.birth?.date, p.death?.date);
+  const age = ageAtDeath && (ageAtDeath.unit !== "y" || ageAtDeath.n < 130) ? `, ${formatAge(ageAtDeath, TEXTS[o.lang].ageUnits)}` : "";
   const dateParts: [string, string][] = [[formatEvent("birt", p.birth, noPlaces), C.birth], [formatEvent("deat", p.death, noPlaces) && formatEvent("deat", p.death, noPlaces) + age, C.death]];
   const parts = dateParts.filter(([t]) => t);
   const dates = parts.map(([t]) => t).join("  ");

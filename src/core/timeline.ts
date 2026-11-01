@@ -1,6 +1,6 @@
 /** The events of one person's life in order: birth, marriages, children born, death, … */
 
-import { dateParts, yearsBetween } from "./date";
+import { ageBetween, dateParts, yearsBetween, type Age } from "./date";
 import type { EventFields, PersonFields } from "./edit";
 import { placeCoords, type Coords } from "./places";
 import { childOf, type GedNode, type GedcomData } from "./gedcom";
@@ -12,8 +12,8 @@ export interface TimelineItem {
   kind: TimelineKind;
   date: string;
   place: string;
-  /** the person's age at the event, when both dates tell it */
-  age: number | null;
+  /** the person's age at the event (years, months when under a year, days when under a month), when both dates tell it */
+  age: Age | null;
   /** the spouse of a marriage or the child born */
   other: string | null;
   /** a marriage that ended in divorce */
@@ -98,7 +98,7 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     if (!always && !(e && (e.date || e.place))) return;
     const date = e?.date || "";
     items.push({ kind, date, place: e?.place || "", key, other, divorced,
-                 age: kind === "birth" || !date ? null : yearsBetween(birthDate, date) });
+                 age: kind === "birth" || !date ? null : ageBetween(birthDate, date) });
   };
 
   add("birth", fields ? fields.birth : p.birth, "birth");
