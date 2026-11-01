@@ -741,7 +741,7 @@ export function App() {
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
                 <SourcesPanel key={selectedId ?? ""} overview={srcOverview} data={data} onPerson={(id) => pick(id)} personId={selectedId} t={t}
                               onSave={(xref, f) => { if (doc) replaceRecords(setSourceFields(doc.records, xref, f)); }}
-                              onCite={(xref, person, event) => { if (doc) replaceRecords(addSourceCitation(doc.records, xref, person, event)); }} />
+                              onCite={(xref, person, event, family) => { if (doc) replaceRecords(addSourceCitation(doc.records, xref, person, event, family)); }} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
