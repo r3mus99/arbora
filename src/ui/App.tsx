@@ -11,7 +11,7 @@ import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { addFamily, addPerson, appended, deleteFamily, deletePerson, freeXref } from "../core/structure";
 import { mergePeople, type MergePick } from "../core/merge";
 import { outputFileName } from "../core/fileName";
-import { decode, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
+import { childOf, decode, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceChoices, sourceOverview } from "../core/sources";
 import { placeOverview } from "../core/placelist";
@@ -32,6 +32,7 @@ import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./t
 import { Overview } from "./Overview";
 import { SourcesPanel } from "./SourcesPanel";
 import { applySourceRenames, sourceRenames } from "../core/sourceTitles";
+import { SourceEditContext } from "./Sources";
 import { PlacesPanel } from "./PlacesPanel";
 import { buildPoster, posterSvg } from "../core/poster";
 import { buildDescendantsPoster } from "../core/posterDescendants";
@@ -383,7 +384,12 @@ export function App() {
   const stats = useMemo(() => (doc && data && showOverview ? overview(doc.records, data) : null), [doc, data, showOverview]);
   const placeList = useMemo(() => (doc && showPlaces ? placeOverview(doc.records) : null), [doc, showPlaces]);
   const sourceList = useMemo(() => (windowId && doc ? sourceChoices(doc.records) : []), [windowId, doc]);
-  const srcRenames = useMemo(() => (doc && showSources ? sourceRenames(doc.records, lang, (id) => data?.people[id]?.name ?? "") : []), [doc, showSources, lang, data]);
+  // the name each source would get now, where it differs from its title (person-only sources are not offered)
+  const srcSuggested = useMemo(() => new Map(doc ? sourceRenames(doc.records, lang, (id) => data?.people[id]?.name ?? "").filter((r) => !r.weak).map((r) => [r.xref, r.to]) : []), [doc, lang, data]);
+  const srcEdit = useMemo(() => ({ suggested: srcSuggested, rename: (xref: string, title: string) => {
+    const rec = doc?.records.find((r) => r.xref === xref);
+    if (doc && rec) replaceRecords(applySourceRenames(doc.records, [{ xref, from: childOf(rec, "TITL")?.value.trim() ?? "", to: title, weak: false }]));
+  } }), [srcSuggested, doc]);
   const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);
   // the list closes once everything is fixed
 
@@ -747,8 +753,7 @@ export function App() {
                 <PlacesPanel places={placeList} data={data} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
-                <SourcesPanel overview={srcOverview} data={data} onPerson={(id) => pick(id)} renames={srcRenames} t={t}
-                              onRename={(list) => doc && replaceRecords(applySourceRenames(doc.records, list))} />
+                <SourcesPanel overview={srcOverview} data={data} onPerson={(id) => pick(id)} t={t} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={focusId} scrollKey={scrollKey}
@@ -783,11 +788,11 @@ export function App() {
                         onFocus={(id) => id === focusId ? deselect() : focus(id, false)} onToggle={toggle}
                         onJump={(r) => jump(r.targetIndex)} t={t} />
             </div>}
-            {focusId && <PersonDetail key={focusId} data={data} id={focusId} starred={favourites.has(focusId)}
+            {focusId && <SourceEditContext.Provider value={srcEdit}><PersonDetail key={focusId} data={data} id={focusId} starred={favourites.has(focusId)}
                                       onStar={() => star(focusId)} homeId={homeId} onSetHome={setHome}
                                       record={recordOf.get(focusId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(focusId) || []} rootId={chosen.id} lang={lang}
                                       onFocus={(id) => focus(id, true)} onMakeRoot={makeRoot} onChange={commit} suggest={suggest}
-                                      onEdit={() => setWindowId(focusId)} onBack={deselect} t={t} />}
+                                      onEdit={() => setWindowId(focusId)} onBack={deselect} t={t} /></SourceEditContext.Provider>}
             </>}
         </div>}
       </section>

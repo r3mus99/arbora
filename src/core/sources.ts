@@ -6,6 +6,8 @@ import { OWN_EVENT_TAGS } from "./timeline";
 
 /** a source citation with what the cited source record says about itself */
 export interface Citation {
+  /** the source record the citation points to; "" for a citation written as text */
+  xref: string;
   title: string;
   author: string;
   publication: string;
@@ -52,6 +54,7 @@ function citation(cite: GedNode, lookup: Lookup): Citation {
   const repoRec = repo && isLink(repo.value) ? lookup(repo.value) : undefined;
   const data = childOf(cite, "DATA");
   return {
+    xref: rec ? cite.value : "",
     // a citation with a text instead of a pointer is its own title
     title: rec ? valueOf(rec, "TITL") || valueOf(rec, "ABBR") || cite.value : cite.value,
     author: valueOf(rec || null, "AUTH"),
