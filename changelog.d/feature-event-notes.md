@@ -1,0 +1,1 @@
+- **Notes under events can be edited.** The Details of a birth, christening, death, burial, other event, marriage or divorce now has a multi-line Note field; a link to a shared note record is left untouched.

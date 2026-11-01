@@ -256,7 +256,7 @@ describe("attributes of a person", () => {
 describe("events of a person", () => {
   const ged = (extra: string) => `0 HEAD\n0 @I1@ INDI\n1 NAME Anna /Test/\n1 SEX F\n1 BIRT\n2 DATE 1 JAN 1900\n${extra}1 NOTE n\n0 TRLR\n`;
   const load = (text: string) => parseGedcom(text).find((c) => c.tag === "INDI")!;
-  const none = { age: "", cause: "", agency: "" };
+  const none = { age: "", cause: "", agency: "", note: "" };
 
   test("offers residence first as the default event", () => {
     expect(OTHER_EVENT_TAGS[0]).toBe("RESI");
@@ -265,7 +265,7 @@ describe("events of a person", () => {
   test("adds details to a birth in the usual order and removes them again", () => {
     const rec = load(ged(""));
     const f = personFields(rec);
-    const withD = applyPerson(rec, f, { ...f, details: { ...f.details, birth: { age: "0", cause: "", agency: "Parish" } } });
+    const withD = applyPerson(rec, f, { ...f, details: { ...f.details, birth: { age: "0", cause: "", agency: "Parish", note: "" } } });
     expect(withD.children[2].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1 JAN 1900", "AGE 0", "AGNC Parish"]);
     const back = applyPerson(withD, personFields(withD), { ...personFields(withD), details: { ...f.details, birth: none } });
     expect(rest(back, [])).toEqual(rest(rec, []));
@@ -407,7 +407,7 @@ describe("marriage and divorce details of a family", () => {
 
   test("sets the date, place and details of the divorce under DIV Y", () => {
     const r = rec(), f = familyFields(r);
-    const out = applyFamily(r, f, { ...f, divorce: { date: "1910", place: "Town" }, details: { ...f.details, divorce: { age: "", cause: "x", agency: "" } } });
+    const out = applyFamily(r, f, { ...f, divorce: { date: "1910", place: "Town" }, details: { ...f.details, divorce: { age: "", cause: "x", agency: "", note: "" } } });
     expect(writeGedcom([out])).toBe("0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 MARR\n2 DATE 1900\n1 DIV Y\n2 DATE 1910\n2 PLAC Town\n2 CAUS x\n1 CHIL @I3@\n");
     expect(writeGedcom([applyFamily(out, familyFields(out), f)])).toBe(text);
   });
@@ -421,7 +421,7 @@ describe("marriage and divorce details of a family", () => {
 
   test("age, cause and agency of the marriage", () => {
     const r = rec(), f = familyFields(r);
-    const out = applyFamily(r, f, { ...f, details: { ...f.details, marriage: { age: "", cause: "", agency: "Parish" } } });
+    const out = applyFamily(r, f, { ...f, details: { ...f.details, marriage: { age: "", cause: "", agency: "Parish", note: "" } } });
     expect(out.children[2].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1900", "AGNC Parish"]);
     expect(applyFamily(r, f, { ...f, divorce: { ...f.divorce } })).toBe(r);
   });
@@ -611,5 +611,89 @@ describe("restriction, contacts and reference numbers of a person", () => {
     const g = personFields(out);
     const back = applyPerson(out, g, { ...g, restriction: "", afn: "", rfn: "", contacts: g.contacts.slice(0, 2), references: g.references.slice(0, 1) });
     expect(lines(back)).toEqual(lines(r));
+  });
+});
+
+describe("notes under events", () => {
+  const ged = `0 HEAD
+0 @N1@ NOTE Shared note
+0 @I1@ INDI
+1 NAME Anna /Test/
+1 DEAT
+2 DATE 1 JAN 1950
+2 NOTE Derived from the burial date
+3 CONT second line
+2 NOTE @N1@
+1 BIRT
+2 DATE 1 JAN 1900
+2 NOTE @N1@
+1 RESI
+2 PLAC Town
+1 FAMS @F1@
+0 @F1@ FAM
+1 HUSB @I1@
+1 MARR
+2 DATE 1920
+0 TRLR
+`;
+  const recs = parseGedcom(ged);
+  const rec = recs.find((r) => r.xref === "@I1@")!;
+  const fam = recs.find((r) => r.xref === "@F1@")!;
+  const out = (changed: GedNode, orig: GedNode) => writeGedcom(recs.map((r) => (r === orig ? changed : r)));
+
+  test("reads the text note and ignores a pointer", () => {
+    const f = personFields(rec);
+    expect(f.details.death.note).toBe("Derived from the burial date\nsecond line");
+    expect(f.details.birth.note).toBe("");
+  });
+
+  test("an unchanged record is written back byte-identical", () => {
+    const f = personFields(rec);
+    expect(applyPerson(rec, f, f)).toBe(rec);
+    expect(out(rec, rec)).toBe(ged.replace(/\n$/, "\n"));
+  });
+
+  test("edits the note, keeps the pointer, writes CONT lines", () => {
+    const f = personFields(rec);
+    const c = applyPerson(rec, f, { ...f, details: { ...f.details, death: { ...f.details.death, note: "New text\nline two" } } });
+    const text = out(c, rec);
+    expect(text).toContain("2 NOTE New text\n3 CONT line two\n2 NOTE @N1@");
+    expect(text).not.toContain("Derived from");
+    expect(personFields(parseGedcom(text).find((r) => r.xref === "@I1@")!).details.death.note).toBe("New text\nline two");
+  });
+
+  test("removing the note leaves the pointer; removing the last line keeps the event", () => {
+    const f = personFields(rec);
+    const c = applyPerson(rec, f, { ...f, details: { ...f.details, death: { ...f.details.death, note: "  " } } });
+    expect(out(c, rec)).toContain("1 DEAT\n2 DATE 1 JAN 1950\n2 NOTE @N1@\n");
+  });
+
+  test("a note is added next to a pointer, before sources", () => {
+    const f = personFields(rec);
+    const c = applyPerson(rec, f, { ...f, details: { ...f.details, birth: { ...f.details.birth, note: "Own text" } } });
+    expect(out(c, rec)).toContain("1 BIRT\n2 DATE 1 JAN 1900\n2 NOTE @N1@\n2 NOTE Own text\n");
+  });
+
+  test("a note on a new event and on an event without lines", () => {
+    const f = personFields(rec);
+    const c = applyPerson(rec, f, { ...f, details: { ...f.details, burial: { age: "", cause: "", agency: "", note: "Buried quietly" } } });
+    expect(out(c, rec)).toContain("1 BURI\n2 NOTE Buried quietly\n");
+    const r = applyPerson(rec, f, { ...f, events: f.events.map((e) => ({ ...e, note: "At the mill" })) });
+    expect(out(r, rec)).toContain("1 RESI\n2 PLAC Town\n2 NOTE At the mill\n");
+  });
+
+  test("a long note is split into CONC pieces and read back whole", () => {
+    const f = personFields(rec);
+    const long = "word ".repeat(80).trim();
+    const text = out(applyPerson(rec, f, { ...f, details: { ...f.details, birth: { ...f.details.birth, note: long } } }), rec);
+    expect(text).toContain("CONC");
+    expect(personFields(parseGedcom(text).find((r) => r.xref === "@I1@")!).details.birth.note).toBe(long);
+  });
+
+  test("marriage note", () => {
+    const f = familyFields(fam);
+    const c = applyFamily(fam, f, { ...f, details: { ...f.details, marriage: { ...f.details.marriage, note: "Witnessed by a priest" } } });
+    expect(out(c, fam)).toContain("1 MARR\n2 DATE 1920\n2 NOTE Witnessed by a priest\n");
+    expect(applyFamily(fam, f, f)).toBe(fam);
   });
 });
