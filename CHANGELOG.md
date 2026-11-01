@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.96.2 – 2026-11-01
+
+- **The back and forward history through viewed people is gone.** Alt+← / Alt+→ no longer step through earlier people; undo and redo of edits are unchanged.
+
+- **Keyboard shortcuts are gone.** Undo, redo, save, search and settings are reached with their buttons only; a text field keeps its own undo, and the browser keeps its keys.
+
 ## 2.96.1 – 2026-11-01
 
 - **The map link is gone.** Events no longer show a pin that opened the place on a map; the places in the file, including any coordinates, are kept untouched.

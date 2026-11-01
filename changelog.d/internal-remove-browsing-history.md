@@ -1,1 +1,0 @@
-- **The back and forward history through viewed people is gone.** Alt+← / Alt+→ no longer step through earlier people; undo and redo of edits are unchanged.
