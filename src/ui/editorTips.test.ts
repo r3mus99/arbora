@@ -3,7 +3,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
 import { suggestions } from "../core/edit";
 import { parseGedcom, readRecords } from "../core/gedcom";
-import { sourceChoices } from "../core/sources";
 import { STRINGS, type StringKey } from "./i18n";
 import { PersonEditor } from "./PersonEditor";
 
@@ -109,11 +108,11 @@ describe("tooltips of the edit window", () => {
   const t = (key: StringKey) => STRINGS.en[key] ?? key;
   const html = renderToStaticMarkup(createElement(PersonEditor, {
     data, record: find("@I1@"), families: [find("@F1@")], lang: "en", suggest: suggestions(records),
-    recordOf: find, sources: sourceChoices(records), onSave: () => {}, allocate: () => "@I1@", onCancel: () => {}, onDirty: () => {}, t,
+    recordOf: find, onSave: () => {}, allocate: () => "@I1@", onCancel: () => {}, onDirty: () => {}, t,
   }));
 
   test("the fixture shows the whole form", () => {
-    for (const word of ["Teacher", "Medal", "godfather", "Parish book", "a@b.test", "1A"]) expect(html).toContain(word);
+    for (const word of ["Teacher", "Medal", "godfather", "a@b.test", "1A"]) expect(html).toContain(word);
     expect((html.match(fields) || []).length).toBeGreaterThan(40);
   });
 

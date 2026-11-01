@@ -1,12 +1,11 @@
-import { Hash, Phone, ArrowDownUp, Baby, BookMarked, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Tag, Tags, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { Hash, Phone, ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Tag, Tags, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   CONTACT_TAGS, OTHER_EVENT_TAGS, PEDIGREES, RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
-  type Alias, type AssocRow, type AttributeRow, type CitationRow, citationsWithoutSource, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
+  type Alias, type AssocRow, type AttributeRow, type ContactRow, type ReferenceRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
-import { matchSources, sourceTitle, type SourceChoice } from "../core/sources";
 import type { Lang } from "../core/texts";
 import { surnameForSex, surnamesFor } from "../core/surnames";
 import { ATTRIBUTE_TAGS } from "../core/facts";
@@ -25,8 +24,6 @@ interface Props {
   suggest: Suggestions;
   /** the record of a person in the file, to change the links of the family members */
   recordOf: (id: string) => GedNode | undefined;
-  /** the source records of the file, offered when citing a source */
-  sources: SourceChoice[];
   /** changed records only; nothing when nothing changed. `added` are the new people made in the form (new children) */
   onSave: (changed: GedNode[], added?: GedNode[]) => void;
   /** a free ID for a new person; `pending` are the IDs given out in this form and not saved yet */
@@ -97,31 +94,6 @@ function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnP
   </label>;
 }
 
-/** Citing a source: type to find one of the file (a few matches only), or write the text of a new one. */
-function SourcePick({ choices, value, label, tip, invalid, onChange }: { choices: SourceChoice[]; value: string; label: string; tip: string; invalid?: boolean; onChange: (value: string) => void }) {
-  const list = useId();
-  const shown = /^@[^@]+@$/.test(value) ? choices.find((s) => s.xref === value)?.title ?? value : value;
-  const [text, setText] = useState(shown);
-  const options = useMemo(() => matchSources(choices, text), [choices, text]);
-  const change = (typed: string) => {
-    setText(typed);
-    const hit = choices.find((s) => s.title === typed);
-    onChange(hit ? hit.xref : typed);
-  };
-  // always a visible field, like every other field of the form
-  return <>
-    <input className={invalid ? "fill invalid" : "fill"} type="text" value={text} list={list} autoComplete="off" aria-label={label} placeholder={label} title={tip} aria-invalid={invalid || undefined}
-           onChange={(e) => change(e.target.value)} />
-    <datalist id={list}>{options.map((s) => <option key={s.xref} value={s.title} />)}</datalist>
-  </>;
-}
-
-/** a text with its web links made clickable */
-function withLinks(text: string): ReactNode[] {
-  return text.split(/(https?:\/\/[^\s<>"]+)/g).map((part, i) => i % 2
-    ? <a key={i} href={part} target="_blank" rel="noopener noreferrer">{part}</a> : part);
-}
-
 /** the form's id, so the icon buttons in the detail header can submit it */
 /** the parts that are open when the window opens: the ones edited most often; the others are collapsed */
 export const OPEN_AT_START = new Set<string>(["name", "events"]);
@@ -153,7 +125,6 @@ export function SuggestLists({ suggest, lang }: { suggest: Suggest; lang: Lang }
   </>;
 }
 
-const QUALITY = ["3", "2", "1", "0"];
 const NO_DETAILS: EventDetailFields = { age: "", cause: "", agency: "", note: "" };
 const DETAILS: [Exclude<keyof EventDetailFields, "note">, StringKey, StringKey][] = [["age", "detAge", "tipAge"], ["cause", "detCause", "tipCause"], ["agency", "detAgency", "tipAgency"]];
 /** the names of the other events, as in the timeline */
@@ -177,7 +148,7 @@ export function diffCount(a: unknown, b: unknown): number {
 }
 
 /** Form for the facts of one person and of their marriages. */
-export function PersonEditor({ data, record, families, lang, suggest, recordOf, sources, onSave, allocate, onCancel, open, onToggleSection, onAddFamily, onDeleteFamily, onDirty, t }: Props) {
+export function PersonEditor({ data, record, families, lang, suggest, recordOf, onSave, allocate, onCancel, open, onToggleSection, onAddFamily, onDeleteFamily, onDirty, t }: Props) {
   const [initial] = useState(() => {
     const f = personFields(record);
     const shown = { ...f };
@@ -331,58 +302,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     set("contacts", form.contacts.map((c, j) => (j === i ? { ...c, ...patch } : c)));
   const setRef = (i: number, patch: Partial<ReferenceRow>) =>
     set("references", form.references.map((r, j) => (j === i ? { ...r, ...patch } : r)));
-  /** the source citations of the person or of one event: a source from the list (or the text of a citation), the page or web link, the quality */
-  const citeRows = (rows: CitationRow[], setRows: (rows: CitationRow[]) => void, idp: string) => {
-    const patchRow = (i: number, patch: Partial<CitationRow>) => setRows(rows.map((c, j) => (j === i ? { ...c, ...patch } : c)));
-    /** what the cited source record says about itself (its publication line, usually the web link) */
-    const info = (source: string) => (/^@[^@]+@$/.test(source) ? sources.find((s) => s.xref === source)?.detail ?? "" : "");
-    return rows.map((c, i) => {
-      const id = `${idp}${c.origin < 0 ? `new${i}` : c.origin}`;
-      /** the details (page, quality) stay folded until the user opens them, even when filled */
-      const detailsShown = openDetails.includes(id) && !closed.includes(id);
-      return <div className="cite-card" key={id}>
-        <div className="item-head">
-          <SourcePick choices={sources} value={c.source} label={t("sources")} tip={t("tipSource")} invalid={askSource && citationsWithoutSource([c]).length > 0} onChange={(v) => patchRow(i, { source: v })} />
-          <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                  onClick={() => setRows(rows.filter((_, j) => j !== i))}>
-            <Trash2 className="icon" aria-hidden="true" /></button>
-        </div>
-        {askSource && citationsWithoutSource([c]).length > 0 && <div className="cite-info cite-missing" role="alert">{t("citationNeedsSource")}</div>}
-        {(info(c.source) || c.note) && <div className="cite-info">
-          {info(c.source) && <div>{withLinks(info(c.source))}</div>}
-          {c.note && <div>{withLinks(c.note)}</div>}
-        </div>}
-        {revealBtn(id, detailsShown, t("eventDetails"), t("tipCitationDetails"))}
-        {detailsShown &&
-          <div className="pair">
-            <label title={t("tipPage")} data-cap={t("srcPage")}><input placeholder={t("srcPage")} aria-label={t("srcPage")} type="text" autoComplete="off" value={c.page} onChange={(e) => { pin(id); patchRow(i, { page: e.target.value }); }} /></label>
-            <label title={t("tipQuality")}><span>{t("quality")}</span>
-              <select value={c.quality} onChange={(e) => { pin(id); patchRow(i, { quality: e.target.value }); }}>
-                <option value="">–</option>
-                {QUALITY.map((q) => <option key={q} value={q}>{t(`quality${q}` as StringKey)}</option>)}
-              </select></label>
-          </div>}
-      </div>;
-    });
-  };
-  /** a new citation under an event is named after it, e.g. "Marriage Jan Novak & Eva Novak"; an existing source of that name is cited instead of a duplicate */
-  const newCite = (title = ""): CitationRow => ({ origin: -1, source: sources.find((s) => s.title === title)?.xref ?? title, page: "", quality: "" });
-  const myName = () => `${form.given} ${form.surname}`.trim() || data.people[record.xref ?? ""]?.name || "";
-  const citeTitle = (event: string, ...names: string[]) => sourceTitle(lang, event, ...names);
-  const marriageNames = (f: FamilyFields) => [f.husb, f.wife].map((id) => (id === record.xref ? myName() : data.people[id]?.name ?? ""));
-  /** the citations under one of the four fixed events, with the button that adds one */
-  const eventCites = (key: (typeof PERSON_EVENTS)[number]) =>
-    addCites(form.eventCitations[key], (r) => set("eventCitations", { ...form.eventCitations, [key]: r }), `ec${key}`, citeTitle(key, myName()));
-  const addCites = (rows: CitationRow[], setRows: (r: CitationRow[]) => void, idp: string, title = "") => {
-    return <>{citeRows(rows, setRows, idp)}
-      <div className="full cite-add"><button type="button" className="head-act" onClick={() => setRows([...rows, newCite(title)])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div></>;
-  };
   const setAlias = (i: number, patch: Partial<Alias>) =>
     set("aliases", form.aliases.map((a, j) => (j === i ? { ...a, ...patch } : a)));
   const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}, divorce: Partial<EventFields> = {}) =>
     setFams(fams.map((f, j) => (j === i ? { ...f, ...patch, marriage: { ...f.marriage, ...marriage }, divorce: { ...f.divorce, ...divorce } } : f)));
-  const famCites = (i: number, key: "marriage" | "divorce") =>
-    addCites(fams[i].citations[key], (r) => setFam(i, { citations: { ...fams[i].citations, [key]: r } }), `fc${key}${i}`, citeTitle(key, ...marriageNames(fams[i])));
   const setFamDetails = (i: number, key: "marriage" | "divorce", patch: Partial<EventDetailFields>) =>
     setFam(i, { details: { ...fams[i].details, [key]: { ...fams[i].details[key], ...patch } } });
   const event = (key: (typeof PERSON_EVENTS)[number]) => {
@@ -405,7 +328,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {key === "christening" && <label className="full" title={t("tipReligion")} data-cap={t("religion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
       {details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
-      {eventCites(key)}
     </fieldset>;
   };
   /** christening and burial are listed among the other events, as rows that keep their own fields */
@@ -432,7 +354,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {key === "christening" && <label className="full" title={t("tipReligion")} data-cap={t("religion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
       {details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
-      {eventCites(key)}
     </div></fieldset>;
   };
   /** the place of a residence of the parents, the father's first; empty when they have none in the file */
@@ -478,12 +399,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   };
   /** Save also keeps a new person that is filled in but not added yet: it is added first, and the form is saved once that has landed in the state */
   const [saveQueued, setSaveQueued] = useState(false);
-  /** a citation with a page or link but no source would be dropped on Save: Save waits and the rows ask for the source */
-  const [askSource, setAskSource] = useState(false);
-  const missingSource = () => [form.citations, ...Object.values(form.eventCitations), ...form.events.map((e) => e.citations),
-    ...fams.flatMap((f) => [f.citations.marriage, f.citations.divorce])].some((rows) => citationsWithoutSource(rows).length > 0);
   const saveAll = () => {
-    if (missingSource()) { setAskSource(true); return; }
     if (kid?.given.trim()) { addKid(); setSaveQueued(true); } else save();
   };
   useEffect(() => { if (saveQueued) { setSaveQueued(false); save(); } }, [saveQueued]);
@@ -688,8 +604,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             <label title={t(e.tag === "RESI" ? "resiPlaceHint" : "tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={e.place} list={PLACES}
                      onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
             {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
-            {citeRows(e.citations, (r) => setEv(i, { citations: r }), `eo${rowId(e, i)}-`)}
-            <div className="full cite-add"><button type="button" className="head-act" onClick={() => setEv(i, { citations: [...e.citations, newCite(citeTitle(t(OTHER_LABEL[e.tag]), myName()))] })}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button></div>
           </div>
         ))}
       </fieldset>
@@ -736,7 +650,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                            onChange={(e) => setFamDetails(i, "marriage", { [k]: e.target.value })} /></label>)}
                 </div>
                 {eventNote(f.details.marriage.note, (note) => setFamDetails(i, "marriage", { note }))}
-                {famCites(i, "marriage")}
                 <label className="check" title={t("tipDivorced")}><input type="checkbox" role="switch" checked={f.divorced}
                          onChange={(e) => setFam(i, { divorced: e.target.checked })} />
                   <span>{t("divorcedLabel")}</span></label>
@@ -747,7 +660,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                   <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={f.divorce.place} list={PLACES}
                            onChange={(e) => setFam(i, {}, {}, { place: e.target.value })} /></label>
                   {details(`d${r.xref}`, f.details.divorce, (patch) => setFamDetails(i, "divorce", patch))}
-                  {famCites(i, "divorce")}
                 </fieldset>}
               </>}
             </>;
@@ -871,10 +783,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </>)}
       {section("notes", <>
       <label title={t("tipNote")} data-cap={t("note")}><textarea autoComplete="off" placeholder={t("note")} aria-label={t("note")} rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
-      <fieldset className="list">
-        <legend>{ico(BookMarked)}{t("sources")}{acts(<button type="button" className="head-act" onClick={() => set("citations", [...form.citations, newCite(citeTitle("person", myName()))])}><Plus className="icon" aria-hidden="true" />{t("addCitation")}</button>)}</legend>
-        {citeRows(form.citations, (r) => set("citations", r), "ci")}
-      </fieldset>
       </>)}
       {section("other", <>
       {hidable("pRestr", !!form.restriction, t("restriction"), t("tipRestriction"),
