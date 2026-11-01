@@ -3,7 +3,6 @@ import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from "re
 import type { GedNode, GedcomData } from "../core/gedcom";
 import type { Lang } from "../core/texts";
 import type { Suggestions } from "../core/edit";
-import type { SourceChoice } from "../core/sources";
 import { mayClose } from "./editWindow";
 import type { StringKey } from "./i18n";
 import { MergePanel } from "./MergePanel";
@@ -21,7 +20,6 @@ interface Props {
   lang: Lang;
   suggest: Suggestions;
   recordOf: (id: string) => GedNode | undefined;
-  sources: SourceChoice[];
   /** the changed records (one undo step); the window closes after it */
   onSave: (changed: GedNode[], added?: GedNode[]) => void;
   /** a free ID for a new person, given the IDs already given out in the form */
@@ -46,7 +44,7 @@ interface Props {
  * the tree stays visible on the left; the pencil in the person detail opens it. The form is split into the parts of
  * a person (name, basic facts, events, …); Esc, the X and Cancel ask before they drop changes.
  */
-export function EditWindow({ data, name, record, families, lang, suggest, recordOf, sources, onSave, allocate, onClose, onDeletePerson, records, onMerge, onAddFamily, onDeleteFamily, t, hidden }: Props) {
+export function EditWindow({ data, name, record, families, lang, suggest, recordOf, onSave, allocate, onClose, onDeletePerson, records, onMerge, onAddFamily, onDeleteFamily, t, hidden }: Props) {
   const [changes, setChanges] = useState(0);
   const dirty = changes > 0;
   const [merging, setMerging] = useState(false);
@@ -79,7 +77,7 @@ export function EditWindow({ data, name, record, families, lang, suggest, record
         </div>
       </PanelHead>
       <div className="panel-body edit-body" ref={body} onScroll={(e) => { scrolled.current = e.currentTarget.scrollTop; }}>
-        {merging ? <MergePanel data={data} records={records} keepId={record.xref!} lang={lang} onMerge={onMerge} onCancel={() => setMerging(false)} t={t} /> : <PersonEditor key={formKey} open={open} onToggleSection={setOpen} data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf} sources={sources}
+        {merging ? <MergePanel data={data} records={records} keepId={record.xref!} lang={lang} onMerge={onMerge} onCancel={() => setMerging(false)} t={t} /> : <PersonEditor key={formKey} open={open} onToggleSection={setOpen} data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf}
                       onSave={onSave} allocate={allocate} onCancel={close} onAddFamily={onAddFamily} onDeleteFamily={onDeleteFamily} onDirty={setChanges} t={t} />}
       </div>
       {!merging && <div className="edit-foot">
