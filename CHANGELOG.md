@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.93.1 – 2026-11-01
+
+- **The bulk rename of sources is gone.** The Sources list no longer offers to rename all sources at once; a single source is still renamed from the Sources panel.
+
 ## 2.93.0 – 2026-11-01
 
 - **The bulk spelling fix is gone.** The Bulk fix tool (its toolbar icon, the groups of spellings of surnames, given names and places, and the country-name translations behind it) was removed to keep Arbora simple. The file check, the overview and the edit window are unchanged, and no data in a file is touched.
