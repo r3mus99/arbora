@@ -102,19 +102,16 @@ function SourcePick({ choices, value, label, tip, invalid, onChange }: { choices
   const list = useId();
   const shown = /^@[^@]+@$/.test(value) ? choices.find((s) => s.xref === value)?.title ?? value : value;
   const [text, setText] = useState(shown);
-  const [editing, setEditing] = useState(!shown);
   const options = useMemo(() => matchSources(choices, text), [choices, text]);
   const change = (typed: string) => {
     setText(typed);
     const hit = choices.find((s) => s.title === typed);
     onChange(hit ? hit.xref : typed);
   };
-  // a chosen source reads as wrapped text, so a long title is never cut; a click or the keyboard turns it into the search field
-  if (!editing) return <div className="cite-title" role="button" tabIndex={0} title={tip} aria-label={`${label}: ${text}`}
-    onClick={() => setEditing(true)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setEditing(true); } }}>{text}</div>;
+  // always a visible field, like every other field of the form
   return <>
-    <input className={invalid ? "fill invalid" : "fill"} type="text" value={text} list={list} autoComplete="off" aria-label={label} placeholder={label} title={tip} autoFocus={!!text} aria-invalid={invalid || undefined}
-           onBlur={() => { if (text.trim()) setEditing(false); }} onChange={(e) => change(e.target.value)} />
+    <input className={invalid ? "fill invalid" : "fill"} type="text" value={text} list={list} autoComplete="off" aria-label={label} placeholder={label} title={tip} aria-invalid={invalid || undefined}
+           onChange={(e) => change(e.target.value)} />
     <datalist id={list}>{options.map((s) => <option key={s.xref} value={s.title} />)}</datalist>
   </>;
 }
