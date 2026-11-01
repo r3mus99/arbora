@@ -62,7 +62,7 @@ export function surnameJudge(people: { surname: string; sex: string }[]): (surna
       const fix = v.fixes.map((f) => known.get(f.toLowerCase())).find((f) => f && f !== surname) || "";
       // a woman with a plain consonant surname is flagged only when her form is there; the rest could be a foreign name
       if (sex === "F" && !fix && !surname.toLowerCase().endsWith("ý")) continue;
-      return { wrong: true, fix: fix || (sex === "F" && /ý$/i.test(surname) ? v.fixes[0] : "") };
+      return { wrong: true, fix: fix || (sex === "F" && surname.toLowerCase().endsWith("ý") ? v.fixes[0] : "") };
     }
     return null;
   };
