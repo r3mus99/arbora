@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { citationFields, citationLinks, matchSources, sourceTitle, SOURCE_TITLE_LANGS, withoutLinks, type Citation } from "./sources";
 import {
-  applyPerson, decode, eventAnnotations, sourceOverview, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
+  applyPerson, decode, eventAnnotations, sourceOverview, sourceKind, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
   personFields, writeGedcom, type GedNode,
 } from "./index";
 import { SOURCES_GED } from "./fixtures/sources";
@@ -98,6 +98,52 @@ describe("sources overview", () => {
     const witnesses = ov.notes.find((n) => n.text.startsWith("Witnesses"))!;
     expect(witnesses.people.sort()).toEqual(["@I1@", "@I2@"]);
     expect(ov.notes.map((n) => n.text)).toContain("Shared note about the baptism\nin the parish.");
+  });
+});
+
+describe("source kinds", () => {
+  const ov = sourceOverview(records, lookup);
+
+  test("a source is listed under every kind of event that cites it", () => {
+    expect(ov.sources.find((s) => s.key === "@S1@")!.kinds).toEqual(["birth", "marriage"]);
+  });
+
+  test("a citation on the person or a name, and a source nobody cites, are 'other' or have no kind", () => {
+    expect(ov.sources.find((s) => s.key === "@S2@")!.kinds).toEqual(["other"]);
+    expect(ov.sources.find((s) => s.key === "Family tradition")!.kinds).toEqual(["other"]);
+    const unused = sourceOverview(parseGedcom("0 HEAD\n0 @S9@ SOUR\n1 TITL Unused\n0 TRLR\n"));
+    expect(unused.sources[0].kinds).toEqual([]);
+  });
+
+  test("baptism and birth, death and burial, and every marriage-like event group together; a citation on the family is a marriage", () => {
+    expect(["BIRT", "CHR", "BAPM"].map((t) => sourceKind(t))).toEqual(["birth", "birth", "birth"]);
+    expect(["DEAT", "BURI", "CREM"].map((t) => sourceKind(t))).toEqual(["death", "death", "death"]);
+    expect(["MARR", "MARB", "MARC", "MARL", "MARS", "ENGA"].map((t) => sourceKind(t))).toEqual(Array(6).fill("marriage"));
+    expect(sourceKind("", true)).toBe("marriage");
+    expect(["", "OCCU", "RESI", "DIV", "NAME"].map((t) => sourceKind(t))).toEqual(Array(5).fill("other"));
+    expect(sourceKind("DIV", true)).toBe("other");
+  });
+
+  test("a citation deeper under an event still counts for that event; a second event adds a second kind", () => {
+    const ged = `0 HEAD
+0 @I1@ INDI
+1 NAME A /B/
+1 BURI
+2 PLAC Town
+2 SOUR @S1@
+1 DEAT
+2 DATE 1900
+3 SOUR @S1@
+0 @F1@ FAM
+1 HUSB @I1@
+1 DIV
+2 SOUR @S1@
+0 @S1@ SOUR
+1 TITL Register
+0 TRLR
+`;
+    const { sources } = sourceOverview(parseGedcom(ged));
+    expect(sources[0]).toMatchObject({ citations: 3, kinds: ["death", "other"] });
   });
 });
 
