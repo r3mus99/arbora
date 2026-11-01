@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { matchSources, sourceTitle, SOURCE_TITLE_LANGS } from "./sources";
+import { citationLinks, matchSources, sourceTitle, SOURCE_TITLE_LANGS, withoutLinks, type Citation } from "./sources";
 import {
   applyPerson, decode, eventAnnotations, sourceOverview, lineEnding, linkParts, lookupOf, marriageAnnotations, parseGedcom, personAnnotations,
   personFields, writeGedcom, type GedNode,
@@ -134,5 +134,26 @@ describe("sourceTitle", () => {
   test("a source of the person itself", () => { expect(sourceTitle("sk", "person", "Jan Novak")).toBe("Osoba Jan Novak"); });
   test("every language has all six words", () => {
     for (const l of SOURCE_TITLE_LANGS) for (const e of ["person", "birth", "christening", "death", "burial", "marriage", "divorce"]) expect(sourceTitle(l, e)).not.toBe(e);
+
+describe("citation links", () => {
+  const cite = (over: Partial<Citation>): Citation => ({ title: "", author: "", publication: "", repository: "", page: "", text: "", notes: [], ...over });
+
+  test("web addresses are found in any field, once each, labelled by site", () => {
+    const links = citationLinks(cite({
+      publication: '"Sample Books", Example Archive (https://www.example.org/ark:/1/A1 : Sun Mar 10 13:18:48 UTC 2024), Entry for Jan Sample, 01 May 1894.',
+      notes: ["https://example.org/ark:/1/A1", "https://other.example.net/x"],
+    }));
+    expect(links.map((l) => [l.href, l.label])).toEqual([["https://www.example.org/ark:/1/A1", "example.org"], ["https://other.example.net/x", "other.example.net"]]);
+  });
+
+  test("two different links on one site are told apart by the end of the address", () => {
+    const links = citationLinks(cite({ page: "https://example.org/r/A1", notes: ["https://example.org/r/B2"] }));
+    expect(links.map((l) => l.suffix)).toEqual(["A1", "B2"]);
+  });
+
+  test("a text without any address has no links, and a page that is only an address has no readable text left", () => {
+    expect(citationLinks(cite({ title: "Birth register", page: "p. 41" }))).toEqual([]);
+    expect(withoutLinks("https://example.org/a")).toBe("");
+    expect(withoutLinks("p. 41, https://example.org/a")).toBe("p. 41");
   });
 });

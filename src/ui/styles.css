@@ -291,6 +291,11 @@ footer a { color: var(--accent); }
 .src-entries a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .src-pub { color: var(--muted); overflow-wrap: anywhere; }
 .src-pub summary { cursor: pointer; }
+.src-links { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 3px; }
+.src-entries a.src-chip { display: inline-flex; gap: 4px; align-items: center; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0 8px; min-height: var(--ctl-h-sm); text-decoration: none; white-space: nowrap; }
+.src-chip span { color: var(--muted); }
+.src-chip .icon { width: var(--icon-sm); height: var(--icon-sm); }
 .src-text { margin: 2px 0 0; padding: 0; font-style: italic; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 .src-entries > .src-note { white-space: pre-wrap; margin-top: 8px; }
 .fact-value { overflow-wrap: anywhere; }

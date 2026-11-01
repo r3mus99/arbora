@@ -1,1 +1,1 @@
-- **Notes under events can be edited.** The Details of a birth, christening, death, burial, other event, marriage or divorce now has a multi-line Note field; a link to a shared note record is left untouched.
+Sources under an event are shorter: the title, the page or detail, and web addresses as small link chips named after the site. The publication text, retrieval times and the full original wording are kept under "Details".

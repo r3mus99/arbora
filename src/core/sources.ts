@@ -115,6 +115,33 @@ export function linkParts(text: string): TextPart[] {
   return parts;
 }
 
+const URL_RE = /https?:\/\/[^\s<>"]+/gi;
+const hostOf = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return url; } };
+/** the same address written with or without "www." and a closing slash */
+const sameLink = (url: string) => url.replace(/^(https?:\/\/)www\./i, "$1").replace(/\/$/, "").toLowerCase();
+
+/** A web address of a citation, with a short label (the site, plus the end of the address when two links share a site). */
+export interface CitationLink { href: string; label: string; suffix: string }
+
+/** Every distinct web address anywhere in the citation, found by the address itself, not by the shape of the text. */
+export function citationLinks(c: Citation): CitationLink[] {
+  const seen = new Set<string>();
+  const hrefs: string[] = [];
+  for (const part of linkParts([c.title, c.page, c.publication, c.author, c.repository, c.text, ...c.notes].join("\n")))
+    if (part.href && !seen.has(sameLink(part.href))) { seen.add(sameLink(part.href)); hrefs.push(part.href); }
+  return hrefs.map((href) => {
+    const label = hostOf(href);
+    const shared = hrefs.filter((h) => hostOf(h) === label).length > 1;
+    return { href, label, suffix: shared ? href.split(/[/:]/).filter(Boolean).pop() ?? "" : "" };
+  });
+}
+
+/** `text` without its web addresses and the empty brackets and separators they leave; "" when nothing readable remains. */
+export function withoutLinks(text: string): string {
+  const rest = text.replace(URL_RE, "").replace(/\(\s*[:;,]?\s*\)/g, "").replace(/^[\s:;,.()-]+|[\s:;,(-]+$/g, "").replace(/\s{2,}/g, " ").trim();
+  return /[\p{L}\p{N}]/u.test(rest) ? rest : "";
+}
+
 /** one source of the file with the people who cite it */
 export interface SourceEntry {
   key: string;
