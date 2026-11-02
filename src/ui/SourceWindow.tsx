@@ -132,7 +132,6 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
       <div className="panel-body edit-body">
         <form id={SOURCE_FORM} className="editor" onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(); } }}
               onSubmit={(e) => { e.preventDefault(); save(); }}>
-          <Group title={t("srcGroupSource")} hint={t("srcGroupSourceHint")} />
           <Part icon={BookMarked} title={t("srcSection")}>
             <label title={t("srcFieldTitle")} data-cap={t("srcFieldTitle")}><input placeholder={t("srcFieldTitle")} aria-label={t("srcFieldTitle")} type="text" autoComplete="off" autoFocus={!xref}
                    value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>

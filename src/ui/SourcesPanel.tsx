@@ -135,7 +135,7 @@ export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, c
                 <span className="sp-count">{s.citations}×</span>
               </button>
               {open === s.key && <div className="sp-more">
-                <div className="sp-group"><div className="sp-group-title">{t("srcGroupSource")}</div>
+                <div className="sp-group">
                   {[s.fields.author, s.fields.publication].filter(Boolean).map((v, i) => <div key={i} className="src-line"><span>{t(i === 0 && s.fields.author ? "srcAuthor" : "srcPublication")}:</span> <Linked text={v} /></div>)}
                   {s.fields.notes.map((n, i) => <div key={i} className="src-note"><Linked text={n} /></div>)}
                   {s.fields.links.length > 0 && <div className="src-links">{s.fields.links.map((u) => <LinkChip key={u} url={u} />)}</div>}
