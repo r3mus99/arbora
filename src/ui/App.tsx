@@ -101,6 +101,8 @@ export function App() {
   const [windowId, setWindowId] = useState<string | null>(null);
   /** the source window: a source record (xref) or a new source (null); never open together with the window of a person */
   const [sourceWin, setSourceWin] = useState<{ xref: string | null } | null>(null);
+  const sourceDirty = useRef(false);
+  const markSourceDirty = useCallback((d: boolean) => { sourceDirty.current = d; }, []);
   // file name, or null for the sample
   const [loadedName, setLoadedName] = useState<string | null>("");
   // the file kept in this browser (name, null for the sample), and whether it is still being read at start
@@ -615,7 +617,7 @@ export function App() {
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
                 <SourcesPanel key={selectedId ?? ""} overview={srcOverview} data={data} onPerson={(id) => pick(id)} personId={selectedId} t={t}
                               citationsOf={(xref) => ({ cites: sourceCites(doc!.records, xref), links: citationLinkLines(doc!.records, xref) })}
-                              onEdit={(xref) => setSourceWin({ xref })} editDisabled={!!windowId} />
+                              onEdit={(xref) => { if (xref === sourceWin?.xref && xref !== null) return; if (sourceDirty.current && !window.confirm(t("discard"))) return; setSourceWin({ xref }); }} editDisabled={!!windowId} activeXref={sourceWin?.xref ?? null} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
@@ -633,7 +635,7 @@ export function App() {
                                    setSourceWin(null);
                                  }}
                                  onDelete={() => { if (sourceWin.xref) replaceRecords(deleteSource(doc.records, sourceWin.xref)); setSourceWin(null); }}
-                                 onClose={() => setSourceWin(null)} hidden={showCheck || !!windowId} t={t} />}
+                                 onClose={() => setSourceWin(null)} onDirty={markSourceDirty} hidden={showCheck || !!windowId} t={t} />}
             {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
                                  lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} onSave={(changed, added) => { setWindowId(null); commit(changed, added); }}

@@ -30,6 +30,8 @@ interface Props {
   onSave: (fields: SourceFields, cites: SourceCite[], linkChanges: CitationLinkChange[], addresses: CitationAddress[], pageChanges: CitationPageChange[]) => void;
   onDelete: () => void;
   onClose: () => void;
+  /** tells the app whether the window holds unsaved changes, so another source is not opened over them without asking */
+  onDirty?: (dirty: boolean) => void;
   /** the person selected in the tree: offered as the first citation of a new source */
   person: string | null;
   /** the language of the generated source title */
@@ -65,7 +67,7 @@ function Part({ icon, title, extra, children }: { icon: LucideIcon; title: strin
  * The edit window of a source (docs/design-guidelines.md, section 7): the text of the source record, its web links and notes,
  * and the people and events it is cited for. It is the one place where sources are edited; the Sources panel and the timeline show what it saves.
  */
-export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, cited, person: selected, lang, onSave, onDelete, onClose, hidden, t }: Props) {
+export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, cited, person: selected, lang, onSave, onDelete, onClose, onDirty, hidden, t }: Props) {
   const [form, setForm] = useState<SourceFields>(fields);
   const [list, setList] = useState<SourceCite[]>(cites);
   // the address of each citation line as the window has it (key of the line to text)
@@ -172,6 +174,8 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
     onSave({ ...form, title: title.trim(), notes: form.notes.map((n) => n.trim()).filter(Boolean), links: form.links.map((l) => l.trim()).filter(isWebAddress) }, list, linkChanges,
       list.filter((c) => addedOf(c)).map((c) => ({ cite: c, url: addedOf(c) })), pageChanges);
   };
+  useEffect(() => { onDirty?.(changes > 0); }, [changes, onDirty]);
+  useEffect(() => () => onDirty?.(false), [onDirty]);
   const close = () => { if (mayClose(changes > 0, () => window.confirm(t("discard")))) onClose(); };
   const onKey = useEffectEvent((e: KeyboardEvent) => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); close(); } });
   useEffect(() => {
@@ -180,12 +184,10 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
     return () => window.removeEventListener("keydown", handle);
   }, []);
   const name = title.trim() || t("srcNew");
-  return <div className="edit-layer" hidden={hidden}>
+  return <div className="edit-layer centre" hidden={hidden}>
     <section className="edit-window" aria-label={name}>
       <PanelHead title={name}>
         <div className="tools">
-          {xref && <button type="button" className="icon-btn" title={t("srcDelete")} aria-label={t("srcDelete")}
-                  onClick={() => { if (window.confirm(t("srcConfirmDelete", { name, n: cited }))) onDelete(); }}>{ico(Trash2)}</button>}
           <button type="button" className="icon-btn" onClick={close} title={`${t("editClose")} (Esc)`} aria-label={t("editClose")}>{ico(X)}</button>
         </div>
       </PanelHead>
@@ -281,6 +283,8 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
         </form>
       </div>
       <div className="edit-foot">
+        {xref && <button type="button" className="foot-delete" title={t("srcDelete")}
+                onClick={() => { if (window.confirm(t("srcConfirmDelete", { name, n: cited }))) onDelete(); }}>{ico(Trash2)}{t("srcDelete")}</button>}
         <span className="bulk-sum" role="status">{changes > 0 ? `${t("unsaved")} (${changes})` : ""}</span>
         <button type="button" onClick={close}>{t("cancel")}</button>
         <button type="submit" form={SOURCE_FORM} className="primary" disabled={!dirty || !ready} title={ready ? "Ctrl+Enter" : t("srcFieldTitle")}>

@@ -513,6 +513,7 @@ section.check { margin: 0 0 14px; }
 .chip .icon { width: var(--icon-sm); height: var(--icon-sm); }
 .chip.warn { border-style: dashed; border-color: var(--warn); color: var(--warn-text); background: var(--warn-soft); }
 .edit-foot { flex: none; display: flex; align-items: center; gap: var(--gap); padding: 10px var(--pad); border-top: 1px solid var(--border); }
+.edit-foot .foot-delete { color: var(--danger); }
 .bulk-sum { margin-right: auto; color: var(--muted); }
 .edit-foot .icon { width: var(--icon-sm); height: var(--icon-sm); }
 .edit-foot button { display: inline-flex; align-items: center; justify-content: center; gap: var(--gap); }
@@ -520,9 +521,22 @@ section.check { margin: 0 0 14px; }
 /* sources and notes panel in the tool bar: rows of the shared list look, opened row shows the people */
 .sp-tabs { padding: var(--pad); }
 .sp-tabs .chart-switch { display: flex; width: 100%; }
-.sp-tabs .chart-switch button { flex: 1; }
+.sp-tabs .chart-switch button { flex: 1; min-width: 0; }
+.sp-scope { padding-top: 0; }
+.sp-scope-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp .finder { border-top: 1px solid var(--border); }
 .sp-tabs { flex: none; }
+.finder-btn { position: relative; flex: none; width: 36px; height: 100%; margin-right: 6px; border: 0; background: none; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; }
+.finder-btn .icon { position: static; width: var(--icon-sm); height: var(--icon-sm); }
+.finder-btn.on { color: var(--accent); }
+.finder-btn .badge { position: absolute; top: 6px; right: 0; min-width: 17px; height: 17px; padding: 0 4px; border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 11px; line-height: 17px; text-align: center; }
+.sp .finder input { flex: 1; min-width: 0; }
+.filter-panel { flex: none; display: grid; gap: 10px; padding: var(--pad); border-top: 1px solid var(--border); background: var(--bg); }
+.filter-group { display: grid; gap: 6px; }
+.filter-title { font-size: 12px; color: var(--muted); }
+.filter-panel .sp-kinds { padding: 0; }
+.filter-panel .chart-switch { display: flex; width: 100%; }
+.filter-panel .chart-switch button { flex: 1; min-width: 0; }
 .sp-kinds { flex: none; display: flex; flex-wrap: wrap; gap: var(--gap); padding: 0 var(--pad) var(--pad); }
 button.chip { margin-left: 0; background: var(--panel); color: var(--muted); cursor: pointer; font-family: inherit; }
 button.chip:hover { border-color: var(--accent); }
@@ -533,6 +547,8 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-row { display: flex; align-items: flex-start; gap: 8px; width: 100%; padding: 8px var(--pad); border: 0; border-radius: 0;
           background: none; text-align: left; font-size: 14px; color: inherit; }
 .sp-row:hover { background: var(--accent-soft); }
+.sp-row.active { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+.sp-row:disabled { cursor: default; opacity: .6; }
 .sp-row .icon { width: var(--icon-sm); height: var(--icon-sm); margin-top: 3px; flex: none; color: var(--c-src); }
 .sp-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .sp-title { font-weight: 600; overflow-wrap: anywhere; }
@@ -637,6 +653,9 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .viewer { position: relative; }
 .edit-layer { grid-column: 2 / -1; grid-row: 1; position: relative; pointer-events: none; z-index: 3; }
 .edit-layer[hidden] { display: none; }
+/* the source window takes the place of the tree: only the middle column, the detail of the person stays at the right */
+.edit-layer.centre { grid-column: 2; }
+.edit-layer.centre .edit-window { width: 100%; border-left: 0; }
 .edit-window { position: absolute; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; background: var(--panel);
                border-left: 1px solid var(--border); pointer-events: auto; width: min(var(--edit-w), 100%); }
 .edit-body { display: grid; gap: 10px; align-content: start; background: var(--bg); padding: var(--pad); font-size: 14px; line-height: 1.5; --d-icon: 18px; --d-icon-row: 15px; --d-col: 22px; --d-gap: 10px; --d-section-gap: 14px; }
