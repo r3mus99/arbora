@@ -1,1 +1,0 @@
-- **A removed citation disappears from the source window.** After the trash button was pressed, a citation that had a web address stayed in the list until saving; it is now hidden at once and counted as an unsaved change.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.108.1 – 2026-11-02
+
+- **A removed citation disappears from the source window.** After the trash button was pressed, a citation that had a web address stayed in the list until saving; it is now hidden at once and counted as an unsaved change.
+
 ## 2.108.0 – 2026-11-02
 
 - **The source window shows the page text of a citation.** A citation that has no web address but a page text (for example "Chronicle, line 12") shows that text instead of an empty row, and it can be edited there.
