@@ -46,6 +46,11 @@ function AddAct({ children, onAdd, expanded }: { children: ReactNode; onAdd: () 
     {children}</button>;
 }
 
+/** The heading of a group of parts: what the parts below it are about, in one line. */
+function Group({ title, hint }: { title: string; hint: string }) {
+  return <div className="part-group"><h3>{title}</h3><p>{hint}</p></div>;
+}
+
 /** A collapsible part of the window, built like the parts of the person's edit window. */
 function Part({ icon, title, extra, children }: { icon: LucideIcon; title: string; extra?: ReactNode; children: ReactNode }) {
   return <details className="section collapsible" open>
@@ -127,6 +132,7 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
       <div className="panel-body edit-body">
         <form id={SOURCE_FORM} className="editor" onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(); } }}
               onSubmit={(e) => { e.preventDefault(); save(); }}>
+          <Group title={t("srcGroupSource")} hint={t("srcGroupSourceHint")} />
           <Part icon={BookMarked} title={t("srcSection")}>
             <label title={t("srcFieldTitle")} data-cap={t("srcFieldTitle")}><input placeholder={t("srcFieldTitle")} aria-label={t("srcFieldTitle")} type="text" autoComplete="off" autoFocus={!xref}
                    value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
@@ -150,6 +156,21 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
               ))}
             </fieldset>
           </Part>
+          <Part icon={StickyNote} title={t("notes")} extra={<AddAct onAdd={() => set({ notes: [...form.notes, ""] })}>{ico(Plus)}{t("srcAddNote")}</AddAct>}>
+            <fieldset className="list">
+              {form.notes.map((note, i) => (
+                <div className="item" key={i}>
+                  <div className="item-head">
+                    <textarea rows={2} autoFocus={!note} placeholder={t("srcNotePlaceholder")} aria-label={t("srcNotePlaceholder")} title={t("srcNotePlaceholder")} value={note}
+                              onChange={(e) => set({ notes: form.notes.map((n, j) => (j === i ? e.target.value : n)) })} />
+                    <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                            onClick={() => set({ notes: form.notes.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>
+                  </div>
+                </div>
+              ))}
+            </fieldset>
+          </Part>
+          <Group title={t("srcGroupCitations")} hint={t("srcGroupCitationsHint")} />
           {citeLinks.length > 0 && <Part icon={Link2} title={t("srcCitationLinks")}>
             <fieldset className="list" title={t("srcCitationLinksTip")}>
               {citeLinks.map((l) => (
@@ -166,20 +187,6 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
               ))}
             </fieldset>
           </Part>}
-          <Part icon={StickyNote} title={t("notes")} extra={<AddAct onAdd={() => set({ notes: [...form.notes, ""] })}>{ico(Plus)}{t("srcAddNote")}</AddAct>}>
-            <fieldset className="list">
-              {form.notes.map((note, i) => (
-                <div className="item" key={i}>
-                  <div className="item-head">
-                    <textarea rows={2} autoFocus={!note} placeholder={t("srcNotePlaceholder")} aria-label={t("srcNotePlaceholder")} title={t("srcNotePlaceholder")} value={note}
-                              onChange={(e) => set({ notes: form.notes.map((n, j) => (j === i ? e.target.value : n)) })} />
-                    <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                            onClick={() => set({ notes: form.notes.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>
-                  </div>
-                </div>
-              ))}
-            </fieldset>
-          </Part>
           <Part icon={Users} title={t("srcCitedFor")} extra={<AddAct expanded={adding} onAdd={() => setAdding(!adding)}>{ico(Plus)}{t("srcAddCite")}</AddAct>}>
             <fieldset className="list">
               {adding && <div className="new-child">

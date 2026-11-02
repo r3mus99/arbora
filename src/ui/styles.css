@@ -665,6 +665,9 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .collapsible[open] > summary.sec-head::after { transform: translateY(-2px) rotate(45deg); }
 .collapsible > summary.sec-head:hover { color: var(--text); }
 .collapsible[open] > summary.sec-head { margin-bottom: 10px; border-bottom: 1px solid var(--border); }
+/* a part with nothing in it (no list items yet) shows only its header: no divider, no empty space below */
+.edit-body .collapsible[open]:has(> .sec-fields > fieldset.list:only-child:empty) { padding-bottom: 0; }
+.collapsible[open]:has(> .sec-fields > fieldset.list:only-child:empty) > summary.sec-head { margin-bottom: 0; border-bottom: 0; }
 /* an icon before the title of a group inside a part */
 .editor legend .icon, .editor .lab .icon { width: var(--icon-sm); height: var(--icon-sm); color: var(--c-src); flex: none; }
 /* a group title with icon buttons after it: one centred row, so the title, its icon and its buttons share a middle line */
@@ -841,3 +844,8 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-rename .sp-title { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
 .sp-rename .sp-title .icon { align-self: center; color: var(--muted); }
 .sp-wand-one { display: inline-flex; align-items: center; gap: var(--gap); text-align: left; margin-bottom: 4px; }
+/* heading of a group of parts in the source window (Source / Citations) */
+.edit-body .part-group { margin: 6px 2px -4px; padding-top: 4px; }
+.edit-body .part-group:not(:first-child) { margin-top: 22px; padding-top: 14px; border-top: 2px solid var(--border); }
+.edit-body .part-group h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text); }
+.edit-body .part-group p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
