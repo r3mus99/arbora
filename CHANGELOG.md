@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.103.0 – 2026-11-02
+
+- **The birth, christening, death, burial and residence have fewer fields in the edit window.** Age and agency are gone everywhere, the cause stays only at the death, the burial and christening keep just date and place (and religion), and a note is added with "+ Add note" at the birth, death and residence and shown in italics under the event. The residence address is always visible as "Street, number". Existing lines in a GEDCOM file are left untouched.
+
 ## 2.102.0 – 2026-11-02
 
 - **Other names (aka) are rows like the rest of the edit window.** The label "Also known as" stands on the first row, the given name and surname are fields next to it, and adding another form of the name is a row below.
