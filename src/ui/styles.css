@@ -863,7 +863,6 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 /* a citation is a block of field rows (Event, Link) with no divider inside it; a divider only separates one citation from the next */
 .cite-block { position: relative; }
 .edit-body .editor .cite-block > label[data-cap] + label[data-cap] { border-top: 0; }
-.edit-body .editor .cite-person > label[data-cap] + .cite-block > label[data-cap]:first-of-type { border-top: 0; }
 .edit-body .editor .cite-block > .cite-remove { position: absolute; right: 4px; top: 2px; z-index: 1; }
 :is(.edit-body .editor, .rows) label[data-cap] > span.static.static { min-width: 0; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
 /* the citations of an opened source in the Sources panel use the same person, event, link layout, without the window's padding */
@@ -877,4 +876,5 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-body .editor .collapsible > .sec-fields > fieldset.list > .item:first-child > .item-head { border-top: 0; }
 /* a note in a list is a row like the others: no dashed box, only the row's own divider */
 .edit-body .editor .item-head > textarea { border: 0; border-radius: 0; background: none; box-shadow: none; padding: 8px 10px; }
-.edit-body .editor .collapsible > .sec-fields > fieldset.list > .cite-person:first-child > label[data-cap]:first-child { border-top: 0; }
+.edit-body .editor .collapsible > .sec-fields > fieldset.list > .cite-block:first-child > label[data-cap]:first-of-type { border-top: 0; }
+.edit-body .editor .cite-block + .cite-block > label[data-cap]:first-of-type { border-top: 1px solid var(--border); }

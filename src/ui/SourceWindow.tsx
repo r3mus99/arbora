@@ -149,42 +149,32 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
       <div className="panel-body edit-body">
         <form id={SOURCE_FORM} className="editor" onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(); } }}
               onSubmit={(e) => { e.preventDefault(); save(); }}>
-          <Part icon={BookMarked} title={t("srcSection")}>
+          <Part icon={BookMarked} title={t("srcSection")} extra={<span className="head-acts">
+            <AddAct onAdd={() => set({ links: [...form.links, ""] })}>{ico(Plus)}{t("srcAddLink")}</AddAct>
+            <AddAct onAdd={() => set({ notes: [...form.notes, ""] })}>{ico(Plus)}{t("srcAddNote")}</AddAct></span>}>
             <label title={t("srcFieldTitle")} data-cap={t("srcFieldTitle")}><input placeholder={t("srcFieldTitle")} aria-label={t("srcFieldTitle")} type="text" autoComplete="off" autoFocus={!xref}
                    value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
             <label title={t("srcAuthor")} data-cap={t("srcAuthor")}><input placeholder={t("srcAuthor")} aria-label={t("srcAuthor")} type="text" autoComplete="off"
                    value={form.author} onChange={(e) => set({ author: e.target.value })} /></label>
             <label title={t("srcPublication")} data-cap={t("srcPublication")}><input placeholder={t("srcPublication")} aria-label={t("srcPublication")} type="text" autoComplete="off"
                    value={form.publication} onChange={(e) => set({ publication: e.target.value })} /></label>
-          </Part>
-          <Part icon={Link2} title={t("srcLinks")} extra={<AddAct onAdd={() => set({ links: [...form.links, ""] })}>{ico(Plus)}{t("srcAddLink")}</AddAct>}>
-            <fieldset className="list">
-              {form.links.map((url, i) => (
-                <div className="item" key={i}>
-                  <div className="item-head">
-                    <input type="text" inputMode="url" autoComplete="off" autoFocus={!url} className={url.trim() && !isWebAddress(url) ? "invalid" : undefined}
-                           placeholder={t("srcLinkPlaceholder")} aria-label={t("srcLinkPlaceholder")} title={t("srcLinkInvalid")} value={url}
-                           onChange={(e) => set({ links: form.links.map((l, j) => (j === i ? e.target.value : l)) })} />
-                    <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                            onClick={() => set({ links: form.links.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>
-                  </div>
-                </div>
-              ))}
-            </fieldset>
-          </Part>
-          <Part icon={StickyNote} title={t("notes")} extra={<AddAct onAdd={() => set({ notes: [...form.notes, ""] })}>{ico(Plus)}{t("srcAddNote")}</AddAct>}>
-            <fieldset className="list">
-              {form.notes.map((note, i) => (
-                <div className="item" key={i}>
-                  <div className="item-head">
-                    <textarea rows={2} autoFocus={!note} placeholder={t("srcNotePlaceholder")} aria-label={t("srcNotePlaceholder")} title={t("srcNotePlaceholder")} value={note}
-                              onChange={(e) => set({ notes: form.notes.map((n, j) => (j === i ? e.target.value : n)) })} />
-                    <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                            onClick={() => set({ notes: form.notes.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>
-                  </div>
-                </div>
-              ))}
-            </fieldset>
+            {form.links.map((url, i) => (
+              <div className="cite-block" key={`l${i}`}>
+                <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={t("remove")}
+                        onClick={() => set({ links: form.links.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>
+                <label data-cap={t("srcCitationLink")}><input type="text" inputMode="url" autoComplete="off" autoFocus={!url} className={url.trim() && !isWebAddress(url) ? "invalid" : undefined}
+                       placeholder={t("srcLinkPlaceholder")} aria-label={t("srcLinkPlaceholder")} title={t("srcLinkInvalid")} value={url}
+                       onChange={(e) => set({ links: form.links.map((l, j) => (j === i ? e.target.value : l)) })} /></label>
+              </div>
+            ))}
+            {form.notes.map((note, i) => (
+              <div className="cite-block" key={`n${i}`}>
+                <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={t("remove")}
+                        onClick={() => set({ notes: form.notes.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>
+                <label data-cap={t("note")}><textarea rows={2} autoFocus={!note} placeholder={t("srcNotePlaceholder")} aria-label={t("srcNotePlaceholder")} title={t("srcNotePlaceholder")} value={note}
+                       onChange={(e) => set({ notes: form.notes.map((n, j) => (j === i ? e.target.value : n)) })} /></label>
+              </div>
+            ))}
           </Part>
           <hr className="part-rule" />
           <Part icon={Users} title={t("srcCitedFor")} extra={<AddAct expanded={adding} onAdd={() => setAdding(!adding)}>{ico(Plus)}{t("srcAddCite")}</AddAct>}>
@@ -205,31 +195,27 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
                   <button type="button" className="primary" disabled={!person || (onFamily && !chosenFamily)} onClick={addCite}>{t("srcCiteAdd")}</button>
                 </div>
               </div>}
-              {citeTree.map((p) => (
-                <div className="cite-person" key={p.holder}>
+              {citeTree.flatMap((p) => p.places.map((pl) => {
+                const where = `${holderName(p.holder)} · ${eventName(pl.event)}`;
+                return <div className="cite-block" key={`${p.holder}|${pl.event}`}>
+                  {pl.cite && <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={`${t("remove")}: ${where}`}
+                          onClick={() => setList(list.filter((x) => citeKey(x) !== citeKey(pl.cite!)))}>{ico(Trash2)}</button>}
                   <label data-cap={t("srcCitationPerson")}><span className="static strong">{holderName(p.holder)}</span></label>
-                  {p.places.map((pl) => {
-                    const where = `${holderName(p.holder)} · ${eventName(pl.event)}`;
-                    return <div className="cite-block" key={pl.event}>
-                      {pl.cite && <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={`${t("remove")}: ${where}`}
-                              onClick={() => setList(list.filter((x) => citeKey(x) !== citeKey(pl.cite!)))}>{ico(Trash2)}</button>}
-                      <label data-cap={t("event")}><span className="static">{eventName(pl.event)}</span></label>
-                      {pl.lines.map((l) => (
-                        <label key={l.key} data-cap={t("srcCitationLink")}>
-                          <input type="text" inputMode="url" autoComplete="off" className={urlOf(l).trim() && !isWebAddress(urlOf(l)) ? "invalid" : undefined}
-                                 placeholder={t("srcLinkPlaceholder")} aria-label={where} title={t("srcCitationLinkTip", { who: where })} value={urlOf(l)}
-                                 onChange={(e) => setUrls({ ...urls, [l.key]: e.target.value })} />
-                        </label>
-                      ))}
-                      {!pl.lines.length && pl.cite && <label data-cap={t("srcCitationLink")}>
-                        <input type="text" inputMode="url" autoComplete="off" className={added[citeKey(pl.cite)]?.trim() && !isWebAddress(added[citeKey(pl.cite)]) ? "invalid" : undefined}
-                               placeholder={t("srcLinkPlaceholder")} aria-label={where} title={t("srcCitationLinkTip", { who: where })} value={added[citeKey(pl.cite)] ?? ""}
-                               onChange={(e) => setAdded({ ...added, [citeKey(pl.cite!)]: e.target.value })} />
-                      </label>}
-                    </div>;
-                  })}
-                </div>
-              ))}
+                  <label data-cap={t("event")}><span className="static">{eventName(pl.event)}</span></label>
+                  {pl.lines.map((l) => (
+                    <label key={l.key} data-cap={t("srcCitationLink")}>
+                      <input type="text" inputMode="url" autoComplete="off" className={urlOf(l).trim() && !isWebAddress(urlOf(l)) ? "invalid" : undefined}
+                             placeholder={t("srcLinkPlaceholder")} aria-label={where} title={t("srcCitationLinkTip", { who: where })} value={urlOf(l)}
+                             onChange={(e) => setUrls({ ...urls, [l.key]: e.target.value })} />
+                    </label>
+                  ))}
+                  {!pl.lines.length && pl.cite && <label data-cap={t("srcCitationLink")}>
+                    <input type="text" inputMode="url" autoComplete="off" className={added[citeKey(pl.cite)]?.trim() && !isWebAddress(added[citeKey(pl.cite)]) ? "invalid" : undefined}
+                           placeholder={t("srcLinkPlaceholder")} aria-label={where} title={t("srcCitationLinkTip", { who: where })} value={added[citeKey(pl.cite)] ?? ""}
+                           onChange={(e) => setAdded({ ...added, [citeKey(pl.cite!)]: e.target.value })} />
+                  </label>}
+                </div>;
+              }))}
               {!list.length && !adding && <p className="hint">{t("srcCitedEmpty")}</p>}
             </fieldset>
           </Part>
