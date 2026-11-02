@@ -900,3 +900,4 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 
 /* the opened list of a select: the browser draws it on its own background, so give the options both colours explicitly */
 select option, select optgroup { background-color: var(--panel); color: var(--text); }
+.cite-block label > .head-acts { flex-wrap: wrap; row-gap: 4px; padding: 6px 0; }

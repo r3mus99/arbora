@@ -132,6 +132,12 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
     }
     return out;
   }, [list, cites, citeLinks, citePages, data]);
+  // the parents of the person a birth or christening is cited for, who the source does not cite yet: offered as one click each
+  const parentsOf = (c: SourceCite | null) => {
+    if (!c || c.family || (c.event !== "BIRT" && c.event !== "CHR")) return [];
+    const fam = data.families[data.people[c.person]?.famc[0] ?? ""];
+    return [fam?.husb, fam?.wife].filter((id): id is string => !!id && !!data.people[id] && !list.some((x) => !x.family && x.event === "" && x.person === id));
+  };
   const addCite = () => {
     const next: SourceCite = onFamily ? { event, person: "", family: chosenFamily } : { event, person, family: "" };
     if (!list.some((c) => citeKey(c) === citeKey(next))) setList([...list, next]);
@@ -220,6 +226,11 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
                              onChange={(e) => setUrls({ ...urls, [l.key]: e.target.value })} />
                     </label>
                   ))}
+                  {parentsOf(pl.cite).length > 0 && <label data-cap={t("srcCiteParents")}>
+                    <span className="head-acts">{parentsOf(pl.cite).map((id) => (
+                      <button type="button" key={id} className="head-act" onClick={() => setList([...list, { event: "", person: id, family: "" }])}>
+                        {ico(Plus)}{nameOf(id)}</button>))}</span>
+                  </label>}
                   {pl.pages.map((pg) => (
                     <label key={pg.key} data-cap={t("srcCitationPage")}>
                       <input type="text" autoComplete="off" placeholder={t("srcCitationPage")} aria-label={where} title={t("srcCitationPage")} value={pageOf(pg)}
