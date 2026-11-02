@@ -116,15 +116,18 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
       group(holder).places.push({ event: c.event, cite: c, lines: citeLinks.filter((l) => l.holder === holder && l.event === c.event),
         pages: citePages.filter((l) => l.holder === holder && l.event === c.event) });
     }
-    // addresses under lines of the file that the list does not name (another kind of event)
+    // addresses under lines of the file that the list does not name (another kind of event); a citation taken out of the list takes its addresses with it
+    const kept = new Set(list.map(citeKey));
+    const removed = cites.filter((c) => !kept.has(citeKey(c)));
     for (const l of citeLinks) {
+      if (removed.some((c) => (c.family || c.person) === l.holder && c.event === l.event)) continue;
       const p = group(l.holder);
       const at = p.places.find((x) => x.event === l.event);
       if (!at) p.places.push({ event: l.event, cite: null, lines: [l], pages: [] });
       else if (!at.lines.includes(l) && !at.cite) at.lines.push(l);
     }
     return out;
-  }, [list, citeLinks, citePages, data]);
+  }, [list, cites, citeLinks, citePages, data]);
   const addCite = () => {
     const next: SourceCite = onFamily ? { event, person: "", family: chosenFamily } : { event, person, family: "" };
     if (!list.some((c) => citeKey(c) === citeKey(next))) setList([...list, next]);
