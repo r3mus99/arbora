@@ -1,1 +1,2 @@
 - **Notes are edited only in the edit window.** Clicking a note in the detail no longer turns it into a text area that shrinks; short one-line values (name, date, place) are still edited in place.
+- **The "back to list" arrow in the person detail is gone.** It showed on every narrow window and did not work properly on phones.

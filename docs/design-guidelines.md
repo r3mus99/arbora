@@ -32,7 +32,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
 - The frame (top bar included) has **one fixed height** (the window minus a small margin and the footer). Panels never change it; their content
   scrolls inside. Columns are divided by 1px `--border` lines, not by cards or shadows.
 - **Narrow screens** (up to 900px, phones and small tablets): only the list of people and the detail of one person, one at a time. The chart, the tool bar
-  and the tool panels are not shown; a back arrow in the detail returns to the list; the edit window fills the width; the poster (SVG) button is hidden.
+  and the tool panels are not shown; the edit window fills the width; the poster (SVG) button is hidden.
 
 ## 2. Tokens
 

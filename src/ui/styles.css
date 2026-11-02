@@ -206,7 +206,6 @@ footer a { color: var(--accent); }
                margin: 0 calc(-1 * var(--pad)) 8px; padding: 0 var(--pad); border-bottom: 1px solid var(--border);
                position: sticky; top: 0; z-index: 1; background: var(--panel); }
 .detail-head .tools { display: flex; gap: 4px; flex: none; margin-top: var(--tool-top); }
-.detail-head .back-btn { margin-top: var(--tool-top); }
 .detail .id { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
 .detail .id .lifespan { font-variant-numeric: tabular-nums; }
 .detail h3 .icon { margin-left: 6px; width: var(--icon); height: var(--icon); vertical-align: -1px; }
@@ -788,7 +787,6 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-body .edit-body 
 /* narrow screens (phone, small tablet): the list of people and the detail of one person, one at a time; the chart, the tool
    bar and the tool panels are not shown. Last in the file so that it wins over the desktop rules above. */
-.back-btn { display: none; }
 @media (max-width: 900px) {
   main.loaded { padding: 0; }
   .panel.chart { height: 100dvh; min-height: 0; border-radius: 0; border-left: 0; border-right: 0; }
@@ -799,7 +797,6 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
   .side { border-right: 0; }
   .rail-wrap { width: 100%; border-left: 0; }
   .viewer.has-detail > .side { display: none; }
-  .back-btn { display: inline-flex; flex: none; margin-left: calc(-1 * var(--pad) / 2); }
   .detail-head { gap: 4px; }
   .frame-bar .file-chip, .frame-bar .status { display: none; }
   .frame-bar { gap: 8px; }

@@ -661,7 +661,7 @@ export function App() {
             {selectedId && <SourceEditContext.Provider value={srcEdit}><PersonDetail key={selectedId} data={data} id={selectedId} homeId={homeId}
                                       record={recordOf.get(selectedId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(selectedId) || []} lang={lang}
                                       onFocus={pick} onChange={commit} suggest={suggest}
-                                      onEdit={() => setWindowId(selectedId)} onBack={() => setSelectedId(null)} t={t} /></SourceEditContext.Provider>}
+                                      onEdit={() => setWindowId(selectedId)} t={t} /></SourceEditContext.Provider>}
             </>}
         </div>}
       </section>

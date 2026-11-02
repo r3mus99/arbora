@@ -1,6 +1,6 @@
 import {
   Baby, Briefcase, Church, Cross, Droplets, Flower2, Handshake, History, Heart, HeartCrack, Home, Pencil,
-  ChevronLeft, StickyNote, Users, type LucideIcon,
+  StickyNote, Users, type LucideIcon,
 } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
 import { applyEventLine, applyEventNode, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields, type Suggestions } from "../core/edit";
@@ -40,7 +40,6 @@ interface Props {
   /** opens the edit window */
   onEdit: () => void;
   /** back to the list of people, shown only on a narrow screen */
-  onBack: () => void;
   t: (key: StringKey) => string;
 }
 
@@ -56,7 +55,7 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, onFocus, onChange, suggest, onEdit, onBack, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, onFocus, onChange, suggest, onEdit, t }: Props) {
   const p = data.people[id];
   const homeAncestors = useMemo(() => {
     const generations = new Map<string, number>();
@@ -229,8 +228,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
   return (
     <aside className="detail" aria-live="polite">
       <div className="detail-head">
-        <button type="button" className="icon-btn back-btn" onClick={onBack} title={t("backToList")} aria-label={t("backToList")}>
-          <ChevronLeft className="icon" aria-hidden="true" /></button>
         <div className="detail-name">
         <h3><span className="detail-title">
           {live && f ? <InlineName key={`${id}|${f.given}|${f.surname}`} given={f.given} surname={f.surname} label={t("edit")}
