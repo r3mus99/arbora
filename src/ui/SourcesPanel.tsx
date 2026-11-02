@@ -55,29 +55,19 @@ function Citations({ xref, ids, data, citationsOf, onPerson, t }: { xref: string
   const rows = cites.map((c) => {
     const holder = c.family || c.person;
     shown.add(`${holder}|${c.event}`);
-    return { key: citeKey(c), person: c.person, label: c.family ? familyName(c.family) : nameOf(c.person), event: c.event ? eventName(c.event) : t("srcCitePerson"), urls: linksAt(holder, c.event).map((l) => l.url) };
+    return { key: citeKey(c), person: c.person, label: c.family ? familyName(c.family) : nameOf(c.person), event: c.event ? eventName(c.event) : "", urls: linksAt(holder, c.event).map((l) => l.url) };
   });
   // addresses under lines the list above does not name (another kind of event)
   const rest = links.filter((l) => !shown.has(`${l.holder}|${l.event}`)).map((l) => ({
-    key: l.key, person: data.people[l.holder] ? l.holder : "", label: data.people[l.holder] ? nameOf(l.holder) : familyName(l.holder), event: l.event ? eventName(l.event) : t("srcCitePerson"), urls: [l.url] }));
+    key: l.key, person: data.people[l.holder] ? l.holder : "", label: data.people[l.holder] ? nameOf(l.holder) : familyName(l.holder), event: l.event ? eventName(l.event) : "", urls: [l.url] }));
   const named = new Set([...rows, ...rest].map((r) => r.person).filter(Boolean));
   // people who cite the source on a line that is not listed above
   const others = ids.filter((id) => data.people[id] && !named.has(id)).map((id) => ({ key: id, person: id, label: nameOf(id), event: "", urls: [] as string[] }));
-  // laid out like the file: the person (or family), under it the event, under it the address
-  const tree: { id: string; person: string; label: string; events: { key: string; event: string; urls: string[] }[] }[] = [];
-  for (const r of [...rows, ...rest, ...others]) {
-    const id = r.person || r.label;
-    let p = tree.find((x) => x.id === id);
-    if (!p) tree.push(p = { id, person: r.person, label: r.label, events: [] });
-    if (r.event) p.events.push({ key: r.key, event: r.event, urls: r.urls });
-  }
+  // one entry per citation, without labels: "person · event", under it the address
   return <ul className="sp-cites" aria-label={t("srcGroupCitations")}>
-    {tree.map((p) => <li key={p.id}>
-      <div className="src-line"><span>{t("srcCitationPerson")}:</span> {p.person ? <button type="button" className="link" onClick={() => onPerson(p.person)}>{p.label}</button> : p.label}</div>
-      {p.events.map((e) => <div key={e.key} className="cite-event">
-        <div className="src-line"><span>{t("event")}:</span> {e.event}</div>
-        {e.urls.length > 0 && <div className="src-line"><span>{t("srcCitationLink")}:</span> <span className="src-links inline">{e.urls.map((u, i) => <LinkChip key={i} url={u} />)}</span></div>}
-      </div>)}
+    {[...rows, ...rest, ...others].map((r) => <li key={r.key}>
+      <div>{r.person ? <button type="button" className="link" onClick={() => onPerson(r.person)}>{r.label}</button> : r.label}{r.event && <span className="cite-ev"> · {r.event}</span>}</div>
+      {r.urls.length > 0 && <span className="src-links">{r.urls.map((u, i) => <LinkChip key={i} url={u} />)}</span>}
     </li>)}
   </ul>;
 }
@@ -141,22 +131,22 @@ export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, c
                 <BookMarked className="icon" aria-hidden="true" />
                 <span className="sp-main">
                   <span className="sp-title">{s.citation.title}</span>
+                  {s.fields.author && <span className="sp-sub">{s.fields.author}</span>}
                 </span>
-                <span className="sp-count">{s.citations}×</span>
+                {open !== s.key && <span className="sp-count">{s.citations}×</span>}
               </button>
               {open === s.key && <div className="sp-more">
                 <div className="sp-group">
-                  {onEdit && s.key.startsWith("@") && <button type="button" className="icon-btn sp-edit-btn" title={t("srcEditSource")} aria-label={t("srcEditSource")}
-                          disabled={editDisabled} onClick={() => onEdit(s.key)}><Pencil className="icon" aria-hidden="true" /></button>}
-                  {s.fields.author && <div className="src-line"><span>{t("srcAuthor")}:</span> <Linked text={s.fields.author} /></div>}
-                  {s.fields.publication && <div className="src-line"><span>{t("srcPublication")}:</span> <Linked text={s.fields.publication} /></div>}
-                  {s.fields.notes.length > 0 && <div className="src-line"><span>{t("notes")}:</span> {s.fields.notes.map((n, i) => <span key={i}>{i > 0 && "; "}<Linked text={n} /></span>)}</div>}
-                  {s.fields.links.length > 0 && <div className="src-line"><span>{t("srcLinks")}:</span> <span className="src-links inline">{s.fields.links.map((u) => <LinkChip key={u} url={u} />)}</span></div>}
+                  {s.fields.publication && <div className="sp-pub"><Linked text={s.fields.publication} /></div>}
+                  {s.fields.notes.length > 0 && <div className="sp-notes">{s.fields.notes.map((n, i) => <span key={i}>{i > 0 && "; "}<Linked text={n} /></span>)}</div>}
+                  {s.fields.links.length > 0 && <span className="src-links">{s.fields.links.map((u) => <LinkChip key={u} url={u} />)}</span>}
                 </div>
-                <div className="sp-group"><div className="sp-group-title">{t("srcGroupCitations")}</div>
+                <div className="sp-group"><div className="sp-group-title">{t("srcGroupCitations")} {s.citations}</div>
                   {citationsOf && s.key.startsWith("@") ? <Citations xref={s.key} ids={s.people} data={data} citationsOf={citationsOf} onPerson={onPerson} t={t} />
                     : <People ids={s.people} data={data} onPerson={onPerson} t={t} />}
                 </div>
+                {onEdit && s.key.startsWith("@") && <button type="button" className="btn sp-edit-source" disabled={editDisabled} onClick={() => onEdit(s.key)}>
+                  <Pencil className="icon" aria-hidden="true" />{t("srcEditSource")}</button>}
               </div>}
             </li>
           ))}
