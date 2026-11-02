@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.100.0 – 2026-11-02
+
+- **The Sources panel has no field labels.** The author sits under the source title, the count moves into the "Citations" heading once a source is open, publication, notes and links are told apart by style instead of labels, each citation is one line "person · event" with its address below, and "Edit source" is a full-width button at the bottom of an opened source.
+
 ## 2.99.0 – 2026-11-02
 
 - **The source window and the Sources panel are tidier and consistent.** Links and notes of a source are rows of the Source part, every citation in the source window is a block of labelled rows (Person, Event, Link) with one divider between citations and the part is called Citations. In the Sources panel an opened source shows labelled fields (Author, Publication, Notes, Links), the citations as Person, Event and Link, and Edit source as a pencil.
