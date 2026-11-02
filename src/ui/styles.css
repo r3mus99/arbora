@@ -853,3 +853,5 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-group a.src-chip { text-decoration: none; }
 .sp-group-title { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
 .sp-cites { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+/* the header of a part already has its divider: the first field row under it does not draw a second one */
+.edit-body .editor .collapsible > .sec-fields > :is(label[data-cap], label.check, .sex-field):first-child { border-top: 0; }
