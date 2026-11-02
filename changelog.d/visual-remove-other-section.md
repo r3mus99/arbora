@@ -1,1 +1,0 @@
-- **The "Other" section of the edit window is gone.** Access restriction and the address of a person are no longer shown or edited (the residence keeps its own address). Existing restriction and address lines stay in the file unchanged.

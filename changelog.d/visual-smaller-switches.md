@@ -1,1 +1,0 @@
-- **Switches are smaller and read like the other rows.** The deceased and divorced switches (and the one for a new child) are now 36 px wide, and their name sits in the label column like the other fields, with the switch in the value column.
