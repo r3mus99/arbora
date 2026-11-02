@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.107.0 – 2026-11-02
+
+- **The death in the edit window has no hidden "Details".** The cause of death is a normal row and the note is added with "+ Add note" in the death's title row, like the birth. The "Details" button and its styles are gone from the editor.
+
 ## 2.106.0 – 2026-11-02
 
 - **Godparents and witnesses are easier to read in the edit window.** The "Associations" part is renamed, its button is a short "Add a person", and the role is a labelled row ("Role") instead of a cut-off placeholder. Several of them are shown as separate cards.
