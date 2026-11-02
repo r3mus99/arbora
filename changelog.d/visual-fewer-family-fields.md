@@ -1,1 +1,0 @@
-- **Marriage and divorce have fewer fields.** The marriage date and place are always shown, age, cause and agency are gone, a note is added with "+ Add note" on the marriage only, and the divorce keeps just date and place. Engagements, banns, contracts, other family events and the marriage witnesses are no longer shown on the timeline; they stay in the file.
