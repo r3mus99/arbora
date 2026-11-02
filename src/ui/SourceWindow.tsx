@@ -5,6 +5,7 @@ import type { CitationAddress, CitationLinkChange, CitationLinkLine, CitationPag
 import { citeKey, isWebAddress, type CiteEvent, type SourceCite } from "../core/sourceLinks";
 import type { SourceFields } from "../core/sources";
 import { mayClose } from "./editWindow";
+import { sourceTitle } from "../core/sources";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
 import { PersonPick } from "./PersonEditor";
@@ -29,6 +30,10 @@ interface Props {
   onSave: (fields: SourceFields, cites: SourceCite[], linkChanges: CitationLinkChange[], addresses: CitationAddress[], pageChanges: CitationPageChange[]) => void;
   onDelete: () => void;
   onClose: () => void;
+  /** the person selected in the tree: offered as the first citation of a new source */
+  person: string | null;
+  /** the language of the generated source title */
+  lang: string;
   /** a wide tool panel is open, so the window is hidden but keeps its content */
   hidden?: boolean;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
@@ -60,7 +65,7 @@ function Part({ icon, title, extra, children }: { icon: LucideIcon; title: strin
  * The edit window of a source (docs/design-guidelines.md, section 7): the text of the source record, its web links and notes,
  * and the people and events it is cited for. It is the one place where sources are edited; the Sources panel and the timeline show what it saves.
  */
-export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, cited, onSave, onDelete, onClose, hidden, t }: Props) {
+export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, cited, person: selected, lang, onSave, onDelete, onClose, hidden, t }: Props) {
   const [form, setForm] = useState<SourceFields>(fields);
   const [list, setList] = useState<SourceCite[]>(cites);
   // the address of each citation line as the window has it (key of the line to text)
@@ -79,14 +84,31 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
   const [person, setPerson] = useState("");
   const [event, setEvent] = useState<CiteEvent>("");
   const [family, setFamily] = useState("");
-  const changes = (["title", "author", "publication"] as const).filter((k) => form[k] !== fields[k]).length
+  // the title of a new source is suggested from its first citation until it is typed
+  const [typedTitle, setTypedTitle] = useState<string | null>(xref ? fields.title : null);
+  const suggestedTitle = () => {
+    const c = list[0];
+    if (xref || !c) return "";
+    const year = (date?: string) => /\d{4}/.exec(date ?? "")?.[0] ?? "";
+    const kind = ({ BIRT: "birth", CHR: "christening", DEAT: "death", BURI: "burial", MARR: "marriage", DIV: "divorce" } as const)[c.event as "BIRT"];
+    if (!kind) return "";
+    if (c.family) {
+      const fam = data.families[c.family];
+      const names = [fam?.husb, fam?.wife].map((id) => (id ? data.people[id]?.name ?? "" : ""));
+      return [sourceTitle(lang, kind, ...names), c.event === "MARR" ? year(fam?.marriage?.date) : ""].filter(Boolean).join(" ");
+    }
+    const who = data.people[c.person];
+    if (!who) return "";
+    return [sourceTitle(lang, kind, who.name), c.event === "BIRT" ? year(who.birth?.date) : c.event === "DEAT" ? year(who.death?.date) : ""].filter(Boolean).join(" ");
+  };
+  const title = typedTitle ?? suggestedTitle();
+  const changes = (["author", "publication"] as const).filter((k) => form[k] !== fields[k]).length + (title !== fields.title ? 1 : 0)
     + (same(form.links.filter((l) => l.trim()), fields.links) ? 0 : 1) + (same(form.notes.filter((n) => n.trim()), fields.notes) ? 0 : 1)
     + (same(list.map(citeKey).sort(), cites.map(citeKey).sort()) ? 0 : 1) + (linkChanges.length ? 1 : 0) + (pageChanges.length ? 1 : 0) + (list.some((c) => addedOf(c)) ? 1 : 0);
   const dirty = changes > 0 || !xref;
-  // the link and note rows are always there: the last one is empty and becomes a new entry when it is filled
-  const rowsOf = (list: string[]) => (list.length && !list[list.length - 1].trim() ? list : [...list, ""]);
-  const linkRows = rowsOf(form.links);
-  const noteRows = rowsOf(form.notes);
+  // the link and note rows are always there: an empty one when the source has none; the + at the end of the last row adds another
+  const linkRows = form.links.length ? form.links : [""];
+  const noteRows = form.notes.length ? form.notes : [""];
   const set = (patch: Partial<SourceFields>) => setForm({ ...form, ...patch });
   const choices = useMemo(() => Object.values(data.people).sort((a, b) => a.name.localeCompare(b.name)).map((p) => {
     const year = /\d{4}/.exec(p.birth?.date ?? "")?.[0];
@@ -143,10 +165,10 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
     if (!list.some((c) => citeKey(c) === citeKey(next))) setList([...list, next]);
     setAdding(false); setPerson(""); setEvent(""); setFamily("");
   };
-  const ready = !!form.title.trim() && !badUrl;
+  const ready = !!title.trim() && !badUrl;
   const save = () => {
     if (!ready || !dirty) return;
-    onSave({ ...form, title: form.title.trim(), notes: form.notes.map((n) => n.trim()).filter(Boolean), links: form.links.map((l) => l.trim()).filter(isWebAddress) }, list, linkChanges,
+    onSave({ ...form, title: title.trim(), notes: form.notes.map((n) => n.trim()).filter(Boolean), links: form.links.map((l) => l.trim()).filter(isWebAddress) }, list, linkChanges,
       list.filter((c) => addedOf(c)).map((c) => ({ cite: c, url: addedOf(c) })), pageChanges);
   };
   const close = () => { if (mayClose(changes > 0, () => window.confirm(t("discard")))) onClose(); };
@@ -156,7 +178,7 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
     window.addEventListener("keydown", handle);
     return () => window.removeEventListener("keydown", handle);
   }, []);
-  const name = form.title.trim() || t("srcNew");
+  const name = title.trim() || t("srcNew");
   return <div className="edit-layer" hidden={hidden}>
     <section className="edit-window" aria-label={name}>
       <PanelHead title={name}>
@@ -171,26 +193,30 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
               onSubmit={(e) => { e.preventDefault(); save(); }}>
           <Part icon={BookMarked} title={t("srcSection")}>
             <label title={t("srcFieldTitle")} data-cap={t("srcFieldTitle")}><input placeholder={t("srcFieldTitle")} aria-label={t("srcFieldTitle")} type="text" autoComplete="off" autoFocus={!xref}
-                   value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
+                   value={title} onChange={(e) => setTypedTitle(e.target.value)} /></label>
             <label title={t("srcAuthor")} data-cap={t("srcAuthor")}><input placeholder={t("srcAuthor")} aria-label={t("srcAuthor")} type="text" autoComplete="off"
                    value={form.author} onChange={(e) => set({ author: e.target.value })} /></label>
             <label title={t("srcPublication")} data-cap={t("srcPublication")}><input placeholder={t("srcPublication")} aria-label={t("srcPublication")} type="text" autoComplete="off"
                    value={form.publication} onChange={(e) => set({ publication: e.target.value })} /></label>
             {linkRows.map((url, i) => (
-              <div className="cite-block" key={`l${i}`}>
-                {i < form.links.length && <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={t("remove")}
-                        onClick={() => set({ links: form.links.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>}
+              <div className="cite-block link-row" key={`l${i}`}>
                 <label data-cap={t("srcCitationLink")}><input type="text" inputMode="url" autoComplete="off" className={url.trim() && !isWebAddress(url) ? "invalid" : undefined}
                        placeholder={t("srcLinkPlaceholder")} aria-label={t("srcLinkPlaceholder")} title={t("srcLinkInvalid")} value={url}
-                       onChange={(e) => set({ links: i < form.links.length ? form.links.map((l, j) => (j === i ? e.target.value : l)) : [...form.links, e.target.value] })} /></label>
+                       onChange={(e) => set({ links: i < form.links.length ? form.links.map((l, j) => (j === i ? e.target.value : l)) : [e.target.value] })} /></label>
+                {i < form.links.length && <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                        onClick={() => set({ links: form.links.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>}
+                {i === linkRows.length - 1 && url.trim() !== "" && <button type="button" className="icon-btn" title={t("srcAddLink")} aria-label={t("srcAddLink")}
+                        onClick={() => set({ links: [...form.links, ""] })}>{ico(Plus)}</button>}
               </div>
             ))}
             {noteRows.map((note, i) => (
-              <div className="cite-block" key={`n${i}`}>
-                {i < form.notes.length && <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={t("remove")}
-                        onClick={() => set({ notes: form.notes.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>}
+              <div className="cite-block link-row" key={`n${i}`}>
                 <label data-cap={t("note")}><textarea rows={2} placeholder={t("srcNotePlaceholder")} aria-label={t("srcNotePlaceholder")} title={t("srcNotePlaceholder")} value={note}
-                       onChange={(e) => set({ notes: i < form.notes.length ? form.notes.map((n, j) => (j === i ? e.target.value : n)) : [...form.notes, e.target.value] })} /></label>
+                       onChange={(e) => set({ notes: i < form.notes.length ? form.notes.map((n, j) => (j === i ? e.target.value : n)) : [e.target.value] })} /></label>
+                {i < form.notes.length && <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                        onClick={() => set({ notes: form.notes.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>}
+                {i === noteRows.length - 1 && note.trim() !== "" && <button type="button" className="icon-btn" title={t("srcAddNote")} aria-label={t("srcAddNote")}
+                        onClick={() => set({ notes: [...form.notes, ""] })}>{ico(Plus)}</button>}
               </div>
             ))}
           </Part>
@@ -212,6 +238,9 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
                   <button type="button" className="primary" disabled={!person || (onFamily && !chosenFamily)} onClick={addCite}>{t("srcCiteAdd")}</button>
                 </div>
               </div>}
+              {!xref && !list.length && !adding && selected && data.people[selected] && <label data-cap={t("srcCiteForPerson")}>
+                <span className="head-acts"><button type="button" className="head-act" onClick={() => { setPerson(selected); setAdding(true); }}>
+                  {ico(Plus)}{nameOf(selected)}</button></span></label>}
               {citeTree.flatMap((p) => p.places.map((pl) => {
                 const where = `${holderName(p.holder)} · ${eventName(pl.event)}`;
                 return <div className="cite-block" key={`${p.holder}|${pl.event}`}>

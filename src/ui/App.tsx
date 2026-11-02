@@ -622,7 +622,7 @@ export function App() {
                             favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} onAdd={newPerson} t={t} />
               </aside>}
             </div>
-            {sourceWin && doc && (!sourceWin.xref || sourceEntry) && <SourceWindow key={sourceWin.xref ?? "new"} data={data} xref={sourceWin.xref}
+            {sourceWin && doc && (!sourceWin.xref || sourceEntry) && <SourceWindow key={sourceWin.xref ?? "new"} data={data} xref={sourceWin.xref} person={selectedId} lang={lang}
                                  fields={sourceEntry?.fields ?? { title: "", author: "", publication: "", notes: [], links: [] }}
                                  cites={sourceWin.xref ? sourceCites(doc.records, sourceWin.xref) : []} cited={sourceEntry?.citations ?? 0}
                                  citeLinks={sourceWin.xref ? citationLinkLines(doc.records, sourceWin.xref) : []}
