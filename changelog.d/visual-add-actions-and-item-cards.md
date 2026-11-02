@@ -1,0 +1,1 @@
+- **Residences are cards and the "copy" shortcuts sit in the field row.** When a person has several residences, each is its own numbered card, like several marriages, so they no longer run together. "Copy from birth", "Copy from death" and "Copy from parents" moved from the title row into the place row they fill, so the title row always holds the same actions in the same place.

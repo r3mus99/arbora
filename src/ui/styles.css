@@ -894,3 +894,14 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 /* the first row of a section sits right under the header line: no second line above it */
 .edit-body .editor .collapsible > .sec-fields > .pair:first-child > label[data-cap]:first-child { border-top: 0; }
 .tl-note { font-style: italic; }
+
+/* a small action inside a field row, at its right end (copy the place from the birth or the parents) */
+.edit-body .editor label[data-cap] .row-act { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: 4px;
+  background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; }
+.edit-body .editor label[data-cap] .row-act .icon { width: var(--icon-sm); height: var(--icon-sm); }
+.edit-body .editor label[data-cap] .row-act:hover:not(:disabled) { color: var(--text); }
+.edit-body .editor label[data-cap] .row-act:disabled { color: var(--muted); opacity: .5; cursor: default; }
+/* the items of a repeatable subsection (several residences, several marriages) are inset cards; a single item has none */
+.edit-body .editor .item.fam-card { margin-top: 10px; padding: 0 12px 2px; }
+.edit-body .editor .item.fam-card > .item-head { border-top: 0; padding-left: 0; padding-right: 0; font-size: 13px; color: var(--muted); }
+.edit-body .editor label[data-cap]:has(.row-act) input[type=text] { padding-right: 130px; }
