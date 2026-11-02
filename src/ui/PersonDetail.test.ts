@@ -42,7 +42,7 @@ describe("person detail timeline", () => {
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I1@", lookup: recordOf, inbound: [],
       homeId: null, lang: "en", onFocus: () => {}, onChange: () => {},
-      suggest: suggestions(records), onEdit: () => {},
+      suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.en[key] ?? key,
     }));
 
@@ -60,7 +60,7 @@ describe("person detail timeline", () => {
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I3@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
       homeId: null, lang: "en", onFocus: () => {}, onChange: () => {},
-      suggest: suggestions(records), onEdit: () => {},
+      suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.en[key] ?? key,
     }));
     expect(html).toContain("<span>1900 · </span>");
@@ -75,7 +75,7 @@ describe("person detail timeline", () => {
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I1@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
       homeId: "@I3@", lang: "en", onFocus: () => {}, onChange: () => {},
-      suggest: suggestions(records), onEdit: () => {},
+      suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.en[key] ?? key,
     }));
     expect(html).toContain('class="link person ancestor"');
@@ -150,21 +150,21 @@ describe("person detail timeline", () => {
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I5@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
       homeId: "@I1@", lang: "sk", onFocus: () => {}, onChange: () => {},
-      suggest: suggestions(records), onEdit: () => {},
+      suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.sk[key] ?? key,
     }));
     expect(html).toMatch(/title="Prababka(?:&#10;|\n)→ Great-grandparent Person(?:&#10;|\n)→ Grandparent Person(?:&#10;|\n)→ Parent Person(?:&#10;|\n)→ Home Person \(2000\)"/);
     const secondGreatGrandmotherHtml = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I9@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
       homeId: "@I1@", lang: "sk", onFocus: () => {}, onChange: () => {},
-      suggest: suggestions(records), onEdit: () => {},
+      suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.sk[key] ?? key,
     }));
     expect(secondGreatGrandmotherHtml).toMatch(/title="2\. prababka(?:&#10;|\n)→ Another ancestor Person(?:&#10;|\n)→ Great-grandparent Person(?:&#10;|\n)→ Grandparent Person(?:&#10;|\n)→ Parent Person(?:&#10;|\n)→ Home Person \(2000\)"/);
     const distantHtml = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I6@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
       homeId: "@I1@", lang: "sk", onFocus: () => {}, onChange: () => {},
-      suggest: suggestions(records), onEdit: () => {},
+      suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.sk[key] ?? key,
     }));
     expect(distantHtml).toMatch(/title="2\. pradedko(?:&#10;|\n)→ Ancestor Person(?:&#10;|\n)→ Great-grandparent Person(?:&#10;|\n)→ Grandparent Person(?:&#10;|\n)→ Parent Person(?:&#10;|\n)→ Home Person \(2000\)"/);
@@ -176,7 +176,7 @@ describe("person detail timeline", () => {
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I1@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
       homeId: null, lang: "en", onFocus: () => {}, onChange: () => {},
-      suggest: suggestions(records), onEdit: () => {},
+      suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.en[key] ?? key,
     }));
     expect(html).toMatch(/title="Sunday, [^"]*1918"/);

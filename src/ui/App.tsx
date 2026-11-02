@@ -10,7 +10,7 @@ import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { addFamily, addPerson, appended, deleteFamily, deletePerson, freeXref } from "../core/structure";
 import { mergePeople, type MergePick } from "../core/merge";
 import { outputFileName } from "../core/fileName";
-import { childOf, decode, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
+import { decode, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceOverview } from "../core/sources";
 import { addCitationAddresses, citationLinkLines, citationPageLines, setCitationLinks, setCitationPages } from "../core/citationLinks";
@@ -28,8 +28,6 @@ import { RecentPanel } from "./RecentPanel";
 import { LanguageMenu } from "./LanguageMenu";
 import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./theme";
 import { SourcesPanel } from "./SourcesPanel";
-import { applySourceRenames } from "../core/sourceTitles";
-import { SourceEditContext } from "./Sources";
 import { buildPoster, posterSvg } from "../core/poster";
 import { buildDescendantsPoster } from "../core/posterDescendants";
 import { PersonDetail } from "./PersonDetail";
@@ -343,10 +341,14 @@ export function App() {
   const suggest = useMemo(() => suggestions(doc?.records || []), [doc]);
   const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
   const problems = issues.length;
-  const srcEdit = useMemo(() => ({ rename: (xref: string, title: string) => {
-    const rec = doc?.records.find((r) => r.xref === xref);
-    if (doc && rec) replaceRecords(applySourceRenames(doc.records, [{ xref, from: childOf(rec, "TITL")?.value.trim() ?? "", to: title }]));
-  } }), [doc]);
+  // a source button in the detail: the Sources panel opens, the source is marked in its list and opened in the window
+  const [reveal, setReveal] = useState<{ key: string; n: number } | null>(null);
+  const showSource = (key: string) => {
+    if (key.startsWith("@") && sourceWin?.xref !== key && sourceDirty.current && !window.confirm(t("discard"))) return;
+    setTool("sources");
+    setReveal((r) => ({ key, n: (r?.n ?? 0) + 1 }));
+    if (key.startsWith("@")) setSourceWin({ xref: key });
+  };
   const sourceEntry = useMemo(() => (doc && sourceWin?.xref ? sourceOverview(doc.records).sources.find((s) => s.key === sourceWin.xref) : undefined), [doc, sourceWin]);
   const srcOverview = useMemo(() => (doc && showSources ? sourceOverview(doc.records) : null), [doc, showSources]);
   // the list closes once everything is fixed
@@ -617,7 +619,7 @@ export function App() {
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
                 <SourcesPanel overview={srcOverview} data={data} onPerson={(id) => pick(id)} t={t}
                               citationsOf={(xref) => ({ cites: sourceCites(doc!.records, xref), links: citationLinkLines(doc!.records, xref) })}
-                              onEdit={(xref) => { if (xref === sourceWin?.xref && xref !== null) return; if (sourceDirty.current && !window.confirm(t("discard"))) return; setSourceWin({ xref }); }} editDisabled={!!windowId} activeXref={sourceWin?.xref ?? null} />
+                              onEdit={(xref) => { if (xref === sourceWin?.xref && xref !== null) return; if (sourceDirty.current && !window.confirm(t("discard"))) return; setSourceWin({ xref }); }} editDisabled={!!windowId} activeXref={sourceWin?.xref ?? null} reveal={reveal} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
                 <PersonRail ref={finderRef} people={data.people} lang={lang} selectedId={selectedId} scrollKey={scrollKey}
@@ -660,10 +662,10 @@ export function App() {
                         onFocus={pickListed}
                         onJump={jump} t={t} />
             </div>}
-            {selectedId && <SourceEditContext.Provider value={srcEdit}><PersonDetail key={selectedId} data={data} id={selectedId} homeId={homeId}
+            {selectedId && <PersonDetail key={selectedId} data={data} id={selectedId} homeId={homeId}
                                       record={recordOf.get(selectedId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(selectedId) || []} lang={lang}
                                       onFocus={pick} onChange={commit} suggest={suggest}
-                                      onEdit={() => setWindowId(selectedId)} t={t} /></SourceEditContext.Provider>}
+                                      onEdit={() => setWindowId(selectedId)} onSource={showSource} t={t} />}
             </>}
         </div>}
       </section>
