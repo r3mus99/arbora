@@ -4,8 +4,9 @@
  * Only the address changes when one is edited; the rest of the line, and every other line of the file, stays as it was.
  */
 
-import { rewritten, type GedNode } from "./gedcom";
-import { isWebAddress } from "./sourceLinks";
+import { addChild } from "./edit";
+import { childOf, childrenOf, gedNode, rewritten, type GedNode } from "./gedcom";
+import { holderOf, isWebAddress, type SourceCite } from "./sourceLinks";
 
 /** one web address found in a citation of a source */
 export interface CitationLinkLine {
@@ -115,4 +116,40 @@ export function setCitationLinks(records: GedNode[], changes: CitationLinkChange
     };
     return edit(rec, []);
   });
+}
+
+/** An address for a citation that has none yet (or has a page text without one). */
+export interface CitationAddress { cite: SourceCite; url: string }
+
+/**
+ * The records with the web address written into the citation of the source `xref` at each place (a person, one of their events,
+ * or a marriage or divorce). The address goes into the citation's page line: after the text already there, or as a new page line.
+ * Places that do not cite the source and things that are not a whole web address are skipped.
+ */
+export function addCitationAddresses(records: GedNode[], xref: string, adds: CitationAddress[]): GedNode[] {
+  let out = records;
+  for (const { cite, url } of adds) {
+    const address = url.trim();
+    if (!isWebAddress(address)) continue;
+    const holder = holderOf(out, cite);
+    if (!holder) continue;
+    const cites = (n: GedNode) => n.tag === "SOUR" && n.value.trim() === xref;
+    const withAddress = (sour: GedNode): GedNode => {
+      const page = childOf(sour, "PAGE");
+      return page
+        ? rewritten(sour, sour.children.map((c) => (c === page ? rewritten({ ...c, value: `${c.value.trim()} ${address}`.trim() }) : c)))
+        : addChild(sour, gedNode("PAGE", address));
+    };
+    let next: GedNode | null = null;
+    if (!cite.event) {
+      const sour = holder.children.find(cites);
+      if (sour) next = rewritten(holder, holder.children.map((c) => (c === sour ? withAddress(c) : c)));
+    } else {
+      const ev = childrenOf(holder, cite.event).find((e) => e.children.some(cites));
+      const sour = ev?.children.find(cites);
+      if (ev && sour) next = rewritten(holder, holder.children.map((c) => (c === ev ? rewritten(ev, ev.children.map((k) => (k === sour ? withAddress(k) : k))) : c)));
+    }
+    if (next) out = out.map((r) => (r === holder ? next! : r));
+  }
+  return out;
 }

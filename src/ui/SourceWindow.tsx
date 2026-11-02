@@ -1,7 +1,7 @@
 import { BookMarked, Check, Link2, Plus, StickyNote, Trash2, User, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from "react";
 import type { GedcomData } from "../core/gedcom";
-import type { CitationLinkChange, CitationLinkLine } from "../core/citationLinks";
+import type { CitationAddress, CitationLinkChange, CitationLinkLine } from "../core/citationLinks";
 import { citeKey, isWebAddress, type CiteEvent, type SourceCite } from "../core/sourceLinks";
 import type { SourceFields } from "../core/sources";
 import { mayClose } from "./editWindow";
@@ -24,7 +24,7 @@ interface Props {
   /** the web addresses written in the citations of the source */
   citeLinks: CitationLinkLine[];
   /** the fields, the citations and the changed citation addresses as the window leaves them (one undo step); the window closes after it */
-  onSave: (fields: SourceFields, cites: SourceCite[], linkChanges: CitationLinkChange[]) => void;
+  onSave: (fields: SourceFields, cites: SourceCite[], linkChanges: CitationLinkChange[], addresses: CitationAddress[]) => void;
   onDelete: () => void;
   onClose: () => void;
   /** a wide tool panel is open, so the window is hidden but keeps its content */
@@ -70,14 +70,17 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
   const [urls, setUrls] = useState<Record<string, string>>({});
   const urlOf = (l: CitationLinkLine) => urls[l.key] ?? l.url;
   const linkChanges = citeLinks.filter((l) => urlOf(l).trim() !== l.url && (urlOf(l).trim() === "" || isWebAddress(urlOf(l)))).map((l) => ({ key: l.key, url: urlOf(l).trim() }));
-  const badUrl = citeLinks.some((l) => urlOf(l).trim() !== "" && !isWebAddress(urlOf(l)));
+  // an address typed for a citation that has none yet, by place (citeKey)
+  const [added, setAdded] = useState<Record<string, string>>({});
+  const addedOf = (c: SourceCite) => (added[citeKey(c)] ?? "").trim();
+  const badUrl = citeLinks.some((l) => urlOf(l).trim() !== "" && !isWebAddress(urlOf(l))) || Object.values(added).some((u) => u.trim() !== "" && !isWebAddress(u));
   const [adding, setAdding] = useState(false);
   const [person, setPerson] = useState("");
   const [event, setEvent] = useState<CiteEvent>("");
   const [family, setFamily] = useState("");
   const changes = (["title", "author", "publication"] as const).filter((k) => form[k] !== fields[k]).length
     + (same(form.links, fields.links) ? 0 : 1) + (same(form.notes, fields.notes) ? 0 : 1)
-    + (same(list.map(citeKey).sort(), cites.map(citeKey).sort()) ? 0 : 1) + (linkChanges.length ? 1 : 0);
+    + (same(list.map(citeKey).sort(), cites.map(citeKey).sort()) ? 0 : 1) + (linkChanges.length ? 1 : 0) + (list.some((c) => addedOf(c)) ? 1 : 0);
   const dirty = changes > 0 || !xref;
   const set = (patch: Partial<SourceFields>) => setForm({ ...form, ...patch });
   const choices = useMemo(() => Object.values(data.people).sort((a, b) => a.name.localeCompare(b.name)).map((p) => {
@@ -99,19 +102,33 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
   };
   const eventOf = (l: CitationLinkLine) => (l.event ? (EVENT_LABEL[l.event as CiteEvent] ? t(EVENT_LABEL[l.event as CiteEvent]) : l.event) : t("srcCitePerson"));
   const whereOf = (l: CitationLinkLine) => `${whoOf(l)} · ${eventOf(l)}`;
-  // the addresses as the file holds them: a person (or family), under it the event, under it the citation with its address
+  const holderName = (holder: string) => {
+    const fam = data.families[holder];
+    return fam ? [fam.husb, fam.wife].map((id) => (id ? nameOf(id) : "?")).join(" & ") : nameOf(holder);
+  };
+  const eventName = (event: string) => (event ? (EVENT_LABEL[event as CiteEvent] ? t(EVENT_LABEL[event as CiteEvent]) : event) : t("srcCitePerson"));
+  // the citations as the file holds them: a person (or family), under it the event, under it the citation with its address (an empty row when it has none)
   const citeTree = useMemo(() => {
-    const out: { holder: string; family: boolean; who: string; events: { event: string; label: string; lines: CitationLinkLine[] }[] }[] = [];
+    type Place = { event: string; cite: SourceCite | null; lines: CitationLinkLine[] };
+    const out: { holder: string; family: boolean; places: Place[] }[] = [];
+    const group = (holder: string) => {
+      let p = out.find((x) => x.holder === holder);
+      if (!p) out.push(p = { holder, family: !!data.families[holder], places: [] });
+      return p;
+    };
+    for (const c of list) {
+      const holder = c.family || c.person;
+      group(holder).places.push({ event: c.event, cite: c, lines: citeLinks.filter((l) => l.holder === holder && l.event === c.event) });
+    }
+    // addresses under lines of the file that the list does not name (another kind of event)
     for (const l of citeLinks) {
-      let p = out.find((x) => x.holder === l.holder);
-      if (!p) out.push(p = { holder: l.holder, family: !!data.families[l.holder], who: whoOf(l), events: [] });
-      let e = p.events.find((x) => x.event === l.event);
-      if (!e) p.events.push(e = { event: l.event, label: eventOf(l), lines: [] });
-      e.lines.push(l);
+      const p = group(l.holder);
+      const at = p.places.find((x) => x.event === l.event);
+      if (!at) p.places.push({ event: l.event, cite: null, lines: [l] });
+      else if (!at.lines.includes(l) && !at.cite) at.lines.push(l);
     }
     return out;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [citeLinks, data]);
+  }, [list, citeLinks, data]);
   const label = (c: SourceCite) => c.family
     ? `${t(EVENT_LABEL[c.event])} · ${[data.families[c.family]?.husb, data.families[c.family]?.wife].map((id) => (id ? nameOf(id) : "?")).join(" & ")}`
     : `${nameOf(c.person)} · ${t(EVENT_LABEL[c.event])}`;
@@ -123,7 +140,8 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
   const ready = !!form.title.trim() && !badUrl;
   const save = () => {
     if (!ready || !dirty) return;
-    onSave({ ...form, title: form.title.trim(), notes: form.notes.map((n) => n.trim()).filter(Boolean), links: form.links.map((l) => l.trim()).filter(isWebAddress) }, list, linkChanges);
+    onSave({ ...form, title: form.title.trim(), notes: form.notes.map((n) => n.trim()).filter(Boolean), links: form.links.map((l) => l.trim()).filter(isWebAddress) }, list, linkChanges,
+      list.filter((c) => addedOf(c)).map((c) => ({ cite: c, url: addedOf(c) })));
   };
   const close = () => { if (mayClose(changes > 0, () => window.confirm(t("discard")))) onClose(); };
   const onKey = useEffectEvent((e: KeyboardEvent) => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); close(); } });
@@ -183,29 +201,6 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
             </fieldset>
           </Part>
           <Group title={t("srcGroupCitations")} hint={t("srcGroupCitationsHint")} />
-          {citeLinks.length > 0 && <Part icon={Link2} title={t("srcCitationLinks")}>
-            <fieldset className="list" title={t("srcCitationLinksTip")}>
-              {citeTree.map((p) => (
-                <div className="cite-person" key={p.holder}>
-                  <div className="cite-head">{ico(p.family ? Users : User)}{p.who}</div>
-                  {p.events.map((e) => (
-                    <div className="cite-event" key={e.event}>
-                      <div className="cite-head sub">{e.label}</div>
-                      {e.lines.map((l) => (
-                        <label className="cite-link" key={l.key} data-cap={t("srcCitationLink")}>
-                          <input type="text" inputMode="url" autoComplete="off" className={urlOf(l).trim() && !isWebAddress(urlOf(l)) ? "invalid" : undefined}
-                                 placeholder={t("srcLinkPlaceholder")} aria-label={whereOf(l)} title={t("srcCitationLinkTip", { who: whereOf(l) })} value={urlOf(l)}
-                                 onChange={(e) => setUrls({ ...urls, [l.key]: e.target.value })} />
-                          <button type="button" className="icon-btn" title={t("srcRemoveCitationLink")} aria-label={`${t("srcRemoveCitationLink")}: ${whereOf(l)}`}
-                                  onClick={() => setUrls({ ...urls, [l.key]: "" })}>{ico(Trash2)}</button>
-                        </label>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </fieldset>
-          </Part>}
           <Part icon={Users} title={t("srcCitedFor")} extra={<AddAct expanded={adding} onAdd={() => setAdding(!adding)}>{ico(Plus)}{t("srcAddCite")}</AddAct>}>
             <fieldset className="list">
               {adding && <div className="new-child">
@@ -224,13 +219,29 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
                   <button type="button" className="primary" disabled={!person || (onFamily && !chosenFamily)} onClick={addCite}>{t("srcCiteAdd")}</button>
                 </div>
               </div>}
-              {list.map((c) => (
-                <div className="item" key={citeKey(c)}>
-                  <div className="item-head">
-                    <span className="grow">{label(c)}</span>
-                    <button type="button" className="icon-btn" title={t("remove")} aria-label={`${t("remove")}: ${label(c)}`}
-                            onClick={() => setList(list.filter((x) => citeKey(x) !== citeKey(c)))}>{ico(Trash2)}</button>
-                  </div>
+              {citeTree.map((p) => (
+                <div className="cite-person" key={p.holder}>
+                  <div className="cite-head">{ico(p.family ? Users : User)}{holderName(p.holder)}</div>
+                  {p.places.map((pl) => {
+                    const where = `${holderName(p.holder)} · ${eventName(pl.event)}`;
+                    return <div className="cite-event" key={pl.event}>
+                      <div className="cite-head sub"><span className="grow">{eventName(pl.event)}</span>
+                        {pl.cite && <button type="button" className="icon-btn" title={t("remove")} aria-label={`${t("remove")}: ${where}`}
+                                onClick={() => setList(list.filter((x) => citeKey(x) !== citeKey(pl.cite!)))}>{ico(Trash2)}</button>}</div>
+                      {pl.lines.map((l) => (
+                        <label className="cite-link" key={l.key} data-cap={t("srcCitationLink")}>
+                          <input type="text" inputMode="url" autoComplete="off" className={urlOf(l).trim() && !isWebAddress(urlOf(l)) ? "invalid" : undefined}
+                                 placeholder={t("srcLinkPlaceholder")} aria-label={where} title={t("srcCitationLinkTip", { who: where })} value={urlOf(l)}
+                                 onChange={(e) => setUrls({ ...urls, [l.key]: e.target.value })} />
+                        </label>
+                      ))}
+                      {!pl.lines.length && pl.cite && <label className="cite-link" data-cap={t("srcCitationLink")}>
+                        <input type="text" inputMode="url" autoComplete="off" className={added[citeKey(pl.cite)]?.trim() && !isWebAddress(added[citeKey(pl.cite)]) ? "invalid" : undefined}
+                               placeholder={t("srcLinkPlaceholder")} aria-label={where} title={t("srcCitationLinkTip", { who: where })} value={added[citeKey(pl.cite)] ?? ""}
+                               onChange={(e) => setAdded({ ...added, [citeKey(pl.cite!)]: e.target.value })} />
+                      </label>}
+                    </div>;
+                  })}
                 </div>
               ))}
               {!list.length && !adding && <p className="hint">{t("srcCitedEmpty")}</p>}

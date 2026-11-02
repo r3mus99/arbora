@@ -1,0 +1,1 @@
+- **Every citation of a source has its own address row in the source window.** The "Cited for" part now follows the file: the person, under it the event, under it a Link row, also when the citation has no address yet, so an address can be added there; the separate "Links in citations" part is gone.

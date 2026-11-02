@@ -867,3 +867,5 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-group .cite-head.sub { padding-left: 14px; }
 .sp-group .cite-event .src-links { margin: 0 0 4px 14px; }
 .sp-cites > li + li { margin-top: 6px; }
+.cite-head .grow { flex: 1; min-width: 0; }
+.cite-head .icon-btn { margin-right: -4px; }
