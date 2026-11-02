@@ -1,1 +1,1 @@
-- **A new source is easier to fill in.** The source window offers the selected person as the first citation, suggests the title from the first citation (for example "Birth Jan Novak 1755") until you type your own, and a new link or note row is added with the + at the end of the row instead of appearing by itself.
+- **The "Add also" parent buttons stay in place.** A parent that was added stays in the row, marked, so a second click cannot add the other parent by accident; the suggested title of a christening or burial source now also has the year.
