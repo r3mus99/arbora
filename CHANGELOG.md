@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.101.0 – 2026-11-02
+
+- **The sex choice in the editor uses icons.** Male, female and unknown are shown as ♂, ♀ and a question mark with the name as a tooltip, the chosen one in the same blue or red as the people list.
+
 ## 2.100.0 – 2026-11-02
 
 - **The Sources panel has no field labels.** The author sits under the source title, the count moves into the "Citations" heading once a source is open, publication, notes and links are told apart by style instead of labels, each citation is one line "person · event" with its address below, and "Edit source" is a full-width button at the bottom of an opened source.
