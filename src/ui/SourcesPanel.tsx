@@ -73,10 +73,10 @@ function Citations({ xref, ids, data, citationsOf, onPerson, t }: { xref: string
   }
   return <ul className="sp-cites" aria-label={t("srcGroupCitations")}>
     {tree.map((p) => <li key={p.id}>
-      <div className="cite-head">{p.person ? <button type="button" className="link" onClick={() => onPerson(p.person)}>{p.label}</button> : p.label}</div>
+      <div className="src-line"><span>{t("srcCitationPerson")}:</span> {p.person ? <button type="button" className="link" onClick={() => onPerson(p.person)}>{p.label}</button> : p.label}</div>
       {p.events.map((e) => <div key={e.key} className="cite-event">
-        <div className="cite-head sub">{e.event}</div>
-        {e.urls.length > 0 && <div className="src-links">{e.urls.map((u, i) => <LinkChip key={i} url={u} />)}</div>}
+        <div className="src-line"><span>{t("event")}:</span> {e.event}</div>
+        {e.urls.length > 0 && <div className="src-line"><span>{t("srcCitationLink")}:</span> <span className="src-links inline">{e.urls.map((u, i) => <LinkChip key={i} url={u} />)}</span></div>}
       </div>)}
     </li>)}
   </ul>;
@@ -141,17 +141,17 @@ export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, c
                 <BookMarked className="icon" aria-hidden="true" />
                 <span className="sp-main">
                   <span className="sp-title">{s.citation.title}</span>
-                  <span className="sp-sub">{s.citation.author}</span>
                 </span>
                 <span className="sp-count">{s.citations}×</span>
               </button>
               {open === s.key && <div className="sp-more">
                 <div className="sp-group">
-                  {[s.fields.author, s.fields.publication].filter(Boolean).map((v, i) => <div key={i} className="src-line"><span>{t(i === 0 && s.fields.author ? "srcAuthor" : "srcPublication")}:</span> <Linked text={v} /></div>)}
-                  {s.fields.notes.map((n, i) => <div key={i} className="src-note"><Linked text={n} /></div>)}
-                  {s.fields.links.length > 0 && <div className="src-links">{s.fields.links.map((u) => <LinkChip key={u} url={u} />)}</div>}
-                  {onEdit && s.key.startsWith("@") && <button type="button" className="sp-edit" disabled={editDisabled} onClick={() => onEdit(s.key)}>
-                    <Pencil className="icon" aria-hidden="true" />{t("srcEditSource")}</button>}
+                  {onEdit && s.key.startsWith("@") && <button type="button" className="icon-btn sp-edit-btn" title={t("srcEditSource")} aria-label={t("srcEditSource")}
+                          disabled={editDisabled} onClick={() => onEdit(s.key)}><Pencil className="icon" aria-hidden="true" /></button>}
+                  {s.fields.author && <div className="src-line"><span>{t("srcAuthor")}:</span> <Linked text={s.fields.author} /></div>}
+                  {s.fields.publication && <div className="src-line"><span>{t("srcPublication")}:</span> <Linked text={s.fields.publication} /></div>}
+                  {s.fields.notes.length > 0 && <div className="src-line"><span>{t("notes")}:</span> {s.fields.notes.map((n, i) => <span key={i}>{i > 0 && "; "}<Linked text={n} /></span>)}</div>}
+                  {s.fields.links.length > 0 && <div className="src-line"><span>{t("srcLinks")}:</span> <span className="src-links inline">{s.fields.links.map((u) => <LinkChip key={u} url={u} />)}</span></div>}
                 </div>
                 <div className="sp-group"><div className="sp-group-title">{t("srcGroupCitations")}</div>
                   {citationsOf && s.key.startsWith("@") ? <Citations xref={s.key} ids={s.people} data={data} citationsOf={citationsOf} onPerson={onPerson} t={t} />

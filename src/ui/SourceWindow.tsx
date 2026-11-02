@@ -1,4 +1,4 @@
-import { BookMarked, Check, Link2, Plus, StickyNote, Trash2, User, Users, X, type LucideIcon } from "lucide-react";
+import { BookMarked, Check, Link2, Plus, StickyNote, Trash2, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from "react";
 import type { GedcomData } from "../core/gedcom";
 import type { CitationAddress, CitationLinkChange, CitationLinkLine } from "../core/citationLinks";
@@ -44,11 +44,6 @@ function AddAct({ children, onAdd, expanded }: { children: ReactNode; onAdd: () 
   return <button type="button" className="head-act" aria-expanded={expanded}
                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); const part = e.currentTarget.closest("details"); if (part) part.open = true; onAdd(); }}>
     {children}</button>;
-}
-
-/** The heading of a group of parts; what the parts below it are about is its tooltip (no always-visible hint text). */
-function Group({ title, hint }: { title: string; hint: string }) {
-  return <div className="part-group" title={hint}><h3>{title}</h3></div>;
 }
 
 /** A collapsible part of the window, built like the parts of the person's edit window. */
@@ -191,7 +186,7 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
               ))}
             </fieldset>
           </Part>
-          <Group title={t("srcGroupCitations")} hint={t("srcGroupCitationsHint")} />
+          <hr className="part-rule" />
           <Part icon={Users} title={t("srcCitedFor")} extra={<AddAct expanded={adding} onAdd={() => setAdding(!adding)}>{ico(Plus)}{t("srcAddCite")}</AddAct>}>
             <fieldset className="list">
               {adding && <div className="new-child">
@@ -212,21 +207,21 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
               </div>}
               {citeTree.map((p) => (
                 <div className="cite-person" key={p.holder}>
-                  <div className="cite-head">{ico(p.family ? Users : User)}{holderName(p.holder)}</div>
+                  <label data-cap={t("srcCitationPerson")}><span className="static strong">{holderName(p.holder)}</span></label>
                   {p.places.map((pl) => {
                     const where = `${holderName(p.holder)} · ${eventName(pl.event)}`;
-                    return <div className="cite-event" key={pl.event}>
-                      <div className="cite-head sub"><span className="grow">{eventName(pl.event)}</span>
-                        {pl.cite && <button type="button" className="icon-btn" title={t("remove")} aria-label={`${t("remove")}: ${where}`}
-                                onClick={() => setList(list.filter((x) => citeKey(x) !== citeKey(pl.cite!)))}>{ico(Trash2)}</button>}</div>
+                    return <div className="cite-block" key={pl.event}>
+                      {pl.cite && <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={`${t("remove")}: ${where}`}
+                              onClick={() => setList(list.filter((x) => citeKey(x) !== citeKey(pl.cite!)))}>{ico(Trash2)}</button>}
+                      <label data-cap={t("event")}><span className="static">{eventName(pl.event)}</span></label>
                       {pl.lines.map((l) => (
-                        <label className="cite-link" key={l.key} data-cap={t("srcCitationLink")}>
+                        <label key={l.key} data-cap={t("srcCitationLink")}>
                           <input type="text" inputMode="url" autoComplete="off" className={urlOf(l).trim() && !isWebAddress(urlOf(l)) ? "invalid" : undefined}
                                  placeholder={t("srcLinkPlaceholder")} aria-label={where} title={t("srcCitationLinkTip", { who: where })} value={urlOf(l)}
                                  onChange={(e) => setUrls({ ...urls, [l.key]: e.target.value })} />
                         </label>
                       ))}
-                      {!pl.lines.length && pl.cite && <label className="cite-link" data-cap={t("srcCitationLink")}>
+                      {!pl.lines.length && pl.cite && <label data-cap={t("srcCitationLink")}>
                         <input type="text" inputMode="url" autoComplete="off" className={added[citeKey(pl.cite)]?.trim() && !isWebAddress(added[citeKey(pl.cite)]) ? "invalid" : undefined}
                                placeholder={t("srcLinkPlaceholder")} aria-label={where} title={t("srcCitationLinkTip", { who: where })} value={added[citeKey(pl.cite)] ?? ""}
                                onChange={(e) => setAdded({ ...added, [citeKey(pl.cite!)]: e.target.value })} />
