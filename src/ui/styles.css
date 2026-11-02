@@ -855,3 +855,10 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-cites { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 /* the header of a part already has its divider: the first field row under it does not draw a second one */
 .edit-body .editor .collapsible > .sec-fields > :is(label[data-cap], label.check, .sex-field):first-child { border-top: 0; }
+/* the addresses of the citations as the file holds them: person, under it the event, under it the citation with its address */
+.cite-person + .cite-person { margin-top: 10px; }
+.cite-head { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 10px; font-weight: 600; overflow-wrap: anywhere; }
+.cite-head .icon { width: var(--icon-sm); height: var(--icon-sm); flex: none; color: var(--c-src); }
+.cite-head.sub { padding-left: 28px; font-size: 13px; font-weight: 400; color: var(--muted); }
+.edit-body .editor .cite-event label.cite-link { margin-left: 28px; padding-right: 36px; }
+.edit-body .editor label.cite-link > .icon-btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }

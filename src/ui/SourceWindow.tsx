@@ -1,4 +1,4 @@
-import { BookMarked, Check, Link2, Plus, StickyNote, Trash2, Users, X, type LucideIcon } from "lucide-react";
+import { BookMarked, Check, Link2, Plus, StickyNote, Trash2, User, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from "react";
 import type { GedcomData } from "../core/gedcom";
 import type { CitationLinkChange, CitationLinkLine } from "../core/citationLinks";
@@ -93,12 +93,25 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
   const onFamily = event === "MARR" || event === "DIV";
   const families = person ? familiesOf(person) : [];
   const chosenFamily = families.some((f) => f.id === family) ? family : families[0]?.id ?? "";
-  const whereOf = (l: CitationLinkLine) => {
+  const whoOf = (l: CitationLinkLine) => {
     const fam = data.families[l.holder];
-    const who = fam ? [fam.husb, fam.wife].map((id) => (id ? nameOf(id) : "?")).join(" & ") : nameOf(l.holder);
-    const ev = l.event ? (EVENT_LABEL[l.event as CiteEvent] ? t(EVENT_LABEL[l.event as CiteEvent]) : l.event) : t("srcCitePerson");
-    return `${who} · ${ev}`;
+    return fam ? [fam.husb, fam.wife].map((id) => (id ? nameOf(id) : "?")).join(" & ") : nameOf(l.holder);
   };
+  const eventOf = (l: CitationLinkLine) => (l.event ? (EVENT_LABEL[l.event as CiteEvent] ? t(EVENT_LABEL[l.event as CiteEvent]) : l.event) : t("srcCitePerson"));
+  const whereOf = (l: CitationLinkLine) => `${whoOf(l)} · ${eventOf(l)}`;
+  // the addresses as the file holds them: a person (or family), under it the event, under it the citation with its address
+  const citeTree = useMemo(() => {
+    const out: { holder: string; family: boolean; who: string; events: { event: string; label: string; lines: CitationLinkLine[] }[] }[] = [];
+    for (const l of citeLinks) {
+      let p = out.find((x) => x.holder === l.holder);
+      if (!p) out.push(p = { holder: l.holder, family: !!data.families[l.holder], who: whoOf(l), events: [] });
+      let e = p.events.find((x) => x.event === l.event);
+      if (!e) p.events.push(e = { event: l.event, label: eventOf(l), lines: [] });
+      e.lines.push(l);
+    }
+    return out;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [citeLinks, data]);
   const label = (c: SourceCite) => c.family
     ? `${t(EVENT_LABEL[c.event])} · ${[data.families[c.family]?.husb, data.families[c.family]?.wife].map((id) => (id ? nameOf(id) : "?")).join(" & ")}`
     : `${nameOf(c.person)} · ${t(EVENT_LABEL[c.event])}`;
@@ -172,16 +185,23 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
           <Group title={t("srcGroupCitations")} hint={t("srcGroupCitationsHint")} />
           {citeLinks.length > 0 && <Part icon={Link2} title={t("srcCitationLinks")}>
             <fieldset className="list" title={t("srcCitationLinksTip")}>
-              {citeLinks.map((l) => (
-                <div className="item" key={l.key}>
-                  <p className="hint">{whereOf(l)}</p>
-                  <div className="item-head">
-                    <label className="grow"><input type="text" inputMode="url" autoComplete="off" className={urlOf(l).trim() && !isWebAddress(urlOf(l)) ? "invalid" : undefined}
-                           placeholder={t("srcLinkPlaceholder")} aria-label={whereOf(l)} title={t("srcCitationLinkTip", { who: whereOf(l) })} value={urlOf(l)}
-                           onChange={(e) => setUrls({ ...urls, [l.key]: e.target.value })} /></label>
-                    <button type="button" className="icon-btn" title={t("srcRemoveCitationLink")} aria-label={`${t("srcRemoveCitationLink")}: ${whereOf(l)}`}
-                            onClick={() => setUrls({ ...urls, [l.key]: "" })}>{ico(Trash2)}</button>
-                  </div>
+              {citeTree.map((p) => (
+                <div className="cite-person" key={p.holder}>
+                  <div className="cite-head">{ico(p.family ? Users : User)}{p.who}</div>
+                  {p.events.map((e) => (
+                    <div className="cite-event" key={e.event}>
+                      <div className="cite-head sub">{e.label}</div>
+                      {e.lines.map((l) => (
+                        <label className="cite-link" key={l.key} data-cap={t("srcCitationLink")}>
+                          <input type="text" inputMode="url" autoComplete="off" className={urlOf(l).trim() && !isWebAddress(urlOf(l)) ? "invalid" : undefined}
+                                 placeholder={t("srcLinkPlaceholder")} aria-label={whereOf(l)} title={t("srcCitationLinkTip", { who: whereOf(l) })} value={urlOf(l)}
+                                 onChange={(e) => setUrls({ ...urls, [l.key]: e.target.value })} />
+                          <button type="button" className="icon-btn" title={t("srcRemoveCitationLink")} aria-label={`${t("srcRemoveCitationLink")}: ${whereOf(l)}`}
+                                  onClick={() => setUrls({ ...urls, [l.key]: "" })}>{ico(Trash2)}</button>
+                        </label>
+                      ))}
+                    </div>
+                  ))}
                 </div>
               ))}
             </fieldset>
