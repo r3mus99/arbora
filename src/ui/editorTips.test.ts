@@ -107,7 +107,7 @@ describe("tooltips of the edit window", () => {
 
   test("the fixture shows the whole form", () => {
     for (const word of ["Teacher", "Main street 1", "godfather"]) expect(html).toContain(word);
-    expect((html.match(fields) || []).length).toBeGreaterThan(30);
+    expect((html.match(fields) || []).length).toBeGreaterThan(27);
   });
 
   // a field without an explanation is a bug: give the field (or its label) a title with a text in every language

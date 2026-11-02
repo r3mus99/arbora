@@ -42,14 +42,7 @@ export interface PersonFields {
   associations: AssocRow[];
   /** the source citations written directly under the person */
   citations: CitationRow[];
-  /** RESN: "confidential", "locked", "privacy" (lower case) or what the file says */
-  restriction: string;
-  /** the text of the person's own ADDR line (its CITY, POST, … lines stay as they are) */
-  address: string;
 }
-
-/** the values GEDCOM 5.5.1 gives RESN */
-export const RESTRICTIONS = ["confidential", "locked", "privacy"];
 
 /** AGE, CAUS and AGNC written under an event line, and the event's own NOTE (the first one written as text; a pointer to a NOTE record is left alone) */
 export interface EventDetailFields { cause: string; note: string }
@@ -186,8 +179,6 @@ export function personFields(rec: GedNode): PersonFields {
     })),
     associations: childrenOf(rec, "ASSO").map((c, origin) => ({ origin, id: c.value.trim(), role: childOf(c, "RELA")?.value.trim() || "" })),
     citations: citationRows(rec),
-    restriction: childOf(rec, "RESN")?.value.trim().toLowerCase() || "",
-    address: childOf(rec, "ADDR")?.value || "",
   };
   return fields;
 }
@@ -551,16 +542,6 @@ function setAssociations(rec: GedNode, before: AssocRow[], after: AssocRow[]): G
   return out;
 }
 
-/** The ADDR line's text; a line that has CITY, POST, … under it is never removed, only emptied. */
-function setAddress(rec: GedNode, before: string, after: string): GedNode {
-  const value = after.replace(/\r\n?/g, "\n").trim();
-  if (value === before.trim()) return rec;
-  const line = childOf(rec, "ADDR");
-  if (!line) return value ? { ...rec, children: insert(rec.children, gedNode("ADDR", value)) } : rec;
-  if (!value && !line.children.length) return { ...rec, children: rec.children.filter((c) => c !== line) };
-  return { ...rec, children: rec.children.map((c) => (c === line ? { ...c, value } : c)) };
-}
-
 function setNote(rec: GedNode, text: string): GedNode {
   const note = inlineNote(rec);
   const value = text.replace(/\r\n?/g, "\n").trim();
@@ -598,8 +579,6 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   out = setCitations(out, before.citations, after.citations);
   out = setAliases(out, before.aliases, after.aliases, after);
   if (after.religion.trim() !== before.religion) out = setChild(out, "RELI", after.religion.trim());
-  if (after.restriction.trim().toLowerCase() !== before.restriction) out = setChild(out, "RESN", after.restriction.trim().toLowerCase());
-  out = setAddress(out, before.address, after.address);
   if (after.note.trim() !== before.note.trim()) out = setNote(out, after.note);
   return out === rec ? rec : rewritten(out);
 }

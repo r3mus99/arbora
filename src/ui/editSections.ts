@@ -1,4 +1,4 @@
-import { BookOpen, Briefcase, CalendarDays, Ellipsis, Link2, UserRound, Users, type LucideIcon } from "lucide-react";
+import { BookOpen, Briefcase, CalendarDays, Link2, UserRound, Users, type LucideIcon } from "lucide-react";
 import type { StringKey } from "./i18n";
 import type { EditSection } from "./editWindow";
 
@@ -10,5 +10,4 @@ export const SECTIONS: Record<EditSection, { title: StringKey; icon: LucideIcon 
   notes: { title: "esNotes", icon: BookOpen },
   families: { title: "esFamilies", icon: Users },
   parents: { title: "esParents", icon: Link2 },
-  other: { title: "esOther", icon: Ellipsis },
 };

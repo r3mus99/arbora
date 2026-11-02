@@ -1,8 +1,8 @@
-import { CircleHelp, Mars, Venus, ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { CircleHelp, Mars, Venus, ArrowDownUp, Baby, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
-  RESTRICTIONS, PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
+  PERSON_EVENTS, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, relinkFamily, relinkParents, type EventFields,
   type Alias, type AssocRow, type EventDetailFields, type EventRow, type Suggestions, type FamilyFields, type Occupation, type PersonFields,
 } from "../core/edit";
 import type { GedNode, GedcomData } from "../core/gedcom";
@@ -256,11 +256,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const revealBtn = (id: string, shown: boolean, label: string, title?: string) =>
     <button type="button" className={`reveal${shown ? " open" : ""}`} title={title} aria-expanded={shown} onClick={() => toggleOf(id, shown)}>
       {label}<ChevronDown className="icon" aria-hidden="true" /></button>;
-  /** a group of fields behind a reveal button: shown when one holds a value or after the button; `pin` keeps it open while a value is typed or emptied */
-  const hidable = (id: string, filled: boolean, label: string, tip: string, body: ReactNode) => {
-    const shown = (filled || openDetails.includes(id)) && !closed.includes(id);
-    return <>{revealBtn(id, shown, label, tip)}{shown && body}</>;
-  };
   const pin = (id: string) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); };
   const rowId = (e: EventRow, i: number) => (e.origin < 0 ? `new${i}` : `o${e.origin}`);
   /** the note under an event: several lines; a note kept in a separate NOTE record is not touched here */
@@ -484,7 +479,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     if (f.parents.length || f.associations.length) start.add("parents");
     if (f.occupations.length) start.add("facts");
     if (f.note || f.citations.length) start.add("notes");
-    if (f.restriction || f.address) start.add("other");
     return start;
   });
   /** text actions at the right end of a group's title row */
@@ -675,7 +669,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         {addingAssoc && <PersonPick choices={personChoices} clearOnPick focus exclude={[record.xref!]} value="" label="" tip={t("tipAddAssoc")}
                     placeholder={t("pickPerson")} onPick={(id) => { if (id) { set("associations", [...form.associations, { origin: -1, id, role: "" }]); setAddingAssoc(false); } }} />}
         {form.associations.map((a, i) => (
-          <div className="item" key={a.origin < 0 ? `new${i}` : a.origin}>
+          <div className={form.associations.length > 1 ? "item fam-card" : "item"} key={a.origin < 0 ? `new${i}` : a.origin}>
             <div className="item-head">
               <span className="grow">{labelOf(a.id)}</span>
               <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
@@ -689,40 +683,32 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </>)}
       {section("facts", <>
       <fieldset className="list">
-        <legend>{ico(Briefcase)}{t("occupation")}{acts(<button type="button" className="head-act" onClick={() => set("occupations",
-          [...form.occupations, { origin: -1, value: "", date: "", place: "" }])}><Plus className="icon" aria-hidden="true" />{t("addOccupation")}</button>)}</legend>
         {form.occupations.map((o, i) => (
-          <div className="item" key={o.origin < 0 ? `new${i}` : o.origin}>
-            <div className="item-head">
-              <input type="text" autoComplete="off" value={o.value} aria-label={t("occupation")} title={t("tipOccupation")}
-                     onChange={(e) => setOcc(i, { value: e.target.value })} />
+          <div className={form.occupations.length > 1 ? "item fam-card" : "item"} key={o.origin < 0 ? `new${i}` : o.origin}>
+            {form.occupations.length > 1 && <div className="item-head">
+              <span className="grow">{t("occupation")} {i + 1}</span>
               <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                       onClick={() => set("occupations", form.occupations.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
-            </div>
-            {hidable(`oc${o.origin < 0 ? `new${i}` : o.origin}`, !!(o.date || o.place), t("eventDetails"), t("tipRowDetails"), <>
-              <DateField value={o.date} shown={o.origin < 0 ? "" : initial.shown.occupations[o.origin].date} lang={lang}
-                         t={t} onChange={(v) => { pin(`oc${o.origin < 0 ? `new${i}` : o.origin}`); setOcc(i, { date: v }); }} />
-              <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={o.place} list={PLACES}
-                       onChange={(e) => { pin(`oc${o.origin < 0 ? `new${i}` : o.origin}`); setOcc(i, { place: e.target.value }); }} /></label>
-            </>)}
+            </div>}
+            <label title={t("tipOccupation")} data-cap={t("occupationTitle")}><input placeholder={t("occupationTitle")} aria-label={t("occupationTitle")} type="text" autoComplete="off" value={o.value}
+                     onChange={(e) => setOcc(i, { value: e.target.value })} />
+              {form.occupations.length === 1 && <button type="button" className="row-act row-trash" title={t("remove")} aria-label={t("remove")}
+                onClick={() => set("occupations", [])}><Trash2 className="icon" aria-hidden="true" /></button>}</label>
+            <DateField value={o.date} shown={o.origin < 0 ? "" : initial.shown.occupations[o.origin].date} lang={lang}
+                       t={t} onChange={(v) => setOcc(i, { date: v })} />
+            <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={o.place} list={PLACES}
+                     onChange={(e) => setOcc(i, { place: e.target.value })} /></label>
           </div>
         ))}
+        {form.occupations.length === 0 && <span className="muted">{t("noValue")}</span>}
       </fieldset>
-      </>)}
+      </>, <button type="button" className="head-act" onClick={(e) => { e.preventDefault(); e.stopPropagation();
+          const next = new Set(openNow).add("facts"); setOpenNow(next); onToggleSection?.(next);
+          set("occupations", [...form.occupations, { origin: -1, value: "", date: "", place: "" }]); }}>
+        <Plus className="icon" aria-hidden="true" />{t("addOccupation")}</button>)}
       {section("notes", <>
       <label title={t("tipNote")} data-cap={t("note")}><textarea autoComplete="off" placeholder={t("note")} aria-label={t("note")} rows={3} value={form.note} onChange={(e) => set("note", e.target.value)} /></label>
-      </>)}
-      {section("other", <>
-      {hidable("pRestr", !!form.restriction, t("restriction"), t("tipRestriction"),
-        <label title={t("tipRestriction")}><span>{t("restriction")}</span>
-          <select value={form.restriction} onChange={(e) => { pin("pRestr"); set("restriction", e.target.value); }}>
-            <option value="">–</option>
-            {!RESTRICTIONS.includes(form.restriction) && form.restriction && <option value={form.restriction}>{form.restriction}</option>}
-            {RESTRICTIONS.map((r) => <option key={r} value={r}>{t(`resn_${r}` as StringKey)}</option>)}
-          </select></label>)}
-      {hidable("pAddr", !!form.address, t("address"), t("tipAddress"),
-        <label title={t("tipAddress")} data-cap={t("address")}><textarea autoComplete="off" placeholder={t("address")} aria-label={t("address")} rows={2} value={form.address} onChange={(e) => { pin("pAddr"); set("address", e.target.value); }} /></label>)}
       </>)}
       <SuggestLists suggest={suggest} lang={lang} />
     </form>

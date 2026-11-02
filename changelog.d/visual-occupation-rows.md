@@ -1,0 +1,1 @@
+- **Occupation in the edit window is laid out like a residence.** The section is called "Occupation", "Add occupation" sits in its header, and each occupation shows labelled rows for the occupation, date and place (no hidden "Details"). Several occupations are separate numbered cards.
