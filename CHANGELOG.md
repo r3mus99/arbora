@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.112.0 – 2026-11-02
+
+- **Sources and notes: one place to read and edit a source.** A click on a source in the list opens it in the middle of the screen, in place of the tree, and the person's detail stays on the right; the unfold in the list and the "Edit source" button are gone. Delete source moved to the footer next to Cancel and Save, and the filters (selected person / whole file, kind of event) sit behind one button next to the search field. Switching to another source asks before it drops unsaved changes.
+
 ## 2.111.1 – 2026-11-02
 
 - **The "Add also" parent buttons stay in place.** A parent that was added stays in the row, marked, so a second click cannot add the other parent by accident; the suggested title of a christening or burial source now also has the year.
