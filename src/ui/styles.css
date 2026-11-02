@@ -373,9 +373,8 @@ button.link { display: inline; }
 .editor fieldset > .wide { grid-column: 1 / -1; display: grid; gap: 6px; }
 .editor .children .lab { display: block; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 0; }
 .editor .child { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: var(--field-h); padding: 0 4px; border-bottom: 1px dashed var(--border); }
-.editor fieldset > .trio, .editor fieldset > .add, .editor fieldset > .reveal, .editor fieldset > .sub { grid-column: 1 / -1; }
-.editor fieldset > .add, .editor fieldset > .reveal { justify-self: start; }
-.editor .item > .reveal { grid-column: 1 / -1; }
+.editor fieldset > .trio, .editor fieldset > .add, .editor fieldset > .sub { grid-column: 1 / -1; }
+.editor fieldset > .add { justify-self: start; }
 .editor fieldset.sub { padding-top: 4px; }
 /* the inline form for a new child, spouse or parent: an inset card (--bg on the --panel of the part, 1px border) so it reads as a separate step */
 .editor .new-child { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 6px 0; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); }
@@ -691,11 +690,11 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .merge .kid-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .merge .kid-actions button { display: inline-flex; align-items: center; gap: var(--gap); white-space: nowrap; }
 
-/* text actions at the right end of a group's title row ("Add event", "New", "Find"), and the chevron button that only reveals hidden fields */
+/* text actions at the right end of a group's title row ("Add event", "New", "Find") */
 .editor legend, .editor .children .lab, .editor .spouse .lab { width: 100%; }
 .editor .spouse .lab { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
 .editor .head-acts { margin-left: auto; display: flex; align-items: center; gap: 12px; }
-.editor .head-act, .editor .reveal { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; }
+.editor .head-act { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; }
 .editor .head-act { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; min-height: 24px; }
 .editor .head-act .icon, .collapsible .sec-extra .icon { width: var(--icon-sm); height: var(--icon-sm); }
 .editor .item-head .cite-title { flex: 1; min-width: 0; overflow-wrap: anywhere; padding: 8px 0; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; cursor: text; }
@@ -712,10 +711,7 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .collapsible > summary.sec-head > .sec-extra { grid-column: 4; grid-row: 1; margin: 0; justify-self: end; }
 .collapsible .sec-extra .head-act { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; display: inline-flex; align-items: center; gap: 4px; }
 .collapsible .sec-extra .head-act:disabled { color: var(--muted); opacity: .5; cursor: default; }
-.editor .reveal { display: inline-flex; align-items: center; gap: 4px; min-height: var(--field-h); font-size: 14px; justify-self: start; }
-.editor .reveal .icon { width: var(--icon-sm); height: var(--icon-sm); transition: transform .12s; }
-.editor .reveal.open .icon { transform: rotate(180deg); }
-.editor .head-act:hover:not(:disabled), .editor .reveal:hover:not(:disabled) { color: var(--text); }
+.editor .head-act:hover:not(:disabled) { color: var(--text); }
 
 /* the inline form for a new person: given name, surname and birth in one row; "deceased" and the death date in one row */
 .editor .kid-row { display: grid; grid-template-columns: 1fr 1fr 100px; gap: 12px; }
@@ -793,10 +789,7 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-body .editor .new-child > :first-child { border-top: 0; }
 .edit-body .editor .new-child .kid-actions { padding: 8px 10px; border-top: 1px solid var(--border); }
 /* "Details": a quiet disclosure of the card, not a row: small, muted, hairline above, no accent colour */
-.edit-body .editor .reveal { color: var(--muted); font-size: 12px; min-height: 28px; margin: 2px 0 0 10px; }
-.edit-body .editor .reveal:hover:not(:disabled) { color: var(--text); }
-.edit-body .editor .reveal .icon { width: 12px; height: 12px; }
-
+.edit-body .edit-body 
 /* narrow screens (phone, small tablet): the list of people and the detail of one person, one at a time; the chart, the tool
    bar and the tool panels are not shown. Last in the file so that it wins over the desktop rules above. */
 .back-btn { display: none; }

@@ -1,4 +1,4 @@
-import { CircleHelp, Mars, Venus, ArrowDownUp, Baby, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { CircleHelp, Mars, Venus, ArrowDownUp, Baby, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, Plus, Search, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
@@ -246,34 +246,12 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const setEv = (i: number, patch: Partial<EventRow>) =>
     set("events", form.events.map((e, j) => (j === i ? { ...e, ...patch } : e)));
   const [openDetails, setOpenDetails] = useState<string[]>([]);
-  /** the parts (details, address) the user has hidden again although they hold a value */
-  const [closed, setClosed] = useState<string[]>([]);
-  const toggleOf = (id: string, shown: boolean) => {
-    if (shown) { setClosed([...closed, id]); setOpenDetails(openDetails.filter((x) => x !== id)); }
-    else { setClosed(closed.filter((x) => x !== id)); setOpenDetails([...openDetails, id]); }
-  };
-  /** the button that shows or hides hidden fields: it stays after they are shown, the chevron turns up */
-  const revealBtn = (id: string, shown: boolean, label: string, title?: string) =>
-    <button type="button" className={`reveal${shown ? " open" : ""}`} title={title} aria-expanded={shown} onClick={() => toggleOf(id, shown)}>
-      {label}<ChevronDown className="icon" aria-hidden="true" /></button>;
   const pin = (id: string) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); };
   const rowId = (e: EventRow, i: number) => (e.origin < 0 ? `new${i}` : `o${e.origin}`);
   /** the note under an event: several lines; a note kept in a separate NOTE record is not touched here */
   const eventNote = (value: string, onChange: (note: string) => void) =>
     <label title={t("tipEventNote")} data-cap={t("note")}><textarea autoComplete="off" placeholder={t("note")} aria-label={t("note")} rows={2} value={value}
       onChange={(e) => onChange(e.target.value)} /></label>;
-  /** the cause and the note of the death: shown when it has any, or after the "details" button */
-  const details = (id: string, d: EventDetailFields, onChange: (patch: Partial<EventDetailFields>) => void) => {
-    const shown = (!!d.cause || !!d.note || openDetails.includes(id)) && !closed.includes(id);
-    return <>
-      {revealBtn(id, shown, t("eventDetails"), t("tipDetails"))}
-      {shown && <>
-        <label title={t("tipCause")} data-cap={t("detCause")}><input placeholder={t("detCause")} aria-label={t("detCause")} type="text" autoComplete="off" value={d.cause}
-                 onChange={(e) => { pin(id); onChange({ cause: e.target.value }); }} /></label>
-        {eventNote(d.note, (note) => { pin(id); onChange({ note }); })}
-      </>}
-    </>;
-  };
   /** the note of a person's event: a button "+ Add note" next to the event's other buttons; the field shows when the note has text, or after the button */
   const noteShown = (id: string, value: string) => !!value || openDetails.includes(id);
   const noteBtn = (id: string, value: string) => !noteShown(id, value) && <button type="button" className="head-act" onClick={() => pin(id)}>
@@ -296,7 +274,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         {from && acts(<button type="button" className="head-act" title={t(from[1])}
                          disabled={!source?.date && !source?.place} onClick={() => set(key, { ...source! })}>
           <Copy className="icon" aria-hidden="true" />{t(from[1])}</button>)}
-        {key === "birth" && !noteShown(key, form.details[key].note) && acts(noteBtn(key, form.details[key].note))}
+        {(key === "birth" || key === "death") && acts(noteBtn(key, form.details[key].note))}
       </legend>
       <DateField value={form[key].date} shown={initial.shown[key].date} lang={lang} t={t}
                  onChange={(v) => set(key, { ...form[key], date: v })} />
@@ -305,8 +283,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </label>
       {key === "christening" && <label className="full" title={t("tipReligion")} data-cap={t("religion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
-      {key === "birth" ? noteField(key, form.details[key].note, (note) => set("details", { ...form.details, [key]: { ...form.details[key], note } }))
-        : details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
+      {key === "death" && <label title={t("tipCause")} data-cap={t("detCause")}><input placeholder={t("detCause")} aria-label={t("detCause")} type="text" autoComplete="off" value={form.details.death.cause}
+               onChange={(e) => set("details", { ...form.details, death: { ...form.details.death, cause: e.target.value } })} /></label>}
+      {noteField(key, form.details[key].note, (note) => set("details", { ...form.details, [key]: { ...form.details[key], note } }))}
     </fieldset>;
   };
   /** christening and burial are listed among the other events, as rows that keep their own fields */
