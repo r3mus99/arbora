@@ -1,0 +1,1 @@
+- **The sex choice in the editor uses icons.** Male, female and unknown are shown as ♂, ♀ and a question mark with the name as a tooltip, the chosen one in the same blue or red as the people list.
