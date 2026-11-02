@@ -847,8 +847,6 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-rename .sp-title { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
 .sp-rename .sp-title .icon { align-self: center; color: var(--muted); }
 .sp-wand-one { display: inline-flex; align-items: center; gap: var(--gap); text-align: left; margin-bottom: 4px; }
-/* the line between the source and its citations in the source window */
-.edit-body .part-rule { border: 0; border-top: 2px solid var(--border); margin: 12px 2px 8px; }
 /* an opened source in the Sources panel: two blocks, the source itself and its citations */
 .sp-group + .sp-group { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
 .sp-group a.src-chip { text-decoration: none; }

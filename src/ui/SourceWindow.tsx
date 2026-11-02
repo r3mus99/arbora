@@ -1,4 +1,4 @@
-import { BookMarked, Check, Link2, Plus, StickyNote, Trash2, Users, X, type LucideIcon } from "lucide-react";
+import { BookMarked, Check, Plus, Trash2, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from "react";
 import type { GedcomData } from "../core/gedcom";
 import type { CitationAddress, CitationLinkChange, CitationLinkLine } from "../core/citationLinks";
@@ -176,7 +176,6 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
               </div>
             ))}
           </Part>
-          <hr className="part-rule" />
           <Part icon={Users} title={t("srcCitedFor")} extra={<AddAct expanded={adding} onAdd={() => setAdding(!adding)}>{ico(Plus)}{t("srcAddCite")}</AddAct>}>
             <fieldset className="list">
               {adding && <div className="new-child">
