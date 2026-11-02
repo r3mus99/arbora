@@ -18,10 +18,9 @@ const records = parseGedcom(`0 HEAD
 `);
 const rec = records[1];
 
-test("name pieces and other names, without aka names", () => {
+test("called name and other names, without aka names", () => {
   expect(nameDetails(rec)).toEqual({
-    parts: [{ kind: "prefix", value: "Dr." }, { kind: "nickname", value: "Annie" }, { kind: "called", value: "Anna" },
-            { kind: "surnamePrefix", value: "von" }, { kind: "suffix", value: "Jr." }],
+    parts: [{ kind: "called", value: "Anna" }],
     others: [{ name: "Anna Lake", type: "married" }, { name: "Fox", type: "" }],
   });
 });

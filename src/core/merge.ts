@@ -82,7 +82,7 @@ export function mergedFields(a: PersonFields, b: PersonFields, pick: MergePick):
   const takes = (field: MergeField) => (mergeValue(a, field) ? pick[field] === "drop" && !!mergeValue(b, field) : !!mergeValue(b, field));
   for (const field of MERGE_FIELDS) {
     if (!takes(field)) continue;
-    if (field === "name") { out.given = b.given; out.surname = b.surname; out.nameParts = b.nameParts; }
+    if (field === "name") { out.given = b.given; out.surname = b.surname; }
     else if (field === "birth" || field === "christening" || field === "death" || field === "burial") {
       out[field] = { ...b[field] };
       out.details[field] = b.details[field];

@@ -1,4 +1,4 @@
-import { CircleHelp, Mars, Venus, ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Tag, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { CircleHelp, Mars, Venus, ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
@@ -68,10 +68,6 @@ function DateField({ value, shown, lang, onChange, t, label }: {
     {hint && <small className={hint.warn ? "hint warn" : "hint"}>{hint.text}</small>}
   </label>;
 }
-
-type NamePartKey = keyof PersonFields["nameParts"];
-/** the optional parts of a name, in the order they are offered */
-const NAME_PARTS: [NamePartKey, StringKey, StringKey][] = [["prefix", "namePrefix", "tipNamePrefix"], ["suffix", "nameSuffix", "tipNameSuffix"], ["nickname", "nickname", "tipNickname"], ["surnamePrefix", "surnamePrefix", "tipSurnamePrefix"]];
 
 /** Picking a person of the file by typing a name; `onPick("")` when the field is emptied. */
 export function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnPick, focus, onPick }: {
@@ -246,11 +242,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   };
 
   const set = <K extends keyof PersonFields>(key: K, value: PersonFields[K]) => setForm({ ...form, [key]: value });
-  // the optional parts of the name are shown when the name has one, or after the "more fields" button
-  const initialParts = useMemo(() => NAME_PARTS.some(([k]) => initial.stored.nameParts[k]), [initial]);
-  const [partsOpen, setPartsOpen] = useState<boolean | null>(null);
-  const moreParts = partsOpen ?? (initialParts || NAME_PARTS.some(([k]) => form.nameParts[k]));
-  const setPart = (patch: Partial<PersonFields["nameParts"]>) => set("nameParts", { ...form.nameParts, ...patch });
   const setOcc = (i: number, patch: Partial<Occupation>) =>
     set("occupations", form.occupations.map((o, j) => (j === i ? { ...o, ...patch } : o)));
   const setEv = (i: number, patch: Partial<EventRow>) =>
@@ -526,30 +517,26 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           <input type="radio" name="sex" checked readOnly /> {form.sex}</label>}
         </div>
       </div>
-      <fieldset className="list">
-        <legend title={t("tipAka")}>{ico(Tag)}{t("aka")}{acts(<button type="button" className="head-act" onClick={() => set("aliases",
-          [...form.aliases, { origin: -1, given: form.given, surname: form.surname }])}><Plus className="icon" aria-hidden="true" />{t("addAka")}</button>)}</legend>
+      {/* other forms of the name: rows like the fields above; the name of the field stands on the first row only */}
+      <div className="alias-list" title={t("tipAka")}>
         {form.aliases.map((a, i) => (
-          <div className="item alias" key={a.origin < 0 ? `new${i}` : a.origin}>
-            <div className="item-head">
+          <div className="alias-row" data-cap={i === 0 ? t("aka") : ""} key={a.origin < 0 ? `new${i}` : a.origin}>
+            <div className="names">
               <input type="text" autoComplete="off" value={a.given} list={givenList(form.sex)} aria-label={t("givenName")} title={t("tipGiven")} placeholder={t("givenName")}
                      onChange={(e) => setAlias(i, { given: e.target.value })} />
               <input type="text" autoComplete="off" value={a.surname} list={surnameList(form.sex)} aria-label={t("surname")} title={t("tipSurname")} placeholder={t("surname")}
                      onChange={(e) => setAlias(i, { surname: e.target.value })} />
-              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                      onClick={() => set("aliases", form.aliases.filter((_, j) => j !== i))}>
-                <Trash2 className="icon" aria-hidden="true" /></button>
-              </div>
+            </div>
+            <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                    onClick={() => set("aliases", form.aliases.filter((_, j) => j !== i))}>
+              <Trash2 className="icon" aria-hidden="true" /></button>
           </div>
         ))}
-      </fieldset>
-      {/* the other parts of the name: a toggle with a fixed place, the fields open below it */}
-      <button type="button" className={`reveal${moreParts ? " open" : ""}`} aria-expanded={moreParts} onClick={() => setPartsOpen(!moreParts)}>
-        {t("eventDetails")}<ChevronDown className="icon" aria-hidden="true" /></button>
-      {moreParts && <div className="pair">
-        {NAME_PARTS.map(([key, label, tip]) => <label key={key} title={t(tip)} data-cap={t(label)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={form.nameParts[key]} autoFocus={!initialParts && key === NAME_PARTS[0][0]}
-                 onChange={(e) => setPart({ [key]: e.target.value })} /></label>)}
-      </div>}
+        <div className="alias-row" data-cap={form.aliases.length === 0 ? t("aka") : ""}>
+          <button type="button" className="head-act" onClick={() => set("aliases",
+            [...form.aliases, { origin: -1, given: form.given, surname: form.surname }])}><Plus className="icon" aria-hidden="true" />{t("addAka")}</button>
+        </div>
+      </div>
       </>)}
       {section("events", <>
       {event("birth")}

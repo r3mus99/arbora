@@ -213,8 +213,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
     const tag = EVENT_TAG[kind];
     return record && tag ? eventAnnotations(record, tag, lookup) : null;
   };
-  // a title such as "Dr." is written before the name
-  const prefix = record ? nameDetails(record).parts.find((n) => n.kind === "prefix")?.value : "";
   const label = (kind: TimelineKind, dated: boolean, other: string | null, title = "", tag = "") => {
     const sex = other ? data.people[other]?.sex : "";
     switch (kind) {
@@ -235,7 +233,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
         <button type="button" className="icon-btn back-btn" onClick={onBack} title={t("backToList")} aria-label={t("backToList")}>
           <ChevronLeft className="icon" aria-hidden="true" /></button>
         <div className="detail-name">
-        <h3><span className="detail-title">{prefix && `${prefix} `}
+        <h3><span className="detail-title">
           {live && f ? <InlineName key={`${id}|${f.given}|${f.surname}`} given={f.given} surname={f.surname} label={t("edit")}
                                    givenLabel={t("givenName")} surnameLabel={t("surname")} givens={givenList(f.sex)} surnames={surnameList(f.sex)}
                                    onCommit={(given, surname) => change({ given, surname })}><span className="name-text">{p.name || "?"}</span></InlineName>
@@ -264,10 +262,9 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
       <div className="facts">
         {(() => {
           const names = record ? nameDetails(record) : null;
-          const NAME_LABELS: Record<string, StringKey> = { nickname: "nickname", called: "calledName",
-                                surnamePrefix: "surnamePrefix", suffix: "nameSuffix" } as const;
-          return names && (names.parts.some((n) => n.kind !== "prefix") || names.others.length > 0) && <div className="name-parts">
-            {names.parts.filter((n) => n.kind !== "prefix").map((n, i) => <div key={i}><span>{t(NAME_LABELS[n.kind])}:</span> {n.value}</div>)}
+          
+          return names && (names.parts.length > 0 || names.others.length > 0) && <div className="name-parts">
+            {names.parts.map((n, i) => <div key={i}><span>{t("calledName")}:</span> {n.value}</div>)}
             {names.others.map((n, i) => <div key={`o${i}`}><span>{t("otherName")}{n.type ? ` (${n.type})` : ""}:</span> {n.name}</div>)}
           </div>;
         })()}

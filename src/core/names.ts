@@ -3,8 +3,7 @@
 import { childOf, childrenOf, isAka, mainName, type GedNode } from "./gedcom";
 
 /** name pieces written as lines under the main NAME, with the GEDCOM tag that holds them */
-export const NAME_PART_TAGS = { NPFX: "prefix", NICK: "nickname", _RUFNAME: "called", SPFX: "surnamePrefix",
-                                NSFX: "suffix" } as const;
+export const NAME_PART_TAGS = { _RUFNAME: "called" } as const;
 export type NamePartKind = (typeof NAME_PART_TAGS)[keyof typeof NAME_PART_TAGS];
 
 export interface NamePart { kind: NamePartKind; value: string }
@@ -16,7 +15,7 @@ export interface NameDetails { parts: NamePart[]; others: OtherName[] }
 
 const readable = (value: string) => value.replace(/\//g, " ").replace(/\s+/g, " ").trim();
 
-/** Prefix, nickname, called name, surname prefix and suffix of the main name, and the other names. */
+/** The called name of the main name, and the other names. */
 export function nameDetails(rec: GedNode): NameDetails {
   const main = mainName(rec);
   const parts: NamePart[] = [];
