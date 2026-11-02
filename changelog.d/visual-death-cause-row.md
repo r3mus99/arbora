@@ -1,0 +1,1 @@
+- **The death in the edit window has no hidden "Details".** The cause of death is a normal row and the note is added with "+ Add note" in the death's title row, like the birth. The "Details" button and its styles are gone from the editor.
