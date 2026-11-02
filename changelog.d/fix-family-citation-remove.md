@@ -1,1 +1,0 @@
-- **A citation under a marriage can be removed from the source window.** Citations written directly under a family (shown with two people) had no trash button; they now have one and are removed like any other citation.

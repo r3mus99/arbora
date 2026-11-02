@@ -1,1 +1,1 @@
-- **The death in the edit window has no hidden "Details".** The cause of death is a normal row and the note is added with "+ Add note" in the death's title row, like the birth. The "Details" button and its styles are gone from the editor.
+- **A citation under a marriage can be removed from the source window.** Citations written directly under a family (shown with two people) had no trash button; they now have one and are removed like any other citation.
