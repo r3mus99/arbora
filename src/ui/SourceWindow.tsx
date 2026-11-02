@@ -96,17 +96,11 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
   const onFamily = event === "MARR" || event === "DIV";
   const families = person ? familiesOf(person) : [];
   const chosenFamily = families.some((f) => f.id === family) ? family : families[0]?.id ?? "";
-  const whoOf = (l: CitationLinkLine) => {
-    const fam = data.families[l.holder];
-    return fam ? [fam.husb, fam.wife].map((id) => (id ? nameOf(id) : "?")).join(" & ") : nameOf(l.holder);
-  };
-  const eventOf = (l: CitationLinkLine) => (l.event ? (EVENT_LABEL[l.event as CiteEvent] ? t(EVENT_LABEL[l.event as CiteEvent]) : l.event) : t("srcCitePerson"));
-  const whereOf = (l: CitationLinkLine) => `${whoOf(l)} · ${eventOf(l)}`;
   const holderName = (holder: string) => {
     const fam = data.families[holder];
     return fam ? [fam.husb, fam.wife].map((id) => (id ? nameOf(id) : "?")).join(" & ") : nameOf(holder);
   };
-  const eventName = (event: string) => (event ? (EVENT_LABEL[event as CiteEvent] ? t(EVENT_LABEL[event as CiteEvent]) : event) : t("srcCitePerson"));
+  const eventName = (ev: string) => (ev ? (EVENT_LABEL[ev as CiteEvent] ? t(EVENT_LABEL[ev as CiteEvent]) : ev) : t("srcCitePerson"));
   // the citations as the file holds them: a person (or family), under it the event, under it the citation with its address (an empty row when it has none)
   const citeTree = useMemo(() => {
     type Place = { event: string; cite: SourceCite | null; lines: CitationLinkLine[] };
@@ -129,9 +123,6 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
     }
     return out;
   }, [list, citeLinks, data]);
-  const label = (c: SourceCite) => c.family
-    ? `${t(EVENT_LABEL[c.event])} · ${[data.families[c.family]?.husb, data.families[c.family]?.wife].map((id) => (id ? nameOf(id) : "?")).join(" & ")}`
-    : `${nameOf(c.person)} · ${t(EVENT_LABEL[c.event])}`;
   const addCite = () => {
     const next: SourceCite = onFamily ? { event, person: "", family: chosenFamily } : { event, person, family: "" };
     if (!list.some((c) => citeKey(c) === citeKey(next))) setList([...list, next]);
