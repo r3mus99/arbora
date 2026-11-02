@@ -1,1 +1,0 @@
-- **The person search in the source window has its caption.** "Find person" in the new citation form shows the "Person" caption on the left like the "Event" row below it.

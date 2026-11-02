@@ -1,1 +1,0 @@
-- **The source window offers to cite the parents too.** Under a citation of a birth or christening, the parents who are in the file and do not cite the source yet appear as "Add also" buttons; one click adds a citation for that parent (after Save).
