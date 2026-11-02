@@ -542,8 +542,8 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-note.clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .sp-more { position: relative; padding: 0 var(--pad) 10px calc(var(--pad) + var(--icon-sm) + 8px); font-size: 14px; }
 .sp-group .src-links.inline { display: inline-flex; vertical-align: middle; margin: 0; }
-.sp-edit-btn { position: absolute; right: var(--pad); top: -2px; }
-.sp-group:first-child { padding-right: 32px; }
+.sp-edit-source { display: flex; width: 100%; align-items: center; justify-content: center; gap: var(--gap); margin-top: 12px; }
+.sp-edit-source .icon { width: var(--icon-sm); height: var(--icon-sm); }
 .sp-edit { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; padding: 0; min-height: 24px; background: none; border: 0; color: var(--accent); cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; }
 .sp-edit:disabled { opacity: .5; cursor: default; }
 .sp-edit .icon { width: var(--icon-sm); height: var(--icon-sm); }
@@ -868,6 +868,11 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-group .cite-head.sub { padding-left: 0; }
 .sp-group .cite-event .src-links { margin: 0 0 4px; }
 .sp-cites > li + li { margin-top: 10px; }
+.sp-pub { color: var(--text); }
+.sp-notes { color: var(--muted); font-style: italic; overflow-wrap: anywhere; }
+.sp-more .sp-sub, .sp-group .src-links { margin-top: 0; }
+.sp-group > * + * { margin-top: 4px; }
+.cite-ev { color: var(--muted); }
 .cite-head .grow { flex: 1; min-width: 0; }
 .cite-head .icon-btn { margin-right: -4px; }
 /* the header of a part already has its divider: the first row of a list under it does not draw a second one */
