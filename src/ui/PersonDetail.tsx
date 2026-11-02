@@ -3,7 +3,7 @@ import {
   ChevronLeft, StickyNote, Users, type LucideIcon,
 } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
-import { applyEventLine, applyEventNode, applyEventNote, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields, type Suggestions } from "../core/edit";
+import { applyEventLine, applyEventNode, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields, type Suggestions } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
 import { municipality } from "../core/places";
@@ -16,7 +16,7 @@ import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, mer
 import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { dateHint, givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
-import { InlineName, InlineNote, InlineText } from "./Inline";
+import { InlineName, InlineText } from "./Inline";
 import { Row, Section } from "./Section";
 import { EventSources, Linked } from "./Sources";
 
@@ -319,14 +319,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
                       if (next !== line.owner) onChange([next]);
                     }}>{d.value}</InlineText> : d.value}</div>;
                 })}</div>}
-                {e.note && (() => {
-                  const line = live ? eventLine(e) : null;
-                  return <div className="tl-details tl-note">
-                    {line ? <InlineNote className="note-text" value={e.note} label={t("note")} onCommit={(v) => {
-                      const next = applyEventNote(line.owner, line.node, e.note!, v);
-                      if (next !== line.owner) onChange([next]);
-                    }}><Linked text={e.note} /></InlineNote> : <Linked text={e.note} />}</div>;
-                })()}
+                {e.note && <div className="tl-details tl-note"><Linked text={e.note} /></div>}
                 {src && <EventSources a={src} t={t} />}
               </div>
             </Row>;
@@ -359,8 +352,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
             </li>)}</ul>
           </Fact>;
         })()}
-        {f?.note && <Section icon={StickyNote} title={t("note")}>{live ? <InlineNote className="note-text" value={f.note} label={t("note")} onCommit={(v) => { if (v.trim() !== f.note.trim()) change({ note: v }); }}>
-            <Linked text={f.note} /></InlineNote> : <div className="note-text"><Linked text={f.note} /></div>}</Section>}
+        {f?.note && <Section icon={StickyNote} title={t("note")}><div className="note-text"><Linked text={f.note} /></div></Section>}
         {(() => {
           const info = record ? recordInfo(record) : [];
           const KEYS = { changed: "infoChanged", recordId: "infoRecordId", uid: "infoUid",

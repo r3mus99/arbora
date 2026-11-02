@@ -1,0 +1,1 @@
+- **Notes are edited only in the edit window.** Clicking a note in the detail no longer turns it into a text area that shrinks; short one-line values (name, date, place) are still edited in place.

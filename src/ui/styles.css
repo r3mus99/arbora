@@ -632,10 +632,6 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .inline-sex .inline-value:hover { background: var(--accent-soft); }
 .inline-pop { position: absolute; top: calc(100% - 4px); left: 12px; z-index: 5; background: var(--panel); font: 400 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .inline-pop button { white-space: nowrap; padding: 0 10px; min-width: 0; }
-.inline-note { cursor: text; border-bottom: 1px dashed var(--border); }
-.inline-note:hover { border-bottom-color: var(--muted); }
-.inline-note-field { box-sizing: border-box; width: 100%; font: inherit; color: inherit; line-height: inherit; padding: 0; margin: 0; resize: none; display: block;
-                     background: none; border: 0; border-bottom: 1px solid var(--accent); border-radius: 0; outline: none; }
 
 /* edit window (EditWindow): lies over the tree and the detail, right of the tool bar, half of the browser width so the
    tree stays visible. A 1px line, no shadow. */
@@ -906,3 +902,6 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-body .editor label.check { grid-template-columns: var(--lab-w) minmax(0, 1fr); column-gap: 8px; min-height: var(--row-h); }
 .edit-body .editor label.check > span { color: var(--muted); font-size: 13px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .edit-body .editor label.check input { justify-self: start; }
+
+/* the opened list of a select: the browser draws it on its own background, so give the options both colours explicitly */
+select option, select optgroup { background-color: var(--panel); color: var(--text); }
