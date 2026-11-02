@@ -39,6 +39,8 @@ interface Props {
   suggest: Suggestions;
   /** opens the edit window */
   onEdit: () => void;
+  /** opens a source of an event (its xref, or its text) in the Sources panel */
+  onSource: (key: string) => void;
   /** back to the list of people, shown only on a narrow screen */
   t: (key: StringKey) => string;
 }
@@ -55,7 +57,7 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
 };
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, onFocus, onChange, suggest, onEdit, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, onFocus, onChange, suggest, onEdit, onSource, t }: Props) {
   const p = data.people[id];
   const homeAncestors = useMemo(() => {
     const generations = new Map<string, number>();
@@ -317,7 +319,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
                     }}>{d.value}</InlineText> : d.value}</div>;
                 })}</div>}
                 {e.note && <div className="tl-details tl-note"><Linked text={e.note} /></div>}
-                {src && <EventSources a={src} t={t} />}
+                {src && <EventSources a={src} onSource={onSource} t={t} />}
               </div>
             </Row>;
           })}
@@ -326,14 +328,14 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
           {live && f ? <InlineText value={f.religion} label={t("religion")} list={RELIGIONS}
                                    onCommit={(v) => { if (v.trim() !== f.religion) change({ religion: v }); }}>{p.religion}</InlineText>
             : p.religion}</div>
-          {record && <EventSources a={eventAnnotations(record, "RELI", lookup)} t={t} />}</Fact>}
+          {record && <EventSources a={eventAnnotations(record, "RELI", lookup)} onSource={onSource} t={t} />}</Fact>}
         {f && f.occupations.length > 0 && <Fact icon={Briefcase} label={t("occupation")}>
           {f.occupations.map((o) => <div key={o.origin}>
             <div className="fact-value">{live ? <InlineText value={o.value} label={t("occupation")}
               onCommit={(v) => { if (v.trim() !== o.value) change({ occupations: f.occupations.map((x) => (x === o ? { ...x, value: v } : x)) }); }}>
               {o.value}</InlineText> : o.value}</div>
             {when(o, (patch) => change({ occupations: f.occupations.map((x) => (x === o ? { ...x, ...patch } : x)) }))}
-            {record && <EventSources a={annotations(childrenOf(record, "OCCU")[o.origin], lookup)} t={t} />}
+            {record && <EventSources a={annotations(childrenOf(record, "OCCU")[o.origin], lookup)} onSource={onSource} t={t} />}
           </div>)}
         </Fact>}
         {!f && p.occupation && <Fact icon={Briefcase} label={t("occupation")}>

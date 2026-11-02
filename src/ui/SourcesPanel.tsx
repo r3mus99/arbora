@@ -1,5 +1,5 @@
 import { BookMarked, ExternalLink, Plus, Search, StickyNote } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { GedcomData } from "../core/gedcom";
 import { fold } from "../core/gedcom";
 import type { CitationLinkLine } from "../core/citationLinks";
@@ -18,6 +18,8 @@ interface Props {
   onEdit?: (xref: string | null) => void;
   /** the source whose window is open on the right: its row is marked in the list */
   activeXref?: string | null;
+  /** a source asked for from outside (the source button of an event): its row is shown, marked and scrolled into view; `n` counts the asks */
+  reveal?: { key: string; n: number } | null;
   /** a window of the person is open, so a source cannot be edited now */
   editDisabled?: boolean;
   /** where a source is cited and the web addresses written in those citations, for the citations part of an opened source */
@@ -71,10 +73,18 @@ function Citations({ xref, ids, data, citationsOf, onPerson, t }: { xref: string
 }
 
 /** Overview of all sources (with the people citing them) and all notes of the file, read-only. */
-export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, activeXref = null, citationsOf, t }: Props) {
+export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, activeXref = null, reveal = null, citationsOf, t }: Props) {
   const [tab, setTab] = useState<Tab>("sources");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<string | null>(null);
+  const root = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!reveal) return;
+    setTab("sources"); setQuery("");
+    // a source written as text has no window: its row unfolds instead
+    setOpen(reveal.key.startsWith("@") ? null : reveal.key);
+    requestAnimationFrame(() => [...(root.current?.querySelectorAll<HTMLElement>("[data-key]") ?? [])].find((e) => e.dataset.key === reveal.key)?.scrollIntoView({ block: "nearest" }));
+  }, [reveal?.n]);  // eslint-disable-line react-hooks/exhaustive-deps
   const q = fold(query.trim());
   const sources = useMemo(() => overview.sources.filter((s) => !q
     || fold([s.citation.title, s.citation.author, s.citation.publication, s.citation.repository].join(" ")).includes(q)), [overview, q]);
@@ -84,7 +94,7 @@ export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, a
   const empty = !overview.sources.length && !overview.notes.length;
 
   return (
-    <section className="panel-col sp" aria-label={t("srcNotes")}>
+    <section className="panel-col sp" aria-label={t("srcNotes")} ref={root}>
       <PanelHead title={t("srcNotes")}>
         {onEdit && <div className="tools"><button type="button" className="icon-btn" title={t("srcNew")} aria-label={t("srcNew")} disabled={editDisabled}
                 onClick={() => onEdit(null)}><Plus className="icon" aria-hidden="true" /></button></div>}
@@ -106,7 +116,7 @@ export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, a
         </div>
         <ul className="sp-list panel-body">
           {tab === "sources" && sources.map((s) => (
-            <li key={s.key} className={open === s.key || activeXref === s.key ? "open" : undefined}>
+            <li key={s.key} data-key={s.key} className={open === s.key || activeXref === s.key ? "open" : undefined}>
               {/* a source of the file opens in the window on the right (one place to read and edit it); only a source written inline in a citation still unfolds here */}
               <button type="button" className={`sp-row${activeXref === s.key ? " active" : ""}`} disabled={!!onEdit && s.key.startsWith("@") && editDisabled}
                       aria-expanded={onEdit && s.key.startsWith("@") ? undefined : open === s.key} aria-current={activeXref === s.key ? "true" : undefined}

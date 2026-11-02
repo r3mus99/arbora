@@ -14,7 +14,7 @@ so there is no obvious place to add, for example, a second and third link to a c
 
 Both places already read the same thing. `citation()` in `src/core/sources.ts` resolves a `SOUR @S1@` pointer
 into the source record (`TITL`, `AUTH`, `PUBL`, `REPO`, `NOTE`) plus the citation's own `PAGE`, `QUAY`, `DATA/TEXT`, `NOTE`.
-The panel (`sourceOverview`) and the timeline (`EventSources` -> `CitationFields`) both call it, so once the record is
+The panel (`sourceOverview`) and the source window both call it, so once the record is
 edited in the document, both views update from one state and cannot disagree. We only need to add the write side.
 Renaming already does this: `applySourceRenames` rewrites the `TITL` line of the record.
 
@@ -46,10 +46,9 @@ Citation fields (page, quality) stay in the edit window: they belong to the even
 
 ## How the timeline reflects it
 
-No new code path. `EventSources` keeps rendering `CitationFields` from the same record; after an edit the document changes
-and the chips and lines update. The timeline gets one addition: a small "Edit source" pencil next to the title in an opened
-citation that jumps to that source in the panel (the Sources panel opens with the source expanded in edit state).
-The title rename on the timeline stays as it is.
+Since the sources are edited in the source window, the timeline no longer lists them: the sources button of an event
+(`EventSources`) opens the (first) source of that event in the Sources panel, marked in the list and opened in the window.
+The notes of an event still unfold under it.
 
 ## Smallest first step (one PR, ~1 day)
 
