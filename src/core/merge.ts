@@ -3,7 +3,7 @@ import { addChild, addLine, addUnlisted, applyPerson, personFields, type EventFi
 import { rewritten, type GedNode } from "./gedcom";
 
 /** the single values that can differ between the two people; a conflict is shown to the user, who keeps one side */
-export const MERGE_FIELDS = ["name", "sex", "birth", "christening", "death", "burial", "religion", "note", "restriction"] as const;
+export const MERGE_FIELDS = ["name", "sex", "birth", "christening", "death", "burial", "religion", "note"] as const;
 export type MergeField = (typeof MERGE_FIELDS)[number];
 export type MergePick = Partial<Record<MergeField, "keep" | "drop">>;
 
@@ -96,7 +96,6 @@ export function mergedFields(a: PersonFields, b: PersonFields, pick: MergePick):
   // the other person's parents (families they are a child of) and associations, except one that is the kept person
   out.parents = union(a.parents, b.parents);
   out.associations = union(a.associations, b.associations);
-  out.address = a.address || b.address;
   // the name the other person had is not lost: it stays as another form of the name when it was not picked
   if (mergeValue(a, "name") && mergeValue(b, "name") && mergeValue(a, "name") !== mergeValue(b, "name")) {
     const lost = takes("name") ? { given: a.given, surname: a.surname } : { given: b.given, surname: b.surname };

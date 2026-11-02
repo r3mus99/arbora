@@ -1,0 +1,1 @@
+- **Godparents and witnesses are easier to read in the edit window.** The "Associations" part is renamed, its button is a short "Add a person", and the role is a labelled row ("Role") instead of a cut-off placeholder. Several of them are shown as separate cards.

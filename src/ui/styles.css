@@ -356,12 +356,12 @@ button.link { display: inline; }
 :is(.editor, .rows) .check { justify-content: space-between; min-height: var(--field-h); }
 /* the name of a switch starts with a capital, like the names of the other rows, whatever the text in the language file */
 :is(.editor, .rows) .check > span::first-letter { text-transform: uppercase; }
-:is(.editor, .rows) .check input { order: 2; appearance: none; flex: none; width: 44px; height: 26px; margin: 0; border-radius: 13px; position: relative;
+:is(.editor, .rows) .check input { order: 2; appearance: none; flex: none; width: 36px; height: 22px; margin: 0; border-radius: 11px; position: relative;
                        background: color-mix(in srgb, var(--muted) 40%, transparent); transition: background .15s; cursor: inherit; }
-:is(.editor, .rows) .check input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px; border-radius: 50%;
+:is(.editor, .rows) .check input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%;
                               background: var(--knob); box-shadow: 0 1px 3px var(--shadow-knob); transition: transform .15s; }
 :is(.editor, .rows) .check input:checked { background: var(--accent); }
-:is(.editor, .rows) .check input:checked::after { transform: translateX(18px); }
+:is(.editor, .rows) .check input:checked::after { transform: translateX(14px); }
 :is(.editor, .rows) .check input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 :is(.editor, .rows) .check input:disabled { opacity: .5; }
 @media (prefers-reduced-motion: reduce) { :is(.editor, .rows) .check input, :is(.editor, .rows) .check input::after { transition: none; } }
@@ -905,3 +905,11 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-body .editor .item.fam-card { margin-top: 10px; padding: 0 12px 2px; }
 .edit-body .editor .item.fam-card > .item-head { border-top: 0; padding-left: 0; padding-right: 0; font-size: 13px; color: var(--muted); }
 .edit-body .editor label[data-cap]:has(.row-act) input[type=text] { padding-right: 130px; }
+.edit-body .editor label[data-cap] .row-act.row-trash { color: var(--muted); padding: 0; }
+.edit-body .editor label[data-cap] .row-act.row-trash:hover { color: var(--text); }
+.edit-body .editor label[data-cap]:has(> textarea) { align-items: start; }
+.edit-body .editor label[data-cap]:has(> textarea)::before { padding-top: 10px; }
+/* a switch in the edit window is a row like the others: the name in the label column, the switch in the value column */
+.edit-body .editor label.check { grid-template-columns: var(--lab-w) minmax(0, 1fr); column-gap: 8px; min-height: var(--row-h); }
+.edit-body .editor label.check > span { color: var(--muted); font-size: 13px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.edit-body .editor label.check input { justify-self: start; }

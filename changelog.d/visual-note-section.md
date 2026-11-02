@@ -1,0 +1,1 @@
+- **The "Notes and sources" part of the edit window is now called "Note".** It only ever held the person's note (sources are edited in the Sources app), so the name now says what it contains.

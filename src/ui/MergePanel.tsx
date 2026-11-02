@@ -22,7 +22,7 @@ interface Props {
 
 const FIELD_LABEL: Record<MergeField, StringKey> = {
   name: "thName", sex: "sex", birth: "thBirth", christening: "christening", death: "thDeath", burial: "burial",
-  religion: "religion", note: "note", restriction: "restriction",
+  religion: "religion", note: "note",
 };
 
 /** the person's name with the years and the ID, so two people of one name can be told apart */
