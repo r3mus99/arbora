@@ -1,1 +1,0 @@
-- **The sources button of an event opens the source in the Sources panel.** The sources are no longer listed under the event in a person's detail (and their title is no longer edited there); the button opens the Sources panel with the source marked in the list and opened in the window, where it is read and edited. The notes of an event still unfold under it.

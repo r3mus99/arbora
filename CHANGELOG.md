@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.114.0 – 2026-11-02
+
+- **The sources button of an event opens the source in the Sources panel.** The sources are no longer listed under the event in a person's detail (and their title is no longer edited there); the button opens the Sources panel with the source marked in the list and opened in the window, where it is read and edited. The notes of an event still unfold under it.
+
 ## 2.113.0 – 2026-11-02
 
 - **Sources: names in citations are links, and a magic wand writes the title.** A click on a person's name in a source's citations selects that person; the wand next to the title writes it from a citation (for example "Baptism Jan Novak 1850"), preferring a citation of a concrete event.
