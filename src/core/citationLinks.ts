@@ -153,3 +153,51 @@ export function addCitationAddresses(records: GedNode[], xref: string, adds: Cit
   }
   return out;
 }
+
+/** the page text of one citation that has no web address in it (a book page, a line of a chronicle) */
+export interface CitationPageLine {
+  /** where the PAGE line sits in the file (record, path to it); stable until the records change */
+  key: string;
+  holder: string;
+  event: string;
+  text: string;
+}
+
+/** The page lines (PAGE) of the citations of the source `xref` that hold text without a web address, in file order. */
+export function citationPageLines(records: GedNode[], xref: string): CitationPageLine[] {
+  const out: CitationPageLine[] = [];
+  for (const c of citations(records, xref)) {
+    const rec = records[c.rec];
+    at(rec, c.path).children.forEach((d, i) => {
+      if (d.tag === "PAGE" && d.value.trim() && !addressesOf(d.value).length)
+        out.push({ key: [c.rec, ...c.path, i].join("."), holder: rec.xref!, event: c.event, text: d.value.trim() });
+    });
+  }
+  return out;
+}
+
+/** A change of one page text: `text` is the new text; an empty text is ignored, so no line moves and the keys of other changes stay valid. */
+export interface CitationPageChange { key: string; text: string }
+
+/** The records with the given page texts changed . Records that are not touched stay the same objects. */
+export function setCitationPages(records: GedNode[], changes: CitationPageChange[]): GedNode[] {
+  const valid = changes.filter((c) => c.text.trim() !== "");
+  if (!valid.length) return records;
+  const byRecord = new Map<number, { path: number[]; text: string }[]>();
+  for (const c of valid) {
+    const parts = c.key.split(".").map(Number);
+    byRecord.set(parts[0], [...(byRecord.get(parts[0]) ?? []), { path: parts.slice(1), text: c.text.trim() }]);
+  }
+  return records.map((rec, r) => {
+    const mine = byRecord.get(r);
+    if (!mine) return rec;
+    const edit = (node: GedNode, path: number[]): GedNode => {
+      const here = mine.find((p) => p.path.length === path.length && p.path.every((v, i) => v === path[i]));
+      if (here && node.tag === "PAGE" && here.text === node.value.trim()) return node;
+      if (here && node.tag === "PAGE") return rewritten({ ...node, value: here.text });
+      const kids = node.children.map((c, i) => edit(c, [...path, i]));
+      return kids.some((k, i) => k !== node.children[i]) ? rewritten(node, kids) : node;
+    };
+    return edit(rec, []);
+  });
+}

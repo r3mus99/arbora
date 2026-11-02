@@ -13,7 +13,7 @@ import { outputFileName } from "../core/fileName";
 import { childOf, decode, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceOverview } from "../core/sources";
-import { addCitationAddresses, citationLinkLines, setCitationLinks } from "../core/citationLinks";
+import { addCitationAddresses, citationLinkLines, citationPageLines, setCitationLinks, setCitationPages } from "../core/citationLinks";
 import { deleteSource, saveSource, sourceCites } from "../core/sourceLinks";
 import { SourceWindow } from "./SourceWindow";
 import { type Lang } from "../core/texts";
@@ -626,8 +626,9 @@ export function App() {
                                  fields={sourceEntry?.fields ?? { title: "", author: "", publication: "", notes: [], links: [] }}
                                  cites={sourceWin.xref ? sourceCites(doc.records, sourceWin.xref) : []} cited={sourceEntry?.citations ?? 0}
                                  citeLinks={sourceWin.xref ? citationLinkLines(doc.records, sourceWin.xref) : []}
-                                 onSave={(fields, after, linkChanges, addresses) => {
-                                   const saved = saveSource(setCitationLinks(doc.records, linkChanges), sourceWin.xref, fields, sourceWin.xref ? sourceCites(doc.records, sourceWin.xref) : [], after);
+                                 citePages={sourceWin.xref ? citationPageLines(doc.records, sourceWin.xref) : []}
+                                 onSave={(fields, after, linkChanges, addresses, pageChanges) => {
+                                   const saved = saveSource(setCitationPages(setCitationLinks(doc.records, linkChanges), pageChanges), sourceWin.xref, fields, sourceWin.xref ? sourceCites(doc.records, sourceWin.xref) : [], after);
                                    replaceRecords(addCitationAddresses(saved.records, saved.xref, addresses));
                                    setSourceWin(null);
                                  }}
