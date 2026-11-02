@@ -134,7 +134,9 @@ Every part of the edit window is built from the same four levels:
 
 **Delete** is always the trash can icon (`Trash2`), never an X; the X is only for closing windows. A **search field opened by "Find"** appears directly under the title row of its group and "Find" toggles it.
 
-**Several families:** when a person has more than one family, each one is an inset card (`.fam-card`: `--bg` on the `--panel` of the part, 1px `--border`, `--radius`, 12px padding) with a numbered title ("Marriage 1", "Marriage 2"); a single family stays without a card.
+**Repeatable subsections:** the main sections are Person, Events and Family; a subsection that holds several items (Residences in Events, Marriage in Family) shows each item as an inset card (`.fam-card`: `--bg` on the `--panel` of the part, 1px `--border`, `--radius`, 12px padding) with a numbered title ("Residence 1", "Marriage 2"), so the items never merge; a single item stays without a card. Subsections with exactly one item (Birth, Death) never get a card. The add action of the subsection ("Add residence") stays in its title row.
+
+**Row actions:** the title row of a group holds only "Add" (text, accent) and the trash at the far right. A shortcut that fills a field ("Copy from birth", "Copy from parents") is a small accent link inside the field row it fills, at its right end (`.row-act`).
 
 **Inline form for a new person** (child, spouse, parent): an inset card (`.new-child`: `--bg` on the `--panel` of the part, 1px `--border`, `--radius`, 12px padding) with an icon title row, the fields and a Cancel / Add footer.
 3. **Fields** – the values that are always shown.

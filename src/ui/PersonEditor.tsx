@@ -324,8 +324,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     return <fieldset className="list" key={key}><div className="item">
       <div className="item-head">
         <span className="grow kind">{ico(EVENT_ICON[key])}{t(EVENT_LABEL[key])}</span>
-        <button type="button" className="head-act" title={t(from[1])} disabled={!source.date && !source.place} onClick={() => set(key, { ...source })}>
-          <Copy className="icon" aria-hidden="true" />{t(from[1])}</button>
         <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                 onClick={() => { setFixedOn(fixedOn.filter((k) => k !== key));
                   setForm({ ...form, [key]: { date: "", place: "" }, details: { ...form.details, [key]: NO_DETAILS }, eventCitations: { ...form.eventCitations, [key]: [] }, ...(key === "christening" ? { religion: "" } : {}) }); }}>
@@ -334,7 +332,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       <DateField value={form[key].date} shown={initial.shown[key].date} lang={lang} t={t}
                  onChange={(v) => set(key, { ...form[key], date: v })} />
       <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={form[key].place} list={PLACES}
-               onChange={(e) => set(key, { ...form[key], place: e.target.value })} /></label>
+               onChange={(e) => set(key, { ...form[key], place: e.target.value })} />
+        {rowAct(t(from[1]), () => set(key, { ...source }), !source.date && !source.place)}</label>
       {key === "christening" && <label className="full" title={t("tipReligion")} data-cap={t("religion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
     </div></fieldset>;
@@ -489,6 +488,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     return start;
   });
   /** text actions at the right end of a group's title row */
+  /** a small action inside a field row, at its right end (copy the place from the birth, from the parents) */
+  const rowAct = (label: string, onClick: () => void, disabled: boolean, title?: string) =>
+    <button type="button" className="row-act" title={title ?? label} disabled={disabled} onClick={onClick}>
+      <Copy className="icon" aria-hidden="true" />{label}</button>;
   const acts = (...buttons: ReactNode[]) => <span className="head-acts">{buttons}</span>;
   const section = (key: keyof typeof SECTIONS, children: ReactNode, extra?: ReactNode) => {
     const { icon, title } = SECTIONS[key];
@@ -553,13 +556,10 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         <legend>{ico(CalendarDays)}{t("residences")}{acts(<button type="button" className="head-act" onClick={() => set("events",
           [...form.events, { origin: -1, tag: "RESI", value: "", date: "", place: "", note: "", citations: [] }])}><Plus className="icon" aria-hidden="true" />{t("addResidence")}</button>)}</legend>
         {form.events.map((e, i) => (
-          <div className="item" key={e.origin < 0 ? `new${i}` : e.origin}>
+          <div className={form.events.length > 1 ? "item fam-card" : "item"} key={e.origin < 0 ? `new${i}` : e.origin}>
             <div className="item-head">
-              <span className="grow">{t("residence")}</span>
+              <span className="grow">{t("residence")}{form.events.length > 1 && ` ${i + 1}`}</span>
               {noteBtn(rowId(e, i), e.note)}
-              <button type="button" className="head-act" disabled={!parentsResidence || e.place === parentsResidence}
-                title={parentsResidence ? `${t("copyParentsResidence")}: ${parentsResidence}` : t("copyParentsResidenceNone")} onClick={() => setEv(i, { place: parentsResidence })}>
-                <Copy className="icon" aria-hidden="true" />{t("copyParentsResidence")}</button>
               <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
                       onClick={() => set("events", form.events.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
@@ -570,7 +570,9 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
                        t={t} onChange={(v) => setEv(i, { date: v })} />
             <label title={t("resiPlaceHint")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={e.place} list={PLACES}
-                     onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
+                     onChange={(ev) => setEv(i, { place: ev.target.value })} />
+              {rowAct(t("copyParentsResidence"), () => setEv(i, { place: parentsResidence }), !parentsResidence || e.place === parentsResidence,
+                parentsResidence ? `${t("copyParentsResidence")}: ${parentsResidence}` : t("copyParentsResidenceNone"))}</label>
             {noteField(rowId(e, i), e.note, (note) => setEv(i, { note }))}
           </div>
         ))}
