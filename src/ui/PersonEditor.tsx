@@ -69,10 +69,6 @@ function DateField({ value, shown, lang, onChange, t, label }: {
   </label>;
 }
 
-type NamePartKey = keyof PersonFields["nameParts"];
-/** the optional parts of a name, in the order they are offered */
-const NAME_PARTS: [NamePartKey, StringKey, StringKey][] = [["prefix", "namePrefix", "tipNamePrefix"], ["suffix", "nameSuffix", "tipNameSuffix"], ["nickname", "nickname", "tipNickname"], ["surnamePrefix", "surnamePrefix", "tipSurnamePrefix"]];
-
 /** Picking a person of the file by typing a name; `onPick("")` when the field is emptied. */
 export function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnPick, focus, onPick }: {
   choices: { id: string; label: string }[]; exclude: string[]; value: string; label: string; placeholder: string; tip: string;
@@ -238,11 +234,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   };
 
   const set = <K extends keyof PersonFields>(key: K, value: PersonFields[K]) => setForm({ ...form, [key]: value });
-  // the optional parts of the name are shown when the name has one, or after the "more fields" button
-  const initialParts = useMemo(() => NAME_PARTS.some(([k]) => initial.stored.nameParts[k]), [initial]);
-  const [partsOpen, setPartsOpen] = useState<boolean | null>(null);
-  const moreParts = partsOpen ?? (initialParts || NAME_PARTS.some(([k]) => form.nameParts[k]));
-  const setPart = (patch: Partial<PersonFields["nameParts"]>) => set("nameParts", { ...form.nameParts, ...patch });
   const setOcc = (i: number, patch: Partial<Occupation>) =>
     set("occupations", form.occupations.map((o, j) => (j === i ? { ...o, ...patch } : o)));
   const setEv = (i: number, patch: Partial<EventRow>) =>
@@ -537,13 +528,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           </div>
         ))}
       </fieldset>
-      {/* the other parts of the name: a toggle with a fixed place, the fields open below it */}
-      <button type="button" className={`reveal${moreParts ? " open" : ""}`} aria-expanded={moreParts} onClick={() => setPartsOpen(!moreParts)}>
-        {t("eventDetails")}<ChevronDown className="icon" aria-hidden="true" /></button>
-      {moreParts && <div className="pair">
-        {NAME_PARTS.map(([key, label, tip]) => <label key={key} title={t(tip)} data-cap={t(label)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={form.nameParts[key]} autoFocus={!initialParts && key === NAME_PARTS[0][0]}
-                 onChange={(e) => setPart({ [key]: e.target.value })} /></label>)}
-      </div>}
       </>)}
       {section("events", <>
       {event("birth")}

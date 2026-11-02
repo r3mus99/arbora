@@ -30,8 +30,6 @@ export interface PersonFields {
   deceased: boolean;
   /** other forms of the name, NAME lines with TYPE aka; `origin` as for occupations */
   aliases: Alias[];
-  /** the lines under the main NAME that hold the other parts of the name */
-  nameParts: NameParts;
   /** age, cause and agency of birth, christening, death and burial */
   details: Record<EventKey, EventDetailFields>;
   /** the source citations written under birth, christening, death and burial */
@@ -103,9 +101,6 @@ export interface AssocRow {
   role: string;
 }
 
-/** NPFX title before the name, NICK nickname, SPFX surname prefix (van, de), NSFX what follows the name; the first line of each */
-export interface NameParts { prefix: string; nickname: string; surnamePrefix: string; suffix: string }
-
 export interface Alias { origin: number; given: string; surname: string }
 
 export interface Occupation extends EventFields { origin: number; value: string }
@@ -166,14 +161,6 @@ function nameParts(name: GedNode | null): { given: string; surname: string } {
 }
 const akaNames = (rec: GedNode) => rec.children.filter((c) => c.tag === "NAME" && isAka(c) && c !== mainName(rec));
 
-const NAME_PART_TAGS = { prefix: "NPFX", nickname: "NICK", surnamePrefix: "SPFX", suffix: "NSFX" } as const;
-const NAME_PART_ORDER = ["NPFX", "GIVN", "NICK", "SPFX", "SURN", "NSFX"];
-
-function namePartFields(name: GedNode | null): NameParts {
-  const get = (tag: string) => (name && childOf(name, tag)?.value) || "";
-  return { prefix: get("NPFX"), nickname: get("NICK"), surnamePrefix: get("SPFX"), suffix: get("NSFX") };
-}
-
 export function personFields(rec: GedNode): PersonFields {
   const { given, surname } = nameParts(mainName(rec));
   const sex = childOf(rec, "SEX");
@@ -187,7 +174,6 @@ export function personFields(rec: GedNode): PersonFields {
     religion: childOf(rec, "RELI")?.value || "",
     deceased: DEATH_TAGS.some((tag) => childOf(rec, tag)),
     aliases: akaNames(rec).map((n, origin) => ({ origin, ...nameParts(n) })),
-    nameParts: namePartFields(mainName(rec)),
     details: Object.fromEntries(PERSON_EVENTS.map((key) => [key, detailFields(childOf(rec, EVENT_TAGS[key]))])) as Record<EventKey, EventDetailFields>,
     eventCitations: Object.fromEntries(PERSON_EVENTS.map((key) => [key, citationRows(childOf(rec, EVENT_TAGS[key]))])) as Record<EventKey, CitationRow[]>,
     events: rec.children.filter((c) => OTHER_EVENT_TAGS.includes(c.tag)).map((c, origin) => ({
@@ -408,22 +394,6 @@ function setName(rec: GedNode, before: PersonFields, after: PersonFields): GedNo
   return { ...rec, children: old ? rec.children.map((c, j) => (j === i ? name : c)) : insert(rec.children, name) };
 }
 
-/** The parts of the main name (title, nickname, surname prefix, suffix) set as lines under it, in the usual order; other lines stay. */
-function setNameParts(rec: GedNode, before: NameParts, after: NameParts): GedNode {
-  const keys = (Object.keys(NAME_PART_TAGS) as (keyof NameParts)[]).filter((k) => after[k].trim() !== before[k]);
-  if (!keys.length) return rec;
-  const main = mainName(rec);
-  let name = main || gedNode("NAME", "");
-  for (const k of keys) {
-    const tag = NAME_PART_TAGS[k], value = after[k].trim();
-    const rank = NAME_PART_ORDER.indexOf(tag);
-    const at = name.children.findIndex((c) => { const r = NAME_PART_ORDER.indexOf(c.tag); return r > rank || r < 0; });
-    name = setChild(name, tag, value, at < 0 ? name.children.length : at);
-  }
-  if (!main) return name.children.length ? { ...rec, children: insert(rec.children, name) } : rec;
-  return { ...rec, children: rec.children.map((c) => (c === main ? name : c)) };
-}
-
 /** A NAME value and its GIVN/SURN lines set to the given name and surname; the suffix stays. */
 function nameNode(old: GedNode | null, given: string, surname: string): GedNode {
   const value = nameValue(given, surname, old ? splitName(old.value).suffix : "", old);
@@ -627,7 +597,6 @@ export function applyPerson(rec: GedNode, before: PersonFields, after: PersonFie
   out = setParents(out, before.parents, after.parents);
   out = setAssociations(out, before.associations, after.associations);
   out = setCitations(out, before.citations, after.citations);
-  out = setNameParts(out, before.nameParts, after.nameParts);
   out = setAliases(out, before.aliases, after.aliases, after);
   if (after.religion.trim() !== before.religion) out = setChild(out, "RELI", after.religion.trim());
   if (after.restriction.trim().toLowerCase() !== before.restriction) out = setChild(out, "RESN", after.restriction.trim().toLowerCase());
