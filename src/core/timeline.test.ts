@@ -261,14 +261,13 @@ describe("family events", () => {
 1 MARR
 2 DATE 1921
 2 AGNC Town hall
+2 NOTE Dispensation
 1 _WITN @I3@
-1 _WITN @I9@
-1 DIV Y
+1 DIV
+2 DATE 1930
 1 EVEN
 2 TYPE Separation
-2 DATE 1930
-2 NOTE A made-up note.
-1 EVEN
+2 DATE 1932
 0 TRLR
 `;
   const records = parseGedcom(ged);
@@ -277,16 +276,15 @@ describe("family events", () => {
   const family = (x: string) => records.find((r) => r.xref === x);
   const items = timeline(data, "@I1@", personFields(rec), rec, family);
 
-  test("engagement, marriage and other family events, with the spouse", () => {
-    expect(items.map((i) => [i.kind, i.tag || i.title || "", i.date, i.other])).toEqual([
-      ["famEvent", "ENGA", "1920", "@I2@"], ["marriage", "", "1921", "@I2@"],
-      ["famEvent", "Separation", "1930", "@I2@"],
+  test("the marriage and the divorce, with the spouse; engagements and other family events are not shown", () => {
+    expect(items.map((i) => [i.kind, i.tag || "", i.date, i.other])).toEqual([
+      ["marriage", "", "1921", "@I2@"], ["famEvent", "DIV", "1930", "@I2@"],
     ]);
   });
 
-  test("witnesses that are people in the file, and marriage details", () => {
-    expect(items[1].witnesses).toEqual(["@I3@"]);
-    expect(items[1].details).toEqual([{ key: "agency", value: "Town hall" }]);
+  test("the marriage shows its note, not its agency or its witnesses", () => {
+    expect(items[0].note).toBe("Dispensation");
+    expect(items[0].details).toBeUndefined();
   });
 
   test("without family records, only the marriage", () => {

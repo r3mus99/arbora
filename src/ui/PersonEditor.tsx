@@ -128,8 +128,7 @@ export function SuggestLists({ suggest, lang }: { suggest: Suggest; lang: Lang }
   </>;
 }
 
-const NO_DETAILS: EventDetailFields = { age: "", cause: "", agency: "", note: "" };
-const DETAILS: [Exclude<keyof EventDetailFields, "note">, StringKey, StringKey][] = [["age", "detAge", "tipAge"], ["cause", "detCause", "tipCause"], ["agency", "detAgency", "tipAgency"]];
+const NO_DETAILS: EventDetailFields = { cause: "", note: "" };
 /** christening and burial can take the date and place of birth and death */
 const COPY_FROM: Partial<Record<(typeof PERSON_EVENTS)[number], ["birth" | "death", StringKey]>> = {
   christening: ["birth", "copyBirth"], burial: ["death", "copyDeath"],
@@ -264,24 +263,19 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   };
   const pin = (id: string) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); };
   const rowId = (e: EventRow, i: number) => (e.origin < 0 ? `new${i}` : `o${e.origin}`);
-  const hasDetails = (d: EventDetailFields) => !!(d.age || d.cause || d.agency || d.note);
   /** the note under an event: several lines; a note kept in a separate NOTE record is not touched here */
   const eventNote = (value: string, onChange: (note: string) => void) =>
     <label title={t("tipEventNote")} data-cap={t("note")}><textarea autoComplete="off" placeholder={t("note")} aria-label={t("note")} rows={2} value={value}
       onChange={(e) => onChange(e.target.value)} /></label>;
-  /** age, cause, agency and note of an event: shown when it has any, or after the "details" button */
-  const details = (id: string, d: EventDetailFields, onChange: (patch: Partial<EventDetailFields>) => void, extra?: ReactNode, extraSet?: boolean,
-                   keys: (typeof DETAILS)[number][0][] = ["age", "cause", "agency"]) => {
-    const filled = !!d.note || keys.some((k) => d[k]);
-    const shown = (filled || !!extraSet || openDetails.includes(id)) && !closed.includes(id);
+  /** the cause and the note of the death: shown when it has any, or after the "details" button */
+  const details = (id: string, d: EventDetailFields, onChange: (patch: Partial<EventDetailFields>) => void) => {
+    const shown = (!!d.cause || !!d.note || openDetails.includes(id)) && !closed.includes(id);
     return <>
       {revealBtn(id, shown, t("eventDetails"), t("tipDetails"))}
       {shown && <>
-        <div className="trio">
-          {DETAILS.filter(([k]) => keys.includes(k)).map(([k, label, tip]) => <label key={k} title={t(tip)} data-cap={t(label)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={d[k]} onChange={(e) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); onChange({ [k]: e.target.value }); }} /></label>)}
-        </div>
+        <label title={t("tipCause")} data-cap={t("detCause")}><input placeholder={t("detCause")} aria-label={t("detCause")} type="text" autoComplete="off" value={d.cause}
+                 onChange={(e) => { pin(id); onChange({ cause: e.target.value }); }} /></label>
         {eventNote(d.note, (note) => { pin(id); onChange({ note }); })}
-        {extra}
       </>}
     </>;
   };
@@ -294,8 +288,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     set("aliases", form.aliases.map((a, j) => (j === i ? { ...a, ...patch } : a)));
   const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}, divorce: Partial<EventFields> = {}) =>
     setFams(fams.map((f, j) => (j === i ? { ...f, ...patch, marriage: { ...f.marriage, ...marriage }, divorce: { ...f.divorce, ...divorce } } : f)));
-  const setFamDetails = (i: number, key: "marriage" | "divorce", patch: Partial<EventDetailFields>) =>
-    setFam(i, { details: { ...fams[i].details, [key]: { ...fams[i].details[key], ...patch } } });
+  const setFamNote = (i: number, note: string) =>
+    setFam(i, { details: { marriage: { ...fams[i].details.marriage, note } } });
   const event = (key: (typeof PERSON_EVENTS)[number]) => {
     const from = COPY_FROM[key];
     const source = from && form[from[0]];
@@ -317,7 +311,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {key === "christening" && <label className="full" title={t("tipReligion")} data-cap={t("religion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
       {key === "birth" ? noteField(key, form.details[key].note, (note) => set("details", { ...form.details, [key]: { ...form.details[key], note } }))
-        : details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }), undefined, undefined, key === "death" ? ["cause"] : undefined)}
+        : details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
     </fieldset>;
   };
   /** christening and burial are listed among the other events, as rows that keep their own fields */
@@ -557,7 +551,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       {form.deceased && fixedKeys.includes("burial") && fixedRow("burial")}
       <fieldset className="list">
         <legend>{ico(CalendarDays)}{t("residences")}{acts(<button type="button" className="head-act" onClick={() => set("events",
-          [...form.events, { origin: -1, tag: "RESI", value: "", date: "", place: "", age: "", cause: "", agency: "", note: "", citations: [] }])}><Plus className="icon" aria-hidden="true" />{t("addResidence")}</button>)}</legend>
+          [...form.events, { origin: -1, tag: "RESI", value: "", date: "", place: "", note: "", citations: [] }])}><Plus className="icon" aria-hidden="true" />{t("addResidence")}</button>)}</legend>
         {form.events.map((e, i) => (
           <div className="item" key={e.origin < 0 ? `new${i}` : e.origin}>
             <div className="item-head">
@@ -587,10 +581,31 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         <div key={r.xref} className={families.length > 1 ? "fam-card" : undefined}>
         <fieldset>
           <legend>{ico(Heart)}{t("marriage")}{families.length > 1 && ` ${i + 1}`}
-            {onDeleteFamily && acts(<button type="button" className="head-act" disabled={dirty} title={dirty ? t("saveFirst") : undefined}
+            {acts(noteBtn(`n${r.xref}`, fams[i].details.marriage.note),
+                  onDeleteFamily && <button type="button" className="head-act" disabled={dirty} title={dirty ? t("saveFirst") : undefined}
                                        onClick={() => { if (window.confirm(t("confirmDeleteFamily"))) onDeleteFamily(r.xref!); }}>
               <Trash2 className="icon" aria-hidden="true" />{t("deleteFamily")}</button>)}
           </legend>
+          {(() => {
+            const f = fams[i];
+            return <>
+              <DateField value={f.marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
+                         onChange={(v) => setFam(i, {}, { date: v })} />
+              <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={f.marriage.place} list={PLACES}
+                       onChange={(e) => setFam(i, {}, { place: e.target.value })} /></label>
+              {noteField(`n${r.xref}`, f.details.marriage.note, (note) => setFamNote(i, note))}
+              <label className="check" title={t("tipDivorced")}><input type="checkbox" role="switch" checked={f.divorced}
+                       onChange={(e) => setFam(i, { divorced: e.target.checked })} />
+                <span>{t("divorcedLabel")}</span></label>
+              {f.divorced && <fieldset className="sub">
+                <legend>{ico(HeartCrack)}{t("divorce")}</legend>
+                <DateField value={f.divorce.date} shown={initial.fams[i].shown.divorce.date} lang={lang} t={t}
+                           onChange={(v) => setFam(i, {}, {}, { date: v })} />
+                <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={f.divorce.place} list={PLACES}
+                         onChange={(e) => setFam(i, {}, {}, { place: e.target.value })} /></label>
+              </fieldset>}
+            </>;
+          })()}
           <div className="wide spouse">
             <span className="lab" title={t("tipSpouse")}>{ico(Users)}{spouseLabel(fams[i])}
               {acts(<button type="button" className="head-act" title={t("newSpouse")} onClick={() => startKid("spouse", i)}><Plus className="icon" aria-hidden="true" />{t("addShort")}</button>,
@@ -606,38 +621,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
             </div>}
             {newPersonForm("spouse", i)}
           </div>
-          {(() => {
-            const f = fams[i], id = `m${r.xref}`;
-            // date, place and the rest of the marriage sit behind the Details button: open when they hold a value, and for a new empty family
-            const filled = !!(f.marriage.date || f.marriage.place || hasDetails(f.details.marriage) || f.citations.marriage.length > 0 || f.divorced);
-            const empty = !filled && !f[otherKey(f)] && f.children.length === 0;
-            const shown = (filled || empty || openDetails.includes(id)) && !closed.includes(id);
-            return <>
-              {revealBtn(id, shown, t("eventDetails"), t("tipMarriageDetails"))}
-              {shown && <>
-                <DateField value={f.marriage.date} shown={initial.fams[i].shown.marriage.date} lang={lang} t={t}
-                           onChange={(v) => setFam(i, {}, { date: v })} />
-                <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={f.marriage.place} list={PLACES}
-                         onChange={(e) => setFam(i, {}, { place: e.target.value })} /></label>
-                <div className="trio">
-                  {DETAILS.map(([k, label, tip]) => <label key={k} title={t(tip)} data-cap={t(label)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={f.details.marriage[k]}
-                           onChange={(e) => setFamDetails(i, "marriage", { [k]: e.target.value })} /></label>)}
-                </div>
-                {eventNote(f.details.marriage.note, (note) => setFamDetails(i, "marriage", { note }))}
-                <label className="check" title={t("tipDivorced")}><input type="checkbox" role="switch" checked={f.divorced}
-                         onChange={(e) => setFam(i, { divorced: e.target.checked })} />
-                  <span>{t("divorcedLabel")}</span></label>
-                {f.divorced && <fieldset className="sub">
-                  <legend>{ico(HeartCrack)}{t("divorce")}</legend>
-                  <DateField value={f.divorce.date} shown={initial.fams[i].shown.divorce.date} lang={lang} t={t}
-                             onChange={(v) => setFam(i, {}, {}, { date: v })} />
-                  <label title={t("tipPlace")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={f.divorce.place} list={PLACES}
-                           onChange={(e) => setFam(i, {}, {}, { place: e.target.value })} /></label>
-                  {details(`d${r.xref}`, f.details.divorce, (patch) => setFamDetails(i, "divorce", patch))}
-                </fieldset>}
-              </>}
-            </>;
-          })()}
           <div className="wide children">
             <span className="lab">{ico(Baby)}{t("children")}
               {acts(<button type="button" className="head-act" title={t("newChild")} onClick={() => startKid("child", i)}><Plus className="icon" aria-hidden="true" />{t("addShort")}</button>,
