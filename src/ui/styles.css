@@ -783,8 +783,6 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-body .editor .new-child .pair > label[data-cap] { border-top: 1px solid var(--border); }
 .edit-body .editor .new-child > :first-child { border-top: 0; }
 .edit-body .editor .new-child .kid-actions { padding: 8px 10px; border-top: 1px solid var(--border); }
-/* "Details": a quiet disclosure of the card, not a row: small, muted, hairline above, no accent colour */
-.edit-body .edit-body 
 /* narrow screens (phone, small tablet): the list of people and the detail of one person, one at a time; the chart, the tool
    bar and the tool panels are not shown. Last in the file so that it wins over the desktop rules above. */
 @media (max-width: 900px) {
