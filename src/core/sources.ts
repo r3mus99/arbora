@@ -255,13 +255,13 @@ export const sourceFieldsOf = (rec: GedNode): SourceFields => ({
 });
 
 export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(records)): SourceOverview {
-  const sources = new Map<string, Omit<SourceEntry, "people" | "kinds"> & { who: Set<string>; kinds: Set<SourceKind> }>();
+  const sources = new Map<string, Omit<SourceEntry, "people" | "kinds"> & { who: Set<string>; kinds: Set<SourceKind>; plain: boolean }>();
   const notes = new Map<string, { text: string; who: Set<string> }>();
   // one entry per source: the links and notes of every citation of it, so the list shows what the detail shows for each person
   const entry = (key: string, cite: GedNode) => {
     const c = citation(cite, lookup);
     let e = sources.get(key);
-    if (!e) sources.set(key, e = { key, citation: c, citations: 0, who: new Set(), kinds: new Set(), ownLinks: [], fields: { title: "", author: "", publication: "", notes: [], links: [] } });
+    if (!e) sources.set(key, e = { key, citation: c, citations: 0, who: new Set(), kinds: new Set(), plain: false, ownLinks: [], fields: { title: "", author: "", publication: "", notes: [], links: [] } });
     else e.citation = { ...e.citation, notes: [...new Set([...e.citation.notes, ...c.notes])] };
     return e;
   };
@@ -276,7 +276,9 @@ export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(rec
       if (c.tag === "SOUR" && c.value.trim()) {
         const e = entry(isLink(c.value) ? c.value : c.value.trim(), c);
         e.citations++;
-        e.kinds.add(sourceKind(event, fam));
+        // a citation on the person record itself (a baptism source also cited for the parents or godparents) says nothing about the kind
+        // of event; it only counts when the source is cited nowhere else
+        if (!event && !fam) e.plain = true; else e.kinds.add(sourceKind(event, fam));
         owners.forEach((o) => e.who.add(o));
       } else if (c.tag === "NOTE") {
         const text = textOf(c, lookup);
@@ -295,7 +297,7 @@ export function sourceOverview(records: GedNode[], lookup: Lookup = lookupOf(rec
   }
   const byTitle = (a: { citation: Citation }, b: { citation: Citation }) => a.citation.title.localeCompare(b.citation.title);
   return {
-    sources: [...sources.values()].map(({ who, kinds, ...e }) => ({ ...e, people: [...who], kinds: SOURCE_KINDS.filter((k) => kinds.has(k)) })).sort(byTitle),
+    sources: [...sources.values()].map(({ who, kinds, plain, ...e }) => ({ ...e, people: [...who], kinds: SOURCE_KINDS.filter((k) => kinds.has(k) || (plain && !kinds.size && k === "other")) })).sort(byTitle),
     notes: [...notes.values()].map((n) => ({ text: n.text, people: [...n.who] })).sort((a, b) => a.text.localeCompare(b.text)),
   };
 }

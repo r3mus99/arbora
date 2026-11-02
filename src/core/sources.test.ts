@@ -266,3 +266,21 @@ describe("sources already shown on the timeline", () => {
     expect(withoutShownSources({ sources: [cite("", "Church book")], notes: [] }, [cite("@S1@")]).sources).toHaveLength(1);
   });
 });
+
+describe("kind of event a source is cited under", () => {
+  const ged = (body: string) => parseGedcom("0 HEAD\n0 @S1@ SOUR\n1 TITL Baptism of Eve Example\n0 @S2@ SOUR\n1 TITL Loose source\n" + body + "0 TRLR\n");
+  const kindsOf = (body: string) => Object.fromEntries(sourceOverview(ged(body)).sources.map((s) => [s.key, s.kinds]));
+
+  test("a baptism source also cited on the parents' records stays under birth and baptism only", () => {
+    const k = kindsOf("0 @I1@ INDI\n1 CHR\n2 SOUR @S1@\n0 @I2@ INDI\n1 SOUR @S1@\n0 @I3@ INDI\n1 SOUR @S1@\n");
+    expect(k["@S1@"]).toEqual(["birth"]);
+  });
+
+  test("a source cited only on person records is 'other'", () => {
+    expect(kindsOf("0 @I1@ INDI\n1 SOUR @S2@\n")["@S2@"]).toEqual(["other"]);
+  });
+
+  test("a source cited under a real other event keeps 'other' next to its kind", () => {
+    expect(kindsOf("0 @I1@ INDI\n1 CHR\n2 SOUR @S1@\n1 RESI\n2 SOUR @S1@\n")["@S1@"]).toEqual(["birth", "other"]);
+  });
+});
