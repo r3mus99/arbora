@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.97.0 – 2026-11-02
+
+- **Links that sit in citations can be seen and edited in the source window.** The source window has a new "Links in citations" part that lists the web addresses written in the citations of the source (for example the FamilySearch links of each person) and lets you change or remove each one; only the address changes, the rest of the line stays.
+
 ## 2.96.4 – 2026-11-01
 
 - **Cleanup after the removed features.** The README no longer mentions the keyboard shortcuts for undo and redo, six lint warnings are gone, and a new test checks that editing a person keeps contact, reference number, pedigree, event and fact lines that the editor no longer shows.
