@@ -1,0 +1,1 @@
+- **Sources and notes: the filters are gone.** The list shows the whole file and only the search box narrows it; the filter button with "Selected person / Whole file" and the kinds of event is removed. The sources of one person are in that person's timeline.

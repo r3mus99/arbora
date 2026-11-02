@@ -508,10 +508,6 @@ section.check { margin: 0 0 14px; }
 .check-wide .check-body { flex: 1; overflow-y: auto; padding: 0 var(--pad) var(--pad); }
 .check-wide .link { text-align: left; }
 
-.chip { display: inline-flex; align-items: center; gap: 4px; height: var(--ctl-h-sm); padding: 0 8px; margin-left: var(--gap); border: 1px solid var(--border);
-        border-radius: var(--radius-pill); font-size: 12px; font-weight: 400; color: var(--muted); vertical-align: middle; }
-.chip .icon { width: var(--icon-sm); height: var(--icon-sm); }
-.chip.warn { border-style: dashed; border-color: var(--warn); color: var(--warn-text); background: var(--warn-soft); }
 .edit-foot { flex: none; display: flex; align-items: center; gap: var(--gap); padding: 10px var(--pad); border-top: 1px solid var(--border); }
 .edit-foot .foot-delete { color: var(--danger); }
 .bulk-sum { margin-right: auto; color: var(--muted); }
@@ -526,21 +522,6 @@ section.check { margin: 0 0 14px; }
 .sp-scope-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sp .finder { border-top: 1px solid var(--border); }
 .sp-tabs { flex: none; }
-.finder-btn { position: relative; flex: none; width: 36px; height: 100%; margin-right: 6px; border: 0; background: none; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; }
-.finder-btn .icon { position: static; width: var(--icon-sm); height: var(--icon-sm); }
-.finder-btn.on { color: var(--accent); }
-.finder-btn .badge { position: absolute; top: 6px; right: 0; min-width: 17px; height: 17px; padding: 0 4px; border-radius: var(--radius); background: var(--accent); color: var(--accent-text); font-size: 12px; font-weight: 700; line-height: 17px; text-align: center; }
-.sp .finder input { flex: 1; min-width: 0; }
-.filter-panel { flex: none; display: grid; gap: 10px; padding: var(--pad); border-top: 1px solid var(--border); background: var(--bg); }
-.filter-group { display: grid; gap: 6px; }
-.filter-title { font-size: 12px; color: var(--muted); }
-.filter-panel .sp-kinds { padding: 0; }
-.filter-panel .chart-switch { display: flex; width: 100%; }
-.filter-panel .chart-switch button { flex: 1; min-width: 0; }
-.sp-kinds { flex: none; display: flex; flex-wrap: wrap; gap: var(--gap); padding: 0 var(--pad) var(--pad); }
-button.chip { margin-left: 0; background: var(--panel); color: var(--muted); cursor: pointer; font-family: inherit; }
-button.chip:hover { border-color: var(--accent); }
-button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
 .sp-list { list-style: none; margin: 0; padding: 4px 0; }
 .sp-list > li { border-bottom: 1px solid var(--border); }
 .sp-list > li.open { background: var(--accent-soft); }
@@ -655,6 +636,9 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-layer[hidden] { display: none; }
 /* the source window takes the place of the tree: only the middle column, the detail of the person stays at the right */
 .edit-layer.centre { grid-column: 2; }
+.static button.link.person { color: inherit; font: inherit; font-weight: 600; text-decoration: none; text-align: left; }
+.cite-year { font-weight: 400; color: var(--muted); }
+.static button.link.person:hover { text-decoration: underline; }
 .edit-layer.centre .edit-window { width: 100%; border-left: 0; }
 .edit-window { position: absolute; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; background: var(--panel);
                border-left: 1px solid var(--border); pointer-events: auto; width: min(var(--edit-w), 100%); }
