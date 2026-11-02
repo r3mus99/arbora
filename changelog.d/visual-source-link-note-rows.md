@@ -1,0 +1,1 @@
+- **The source window always shows the link and note rows.** The "Add link" and "Add note" buttons are gone: an empty link row and an empty note row are always there, and filling the last one makes room for the next.

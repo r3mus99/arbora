@@ -80,9 +80,13 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
   const [event, setEvent] = useState<CiteEvent>("");
   const [family, setFamily] = useState("");
   const changes = (["title", "author", "publication"] as const).filter((k) => form[k] !== fields[k]).length
-    + (same(form.links, fields.links) ? 0 : 1) + (same(form.notes, fields.notes) ? 0 : 1)
+    + (same(form.links.filter((l) => l.trim()), fields.links) ? 0 : 1) + (same(form.notes.filter((n) => n.trim()), fields.notes) ? 0 : 1)
     + (same(list.map(citeKey).sort(), cites.map(citeKey).sort()) ? 0 : 1) + (linkChanges.length ? 1 : 0) + (pageChanges.length ? 1 : 0) + (list.some((c) => addedOf(c)) ? 1 : 0);
   const dirty = changes > 0 || !xref;
+  // the link and note rows are always there: the last one is empty and becomes a new entry when it is filled
+  const rowsOf = (list: string[]) => (list.length && !list[list.length - 1].trim() ? list : [...list, ""]);
+  const linkRows = rowsOf(form.links);
+  const noteRows = rowsOf(form.notes);
   const set = (patch: Partial<SourceFields>) => setForm({ ...form, ...patch });
   const choices = useMemo(() => Object.values(data.people).sort((a, b) => a.name.localeCompare(b.name)).map((p) => {
     const year = /\d{4}/.exec(p.birth?.date ?? "")?.[0];
@@ -159,30 +163,28 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
       <div className="panel-body edit-body">
         <form id={SOURCE_FORM} className="editor" onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(); } }}
               onSubmit={(e) => { e.preventDefault(); save(); }}>
-          <Part icon={BookMarked} title={t("srcSection")} extra={<span className="head-acts">
-            <AddAct onAdd={() => set({ links: [...form.links, ""] })}>{ico(Plus)}{t("srcAddLink")}</AddAct>
-            <AddAct onAdd={() => set({ notes: [...form.notes, ""] })}>{ico(Plus)}{t("srcAddNote")}</AddAct></span>}>
+          <Part icon={BookMarked} title={t("srcSection")}>
             <label title={t("srcFieldTitle")} data-cap={t("srcFieldTitle")}><input placeholder={t("srcFieldTitle")} aria-label={t("srcFieldTitle")} type="text" autoComplete="off" autoFocus={!xref}
                    value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
             <label title={t("srcAuthor")} data-cap={t("srcAuthor")}><input placeholder={t("srcAuthor")} aria-label={t("srcAuthor")} type="text" autoComplete="off"
                    value={form.author} onChange={(e) => set({ author: e.target.value })} /></label>
             <label title={t("srcPublication")} data-cap={t("srcPublication")}><input placeholder={t("srcPublication")} aria-label={t("srcPublication")} type="text" autoComplete="off"
                    value={form.publication} onChange={(e) => set({ publication: e.target.value })} /></label>
-            {form.links.map((url, i) => (
+            {linkRows.map((url, i) => (
               <div className="cite-block" key={`l${i}`}>
-                <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={t("remove")}
-                        onClick={() => set({ links: form.links.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>
-                <label data-cap={t("srcCitationLink")}><input type="text" inputMode="url" autoComplete="off" autoFocus={!url} className={url.trim() && !isWebAddress(url) ? "invalid" : undefined}
+                {i < form.links.length && <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={t("remove")}
+                        onClick={() => set({ links: form.links.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>}
+                <label data-cap={t("srcCitationLink")}><input type="text" inputMode="url" autoComplete="off" className={url.trim() && !isWebAddress(url) ? "invalid" : undefined}
                        placeholder={t("srcLinkPlaceholder")} aria-label={t("srcLinkPlaceholder")} title={t("srcLinkInvalid")} value={url}
-                       onChange={(e) => set({ links: form.links.map((l, j) => (j === i ? e.target.value : l)) })} /></label>
+                       onChange={(e) => set({ links: i < form.links.length ? form.links.map((l, j) => (j === i ? e.target.value : l)) : [...form.links, e.target.value] })} /></label>
               </div>
             ))}
-            {form.notes.map((note, i) => (
+            {noteRows.map((note, i) => (
               <div className="cite-block" key={`n${i}`}>
-                <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={t("remove")}
-                        onClick={() => set({ notes: form.notes.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>
-                <label data-cap={t("note")}><textarea rows={2} autoFocus={!note} placeholder={t("srcNotePlaceholder")} aria-label={t("srcNotePlaceholder")} title={t("srcNotePlaceholder")} value={note}
-                       onChange={(e) => set({ notes: form.notes.map((n, j) => (j === i ? e.target.value : n)) })} /></label>
+                {i < form.notes.length && <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={t("remove")}
+                        onClick={() => set({ notes: form.notes.filter((_, j) => j !== i) })}>{ico(Trash2)}</button>}
+                <label data-cap={t("note")}><textarea rows={2} placeholder={t("srcNotePlaceholder")} aria-label={t("srcNotePlaceholder")} title={t("srcNotePlaceholder")} value={note}
+                       onChange={(e) => set({ notes: i < form.notes.length ? form.notes.map((n, j) => (j === i ? e.target.value : n)) : [...form.notes, e.target.value] })} /></label>
               </div>
             ))}
           </Part>
