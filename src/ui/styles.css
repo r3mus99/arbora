@@ -881,3 +881,11 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-body .editor .item-head > textarea { border: 0; border-radius: 0; background: none; box-shadow: none; padding: 8px 10px; }
 .edit-body .editor .collapsible > .sec-fields > fieldset.list > .cite-block:first-child > label[data-cap]:first-of-type { border-top: 0; }
 .edit-body .editor .cite-block + .cite-block > label[data-cap]:first-of-type { border-top: 1px solid var(--border); }
+
+/* other names (aka): rows like the fields above, the label on the first row only */
+.edit-body .editor .alias-list { display: block; }
+.edit-body .editor .alias-row { display: grid; grid-template-columns: var(--lab-w) minmax(0, 1fr) auto; column-gap: 8px; align-items: center; min-height: var(--row-h); padding: 0 4px 0 10px; border-top: 1px solid var(--border); }
+.edit-body .editor .alias-row::before { content: attr(data-cap); font-size: 13px; line-height: 1.25; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.edit-body .editor .alias-row .names { display: flex; gap: 12px; min-width: 0; }
+.edit-body .editor .alias-row .names input { flex: 1; min-width: 0; border: 0; background: none; border-radius: 0; padding: 0; min-height: calc(var(--row-h) - 2px); box-shadow: none; }
+.edit-body .editor .alias-row > .head-act { grid-column: 2 / -1; justify-self: start; }

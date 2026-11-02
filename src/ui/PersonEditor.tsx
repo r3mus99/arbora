@@ -1,4 +1,4 @@
-import { ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Tag, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
@@ -511,23 +511,26 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           <input type="radio" name="sex" checked readOnly /> {form.sex}</label>}
         </div>
       </div>
-      <fieldset className="list">
-        <legend title={t("tipAka")}>{ico(Tag)}{t("aka")}{acts(<button type="button" className="head-act" onClick={() => set("aliases",
-          [...form.aliases, { origin: -1, given: form.given, surname: form.surname }])}><Plus className="icon" aria-hidden="true" />{t("addAka")}</button>)}</legend>
+      {/* other forms of the name: rows like the fields above; the name of the field stands on the first row only */}
+      <div className="alias-list" title={t("tipAka")}>
         {form.aliases.map((a, i) => (
-          <div className="item alias" key={a.origin < 0 ? `new${i}` : a.origin}>
-            <div className="item-head">
+          <div className="alias-row" data-cap={i === 0 ? t("aka") : ""} key={a.origin < 0 ? `new${i}` : a.origin}>
+            <div className="names">
               <input type="text" autoComplete="off" value={a.given} list={givenList(form.sex)} aria-label={t("givenName")} title={t("tipGiven")} placeholder={t("givenName")}
                      onChange={(e) => setAlias(i, { given: e.target.value })} />
               <input type="text" autoComplete="off" value={a.surname} list={surnameList(form.sex)} aria-label={t("surname")} title={t("tipSurname")} placeholder={t("surname")}
                      onChange={(e) => setAlias(i, { surname: e.target.value })} />
-              <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
-                      onClick={() => set("aliases", form.aliases.filter((_, j) => j !== i))}>
-                <Trash2 className="icon" aria-hidden="true" /></button>
-              </div>
+            </div>
+            <button type="button" className="icon-btn" title={t("remove")} aria-label={t("remove")}
+                    onClick={() => set("aliases", form.aliases.filter((_, j) => j !== i))}>
+              <Trash2 className="icon" aria-hidden="true" /></button>
           </div>
         ))}
-      </fieldset>
+        <div className="alias-row" data-cap={form.aliases.length === 0 ? t("aka") : ""}>
+          <button type="button" className="head-act" onClick={() => set("aliases",
+            [...form.aliases, { origin: -1, given: form.given, surname: form.surname }])}><Plus className="icon" aria-hidden="true" />{t("addAka")}</button>
+        </div>
+      </div>
       </>)}
       {section("events", <>
       {event("birth")}
