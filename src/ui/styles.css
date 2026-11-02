@@ -636,6 +636,8 @@ section.check { margin: 0 0 14px; }
 .edit-layer[hidden] { display: none; }
 /* the source window takes the place of the tree: only the middle column, the detail of the person stays at the right */
 .edit-layer.centre { grid-column: 2; }
+.static button.link.person { color: inherit; font: inherit; font-weight: 600; text-decoration: none; text-align: left; }
+.static button.link.person:hover { text-decoration: underline; }
 .edit-layer.centre .edit-window { width: 100%; border-left: 0; }
 .edit-window { position: absolute; top: 0; right: 0; bottom: 0; display: flex; flex-direction: column; background: var(--panel);
                border-left: 1px solid var(--border); pointer-events: auto; width: min(var(--edit-w), 100%); }

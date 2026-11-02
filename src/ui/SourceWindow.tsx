@@ -1,4 +1,4 @@
-import { BookMarked, Check, Plus, Trash2, Users, X, type LucideIcon } from "lucide-react";
+import { BookMarked, Check, Plus, Trash2, Users, WandSparkles, X, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from "react";
 import type { GedcomData } from "../core/gedcom";
 import type { CitationAddress, CitationLinkChange, CitationLinkLine, CitationPageChange, CitationPageLine } from "../core/citationLinks";
@@ -32,6 +32,8 @@ interface Props {
   onClose: () => void;
   /** tells the app whether the window holds unsaved changes, so another source is not opened over them without asking */
   onDirty?: (dirty: boolean) => void;
+  /** a click on a person's name in a citation selects that person in the tree */
+  onPerson?: (id: string) => void;
   /** the person selected in the tree: offered as the first citation of a new source */
   person: string | null;
   /** the language of the generated source title */
@@ -67,7 +69,7 @@ function Part({ icon, title, extra, children }: { icon: LucideIcon; title: strin
  * The edit window of a source (docs/design-guidelines.md, section 7): the text of the source record, its web links and notes,
  * and the people and events it is cited for. It is the one place where sources are edited; the Sources panel and the timeline show what it saves.
  */
-export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, cited, person: selected, lang, onSave, onDelete, onClose, onDirty, hidden, t }: Props) {
+export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, cited, person: selected, lang, onSave, onDelete, onClose, onDirty, onPerson, hidden, t }: Props) {
   const [form, setForm] = useState<SourceFields>(fields);
   const [list, setList] = useState<SourceCite[]>(cites);
   // the address of each citation line as the window has it (key of the line to text)
@@ -88,9 +90,11 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
   const [family, setFamily] = useState("");
   // the title of a new source is suggested from its first citation until it is typed
   const [typedTitle, setTypedTitle] = useState<string | null>(xref ? fields.title : null);
-  const suggestedTitle = () => {
-    const c = list[0];
-    if (xref || !c) return "";
+  // the title generated from a citation: the event word and the people ("Baptism Jan Novak 1850"); a citation of a concrete event is
+  // preferred over one on the person record, which says nothing about the event
+  const generatedTitle = () => {
+    const c = list.find((x) => x.event && ["BIRT", "CHR", "DEAT", "BURI", "MARR", "DIV"].includes(x.event)) ?? list[0];
+    if (!c) return "";
     const year = (date?: string) => /\d{4}/.exec(date ?? "")?.[0] ?? "";
     const kind = ({ BIRT: "birth", CHR: "christening", DEAT: "death", BURI: "burial", MARR: "marriage", DIV: "divorce" } as const)[c.event as "BIRT"];
     if (!kind) return "";
@@ -103,7 +107,10 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
     if (!who) return "";
     return [sourceTitle(lang, kind, who.name), c.event === "BIRT" || c.event === "CHR" ? year(who.birth?.date) : c.event === "DEAT" || c.event === "BURI" ? year(who.death?.date) : ""].filter(Boolean).join(" ");
   };
+  // a new source takes the generated title until one is typed
+  const suggestedTitle = () => (xref ? "" : generatedTitle());
   const title = typedTitle ?? suggestedTitle();
+  const generated = generatedTitle();
   const changes = (["author", "publication"] as const).filter((k) => form[k] !== fields[k]).length + (title !== fields.title ? 1 : 0)
     + (same(form.links.filter((l) => l.trim()), fields.links) ? 0 : 1) + (same(form.notes.filter((n) => n.trim()), fields.notes) ? 0 : 1)
     + (same(list.map(citeKey).sort(), cites.map(citeKey).sort()) ? 0 : 1) + (linkChanges.length ? 1 : 0) + (pageChanges.length ? 1 : 0) + (list.some((c) => addedOf(c)) ? 1 : 0);
@@ -128,6 +135,12 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
   const holderName = (holder: string) => {
     const fam = data.families[holder];
     return fam ? [fam.husb, fam.wife].map((id) => (id ? nameOf(id) : "?")).join(" & ") : nameOf(holder);
+  };
+  // the name of a person is a link that selects them; a family shows both spouses, each one a link
+  const holderLinks = (holder: string): ReactNode => {
+    const fam = data.families[holder];
+    const person = (id: string | null | undefined) => (id && data.people[id] ? (onPerson ? <button type="button" className="link person" title={nameOf(id)} onClick={() => onPerson(id)}>{nameOf(id)}</button> : nameOf(id)) : "?");
+    return fam ? <>{person(fam.husb)} &amp; {person(fam.wife)}</> : person(holder);
   };
   const eventName = (ev: string) => (ev ? (EVENT_LABEL[ev as CiteEvent] ? t(EVENT_LABEL[ev as CiteEvent]) : ev) : t("srcCitePerson"));
   // the citations as the file holds them: a person (or family), under it the event, under it the citation with its address (an empty row when it has none)
@@ -199,8 +212,12 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
         <form id={SOURCE_FORM} className="editor" onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); save(); } }}
               onSubmit={(e) => { e.preventDefault(); save(); }}>
           <Part icon={BookMarked} title={t("srcSection")}>
-            <label title={t("srcFieldTitle")} data-cap={t("srcFieldTitle")}><input placeholder={t("srcFieldTitle")} aria-label={t("srcFieldTitle")} type="text" autoComplete="off" autoFocus={!xref}
-                   value={title} onChange={(e) => setTypedTitle(e.target.value)} /></label>
+            <div className="cite-block link-row">
+              <label title={t("srcFieldTitle")} data-cap={t("srcFieldTitle")}><input placeholder={t("srcFieldTitle")} aria-label={t("srcFieldTitle")} type="text" autoComplete="off" autoFocus={!xref}
+                     value={title} onChange={(e) => setTypedTitle(e.target.value)} /></label>
+              <button type="button" className="icon-btn" title={generated ? t("srcGenerateTitle", { title: generated }) : t("srcGenerateTitleNone")} aria-label={t("srcGenerateTitleNone")}
+                      disabled={!generated || generated === title} onClick={() => setTypedTitle(generated)}>{ico(WandSparkles)}</button>
+            </div>
             <label title={t("srcAuthor")} data-cap={t("srcAuthor")}><input placeholder={t("srcAuthor")} aria-label={t("srcAuthor")} type="text" autoComplete="off"
                    value={form.author} onChange={(e) => set({ author: e.target.value })} /></label>
             <label title={t("srcPublication")} data-cap={t("srcPublication")}><input placeholder={t("srcPublication")} aria-label={t("srcPublication")} type="text" autoComplete="off"
@@ -253,7 +270,7 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
                 return <div className="cite-block" key={`${p.holder}|${pl.event}`}>
                   {pl.cite && <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={`${t("remove")}: ${where}`}
                           onClick={() => setList(list.filter((x) => citeKey(x) !== citeKey(pl.cite!)))}>{ico(Trash2)}</button>}
-                  <label data-cap={t("srcCitationPerson")}><span className="static strong">{holderName(p.holder)}</span></label>
+                  <label data-cap={t("srcCitationPerson")}><span className="static strong">{holderLinks(p.holder)}</span></label>
                   {pl.cite && !cites.some((x) => citeKey(x) === citeKey(pl.cite!))
                     ? <label><span>{t("event")}</span>
                         <select value={pl.event} onChange={(e) => changeEvent(pl.cite!, e.target.value as CiteEvent)}>

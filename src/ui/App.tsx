@@ -635,7 +635,7 @@ export function App() {
                                    setSourceWin(null);
                                  }}
                                  onDelete={() => { if (sourceWin.xref) replaceRecords(deleteSource(doc.records, sourceWin.xref)); setSourceWin(null); }}
-                                 onClose={() => setSourceWin(null)} onDirty={markSourceDirty} hidden={showCheck || !!windowId} t={t} />}
+                                 onClose={() => setSourceWin(null)} onDirty={markSourceDirty} onPerson={(id) => pick(id)} hidden={showCheck || !!windowId} t={t} />}
             {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
                                  lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} onSave={(changed, added) => { setWindowId(null); commit(changed, added); }}
