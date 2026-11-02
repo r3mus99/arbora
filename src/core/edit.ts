@@ -614,6 +614,16 @@ export function applyEventNode(rec: GedNode, node: GedNode, before: EventFields,
   return rewritten({ ...rec, children: rec.children.map((c, i) => (i === at ? changed : c)) });
 }
 
+/** The text note written under an event line ("" for none or for a pointer to a NOTE record). */
+export const eventNoteText = (node: GedNode): string => inlineNote(node)?.value || "";
+
+/** The record with the text note of one of its event lines (`node`, by identity) set; "" removes it, a pointer to a NOTE record stays. */
+export function applyEventNote(rec: GedNode, node: GedNode, before: string, after: string): GedNode {
+  const at = rec.children.indexOf(node);
+  if (at < 0 || after.trim() === before.trim()) return rec;
+  return rewritten({ ...rec, children: rec.children.map((c, i) => (i === at ? setEventNote(node, after) : c)) });
+}
+
 /** The record with one sub-line (AGE, CAUS, AGNC) of one of its event lines set; "" removes it. */
 export function applyEventLine(rec: GedNode, node: GedNode, tag: string, before: string, after: string): GedNode {
   const at = rec.children.indexOf(node);

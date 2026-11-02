@@ -200,9 +200,11 @@ describe("details of the life events; other events and facts", () => {
 1 BIRT
 2 DATE 1900
 2 AGE 0
+2 NOTE Born at home
 1 DEAT
 2 DATE 1980
 2 CAUS Old age
+2 NOTE @N1@
 2 ADDR Hill Street 2
 3 CONT Second floor
 3 CITY Greenfield
@@ -229,10 +231,15 @@ describe("details of the life events; other events and facts", () => {
     expect(items.map((i) => [i.kind, i.date])).toEqual([["birth", "1900"], ["death", "1980"]]);
   });
 
-  test("age, cause and address are read from birth and death too", () => {
-    expect(items[0].details).toEqual([{ key: "age", value: "0" }]);
+  test("birth shows no age, cause or agency; death still shows cause and address", () => {
+    expect(items[0].details).toBeUndefined();
     expect(items[1].details).toEqual([{ key: "cause", value: "Old age" },
                                       { key: "address", value: "Hill Street 2, Second floor, Greenfield" }]);
+  });
+
+  test("the text note of the birth is on the timeline; death, with a pointer to a NOTE record, has none", () => {
+    expect(items[0].note).toBe("Born at home");
+    expect(items[1].note).toBeUndefined();
   });
 });
 

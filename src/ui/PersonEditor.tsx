@@ -251,7 +251,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
   const [closed, setClosed] = useState<string[]>([]);
   const toggleOf = (id: string, shown: boolean) => {
     if (shown) { setClosed([...closed, id]); setOpenDetails(openDetails.filter((x) => x !== id)); }
-    else { setClosed(closed.filter((x) => x !== id)); setOpenDetails([...openDetails, id]); if (id.startsWith("addr:")) setOpenAddr([...openAddr, id.slice(5)]); }
+    else { setClosed(closed.filter((x) => x !== id)); setOpenDetails([...openDetails, id]); }
   };
   /** the button that shows or hides hidden fields: it stays after they are shown, the chevron turns up */
   const revealBtn = (id: string, shown: boolean, label: string, title?: string) =>
@@ -263,8 +263,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     return <>{revealBtn(id, shown, label, tip)}{shown && body}</>;
   };
   const pin = (id: string) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); };
-  /** the residences whose address field is open although it is empty or the same as the place */
-  const [openAddr, setOpenAddr] = useState<string[]>([]);
   const rowId = (e: EventRow, i: number) => (e.origin < 0 ? `new${i}` : `o${e.origin}`);
   const hasDetails = (d: EventDetailFields) => !!(d.age || d.cause || d.agency || d.note);
   /** the note under an event: several lines; a note kept in a separate NOTE record is not touched here */
@@ -272,19 +270,26 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
     <label title={t("tipEventNote")} data-cap={t("note")}><textarea autoComplete="off" placeholder={t("note")} aria-label={t("note")} rows={2} value={value}
       onChange={(e) => onChange(e.target.value)} /></label>;
   /** age, cause, agency and note of an event: shown when it has any, or after the "details" button */
-  const details = (id: string, d: EventDetailFields, onChange: (patch: Partial<EventDetailFields>) => void, extra?: ReactNode, extraSet?: boolean) => {
-    const shown = (hasDetails(d) || !!extraSet || openDetails.includes(id)) && !closed.includes(id);
+  const details = (id: string, d: EventDetailFields, onChange: (patch: Partial<EventDetailFields>) => void, extra?: ReactNode, extraSet?: boolean,
+                   keys: (typeof DETAILS)[number][0][] = ["age", "cause", "agency"]) => {
+    const filled = !!d.note || keys.some((k) => d[k]);
+    const shown = (filled || !!extraSet || openDetails.includes(id)) && !closed.includes(id);
     return <>
       {revealBtn(id, shown, t("eventDetails"), t("tipDetails"))}
       {shown && <>
         <div className="trio">
-          {DETAILS.map(([k, label, tip]) => <label key={k} title={t(tip)} data-cap={t(label)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={d[k]} onChange={(e) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); onChange({ [k]: e.target.value }); }} /></label>)}
+          {DETAILS.filter(([k]) => keys.includes(k)).map(([k, label, tip]) => <label key={k} title={t(tip)} data-cap={t(label)}><input placeholder={t(label)} aria-label={t(label)} type="text" autoComplete="off" value={d[k]} onChange={(e) => { if (!openDetails.includes(id)) setOpenDetails([...openDetails, id]); onChange({ [k]: e.target.value }); }} /></label>)}
         </div>
         {eventNote(d.note, (note) => { pin(id); onChange({ note }); })}
         {extra}
       </>}
     </>;
   };
+  /** the note of a person's event: a button "+ Add note" next to the event's other buttons; the field shows when the note has text, or after the button */
+  const noteShown = (id: string, value: string) => !!value || openDetails.includes(id);
+  const noteBtn = (id: string, value: string) => !noteShown(id, value) && <button type="button" className="head-act" onClick={() => pin(id)}>
+    <Plus className="icon" aria-hidden="true" />{t("addNote")}</button>;
+  const noteField = (id: string, value: string, onChange: (note: string) => void) => noteShown(id, value) && eventNote(value, (note) => { pin(id); onChange(note); });
   const setAlias = (i: number, patch: Partial<Alias>) =>
     set("aliases", form.aliases.map((a, j) => (j === i ? { ...a, ...patch } : a)));
   const setFam = (i: number, patch: Partial<FamilyFields>, marriage: Partial<EventFields> = {}, divorce: Partial<EventFields> = {}) =>
@@ -302,6 +307,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         {from && acts(<button type="button" className="head-act" title={t(from[1])}
                          disabled={!source?.date && !source?.place} onClick={() => set(key, { ...source! })}>
           <Copy className="icon" aria-hidden="true" />{t(from[1])}</button>)}
+        {key === "birth" && !noteShown(key, form.details[key].note) && acts(noteBtn(key, form.details[key].note))}
       </legend>
       <DateField value={form[key].date} shown={initial.shown[key].date} lang={lang} t={t}
                  onChange={(v) => set(key, { ...form[key], date: v })} />
@@ -310,12 +316,13 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
       </label>
       {key === "christening" && <label className="full" title={t("tipReligion")} data-cap={t("religion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
-      {details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
+      {key === "birth" ? noteField(key, form.details[key].note, (note) => set("details", { ...form.details, [key]: { ...form.details[key], note } }))
+        : details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }), undefined, undefined, key === "death" ? ["cause"] : undefined)}
     </fieldset>;
   };
   /** christening and burial are listed among the other events, as rows that keep their own fields */
   const [fixedOn, setFixedOn] = useState<string[]>([]);
-  const hasEv = (k: "christening" | "burial") => !!(form[k].date || form[k].place || hasDetails(form.details[k]) || form.eventCitations[k].length > 0 || (k === "christening" && form.religion));
+  const hasEv = (k: "christening" | "burial") => !!(form[k].date || form[k].place || form.eventCitations[k].length > 0 || (k === "christening" && form.religion));
   const fixedKeys = (["christening", "burial"] as const).filter((k) => (k !== "burial" || form.deceased) && (fixedOn.includes(k) || hasEv(k)));
   const fixedRow = (key: "christening" | "burial") => {
     const from = COPY_FROM[key]!;
@@ -336,7 +343,6 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                onChange={(e) => set(key, { ...form[key], place: e.target.value })} /></label>
       {key === "christening" && <label className="full" title={t("tipReligion")} data-cap={t("religion")}><input placeholder={t("religion")} aria-label={t("religion")} type="text" autoComplete="off" value={form.religion} list={RELIGIONS}
                onChange={(e) => set("religion", e.target.value)} /></label>}
-      {details(key, form.details[key], (patch) => set("details", { ...form.details, [key]: { ...form.details[key], ...patch } }))}
     </div></fieldset>;
   };
   /** the place of a residence of the parents, the father's first; empty when they have none in the file */
@@ -556,6 +562,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
           <div className="item" key={e.origin < 0 ? `new${i}` : e.origin}>
             <div className="item-head">
               <span className="grow">{t("residence")}</span>
+              {noteBtn(rowId(e, i), e.note)}
               <button type="button" className="head-act" disabled={!parentsResidence || e.place === parentsResidence}
                 title={parentsResidence ? `${t("copyParentsResidence")}: ${parentsResidence}` : t("copyParentsResidenceNone")} onClick={() => setEv(i, { place: parentsResidence })}>
                 <Copy className="icon" aria-hidden="true" />{t("copyParentsResidence")}</button>
@@ -563,19 +570,14 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
                       onClick={() => set("events", form.events.filter((_, j) => j !== i))}>
                 <Trash2 className="icon" aria-hidden="true" /></button>
             </div>
-            {/* a residence: the address (street and number) is separate from the place (town), and is not shown twice when it is the same text */}
-            <>
-              {(() => { const id = `addr:${rowId(e, i)}`, shown = (!!e.value && e.value !== e.place || openAddr.includes(rowId(e, i))) && !closed.includes(id);
-                return <>
-                  <div className="full">{revealBtn(id, shown, t("detAddress"), t(e.value ? "sameAsPlace" : "addrHint"))}</div>
-                  {shown && <label className="full" title={t("addrHint")} data-cap={t("detAddress")}><input placeholder={t("detAddress")} aria-label={t("detAddress")} type="text" autoComplete="off" value={e.value} onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>}
-                </>; })()}
-            </>
+            {/* a residence: the address (street and number) is separate from the place (town) */}
+            <label title={t("addrHint")} data-cap={t("resiAddress")}><input placeholder={t("resiAddress")} aria-label={t("resiAddress")} type="text" autoComplete="off" value={e.value}
+                     onChange={(ev) => setEv(i, { value: ev.target.value })} /></label>
             <DateField value={e.date} shown={e.origin < 0 ? "" : shownEv(e.origin)} lang={lang}
                        t={t} onChange={(v) => setEv(i, { date: v })} />
             <label title={t("resiPlaceHint")} data-cap={t("place")}><input placeholder={t("place")} aria-label={t("place")} type="text" autoComplete="off" value={e.place} list={PLACES}
                      onChange={(ev) => setEv(i, { place: ev.target.value })} /></label>
-            {details(`o${e.origin < 0 ? `new${i}` : e.origin}`, e, (patch) => setEv(i, patch))}
+            {noteField(rowId(e, i), e.note, (note) => setEv(i, { note }))}
           </div>
         ))}
       </fieldset>
