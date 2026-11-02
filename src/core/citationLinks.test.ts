@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { addCitationAddresses, citationLinkLines, setCitationLinks } from "./citationLinks";
+import { addCitationAddresses, citationLinkLines, citationPageLines, setCitationLinks, setCitationPages } from "./citationLinks";
 import { decode, parseGedcom, writeGedcom } from "./index";
 
 const A = "https://example.org/entry/AB12-XY3";
@@ -102,5 +102,21 @@ describe("writing an address into a citation that has none", () => {
   test("a place that does not cite the source, or something that is not an address, changes nothing", () => {
     expect(addCitationAddresses(records, "@S1@", [{ cite: { event: "DEAT", person: "@I1@", family: "" }, url: NEWURL }])).toEqual(records);
     expect(addCitationAddresses(records, "@S1@", [{ cite: { event: "", person: "@I2@", family: "" }, url: "no" }])).toEqual(records);
+  });
+});
+
+describe("page texts of citations", () => {
+  const ged = "0 HEAD\n0 @I1@ INDI\n1 SOUR @S1@\n2 PAGE Chronicle, line 12\n2 QUAY 2\n1 BIRT\n2 SOUR @S1@\n3 PAGE https://example.org/x\n0 @S1@ SOUR\n1 TITL Book\n0 TRLR";
+  const recs = parseGedcom(decode(ged));
+  test("lists only page text without an address", () => {
+    const lines = citationPageLines(recs, "@S1@");
+    expect(lines.map((l) => [l.holder, l.event, l.text])).toEqual([["@I1@", "", "Chronicle, line 12"]]);
+  });
+  test("changes only that line; an empty text is ignored", () => {
+    const [line] = citationPageLines(recs, "@S1@");
+    const out = writeGedcom(setCitationPages(recs, [{ key: line.key, text: " Chronicle, line 13 " }]));
+    expect(out).toContain("2 PAGE Chronicle, line 13");
+    expect(out).toContain("2 QUAY 2");
+    expect(setCitationPages(recs, [{ key: line.key, text: "  " }])).toBe(recs);
   });
 });

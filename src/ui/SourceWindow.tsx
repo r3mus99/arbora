@@ -1,7 +1,7 @@
 import { BookMarked, Check, Plus, Trash2, Users, X, type LucideIcon } from "lucide-react";
 import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from "react";
 import type { GedcomData } from "../core/gedcom";
-import type { CitationAddress, CitationLinkChange, CitationLinkLine } from "../core/citationLinks";
+import type { CitationAddress, CitationLinkChange, CitationLinkLine, CitationPageChange, CitationPageLine } from "../core/citationLinks";
 import { citeKey, isWebAddress, type CiteEvent, type SourceCite } from "../core/sourceLinks";
 import type { SourceFields } from "../core/sources";
 import { mayClose } from "./editWindow";
@@ -23,8 +23,10 @@ interface Props {
   cited: number;
   /** the web addresses written in the citations of the source */
   citeLinks: CitationLinkLine[];
-  /** the fields, the citations and the changed citation addresses as the window leaves them (one undo step); the window closes after it */
-  onSave: (fields: SourceFields, cites: SourceCite[], linkChanges: CitationLinkChange[], addresses: CitationAddress[]) => void;
+  /** the page texts (without an address) written in the citations of the source */
+  citePages: CitationPageLine[];
+  /** the fields, the citations, the changed citation addresses and page texts as the window leaves them (one undo step); the window closes after it */
+  onSave: (fields: SourceFields, cites: SourceCite[], linkChanges: CitationLinkChange[], addresses: CitationAddress[], pageChanges: CitationPageChange[]) => void;
   onDelete: () => void;
   onClose: () => void;
   /** a wide tool panel is open, so the window is hidden but keeps its content */
@@ -58,13 +60,17 @@ function Part({ icon, title, extra, children }: { icon: LucideIcon; title: strin
  * The edit window of a source (docs/design-guidelines.md, section 7): the text of the source record, its web links and notes,
  * and the people and events it is cited for. It is the one place where sources are edited; the Sources panel and the timeline show what it saves.
  */
-export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSave, onDelete, onClose, hidden, t }: Props) {
+export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, cited, onSave, onDelete, onClose, hidden, t }: Props) {
   const [form, setForm] = useState<SourceFields>(fields);
   const [list, setList] = useState<SourceCite[]>(cites);
   // the address of each citation line as the window has it (key of the line to text)
   const [urls, setUrls] = useState<Record<string, string>>({});
   const urlOf = (l: CitationLinkLine) => urls[l.key] ?? l.url;
   const linkChanges = citeLinks.filter((l) => urlOf(l).trim() !== l.url && (urlOf(l).trim() === "" || isWebAddress(urlOf(l)))).map((l) => ({ key: l.key, url: urlOf(l).trim() }));
+  // the page text of each citation as the window has it (key of the line to text)
+  const [pageTexts, setPageTexts] = useState<Record<string, string>>({});
+  const pageOf = (l: CitationPageLine) => pageTexts[l.key] ?? l.text;
+  const pageChanges = citePages.filter((l) => pageOf(l).trim() !== l.text && pageOf(l).trim() !== "").map((l) => ({ key: l.key, text: pageOf(l).trim() }));
   // an address typed for a citation that has none yet, by place (citeKey)
   const [added, setAdded] = useState<Record<string, string>>({});
   const addedOf = (c: SourceCite) => (added[citeKey(c)] ?? "").trim();
@@ -75,7 +81,7 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
   const [family, setFamily] = useState("");
   const changes = (["title", "author", "publication"] as const).filter((k) => form[k] !== fields[k]).length
     + (same(form.links, fields.links) ? 0 : 1) + (same(form.notes, fields.notes) ? 0 : 1)
-    + (same(list.map(citeKey).sort(), cites.map(citeKey).sort()) ? 0 : 1) + (linkChanges.length ? 1 : 0) + (list.some((c) => addedOf(c)) ? 1 : 0);
+    + (same(list.map(citeKey).sort(), cites.map(citeKey).sort()) ? 0 : 1) + (linkChanges.length ? 1 : 0) + (pageChanges.length ? 1 : 0) + (list.some((c) => addedOf(c)) ? 1 : 0);
   const dirty = changes > 0 || !xref;
   const set = (patch: Partial<SourceFields>) => setForm({ ...form, ...patch });
   const choices = useMemo(() => Object.values(data.people).sort((a, b) => a.name.localeCompare(b.name)).map((p) => {
@@ -98,7 +104,7 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
   const eventName = (ev: string) => (ev ? (EVENT_LABEL[ev as CiteEvent] ? t(EVENT_LABEL[ev as CiteEvent]) : ev) : t("srcCitePerson"));
   // the citations as the file holds them: a person (or family), under it the event, under it the citation with its address (an empty row when it has none)
   const citeTree = useMemo(() => {
-    type Place = { event: string; cite: SourceCite | null; lines: CitationLinkLine[] };
+    type Place = { event: string; cite: SourceCite | null; lines: CitationLinkLine[]; pages: CitationPageLine[] };
     const out: { holder: string; family: boolean; places: Place[] }[] = [];
     const group = (holder: string) => {
       let p = out.find((x) => x.holder === holder);
@@ -107,17 +113,18 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
     };
     for (const c of list) {
       const holder = c.family || c.person;
-      group(holder).places.push({ event: c.event, cite: c, lines: citeLinks.filter((l) => l.holder === holder && l.event === c.event) });
+      group(holder).places.push({ event: c.event, cite: c, lines: citeLinks.filter((l) => l.holder === holder && l.event === c.event),
+        pages: citePages.filter((l) => l.holder === holder && l.event === c.event) });
     }
     // addresses under lines of the file that the list does not name (another kind of event)
     for (const l of citeLinks) {
       const p = group(l.holder);
       const at = p.places.find((x) => x.event === l.event);
-      if (!at) p.places.push({ event: l.event, cite: null, lines: [l] });
+      if (!at) p.places.push({ event: l.event, cite: null, lines: [l], pages: [] });
       else if (!at.lines.includes(l) && !at.cite) at.lines.push(l);
     }
     return out;
-  }, [list, citeLinks, data]);
+  }, [list, citeLinks, citePages, data]);
   const addCite = () => {
     const next: SourceCite = onFamily ? { event, person: "", family: chosenFamily } : { event, person, family: "" };
     if (!list.some((c) => citeKey(c) === citeKey(next))) setList([...list, next]);
@@ -127,7 +134,7 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
   const save = () => {
     if (!ready || !dirty) return;
     onSave({ ...form, title: form.title.trim(), notes: form.notes.map((n) => n.trim()).filter(Boolean), links: form.links.map((l) => l.trim()).filter(isWebAddress) }, list, linkChanges,
-      list.filter((c) => addedOf(c)).map((c) => ({ cite: c, url: addedOf(c) })));
+      list.filter((c) => addedOf(c)).map((c) => ({ cite: c, url: addedOf(c) })), pageChanges);
   };
   const close = () => { if (mayClose(changes > 0, () => window.confirm(t("discard")))) onClose(); };
   const onKey = useEffectEvent((e: KeyboardEvent) => { if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); close(); } });
@@ -208,7 +215,13 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, cited, onSa
                              onChange={(e) => setUrls({ ...urls, [l.key]: e.target.value })} />
                     </label>
                   ))}
-                  {!pl.lines.length && pl.cite && <label data-cap={t("srcCitationLink")}>
+                  {pl.pages.map((pg) => (
+                    <label key={pg.key} data-cap={t("srcCitationPage")}>
+                      <input type="text" autoComplete="off" placeholder={t("srcCitationPage")} aria-label={where} title={t("srcCitationPage")} value={pageOf(pg)}
+                             onChange={(e) => setPageTexts({ ...pageTexts, [pg.key]: e.target.value })} />
+                    </label>
+                  ))}
+                  {!pl.lines.length && !pl.pages.length && pl.cite && <label data-cap={t("srcCitationLink")}>
                     <input type="text" inputMode="url" autoComplete="off" className={added[citeKey(pl.cite)]?.trim() && !isWebAddress(added[citeKey(pl.cite)]) ? "invalid" : undefined}
                            placeholder={t("srcLinkPlaceholder")} aria-label={where} title={t("srcCitationLinkTip", { who: where })} value={added[citeKey(pl.cite)] ?? ""}
                            onChange={(e) => setAdded({ ...added, [citeKey(pl.cite!)]: e.target.value })} />
