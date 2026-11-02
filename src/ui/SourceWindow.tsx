@@ -139,7 +139,11 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
   // the name of a person is a link that selects them; a family shows both spouses, each one a link
   const holderLinks = (holder: string): ReactNode => {
     const fam = data.families[holder];
-    const person = (id: string | null | undefined) => (id && data.people[id] ? (onPerson ? <button type="button" className="link person" title={nameOf(id)} onClick={() => onPerson(id)}>{nameOf(id)}</button> : nameOf(id)) : "?");
+    const person = (id: string | null | undefined) => {
+      if (!id || !data.people[id]) return "?";
+      const year = /\d{4}/.exec(data.people[id].birth?.date ?? "")?.[0];
+      return <>{onPerson ? <button type="button" className="link person" title={nameOf(id)} onClick={() => onPerson(id)}>{nameOf(id)}</button> : nameOf(id)}{year && <span className="cite-year"> ({year})</span>}</>;
+    };
     return fam ? <>{person(fam.husb)} &amp; {person(fam.wife)}</> : person(holder);
   };
   const eventName = (ev: string) => (ev ? (EVENT_LABEL[ev as CiteEvent] ? t(EVENT_LABEL[ev as CiteEvent]) : ev) : t("srcCitePerson"));
