@@ -408,6 +408,8 @@ button.link { display: inline; }
 .editor .sex input { position: absolute; opacity: 0; pointer-events: none; }
 .editor .sex label:has(input:checked) { background: var(--accent-soft);
                                         color: var(--accent); font-weight: 600; }
+.editor .sex label[data-sex="M"]:has(input:checked) { background: color-mix(in srgb, var(--sex-M) 14%, transparent); color: var(--sex-M); }
+.editor .sex label[data-sex="F"]:has(input:checked) { background: color-mix(in srgb, var(--sex-F) 14%, transparent); color: var(--sex-F); }
 .editor .sex label:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: -2px; }
 :is(.editor, .rows) .check:has(input:disabled) { cursor: default; }
 :is(.editor, .rows) .check:has(input:disabled) > span { color: var(--muted); }

@@ -1,4 +1,4 @@
-import { ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
+import { CircleHelp, Mars, Venus, ArrowDownUp, Baby, Briefcase, CalendarDays, Copy, Cross, Droplets, Flower2, Handshake, Heart, HeartCrack, ChevronDown, Plus, Search, Trash2, UserPlus, Users, type LucideIcon } from "lucide-react";
 import { familyRecord, lineage, personRecord, type NewPerson } from "../core/structure";
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
@@ -95,6 +95,14 @@ export const OPEN_AT_START = new Set<string>(["name", "events"]);
 export const EDITOR_FORM = "person-editor";
 
 // the lists of suggestions, once per page
+/** the icon of a sex choice (male, female, unknown); the choice carries its name as a tooltip and for screen readers */
+const SEX_ICON: Record<string, LucideIcon> = { M: Mars, F: Venus };
+function SexChoice({ value, label, ...radio }: { value: string; label: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+  const Icon = SEX_ICON[value] ?? CircleHelp;
+  return <label title={label} data-sex={value || "U"}>
+    <input type="radio" value={value} aria-label={label} {...radio} /><Icon className="icon" aria-hidden /></label>;
+}
+
 /** the list of given names used for the person's sex in the file, all of them when it is not known */
 export const givenList = (sex: string) => (sex === "M" ? GIVENS_M : sex === "F" ? GIVENS_F : GIVENS);
 /** the list of surnames that fits the person's sex (the male or female forms), all of them when it is not known */
@@ -420,8 +428,8 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
               <div className="sex-field" title={t("tipSex")}>
                 <span>{t("sex")}</span>
                 <div className="sex" role="radiogroup" aria-label={t("sex")}>
-                  {([["M", "male"], ["F", "female"], ["", "sexUnknown"]] as [string, StringKey][]).map(([value, key]) => <label key={key}>
-                    <input type="radio" name={`kid-sex-${kind}-${i}`} value={value} checked={kid.sex === value} onChange={() => setKid({ ...kid, sex: value, ...(kid.base !== undefined ? { surname: surnameForSex(kid.base, value, suggest.surnames, lang) } : {}), ...(kind === "parent" && (value === "F" ? kid.surname === form.surname : !kid.surname) ? { surname: value === "F" ? "" : form.surname } : {}) })} /> {t(key)}</label>)}
+                  {([["M", "male"], ["F", "female"], ["", "sexUnknown"]] as [string, StringKey][]).map(([value, key]) => <SexChoice key={key} value={value} label={t(key)}
+                    name={`kid-sex-${kind}-${i}`} checked={kid.sex === value} onChange={() => setKid({ ...kid, sex: value, ...(kid.base !== undefined ? { surname: surnameForSex(kid.base, value, suggest.surnames, lang) } : {}), ...(kind === "parent" && (value === "F" ? kid.surname === form.surname : !kid.surname) ? { surname: value === "F" ? "" : form.surname } : {}) })} />)}
                 </div>
               </div>
               <div className="kid-death">
@@ -504,9 +512,7 @@ export function PersonEditor({ data, record, families, lang, suggest, recordOf, 
         <span>{t("sex")}</span>
         <div className="sex" role="radiogroup" aria-label={t("sex")}>
         {([["M", "male"], ["F", "female"], [form.sex === "" ? "" : "U", "sexUnknown"]] as [string, StringKey][])
-          .map(([value, key]) => <label key={key}>
-            <input type="radio" name="sex" value={value} checked={form.sex === value}
-                   onChange={() => set("sex", value)} /> {t(key)}</label>)}
+          .map(([value, key]) => <SexChoice key={key} value={value} label={t(key)} name="sex" checked={form.sex === value} onChange={() => set("sex", value)} />)}
         {!["M", "F", "U", ""].includes(form.sex) && <label>
           <input type="radio" name="sex" checked readOnly /> {form.sex}</label>}
         </div>
