@@ -49,7 +49,7 @@ function Fact({ icon, label, children }: { icon: LucideIcon; label: string; chil
   return <Section icon={icon} title={label}>{children}</Section>;
 }
 
-const DETAIL_KEYS = { age: "detAge", cause: "detCause", agency: "detAgency", address: "detAddress" } as const;
+const DETAIL_KEYS = { cause: "detCause", address: "detAddress" } as const;
 
 const ICONS: Record<TimelineKind, LucideIcon> = {
   birth: Baby, christening: Droplets, residence: Home, famEvent: Heart, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
@@ -163,7 +163,6 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
     const owner = e.family ? lookup(e.family) : record;
     return owner && e.node ? { owner, node: e.node } : null;
   };
-  const LINE_TAGS = { age: "AGE", cause: "CAUS", agency: "AGNC" } as const;
   /** date and place of a fact; with `set` (and an open detail) they can be changed in place */
   const when = (e: EventFields | null, set?: (patch: Partial<EventFields>) => void) => e && (e.date || e.place) ? <div className="fact-value">
     {e.date && <span>{live && set ? dateInline(e.date, (date) => set({ date })) : dated(e.date)}</span>}
@@ -213,7 +212,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
     const tag = EVENT_TAG[kind];
     return record && tag ? eventAnnotations(record, tag, lookup) : null;
   };
-  const label = (kind: TimelineKind, dated: boolean, other: string | null, title = "", tag = "") => {
+  const label = (kind: TimelineKind, dated: boolean, other: string | null, tag = "") => {
     const sex = other ? data.people[other]?.sex : "";
     switch (kind) {
       case "birth": return t("thBirth");
@@ -222,7 +221,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
       case "child": return t(sex === "M" ? "childBornM" : sex === "F" ? "childBornF" : "childBorn");
       case "burial": return t("burial");
       case "residence": return t("residence");
-      case "famEvent": return title || (tag ? t(`ev${tag}` as StringKey) : t("event"));
+      case "famEvent": return tag ? t(`ev${tag}` as StringKey) : t("event");
       case "death": return dated ? t("thDeath") : t(p.sex === "M" ? "deceasedM" : p.sex === "F" ? "deceasedF" : "deceased");
     }
   };
@@ -307,19 +306,16 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
                     : e.place && <span className="muted">{e.date && " · "}{editable(e) ? placeField(e) : municipality(e.place)}</span>}
                 </div> : null}
                 <div className="tl-what">
-                  {label(e.kind, !!e.date, e.other, e.title, e.tag)}
+                  {label(e.kind, !!e.date, e.other, e.tag)}
                   {e.age !== null && <span> · {fmt(t("ageAt"), { n: formatAge(e.age, TEXTS[lang].ageUnits) })}</span>}
                   {e.detail && <> · {e.detail}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
                 </div>
-                {e.witnesses && <div className="tl-details"><span>{t("witnesses")}:</span>{" "}
-                  {e.witnesses.map((w, i) => <span key={w}>{i > 0 && ", "}{link(w)}</span>)}</div>}
                 {e.details && <div className="tl-details">{e.details.map((d) => {
-                  const line = live && d.key !== "address" ? eventLine(e) : null;
-                  const tag = d.key !== "address" ? LINE_TAGS[d.key] : "";
+                  const line = live && d.key === "cause" ? eventLine(e) : null;
                   return <div key={d.key}><span>{t(DETAIL_KEYS[d.key])}:</span>{" "}
                     {line ? <InlineText value={d.value} label={t(DETAIL_KEYS[d.key])} onCommit={(v) => {
-                      const next = applyEventLine(line.owner, line.node, tag, d.value, v);
+                      const next = applyEventLine(line.owner, line.node, "CAUS", d.value, v);
                       if (next !== line.owner) onChange([next]);
                     }}>{d.value}</InlineText> : d.value}</div>;
                 })}</div>}

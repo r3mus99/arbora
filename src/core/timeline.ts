@@ -19,13 +19,9 @@ export interface TimelineItem {
   divorced: boolean;
   /** the family of a marriage or a child, for React keys */
   key: string;
-  /** a custom family event: its TYPE, or its value when it has no TYPE */
-  title?: string;
-  /** people named as witnesses of a marriage (_WITN) */
-  witnesses?: string[];
-  /** the GEDCOM tag of a family event (DIV, ENGA, …) */
+  /** the GEDCOM tag of a family event (DIV) */
   tag?: string;
-  /** age, cause, agency and address written under the event, as small labelled lines */
+  /** the cause (death) and address (residence) written under the event, as small labelled lines */
   details?: EventDetail[];
   /** the text note written under the event line (not a pointer to a NOTE record) */
   note?: string;
@@ -44,26 +40,21 @@ export function weddingAges(wedding: string | undefined, people: { name: string;
     .filter((x): x is { name: string; age: number } => x.age !== null && !!x.name);
 }
 
-export interface EventDetail { key: "age" | "cause" | "agency" | "address"; value: string }
+export interface EventDetail { key: "cause" | "address"; value: string }
 
 /** Lines of a person shown on the timeline in file order besides the life events: residences only. */
 export const OWN_EVENT_TAGS: string[] = ["RESI"];
 
-/** Family events shown on the timeline of both spouses besides the marriage itself. */
-export const FAMILY_EVENT_TAGS = ["DIV", "ENGA", "MARB", "MARC", "MARL", "MARS", "ANUL"];
+/** Family events shown on the timeline of both spouses besides the marriage itself: the divorce. */
+export const FAMILY_EVENT_TAGS = ["DIV"];
 
 const ADDRESS_PARTS = ["ADR1", "ADR2", "ADR3", "CITY", "STAE", "POST", "CTRY"];
 
-/** The age, cause, agency and address written under an event line; `keys` names which of age, cause and agency are read (the address always is). */
-export function eventDetails(node: GedNode, keys: ("age" | "cause" | "agency")[] = ["age", "cause", "agency"]): EventDetail[] {
+/** The cause (when `withCause`) and the address written under an event line. */
+export function eventDetails(node: GedNode, withCause = false): EventDetail[] {
   const out: EventDetail[] = [];
-  const one = (key: EventDetail["key"], tag: string) => {
-    const v = childOf(node, tag)?.value.trim();
-    if (v) out.push({ key, value: v });
-  };
-  if (keys.includes("age")) one("age", "AGE");
-  if (keys.includes("cause")) one("cause", "CAUS");
-  if (keys.includes("agency")) one("agency", "AGNC");
+  const cause = withCause ? childOf(node, "CAUS")?.value.trim() : "";
+  if (cause) out.push({ key: "cause", value: cause });
   const addr = childOf(node, "ADDR");
   const parts = [addr?.value || "", ...ADDRESS_PARTS.map((t) => (addr && childOf(addr, t)?.value) || "")]
     .map((v) => v.replace(/\s*\n\s*/g, ", ").trim()).filter(Boolean);
@@ -103,7 +94,7 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     if (node.tag !== "RESI") return;
     const e = { date: childOf(node, "DATE")?.value || "", place: childOf(node, "PLAC")?.value || "" };
     const detail = node.value === "Y" ? "" : node.value;
-    const details = eventDetails(node, []);
+    const details = eventDetails(node);
     const note = eventNoteText(node);
     const noted = !!(childOf(node, "SOUR") || childOf(node, "NOTE"));
     if (!e.date && !e.place && !detail && !details.length && !noted) return;
@@ -124,23 +115,17 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     if (famRec) {
       const marr = items[items.length - 1];
       const marrNode = childOf(famRec, "MARR");
-      const details = marrNode ? eventDetails(marrNode) : [];
-      if (details.length) marr.details = details;
-      const witnesses = famRec.children.filter((c) => c.tag === "_WITN" && c.value in data.people).map((c) => c.value);
-      if (witnesses.length) marr.witnesses = witnesses;
+      const marrNote = marrNode ? eventNoteText(marrNode) : "";
+      if (marrNote) marr.note = marrNote;
       famRec.children.forEach((node, i) => {
-        const isEven = node.tag === "EVEN";
-        if (!isEven && !FAMILY_EVENT_TAGS.includes(node.tag)) return;
+        if (!FAMILY_EVENT_TAGS.includes(node.tag)) return;
         const e = { date: childOf(node, "DATE")?.value || "", place: childOf(node, "PLAC")?.value || "" };
-        const title = isEven ? childOf(node, "TYPE")?.value || (node.value === "Y" ? "" : node.value) : "";
-        const det = eventDetails(node);
-        const noted = !!(childOf(node, "SOUR") || childOf(node, "NOTE"));
-        // a plain "DIV Y" is already told by the marriage row; an empty EVEN says nothing
-        if (!e.date && !e.place && !title && !det.length && !noted) return;
+        const noted = !!childOf(node, "SOUR");
+        // a plain "DIV Y" is already told by the marriage row
+        if (!e.date && !e.place && !noted) return;
         add("famEvent", e, `${fid}${node.tag}${i}`, other, false, true);
         const item = items[items.length - 1];
-        if (isEven) item.title = title; else item.tag = node.tag;
-        if (det.length) item.details = det;
+        item.tag = node.tag;
         item.node = node;
         item.family = fid;
       });
@@ -158,8 +143,7 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     for (const item of items) {
       const node = tags[item.kind] && childOf(record, tags[item.kind]!);
       // the birth, christening and burial show their address; the death also its cause; the birth and the death their note
-      const kept = item.kind === "death" ? ["cause" as const] : [];
-      const details = node ? eventDetails(node, kept) : [];
+      const details = node ? eventDetails(node, item.kind === "death") : [];
       if (details.length) item.details = details;
       const note = (item.kind === "birth" || item.kind === "death") && node ? eventNoteText(node) : "";
       if (note) item.note = note;

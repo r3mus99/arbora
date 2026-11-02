@@ -226,7 +226,7 @@ describe("events and facts the editor does not offer", () => {
 describe("events of a person", () => {
   const ged = (extra: string) => `0 HEAD\n0 @I1@ INDI\n1 NAME Anna /Test/\n1 SEX F\n1 BIRT\n2 DATE 1 JAN 1900\n${extra}1 NOTE n\n0 TRLR\n`;
   const load = (text: string) => parseGedcom(text).find((c) => c.tag === "INDI")!;
-  const none = { age: "", cause: "", agency: "", note: "" };
+  const none = { cause: "", note: "" };
 
   test("only residences are listed", () => {
     expect(OTHER_EVENT_TAGS).toEqual(["RESI"]);
@@ -235,8 +235,8 @@ describe("events of a person", () => {
   test("adds details to a birth in the usual order and removes them again", () => {
     const rec = load(ged(""));
     const f = personFields(rec);
-    const withD = applyPerson(rec, f, { ...f, details: { ...f.details, birth: { age: "0", cause: "", agency: "Parish", note: "" } } });
-    expect(withD.children[2].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1 JAN 1900", "AGE 0", "AGNC Parish"]);
+    const withD = applyPerson(rec, f, { ...f, details: { ...f.details, birth: { cause: "Flu", note: "" } } });
+    expect(withD.children[2].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1 JAN 1900", "CAUS Flu"]);
     const back = applyPerson(withD, personFields(withD), { ...personFields(withD), details: { ...f.details, birth: none } });
     expect(rest(back, [])).toEqual(rest(rec, []));
   });
@@ -246,9 +246,9 @@ describe("events of a person", () => {
     const f = personFields(rec);
     expect(f.events).toHaveLength(1);
     expect(f.events[0]).toMatchObject({ tag: "RESI", value: "Main St", date: "1920" });
-    const added = applyPerson(rec, f, { ...f, events: [...f.events, { origin: -1, tag: "RESI", value: "Mill 3", date: "", place: "Town", ...none, cause: "x", citations: [] }] });
+    const added = applyPerson(rec, f, { ...f, events: [...f.events, { origin: -1, tag: "RESI", value: "Mill 3", date: "", place: "Town", note: "x", citations: [] }] });
     const ev = added.children.filter((c) => c.tag === "RESI")[1];
-    expect(ev.children.map((c) => c.tag)).toEqual(["PLAC", "CAUS"]);
+    expect(ev.children.map((c) => c.tag)).toEqual(["PLAC", "NOTE"]);
     expect(added.children.lastIndexOf(ev)).toBeLessThan(added.children.findIndex((c) => c.tag === "NOTE"));
     const g = personFields(added);
     const edited = applyPerson(added, g, { ...g, events: g.events.map((e) => (e.tag === "RESI" ? { ...e, place: "Elsewhere" } : e)) });
@@ -375,10 +375,10 @@ describe("marriage and divorce details of a family", () => {
   const text = "0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 MARR\n2 DATE 1900\n1 DIV Y\n1 CHIL @I3@\n";
   const rec = () => parseGedcom(text)[0];
 
-  test("sets the date, place and details of the divorce under DIV Y", () => {
+  test("sets the date and place of the divorce under DIV Y", () => {
     const r = rec(), f = familyFields(r);
-    const out = applyFamily(r, f, { ...f, divorce: { date: "1910", place: "Town" }, details: { ...f.details, divorce: { age: "", cause: "x", agency: "", note: "" } } });
-    expect(writeGedcom([out])).toBe("0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 MARR\n2 DATE 1900\n1 DIV Y\n2 DATE 1910\n2 PLAC Town\n2 CAUS x\n1 CHIL @I3@\n");
+    const out = applyFamily(r, f, { ...f, divorce: { date: "1910", place: "Town" } });
+    expect(writeGedcom([out])).toBe("0 @F1@ FAM\n1 HUSB @I1@\n1 WIFE @I2@\n1 MARR\n2 DATE 1900\n1 DIV Y\n2 DATE 1910\n2 PLAC Town\n1 CHIL @I3@\n");
     expect(writeGedcom([applyFamily(out, familyFields(out), f)])).toBe(text);
   });
 
@@ -389,10 +389,10 @@ describe("marriage and divorce details of a family", () => {
     expect(writeGedcom([applyFamily(out, familyFields(out), f)])).toBe(writeGedcom([rewritten(r)]));
   });
 
-  test("age, cause and agency of the marriage", () => {
+  test("the note of the marriage", () => {
     const r = rec(), f = familyFields(r);
-    const out = applyFamily(r, f, { ...f, details: { ...f.details, marriage: { age: "", cause: "", agency: "Parish", note: "" } } });
-    expect(out.children[2].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1900", "AGNC Parish"]);
+    const out = applyFamily(r, f, { ...f, details: { marriage: { cause: "", note: "Dispensation" } } });
+    expect(out.children[2].children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1900", "NOTE Dispensation"]);
     expect(applyFamily(r, f, { ...f, divorce: { ...f.divorce } })).toBe(r);
   });
 });
@@ -636,7 +636,7 @@ describe("notes under events", () => {
 
   test("a note on a new event and on an event without lines", () => {
     const f = personFields(rec);
-    const c = applyPerson(rec, f, { ...f, details: { ...f.details, burial: { age: "", cause: "", agency: "", note: "Buried quietly" } } });
+    const c = applyPerson(rec, f, { ...f, details: { ...f.details, burial: { cause: "", note: "Buried quietly" } } });
     expect(out(c, rec)).toContain("1 BURI\n2 NOTE Buried quietly\n");
     const r = applyPerson(rec, f, { ...f, events: f.events.map((e) => ({ ...e, note: "At the mill" })) });
     expect(out(r, rec)).toContain("1 RESI\n2 PLAC Town\n2 NOTE At the mill\n");
