@@ -903,3 +903,4 @@ select option, select optgroup { background-color: var(--panel); color: var(--te
 .cite-block label > .head-acts { flex-wrap: wrap; row-gap: 4px; padding: 6px 0; }
 .edit-body .editor .cite-block.link-row { display: flex; align-items: center; gap: 4px; }
 .edit-body .editor .cite-block.link-row > label[data-cap] { flex: 1; min-width: 0; }
+.editor .head-act:disabled { color: var(--muted); cursor: default; }
