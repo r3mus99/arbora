@@ -70,8 +70,10 @@ function DateField({ value, shown, lang, onChange, t, label }: {
 }
 
 /** Picking a person of the file by typing a name; `onPick("")` when the field is emptied. */
-export function PersonPick({ choices, exclude, value, label, placeholder, tip, clearOnPick, focus, onPick }: {
+export function PersonPick({ choices, exclude, value, label, placeholder, tip, cap, clearOnPick, focus, onPick }: {
   choices: { id: string; label: string }[]; exclude: string[]; value: string; label: string; placeholder: string; tip: string;
+  /** the caption at the left of the row, like the other fields of the window */
+  cap?: string;
   clearOnPick?: boolean; focus?: boolean; onPick: (id: string) => void;
 }) {
   const list = useId();
@@ -83,7 +85,7 @@ export function PersonPick({ choices, exclude, value, label, placeholder, tip, c
     if (hit) { onPick(hit.id); setText(clearOnPick ? "" : typed); }
     else { setText(typed); if (!typed.trim() && value) onPick(""); }
   };
-  return <label title={tip} className="pick" data-cap="">{label && <span>{label}</span>}
+  return <label title={tip} className="pick" data-cap={cap ?? ""}>{label && <span>{label}</span>}
     <input type="text" value={text} list={list} aria-label={label || placeholder} placeholder={placeholder} autoComplete="off" autoFocus={focus} onChange={(e) => change(e.target.value)} />
     <datalist id={list}>{text.length >= 2 && options.slice(0, 5000).map((c) => <option key={c.id} value={c.label} />)}</datalist>
   </label>;

@@ -750,8 +750,8 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
   background: no-repeat right 0 center / 12px var(--img-chevron); }
 :is(.edit-body .editor, .rows) label > select:focus { background-color: transparent; }
 /* a field with no name column (picking a person, a spelling to find): the placeholder is its name and stays visible */
-:is(.edit-body .editor, .rows) label.pick[data-cap] { grid-template-columns: minmax(0, 1fr); }
-:is(.edit-body .editor, .rows) label.pick[data-cap]::before { content: none; }
+:is(.edit-body .editor, .rows) label.pick[data-cap=""] { grid-template-columns: minmax(0, 1fr); }
+:is(.edit-body .editor, .rows) label.pick[data-cap=""]::before { content: none; }
 :is(.edit-body .editor, .rows) label.pick[data-cap] input::placeholder { color: var(--muted); opacity: 1; }
 /* groups of fields are one column of rows */
 .edit-body .editor fieldset { grid-template-columns: minmax(0, 1fr); gap: 0; }

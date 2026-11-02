@@ -192,7 +192,7 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
             <fieldset className="list">
               {adding && <div className="new-child">
                 <div className="card-head">{ico(Users)}{t("srcCiteFor")}</div>
-                <PersonPick choices={choices} exclude={[]} value={person} label="" placeholder={t("srcPersonPlaceholder")} tip={t("srcPersonPlaceholder")} focus onPick={setPerson} />
+                <PersonPick choices={choices} exclude={[]} value={person} label="" placeholder={t("srcPersonPlaceholder")} tip={t("srcPersonPlaceholder")} cap={t("srcCitationPerson")} focus onPick={setPerson} />
                 <label><span>{t("event")}</span>
                   <select value={event} onChange={(e) => setEvent(e.target.value as CiteEvent)}>
                     {EVENTS.map((ev) => <option key={ev || "person"} value={ev}>{t(EVENT_LABEL[ev])}</option>)}
