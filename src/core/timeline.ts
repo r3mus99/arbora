@@ -1,7 +1,7 @@
 /** The events of one person's life in order: birth, marriages, children born, death, … */
 
 import { ageBetween, dateParts, yearsBetween, type Age } from "./date";
-import type { EventFields, PersonFields } from "./edit";
+import { eventNoteText, type EventFields, type PersonFields } from "./edit";
 import { childOf, type GedNode, type GedcomData } from "./gedcom";
 
 export type TimelineKind = "birth" | "christening" | "marriage" | "child" | "death" | "burial"
@@ -27,6 +27,8 @@ export interface TimelineItem {
   tag?: string;
   /** age, cause, agency and address written under the event, as small labelled lines */
   details?: EventDetail[];
+  /** the text note written under the event line (not a pointer to a NOTE record) */
+  note?: string;
   /** a residence: the text written on the line itself (an address), when there is one */
   detail?: string;
   /** the GEDCOM line of a residence or family event, to read its sources and notes from */
@@ -52,14 +54,16 @@ export const FAMILY_EVENT_TAGS = ["DIV", "ENGA", "MARB", "MARC", "MARL", "MARS",
 
 const ADDRESS_PARTS = ["ADR1", "ADR2", "ADR3", "CITY", "STAE", "POST", "CTRY"];
 
-/** The age, cause, agency and address written under an event line. */
-export function eventDetails(node: GedNode): EventDetail[] {
+/** The age, cause, agency and address written under an event line; `keys` names which of age, cause and agency are read (the address always is). */
+export function eventDetails(node: GedNode, keys: ("age" | "cause" | "agency")[] = ["age", "cause", "agency"]): EventDetail[] {
   const out: EventDetail[] = [];
   const one = (key: EventDetail["key"], tag: string) => {
     const v = childOf(node, tag)?.value.trim();
     if (v) out.push({ key, value: v });
   };
-  one("age", "AGE"); one("cause", "CAUS"); one("agency", "AGNC");
+  if (keys.includes("age")) one("age", "AGE");
+  if (keys.includes("cause")) one("cause", "CAUS");
+  if (keys.includes("agency")) one("agency", "AGNC");
   const addr = childOf(node, "ADDR");
   const parts = [addr?.value || "", ...ADDRESS_PARTS.map((t) => (addr && childOf(addr, t)?.value) || "")]
     .map((v) => v.replace(/\s*\n\s*/g, ", ").trim()).filter(Boolean);
@@ -99,13 +103,15 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     if (node.tag !== "RESI") return;
     const e = { date: childOf(node, "DATE")?.value || "", place: childOf(node, "PLAC")?.value || "" };
     const detail = node.value === "Y" ? "" : node.value;
-    const details = eventDetails(node);
+    const details = eventDetails(node, []);
+    const note = eventNoteText(node);
     const noted = !!(childOf(node, "SOUR") || childOf(node, "NOTE"));
     if (!e.date && !e.place && !detail && !details.length && !noted) return;
     add("residence", e, `RESI${i}`, null, false, true);
     const item = items[items.length - 1];
     if (detail) item.detail = detail;
     if (details.length) item.details = details;
+    if (note) item.note = note;
     item.node = node;
   });
   for (const fid of p.fams) {
@@ -151,8 +157,12 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     const tags: Partial<Record<TimelineKind, string>> = { birth: "BIRT", christening: "CHR", death: "DEAT", burial: "BURI" };
     for (const item of items) {
       const node = tags[item.kind] && childOf(record, tags[item.kind]!);
-      const details = node ? eventDetails(node) : [];
+      // the birth, christening and burial show their address; the death also its cause; the birth and the death their note
+      const kept = item.kind === "death" ? ["cause" as const] : [];
+      const details = node ? eventDetails(node, kept) : [];
       if (details.length) item.details = details;
+      const note = (item.kind === "birth" || item.kind === "death") && node ? eventNoteText(node) : "";
+      if (note) item.note = note;
     }
   }
 

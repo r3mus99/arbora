@@ -3,7 +3,7 @@ import {
   ChevronLeft, StickyNote, Users, type LucideIcon,
 } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
-import { applyEventLine, applyEventNode, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields, type Suggestions } from "../core/edit";
+import { applyEventLine, applyEventNode, applyEventNote, applyFamily, applyPerson, dateInput, familyFields, parseDate, personFields, type EventFields, type PersonFields, type Suggestions } from "../core/edit";
 import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
 import { municipality } from "../core/places";
@@ -323,6 +323,14 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
                       if (next !== line.owner) onChange([next]);
                     }}>{d.value}</InlineText> : d.value}</div>;
                 })}</div>}
+                {e.note && (() => {
+                  const line = live ? eventLine(e) : null;
+                  return <div className="tl-details tl-note">
+                    {line ? <InlineNote className="note-text" value={e.note} label={t("note")} onCommit={(v) => {
+                      const next = applyEventNote(line.owner, line.node, e.note!, v);
+                      if (next !== line.owner) onChange([next]);
+                    }}><Linked text={e.note} /></InlineNote> : <Linked text={e.note} />}</div>;
+                })()}
                 {src && <EventSources a={src} t={t} />}
               </div>
             </Row>;

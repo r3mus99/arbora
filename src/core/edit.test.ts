@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import {
-  applyEventLine, applyEventNode, applyFamily, applyPerson, findPeople, matchedAka, suggestions, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
+  applyEventLine, applyEventNode, applyEventNote, eventNoteText, applyFamily, applyPerson, findPeople, matchedAka, suggestions, dateInput, decode, familyFields, lineEnding, parseDate, parseGedcom, personFields,
   LANGS, readRecords, writeGedcom, type GedNode, type PersonFields,
 } from "./index";
 
@@ -299,4 +299,17 @@ test("applyEventLine sets, changes and removes a sub-line of an event", () => {
   const removed = applyEventLine(rec, deat, "CAUS", "Flu", "");
   expect(removed.children.find((c) => c.tag === "DEAT")!.children.map((c) => c.tag)).toEqual(["DATE"]);
   expect(applyEventLine(rec, deat, "CAUS", "Flu", "Flu")).toBe(rec);
+});
+
+test("applyEventNote sets, changes and removes the text note of an event and leaves a pointer alone", () => {
+  const ged = "0 @I1@ INDI\n1 NAME Anna /Nova/\n1 BIRT\n2 DATE 1900\n2 NOTE @N1@\n1 DEAT\n2 DATE 1950\n2 NOTE At home\n";
+  const [rec] = parseGedcom(ged);
+  const birt = rec.children.find((c) => c.tag === "BIRT")!, deat = rec.children.find((c) => c.tag === "DEAT")!;
+  expect(eventNoteText(birt)).toBe("");
+  expect(eventNoteText(deat)).toBe("At home");
+  const added = applyEventNote(rec, birt, "", "Twins");
+  expect(added.children.find((c) => c.tag === "BIRT")!.children.map((c) => `${c.tag} ${c.value}`)).toEqual(["DATE 1900", "NOTE @N1@", "NOTE Twins"]);
+  const removed = applyEventNote(rec, deat, "At home", "");
+  expect(removed.children.find((c) => c.tag === "DEAT")!.children.map((c) => c.tag)).toEqual(["DATE"]);
+  expect(applyEventNote(rec, deat, "At home", "At home")).toBe(rec);
 });
