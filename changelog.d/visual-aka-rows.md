@@ -1,1 +1,0 @@
-- **Other names (aka) are rows like the rest of the edit window.** The label "Also known as" stands on the first row, the given name and surname are fields next to it, and adding another form of the name is a row below.
