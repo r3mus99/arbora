@@ -889,3 +889,5 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-body .editor .alias-row .names { display: flex; gap: 12px; min-width: 0; }
 .edit-body .editor .alias-row .names input { flex: 1; min-width: 0; border: 0; background: none; border-radius: 0; padding: 0; min-height: calc(var(--row-h) - 2px); box-shadow: none; }
 .edit-body .editor .alias-row > .head-act { grid-column: 2 / -1; justify-self: start; }
+/* the first row of a section sits right under the header line: no second line above it */
+.edit-body .editor .collapsible > .sec-fields > .pair:first-child > label[data-cap]:first-child { border-top: 0; }
