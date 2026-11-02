@@ -65,7 +65,7 @@ export function sourceCites(records: GedNode[], xref: string): SourceCite[] {
   return out;
 }
 
-const holderOf = (records: GedNode[], c: SourceCite) =>
+export const holderOf = (records: GedNode[], c: SourceCite) =>
   records.find((rec) => (onFamily(c.event) ? rec.tag === "FAM" && rec.xref === c.family : rec.tag === "INDI" && rec.xref === c.person));
 
 /** `node` with the source added under its `event` line (the line is added when missing); null when it is already cited there */

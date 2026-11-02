@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { citationLinkLines, setCitationLinks } from "./citationLinks";
+import { addCitationAddresses, citationLinkLines, setCitationLinks } from "./citationLinks";
 import { decode, parseGedcom, writeGedcom } from "./index";
 
 const A = "https://example.org/entry/AB12-XY3";
@@ -79,5 +79,28 @@ describe("web addresses in the citations of a source", () => {
     const [first] = citationLinkLines(records, "@S1@");
     const out = parseGedcom(writeGedcom(setCitationLinks(records, [{ key: first.key, url: "https://example.org/x" }])));
     expect(citationLinkLines(out, "@S1@")[0].url).toBe("https://example.org/x");
+  });
+});
+
+describe("writing an address into a citation that has none", () => {
+  const NEWURL = "https://example.org/entry/NEW-9";
+  test("a citation without a page line gets one, under the right person and event", () => {
+    const out = addCitationAddresses(records, "@S1@", [{ cite: { event: "", person: "@I2@", family: "" }, url: NEWURL }]);
+    expect(text(out)).toContain(`1 SOUR @S1@\n2 PAGE Page 4\n2 NOTE @N1@\n`.replace("2 PAGE Page 4", `2 PAGE Page 4 ${NEWURL}`));
+    expect(out.filter((r, i) => r !== records[i]).map((r) => r.xref)).toEqual(["@I2@"]);
+    const bare = parseGedcom(decode("0 HEAD\n0 @I1@ INDI\n1 BIRT\n2 SOUR @S1@\n0 @S1@ SOUR\n1 TITL T\n0 TRLR\n"));
+    const done = addCitationAddresses(bare, "@S1@", [{ cite: { event: "BIRT", person: "@I1@", family: "" }, url: NEWURL }]);
+    expect(text(done)).toContain(`2 SOUR @S1@\n3 PAGE ${NEWURL}`);
+    expect(citationLinkLines(done, "@S1@").map((l) => [l.holder, l.event, l.url])).toEqual([["@I1@", "BIRT", NEWURL]]);
+  });
+
+  test("a marriage citation of a family gets its address", () => {
+    const out = addCitationAddresses(records, "@S1@", [{ cite: { event: "MARR", person: "", family: "@F1@" }, url: NEWURL }]);
+    expect(citationLinkLines(out, "@S1@").some((l) => l.holder === "@F1@" && l.url === NEWURL)).toBe(true);
+  });
+
+  test("a place that does not cite the source, or something that is not an address, changes nothing", () => {
+    expect(addCitationAddresses(records, "@S1@", [{ cite: { event: "DEAT", person: "@I1@", family: "" }, url: NEWURL }])).toEqual(records);
+    expect(addCitationAddresses(records, "@S1@", [{ cite: { event: "", person: "@I2@", family: "" }, url: "no" }])).toEqual(records);
   });
 });
