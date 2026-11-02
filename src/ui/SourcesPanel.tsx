@@ -63,10 +63,21 @@ function Citations({ xref, ids, data, citationsOf, onPerson, t }: { xref: string
   const named = new Set([...rows, ...rest].map((r) => r.person).filter(Boolean));
   // people who cite the source on a line that is not listed above
   const others = ids.filter((id) => data.people[id] && !named.has(id)).map((id) => ({ key: id, person: id, label: nameOf(id), event: "", urls: [] as string[] }));
+  // laid out like the file: the person (or family), under it the event, under it the address
+  const tree: { id: string; person: string; label: string; events: { key: string; event: string; urls: string[] }[] }[] = [];
+  for (const r of [...rows, ...rest, ...others]) {
+    const id = r.person || r.label;
+    let p = tree.find((x) => x.id === id);
+    if (!p) tree.push(p = { id, person: r.person, label: r.label, events: [] });
+    if (r.event) p.events.push({ key: r.key, event: r.event, urls: r.urls });
+  }
   return <ul className="sp-cites" aria-label={t("srcGroupCitations")}>
-    {[...rows, ...rest, ...others].map((r) => <li key={r.key}>
-      <span>{r.person ? <button type="button" className="link" onClick={() => onPerson(r.person)}>{r.label}</button> : r.label}{r.event && <span className="sp-sub"> · {r.event}</span>}</span>
-      {r.urls.length > 0 && <span className="src-links">{r.urls.map((u, i) => <LinkChip key={i} url={u} />)}</span>}
+    {tree.map((p) => <li key={p.id}>
+      <div className="cite-head">{p.person ? <button type="button" className="link" onClick={() => onPerson(p.person)}>{p.label}</button> : p.label}</div>
+      {p.events.map((e) => <div key={e.key} className="cite-event">
+        <div className="cite-head sub">{e.event}</div>
+        {e.urls.length > 0 && <div className="src-links">{e.urls.map((u, i) => <LinkChip key={i} url={u} />)}</div>}
+      </div>)}
     </li>)}
   </ul>;
 }
@@ -130,7 +141,7 @@ export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, c
                 <BookMarked className="icon" aria-hidden="true" />
                 <span className="sp-main">
                   <span className="sp-title">{s.citation.title}</span>
-                  <span className="sp-sub">{[s.citation.author, t("srcPeople", { n: s.people.length })].filter(Boolean).join(" · ")}</span>
+                  <span className="sp-sub">{s.citation.author}</span>
                 </span>
                 <span className="sp-count">{s.citations}×</span>
               </button>
@@ -142,7 +153,7 @@ export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, c
                   {onEdit && s.key.startsWith("@") && <button type="button" className="sp-edit" disabled={editDisabled} onClick={() => onEdit(s.key)}>
                     <Pencil className="icon" aria-hidden="true" />{t("srcEditSource")}</button>}
                 </div>
-                <div className="sp-group"><div className="sp-group-title">{t("srcGroupCitations")} · {s.citations}</div>
+                <div className="sp-group"><div className="sp-group-title">{t("srcGroupCitations")}</div>
                   {citationsOf && s.key.startsWith("@") ? <Citations xref={s.key} ids={s.people} data={data} citationsOf={citationsOf} onPerson={onPerson} t={t} />
                     : <People ids={s.people} data={data} onPerson={onPerson} t={t} />}
                 </div>

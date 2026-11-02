@@ -862,3 +862,8 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .cite-head.sub { padding-left: 28px; font-size: 13px; font-weight: 400; color: var(--muted); }
 .edit-body .editor .cite-event label.cite-link { margin-left: 28px; padding-right: 36px; }
 .edit-body .editor label.cite-link > .icon-btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+/* the citations of an opened source in the Sources panel use the same person, event, link layout, without the window's padding */
+.sp-group .cite-head { padding: 0; min-height: 24px; }
+.sp-group .cite-head.sub { padding-left: 14px; }
+.sp-group .cite-event .src-links { margin: 0 0 4px 14px; }
+.sp-cites > li + li { margin-top: 6px; }
