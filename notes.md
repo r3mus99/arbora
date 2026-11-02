@@ -1,5 +1,1 @@
-- **The source window offers to cite the parents too.** Under a citation of a birth or christening, the parents who are in the file and do not cite the source yet appear as "Add also" buttons; one click adds a citation for that parent (after Save).
-
-- **The source window always shows the link and note rows.** The "Add link" and "Add note" buttons are gone: an empty link row and an empty note row are always there, and filling the last one makes room for the next.
-
-- **The person search in the source window has its caption.** "Find person" in the new citation form shows the "Person" caption on the left like the "Event" row below it.
+- **A new source is easier to fill in.** The source window offers the selected person as the first citation, suggests the title from the first citation (for example "Birth Jan Novak 1755") until you type your own, and a new link or note row is added with the + at the end of the row instead of appearing by itself.
