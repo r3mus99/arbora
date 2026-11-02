@@ -540,7 +540,10 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-count { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; flex: none; margin-top: 2px; }
 .sp-note { white-space: pre-wrap; overflow-wrap: anywhere; }
 .sp-note.clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.sp-more { padding: 0 var(--pad) 10px calc(var(--pad) + var(--icon-sm) + 8px); font-size: 14px; }
+.sp-more { position: relative; padding: 0 var(--pad) 10px calc(var(--pad) + var(--icon-sm) + 8px); font-size: 14px; }
+.sp-group .src-links.inline { display: inline-flex; vertical-align: middle; margin: 0; }
+.sp-edit-btn { position: absolute; right: var(--pad); top: -2px; }
+.sp-group:first-child { padding-right: 32px; }
 .sp-edit { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; padding: 0; min-height: 24px; background: none; border: 0; color: var(--accent); cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; }
 .sp-edit:disabled { opacity: .5; cursor: default; }
 .sp-edit .icon { width: var(--icon-sm); height: var(--icon-sm); }
@@ -844,10 +847,6 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-rename .sp-title { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
 .sp-rename .sp-title .icon { align-self: center; color: var(--muted); }
 .sp-wand-one { display: inline-flex; align-items: center; gap: var(--gap); text-align: left; margin-bottom: 4px; }
-/* heading of a group of parts in the source window (Source / Citations) */
-.edit-body .part-group { margin: 6px 2px -4px; padding-top: 4px; }
-.edit-body .part-group:not(:first-child) { margin-top: 22px; padding-top: 14px; border-top: 2px solid var(--border); }
-.edit-body .part-group h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text); }
 /* an opened source in the Sources panel: two blocks, the source itself and its citations */
 .sp-group + .sp-group { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
 .sp-group a.src-chip { text-decoration: none; }
@@ -856,16 +855,24 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 /* the header of a part already has its divider: the first field row under it does not draw a second one */
 .edit-body .editor .collapsible > .sec-fields > :is(label[data-cap], label.check, .sex-field):first-child { border-top: 0; }
 /* the addresses of the citations as the file holds them: person, under it the event, under it the citation with its address */
-.cite-person + .cite-person { margin-top: 10px; }
+:is(.edit-body .editor, .rows) label[data-cap] > span.static.static.strong { font-weight: 600; }
 .cite-head { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 10px; font-weight: 600; overflow-wrap: anywhere; }
 .cite-head .icon { width: var(--icon-sm); height: var(--icon-sm); flex: none; color: var(--c-src); }
-.cite-head.sub { padding-left: 28px; font-size: 13px; font-weight: 400; color: var(--muted); }
-.edit-body .editor .cite-event label.cite-link { margin-left: 28px; padding-right: 36px; }
-.edit-body .editor label.cite-link > .icon-btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+/* a citation is a block of field rows (Event, Link) with no divider inside it; a divider only separates one citation from the next */
+.cite-block { position: relative; }
+.edit-body .editor .cite-block > label[data-cap] + label[data-cap] { border-top: 0; }
+.edit-body .editor .cite-block > .cite-remove { position: absolute; right: 4px; top: 2px; z-index: 1; }
+:is(.edit-body .editor, .rows) label[data-cap] > span.static.static { min-width: 0; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
 /* the citations of an opened source in the Sources panel use the same person, event, link layout, without the window's padding */
 .sp-group .cite-head { padding: 0; min-height: 24px; }
-.sp-group .cite-head.sub { padding-left: 14px; }
-.sp-group .cite-event .src-links { margin: 0 0 4px 14px; }
-.sp-cites > li + li { margin-top: 6px; }
+.sp-group .cite-head.sub { padding-left: 0; }
+.sp-group .cite-event .src-links { margin: 0 0 4px; }
+.sp-cites > li + li { margin-top: 10px; }
 .cite-head .grow { flex: 1; min-width: 0; }
 .cite-head .icon-btn { margin-right: -4px; }
+/* the header of a part already has its divider: the first row of a list under it does not draw a second one */
+.edit-body .editor .collapsible > .sec-fields > fieldset.list > .item:first-child > .item-head { border-top: 0; }
+/* a note in a list is a row like the others: no dashed box, only the row's own divider */
+.edit-body .editor .item-head > textarea { border: 0; border-radius: 0; background: none; box-shadow: none; padding: 8px 10px; }
+.edit-body .editor .collapsible > .sec-fields > fieldset.list > .cite-block:first-child > label[data-cap]:first-of-type { border-top: 0; }
+.edit-body .editor .cite-block + .cite-block > label[data-cap]:first-of-type { border-top: 1px solid var(--border); }
