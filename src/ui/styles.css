@@ -206,7 +206,6 @@ footer a { color: var(--accent); }
                margin: 0 calc(-1 * var(--pad)) 8px; padding: 0 var(--pad); border-bottom: 1px solid var(--border);
                position: sticky; top: 0; z-index: 1; background: var(--panel); }
 .detail-head .tools { display: flex; gap: 4px; flex: none; margin-top: var(--tool-top); }
-.detail-head .back-btn { margin-top: var(--tool-top); }
 .detail .id { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
 .detail .id .lifespan { font-variant-numeric: tabular-nums; }
 .detail h3 .icon { margin-left: 6px; width: var(--icon); height: var(--icon); vertical-align: -1px; }
@@ -632,10 +631,6 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .inline-sex .inline-value:hover { background: var(--accent-soft); }
 .inline-pop { position: absolute; top: calc(100% - 4px); left: 12px; z-index: 5; background: var(--panel); font: 400 14px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 .inline-pop button { white-space: nowrap; padding: 0 10px; min-width: 0; }
-.inline-note { cursor: text; border-bottom: 1px dashed var(--border); }
-.inline-note:hover { border-bottom-color: var(--muted); }
-.inline-note-field { box-sizing: border-box; width: 100%; font: inherit; color: inherit; line-height: inherit; padding: 0; margin: 0; resize: none; display: block;
-                     background: none; border: 0; border-bottom: 1px solid var(--accent); border-radius: 0; outline: none; }
 
 /* edit window (EditWindow): lies over the tree and the detail, right of the tool bar, half of the browser width so the
    tree stays visible. A 1px line, no shadow. */
@@ -788,11 +783,8 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-body .editor .new-child .pair > label[data-cap] { border-top: 1px solid var(--border); }
 .edit-body .editor .new-child > :first-child { border-top: 0; }
 .edit-body .editor .new-child .kid-actions { padding: 8px 10px; border-top: 1px solid var(--border); }
-/* "Details": a quiet disclosure of the card, not a row: small, muted, hairline above, no accent colour */
-.edit-body .edit-body 
 /* narrow screens (phone, small tablet): the list of people and the detail of one person, one at a time; the chart, the tool
    bar and the tool panels are not shown. Last in the file so that it wins over the desktop rules above. */
-.back-btn { display: none; }
 @media (max-width: 900px) {
   main.loaded { padding: 0; }
   .panel.chart { height: 100dvh; min-height: 0; border-radius: 0; border-left: 0; border-right: 0; }
@@ -803,7 +795,6 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
   .side { border-right: 0; }
   .rail-wrap { width: 100%; border-left: 0; }
   .viewer.has-detail > .side { display: none; }
-  .back-btn { display: inline-flex; flex: none; margin-left: calc(-1 * var(--pad) / 2); }
   .detail-head { gap: 4px; }
   .frame-bar .file-chip, .frame-bar .status { display: none; }
   .frame-bar { gap: 8px; }
@@ -906,3 +897,6 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-body .editor label.check { grid-template-columns: var(--lab-w) minmax(0, 1fr); column-gap: 8px; min-height: var(--row-h); }
 .edit-body .editor label.check > span { color: var(--muted); font-size: 13px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .edit-body .editor label.check input { justify-self: start; }
+
+/* the opened list of a select: the browser draws it on its own background, so give the options both colours explicitly */
+select option, select optgroup { background-color: var(--panel); color: var(--text); }
