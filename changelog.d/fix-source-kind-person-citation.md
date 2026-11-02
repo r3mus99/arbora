@@ -1,1 +1,0 @@
-- **A baptism source no longer shows up under "Other".** A source cited for a baptism, birth, death or marriage and also on the person record itself (a parish entry that is also cited for the parents or godparents) stays under its event kind; only a source cited nowhere else but on person records is "Other".

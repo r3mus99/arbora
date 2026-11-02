@@ -615,7 +615,7 @@ export function App() {
                 <SettingsPanel form={form} lang={lang} onChange={setOpt} t={t} />
               </aside>}
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
-                <SourcesPanel key={selectedId ?? ""} overview={srcOverview} data={data} onPerson={(id) => pick(id)} personId={selectedId} t={t}
+                <SourcesPanel overview={srcOverview} data={data} onPerson={(id) => pick(id)} t={t}
                               citationsOf={(xref) => ({ cites: sourceCites(doc!.records, xref), links: citationLinkLines(doc!.records, xref) })}
                               onEdit={(xref) => { if (xref === sourceWin?.xref && xref !== null) return; if (sourceDirty.current && !window.confirm(t("discard"))) return; setSourceWin({ xref }); }} editDisabled={!!windowId} activeXref={sourceWin?.xref ?? null} />
               </aside>}
