@@ -163,6 +163,10 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
     return [fam?.husb, fam?.wife].filter((id): id is string => !!id && !!data.people[id]);
   };
   const citedPerson = (id: string) => list.some((x) => !x.family && x.event === "" && x.person === id);
+  // a citation added in this window has nothing written yet, so its event can still be chosen; saved citations keep theirs (their page and address belong to it)
+  const eventChoices = (c: SourceCite) => EVENTS.filter((ev) => (c.family ? ev === "" || ev === "MARR" || ev === "DIV" : ev !== "MARR" && ev !== "DIV")
+    && (ev === c.event || !list.some((x) => x !== c && !x.family === !c.family && x.person === c.person && x.family === c.family && x.event === ev)));
+  const changeEvent = (c: SourceCite, event: CiteEvent) => setList(list.map((x) => (x === c ? { ...c, event } : x)));
   const addCite = () => {
     const next: SourceCite = onFamily ? { event, person: "", family: chosenFamily } : { event, person, family: "" };
     if (!list.some((c) => citeKey(c) === citeKey(next))) setList([...list, next]);
@@ -250,7 +254,12 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
                   {pl.cite && <button type="button" className="icon-btn cite-remove" title={t("remove")} aria-label={`${t("remove")}: ${where}`}
                           onClick={() => setList(list.filter((x) => citeKey(x) !== citeKey(pl.cite!)))}>{ico(Trash2)}</button>}
                   <label data-cap={t("srcCitationPerson")}><span className="static strong">{holderName(p.holder)}</span></label>
-                  <label data-cap={t("event")}><span className="static">{eventName(pl.event)}</span></label>
+                  {pl.cite && !cites.some((x) => citeKey(x) === citeKey(pl.cite!))
+                    ? <label><span>{t("event")}</span>
+                        <select value={pl.event} onChange={(e) => changeEvent(pl.cite!, e.target.value as CiteEvent)}>
+                          {eventChoices(pl.cite).map((ev) => <option key={ev || "person"} value={ev}>{t(EVENT_LABEL[ev])}</option>)}
+                        </select></label>
+                    : <label data-cap={t("event")}><span className="static">{eventName(pl.event)}</span></label>}
                   {pl.lines.map((l) => (
                     <label key={l.key} data-cap={t("srcCitationLink")}>
                       <input type="text" inputMode="url" autoComplete="off" className={urlOf(l).trim() && !isWebAddress(urlOf(l)) ? "invalid" : undefined}

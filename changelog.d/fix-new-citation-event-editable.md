@@ -1,0 +1,1 @@
+- **The event of a citation added in the source window can be changed.** A citation just added (for example with "Add also") shows an event choice instead of fixed text, so a parent can be cited for the birth instead of "Person". Saved citations keep their event, as their page text and address belong to it.
