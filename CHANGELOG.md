@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.108.0 – 2026-11-02
+
+- **The source window shows the page text of a citation.** A citation that has no web address but a page text (for example "Chronicle, line 12") shows that text instead of an empty row, and it can be edited there.
+
 ## 2.107.1 – 2026-11-02
 
 - **A citation under a marriage can be removed from the source window.** Citations written directly under a family (shown with two people) had no trash button; they now have one and are removed like any other citation.

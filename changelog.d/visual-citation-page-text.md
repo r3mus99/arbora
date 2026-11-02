@@ -1,1 +1,0 @@
-- **The source window shows the page text of a citation.** A citation that has no web address but a page text (for example "Chronicle, line 12") shows that text instead of an empty row, and it can be edited there.
