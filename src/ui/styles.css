@@ -529,7 +529,7 @@ section.check { margin: 0 0 14px; }
 .finder-btn { position: relative; flex: none; width: 36px; height: 100%; margin-right: 6px; border: 0; background: none; color: var(--muted); display: inline-flex; align-items: center; justify-content: center; }
 .finder-btn .icon { position: static; width: var(--icon-sm); height: var(--icon-sm); }
 .finder-btn.on { color: var(--accent); }
-.finder-btn .badge { position: absolute; top: 6px; right: 0; min-width: 17px; height: 17px; padding: 0 4px; border-radius: var(--radius); background: var(--accent); color: #fff; font-size: 11px; line-height: 17px; text-align: center; }
+.finder-btn .badge { position: absolute; top: 6px; right: 0; min-width: 17px; height: 17px; padding: 0 4px; border-radius: var(--radius); background: var(--accent); color: var(--accent-text); font-size: 12px; font-weight: 700; line-height: 17px; text-align: center; }
 .sp .finder input { flex: 1; min-width: 0; }
 .filter-panel { flex: none; display: grid; gap: 10px; padding: var(--pad); border-top: 1px solid var(--border); background: var(--bg); }
 .filter-group { display: grid; gap: 6px; }
