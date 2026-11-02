@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.109.0 – 2026-11-02
+
+- **Notes are edited only in the edit window.** Clicking a note in the detail no longer turns it into a text area that shrinks; short one-line values (name, date, place) are still edited in place.
+- **The "back to list" arrow in the person detail is gone.** It showed on every narrow window and did not work properly on phones.
+
 ## 2.108.1 – 2026-11-02
 
 - **A removed citation disappears from the source window.** After the trash button was pressed, a citation that had a web address stayed in the list until saving; it is now hidden at once and counted as an unsaved change.
