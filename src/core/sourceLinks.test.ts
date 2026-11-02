@@ -90,6 +90,15 @@ describe("where a source is cited", () => {
     expect(values).toEqual(expect.arrayContaining(["@S1@", "@S2@"]));
   });
 
+  test("a citation directly under a family is listed and can be removed", () => {
+    const fam = parseGedcom(decode("0 HEAD\n0 @F1@ FAM\n1 SOUR @S1@\n2 PAGE https://example.org/a\n1 NOTE keep\n0 @S1@ SOUR\n1 TITL Book\n0 TRLR"));
+    const cites = sourceCites(fam, "@S1@");
+    expect(cites).toEqual([{ event: "", person: "", family: "@F1@" }]);
+    const out = removeCite(fam, "@S1@", cites[0]);
+    expect(sourceCites(out, "@S1@")).toEqual([]);
+    expect(rec(out, "@F1@").children.map((c) => c.tag)).toEqual(["NOTE"]);
+  });
+
   test("a residence is added to the person", () => {
     const out = addCite(records, "@S2@", at("RESI", "@I2@"));
     expect(childOf(rec(out, "@I2@"), "RESI")!.children.map((c) => c.value)).toEqual(["@S2@"]);

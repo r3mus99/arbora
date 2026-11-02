@@ -47,10 +47,9 @@ export type CiteEvent = "" | "BIRT" | "CHR" | "DEAT" | "BURI" | "MARR" | "DIV" |
 export interface SourceCite { event: CiteEvent; person: string; family: string }
 
 const PERSON_EVENTS: CiteEvent[] = ["BIRT", "CHR", "DEAT", "BURI", "RESI"];
-const onFamily = (event: CiteEvent) => event === "MARR" || event === "DIV";
 export const citeKey = (c: SourceCite) => `${c.event}|${c.person}|${c.family}`;
 
-/** The places a source is cited from the Sources panel: under a person, one of their events, or a marriage or divorce. Other lines that cite it are not listed. */
+/** The places a source is cited from the Sources panel: under a person or a family, one of their events, or a marriage or divorce. Other lines that cite it are not listed. */
 export function sourceCites(records: GedNode[], xref: string): SourceCite[] {
   const cites = (node: GedNode) => childrenOf(node, "SOUR").some((c) => c.value === xref);
   const out: SourceCite[] = [];
@@ -59,6 +58,7 @@ export function sourceCites(records: GedNode[], xref: string): SourceCite[] {
       if (cites(rec)) out.push({ event: "", person: rec.xref, family: "" });
       for (const event of PERSON_EVENTS) if (childrenOf(rec, event).some(cites)) out.push({ event, person: rec.xref, family: "" });
     } else if (rec.tag === "FAM" && rec.xref) {
+      if (cites(rec)) out.push({ event: "", person: "", family: rec.xref });
       for (const event of ["MARR", "DIV"] as const) if (childrenOf(rec, event).some(cites)) out.push({ event, person: "", family: rec.xref });
     }
   }
@@ -66,7 +66,7 @@ export function sourceCites(records: GedNode[], xref: string): SourceCite[] {
 }
 
 export const holderOf = (records: GedNode[], c: SourceCite) =>
-  records.find((rec) => (onFamily(c.event) ? rec.tag === "FAM" && rec.xref === c.family : rec.tag === "INDI" && rec.xref === c.person));
+  records.find((rec) => (c.family ? rec.tag === "FAM" && rec.xref === c.family : rec.tag === "INDI" && rec.xref === c.person));
 
 /** `node` with the source added under its `event` line (the line is added when missing); null when it is already cited there */
 function citeOn(node: GedNode, event: CiteEvent, xref: string): GedNode | null {
