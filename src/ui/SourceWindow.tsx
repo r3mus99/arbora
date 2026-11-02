@@ -99,7 +99,7 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
     }
     const who = data.people[c.person];
     if (!who) return "";
-    return [sourceTitle(lang, kind, who.name), c.event === "BIRT" ? year(who.birth?.date) : c.event === "DEAT" ? year(who.death?.date) : ""].filter(Boolean).join(" ");
+    return [sourceTitle(lang, kind, who.name), c.event === "BIRT" || c.event === "CHR" ? year(who.birth?.date) : c.event === "DEAT" || c.event === "BURI" ? year(who.death?.date) : ""].filter(Boolean).join(" ");
   };
   const title = typedTitle ?? suggestedTitle();
   const changes = (["author", "publication"] as const).filter((k) => form[k] !== fields[k]).length + (title !== fields.title ? 1 : 0)
@@ -154,12 +154,13 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
     }
     return out;
   }, [list, cites, citeLinks, citePages, data]);
-  // the parents of the person a birth or christening is cited for, who the source does not cite yet: offered as one click each
+  // the parents of the person a birth or christening is cited for: offered as one click each; a parent already cited stays in place, marked, so the buttons do not move under the pointer
   const parentsOf = (c: SourceCite | null) => {
     if (!c || c.family || (c.event !== "BIRT" && c.event !== "CHR")) return [];
     const fam = data.families[data.people[c.person]?.famc[0] ?? ""];
-    return [fam?.husb, fam?.wife].filter((id): id is string => !!id && !!data.people[id] && !list.some((x) => !x.family && x.event === "" && x.person === id));
+    return [fam?.husb, fam?.wife].filter((id): id is string => !!id && !!data.people[id]);
   };
+  const citedPerson = (id: string) => list.some((x) => !x.family && x.event === "" && x.person === id);
   const addCite = () => {
     const next: SourceCite = onFamily ? { event, person: "", family: chosenFamily } : { event, person, family: "" };
     if (!list.some((c) => citeKey(c) === citeKey(next))) setList([...list, next]);
@@ -255,10 +256,11 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
                              onChange={(e) => setUrls({ ...urls, [l.key]: e.target.value })} />
                     </label>
                   ))}
-                  {parentsOf(pl.cite).length > 0 && <label data-cap={t("srcCiteParents")}>
+                  {parentsOf(pl.cite).some((id) => !citedPerson(id)) && <label data-cap={t("srcCiteParents")}>
                     <span className="head-acts">{parentsOf(pl.cite).map((id) => (
-                      <button type="button" key={id} className="head-act" onClick={() => setList([...list, { event: "", person: id, family: "" }])}>
-                        {ico(Plus)}{nameOf(id)}</button>))}</span>
+                      <button type="button" key={id} className="head-act" disabled={citedPerson(id)}
+                              onClick={(e) => { e.preventDefault(); if (!citedPerson(id)) setList([...list, { event: "", person: id, family: "" }]); }}>
+                        {ico(citedPerson(id) ? Check : Plus)}{nameOf(id)}</button>))}</span>
                   </label>}
                   {pl.pages.map((pg) => (
                     <label key={pg.key} data-cap={t("srcCitationPage")}>

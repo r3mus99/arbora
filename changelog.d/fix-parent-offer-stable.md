@@ -1,0 +1,1 @@
+- **The "Add also" parent buttons stay in place.** A parent that was added stays in the row, marked, so a second click cannot add the other parent by accident; the suggested title of a christening or burial source now also has the year.
