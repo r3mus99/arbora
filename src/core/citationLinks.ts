@@ -1,0 +1,118 @@
+/**
+ * Web addresses that sit in the citations of a source (the PAGE, NOTE or TEXT line under the person's or event's `SOUR` line),
+ * not in the source record itself. FamilySearch and similar exports write the address of one entry there.
+ * Only the address changes when one is edited; the rest of the line, and every other line of the file, stays as it was.
+ */
+
+import { rewritten, type GedNode } from "./gedcom";
+import { isWebAddress } from "./sourceLinks";
+
+/** one web address found in a citation of a source */
+export interface CitationLinkLine {
+  /** where it sits in the file (record, lines, which address of the line); stable until the records change */
+  key: string;
+  /** the person or family record that holds the citation */
+  holder: string;
+  /** the tag of the event line the citation sits under; "" when it sits on the record itself */
+  event: string;
+  url: string;
+}
+
+const ADDRESS = /https?:\/\/[^\s<>"]+/gi;
+const trimEnd = (url: string) => url.replace(/[.,;:!?)\]'”]+$/, "");
+const isPointer = (value: string) => /^@[^@]+@$/.test(value.trim());
+const READ = new Set(["PAGE", "NOTE", "TEXT"]);
+
+/** the addresses of one line: where each starts and ends in the value */
+function addressesOf(value: string): { at: number; url: string }[] {
+  return [...value.matchAll(ADDRESS)].map((m) => ({ at: m.index, url: trimEnd(m[0]) }));
+}
+
+/** the lines of a citation that can hold an address (a pointer to a note record is not text), as paths below the citation */
+function textLines(cite: GedNode): number[][] {
+  const out: number[][] = [];
+  cite.children.forEach((c, i) => {
+    if (READ.has(c.tag) && !(c.tag === "NOTE" && isPointer(c.value))) out.push([i]);
+    if (c.tag === "DATA") c.children.forEach((d, j) => { if (d.tag === "TEXT") out.push([i, j]); });
+  });
+  return out;
+}
+
+const at = (node: GedNode, path: number[]): GedNode => path.reduce((n, i) => n.children[i], node);
+
+/** every citation line of the source `xref`: [holder record index, path to the citation, event tag] */
+function citations(records: GedNode[], xref: string): { rec: number; path: number[]; event: string }[] {
+  const out: { rec: number; path: number[]; event: string }[] = [];
+  const cites = (n: GedNode) => n.tag === "SOUR" && n.value.trim() === xref;
+  records.forEach((rec, r) => {
+    if ((rec.tag !== "INDI" && rec.tag !== "FAM") || !rec.xref) return;
+    rec.children.forEach((c, i) => {
+      if (cites(c)) out.push({ rec: r, path: [i], event: "" });
+      else c.children.forEach((d, j) => { if (cites(d)) out.push({ rec: r, path: [i, j], event: c.tag }); });
+    });
+  });
+  return out;
+}
+
+/** The web addresses written in the citations of the source `xref`, in file order. */
+export function citationLinkLines(records: GedNode[], xref: string): CitationLinkLine[] {
+  const out: CitationLinkLine[] = [];
+  for (const c of citations(records, xref)) {
+    const rec = records[c.rec];
+    for (const line of textLines(at(rec, c.path))) {
+      addressesOf(at(rec, [...c.path, ...line]).value).forEach((a, n) =>
+        out.push({ key: [c.rec, ...c.path, ...line, n].join("."), holder: rec.xref!, event: c.event, url: a.url }));
+    }
+  }
+  return out;
+}
+
+/** A change of one address: `url` is the new address, or "" to take the address out of the line. */
+export interface CitationLinkChange { key: string; url: string }
+
+/** `value` with its `n`-th address replaced; taking it out also takes the brackets and separators it leaves behind. */
+function replaceAddress(value: string, n: number, url: string): string {
+  const found = addressesOf(value)[n];
+  if (!found) return value;
+  const next = value.slice(0, found.at) + url + value.slice(found.at + found.url.length);
+  return url ? next : next.replace(/\(\s*[:;,]?\s*\)/g, "").replace(/\s{2,}/g, " ").replace(/\s+([,;:.])/g, "$1").replace(/^[\s:;,]+|[\s:;,]+$/g, "");
+}
+
+/**
+ * The records with the given addresses of the citations changed. A new address must be a whole web address, otherwise the
+ * change is ignored. A line left empty by taking its address out is removed. Records that are not touched stay the same objects.
+ */
+export function setCitationLinks(records: GedNode[], changes: CitationLinkChange[]): GedNode[] {
+  const valid = changes.filter((c) => c.url === "" || isWebAddress(c.url));
+  if (!valid.length) return records;
+  const parsed = valid.map((c) => {
+    const parts = c.key.split(".").map(Number);
+    return { rec: parts[0], n: parts[parts.length - 1], path: parts.slice(1, -1), url: c.url.trim() };
+  });
+  const byRecord = new Map<number, typeof parsed>();
+  for (const p of parsed) byRecord.set(p.rec, [...(byRecord.get(p.rec) ?? []), p]);
+  return records.map((rec, r) => {
+    const mine = byRecord.get(r);
+    if (!mine) return rec;
+    const edit = (node: GedNode, path: number[]): GedNode => {
+      const here = mine.filter((p) => p.path.length === path.length && p.path.every((v, i) => v === path[i]));
+      let value = node.value;
+      let changed = false;
+      // later addresses first, so the places of the earlier ones in the line do not move
+      for (const p of [...here].sort((a, b) => b.n - a.n)) {
+        const next = replaceAddress(value, p.n, p.url);
+        if (next !== value) { value = next; changed = true; }
+      }
+      const kids = node.children.flatMap((c, i) => {
+        const inner = edit(c, [...path, i]);
+        return inner.tag === "" ? [] : [inner];
+      });
+      const kidsChanged = kids.length !== node.children.length || kids.some((k, i) => k !== node.children[i]);
+      if (!changed && !kidsChanged) return node;
+      const next = rewritten({ ...node, value }, kids);
+      // a line that held only the address and has nothing below it goes away
+      return changed && !value.trim() && !kids.length && READ.has(node.tag) ? { ...next, tag: "" } : next;
+    };
+    return edit(rec, []);
+  });
+}

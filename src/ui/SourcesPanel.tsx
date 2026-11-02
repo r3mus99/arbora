@@ -1,11 +1,14 @@
-import { BookMarked, ListFilter, Pencil, Plus, StickyNote } from "lucide-react";
+import { BookMarked, ExternalLink, ListFilter, Pencil, Plus, StickyNote } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { GedcomData } from "../core/gedcom";
 import { fold } from "../core/gedcom";
+import type { CitationLinkLine } from "../core/citationLinks";
+import { citeKey, type CiteEvent, type SourceCite } from "../core/sourceLinks";
 import { SOURCE_KINDS, type SourceKind, type SourceOverview } from "../core/sources";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
-import { CitationFields, Linked } from "./Sources";
+import { Linked } from "./Sources";
+import { EVENT_LABEL } from "./SourceWindow";
 
 interface Props {
   overview: SourceOverview;
@@ -17,6 +20,8 @@ interface Props {
   onEdit?: (xref: string | null) => void;
   /** a window of the person is open, so a source cannot be edited now */
   editDisabled?: boolean;
+  /** where a source is cited and the web addresses written in those citations, for the citations part of an opened source */
+  citationsOf?: (xref: string) => { cites: SourceCite[]; links: CitationLinkLine[] };
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
@@ -33,8 +38,52 @@ export function People({ ids, data, onPerson, t }: { ids: string[]; data: Gedcom
 }
 
 
+const hostOf = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return url; } };
+
+/** One web address of a citation as a small chip. */
+const LinkChip = ({ url }: { url: string }) => <a className="src-chip" href={url} target="_blank" rel="noopener noreferrer" title={url}>
+  {hostOf(url)}<span> · {url.split(/[/:]/).filter(Boolean).pop()}</span><ExternalLink className="icon" aria-hidden="true" /></a>;
+
+/** The citations of an opened source: who it is cited for, under which event, and the address written in that citation. */
+function Citations({ xref, ids, data, citationsOf, onPerson, t }: { xref: string; ids: string[]; data: GedcomData; citationsOf: NonNullable<Props["citationsOf"]> } & Pick<Props, "onPerson" | "t">) {
+  const { cites, links } = citationsOf(xref);
+  const nameOf = (id: string) => data.people[id]?.name || "?";
+  const familyName = (id: string) => [data.families[id]?.husb, data.families[id]?.wife].map((p) => (p ? nameOf(p) : "?")).join(" & ");
+  const linksAt = (holder: string, event: string) => links.filter((l) => l.holder === holder && l.event === event);
+  const eventName = (event: string) => (EVENT_LABEL[event as CiteEvent] ? t(EVENT_LABEL[event as CiteEvent]) : event);
+  const shown = new Set<string>();
+  const rows = cites.map((c) => {
+    const holder = c.family || c.person;
+    shown.add(`${holder}|${c.event}`);
+    return { key: citeKey(c), person: c.person, label: c.family ? familyName(c.family) : nameOf(c.person), event: c.event ? eventName(c.event) : t("srcCitePerson"), urls: linksAt(holder, c.event).map((l) => l.url) };
+  });
+  // addresses under lines the list above does not name (another kind of event)
+  const rest = links.filter((l) => !shown.has(`${l.holder}|${l.event}`)).map((l) => ({
+    key: l.key, person: data.people[l.holder] ? l.holder : "", label: data.people[l.holder] ? nameOf(l.holder) : familyName(l.holder), event: l.event ? eventName(l.event) : t("srcCitePerson"), urls: [l.url] }));
+  const named = new Set([...rows, ...rest].map((r) => r.person).filter(Boolean));
+  // people who cite the source on a line that is not listed above
+  const others = ids.filter((id) => data.people[id] && !named.has(id)).map((id) => ({ key: id, person: id, label: nameOf(id), event: "", urls: [] as string[] }));
+  // laid out like the file: the person (or family), under it the event, under it the address
+  const tree: { id: string; person: string; label: string; events: { key: string; event: string; urls: string[] }[] }[] = [];
+  for (const r of [...rows, ...rest, ...others]) {
+    const id = r.person || r.label;
+    let p = tree.find((x) => x.id === id);
+    if (!p) tree.push(p = { id, person: r.person, label: r.label, events: [] });
+    if (r.event) p.events.push({ key: r.key, event: r.event, urls: r.urls });
+  }
+  return <ul className="sp-cites" aria-label={t("srcGroupCitations")}>
+    {tree.map((p) => <li key={p.id}>
+      <div className="cite-head">{p.person ? <button type="button" className="link" onClick={() => onPerson(p.person)}>{p.label}</button> : p.label}</div>
+      {p.events.map((e) => <div key={e.key} className="cite-event">
+        <div className="cite-head sub">{e.event}</div>
+        {e.urls.length > 0 && <div className="src-links">{e.urls.map((u, i) => <LinkChip key={i} url={u} />)}</div>}
+      </div>)}
+    </li>)}
+  </ul>;
+}
+
 /** Overview of all sources (with the people citing them) and all notes of the file, read-only. */
-export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, personId = null, t }: Props) {
+export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, citationsOf, personId = null, t }: Props) {
   const [tab, setTab] = useState<Tab>("sources");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<string | null>(null);
@@ -92,15 +141,22 @@ export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, p
                 <BookMarked className="icon" aria-hidden="true" />
                 <span className="sp-main">
                   <span className="sp-title">{s.citation.title}</span>
-                  <span className="sp-sub">{[s.citation.author, t("srcPeople", { n: s.people.length })].filter(Boolean).join(" · ")}</span>
+                  <span className="sp-sub">{s.citation.author}</span>
                 </span>
                 <span className="sp-count">{s.citations}×</span>
               </button>
               {open === s.key && <div className="sp-more">
-                <CitationFields c={s.citation} t={t} />
-                {onEdit && s.key.startsWith("@") && <button type="button" className="sp-edit" disabled={editDisabled} onClick={() => onEdit(s.key)}>
-                  <Pencil className="icon" aria-hidden="true" />{t("srcEditSource")}</button>}
-                <People ids={s.people} data={data} onPerson={onPerson} t={t} />
+                <div className="sp-group">
+                  {[s.fields.author, s.fields.publication].filter(Boolean).map((v, i) => <div key={i} className="src-line"><span>{t(i === 0 && s.fields.author ? "srcAuthor" : "srcPublication")}:</span> <Linked text={v} /></div>)}
+                  {s.fields.notes.map((n, i) => <div key={i} className="src-note"><Linked text={n} /></div>)}
+                  {s.fields.links.length > 0 && <div className="src-links">{s.fields.links.map((u) => <LinkChip key={u} url={u} />)}</div>}
+                  {onEdit && s.key.startsWith("@") && <button type="button" className="sp-edit" disabled={editDisabled} onClick={() => onEdit(s.key)}>
+                    <Pencil className="icon" aria-hidden="true" />{t("srcEditSource")}</button>}
+                </div>
+                <div className="sp-group"><div className="sp-group-title">{t("srcGroupCitations")}</div>
+                  {citationsOf && s.key.startsWith("@") ? <Citations xref={s.key} ids={s.people} data={data} citationsOf={citationsOf} onPerson={onPerson} t={t} />
+                    : <People ids={s.people} data={data} onPerson={onPerson} t={t} />}
+                </div>
               </div>}
             </li>
           ))}

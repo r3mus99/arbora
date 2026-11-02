@@ -13,6 +13,7 @@ import { outputFileName } from "../core/fileName";
 import { childOf, decode, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
 import type { Fonts } from "../core/pdf";
 import { sourceOverview } from "../core/sources";
+import { citationLinkLines, setCitationLinks } from "../core/citationLinks";
 import { deleteSource, saveSource, sourceCites } from "../core/sourceLinks";
 import { SourceWindow } from "./SourceWindow";
 import { type Lang } from "../core/texts";
@@ -613,6 +614,7 @@ export function App() {
               </aside>}
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
                 <SourcesPanel key={selectedId ?? ""} overview={srcOverview} data={data} onPerson={(id) => pick(id)} personId={selectedId} t={t}
+                              citationsOf={(xref) => ({ cites: sourceCites(doc!.records, xref), links: citationLinkLines(doc!.records, xref) })}
                               onEdit={(xref) => setSourceWin({ xref })} editDisabled={!!windowId} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
@@ -623,8 +625,9 @@ export function App() {
             {sourceWin && doc && (!sourceWin.xref || sourceEntry) && <SourceWindow key={sourceWin.xref ?? "new"} data={data} xref={sourceWin.xref}
                                  fields={sourceEntry?.fields ?? { title: "", author: "", publication: "", notes: [], links: [] }}
                                  cites={sourceWin.xref ? sourceCites(doc.records, sourceWin.xref) : []} cited={sourceEntry?.citations ?? 0}
-                                 onSave={(fields, after) => {
-                                   replaceRecords(saveSource(doc.records, sourceWin.xref, fields, sourceWin.xref ? sourceCites(doc.records, sourceWin.xref) : [], after).records);
+                                 citeLinks={sourceWin.xref ? citationLinkLines(doc.records, sourceWin.xref) : []}
+                                 onSave={(fields, after, linkChanges) => {
+                                   replaceRecords(saveSource(setCitationLinks(doc.records, linkChanges), sourceWin.xref, fields, sourceWin.xref ? sourceCites(doc.records, sourceWin.xref) : [], after).records);
                                    setSourceWin(null);
                                  }}
                                  onDelete={() => { if (sourceWin.xref) replaceRecords(deleteSource(doc.records, sourceWin.xref)); setSourceWin(null); }}

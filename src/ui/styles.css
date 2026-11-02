@@ -274,9 +274,9 @@ footer a { color: var(--accent); }
 .src-list { display: grid; gap: 8px; }
 .src-title { font-weight: 600; overflow-wrap: anywhere; }
 .src-line, .src-note { color: var(--muted); overflow-wrap: anywhere; }
-.src-entries a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.src-entries a, .sp-group a.src-chip { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .src-links { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 3px; }
-.src-entries a.src-chip { display: inline-flex; gap: 4px; align-items: center; border: 1px solid var(--border); border-radius: var(--radius);
+.src-entries a.src-chip, .sp-group a.src-chip { display: inline-flex; gap: 4px; align-items: center; border: 1px solid var(--border); border-radius: var(--radius);
   padding: 0 8px; min-height: var(--ctl-h-sm); text-decoration: none; white-space: nowrap; }
 .src-chip span { color: var(--muted); }
 .src-chip .icon { width: var(--icon-sm); height: var(--icon-sm); }
@@ -545,7 +545,7 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-edit:disabled { opacity: .5; cursor: default; }
 .sp-edit .icon { width: var(--icon-sm); height: var(--icon-sm); }
 .sp-people { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; }
-.sp-people button.link { text-align: left; }
+.sp-people button.link, .sp-cites button.link { text-align: left; }
 .sp-none { padding: var(--pad); color: var(--muted); list-style: none; }
 
 /* unsaved changes: a record title with its lines below, old value struck through, new value after the arrow */
@@ -665,6 +665,9 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .collapsible[open] > summary.sec-head::after { transform: translateY(-2px) rotate(45deg); }
 .collapsible > summary.sec-head:hover { color: var(--text); }
 .collapsible[open] > summary.sec-head { margin-bottom: 10px; border-bottom: 1px solid var(--border); }
+/* a part with nothing in it (no list items yet) shows only its header: no divider, no empty space below */
+.edit-body .collapsible[open]:has(> .sec-fields > fieldset.list:only-child:empty) { padding-bottom: 0; }
+.collapsible[open]:has(> .sec-fields > fieldset.list:only-child:empty) > summary.sec-head { margin-bottom: 0; border-bottom: 0; }
 /* an icon before the title of a group inside a part */
 .editor legend .icon, .editor .lab .icon { width: var(--icon-sm); height: var(--icon-sm); color: var(--c-src); flex: none; }
 /* a group title with icon buttons after it: one centred row, so the title, its icon and its buttons share a middle line */
@@ -841,3 +844,26 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-rename .sp-title { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
 .sp-rename .sp-title .icon { align-self: center; color: var(--muted); }
 .sp-wand-one { display: inline-flex; align-items: center; gap: var(--gap); text-align: left; margin-bottom: 4px; }
+/* heading of a group of parts in the source window (Source / Citations) */
+.edit-body .part-group { margin: 6px 2px -4px; padding-top: 4px; }
+.edit-body .part-group:not(:first-child) { margin-top: 22px; padding-top: 14px; border-top: 2px solid var(--border); }
+.edit-body .part-group h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text); }
+/* an opened source in the Sources panel: two blocks, the source itself and its citations */
+.sp-group + .sp-group { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+.sp-group a.src-chip { text-decoration: none; }
+.sp-group-title { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.sp-cites { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+/* the header of a part already has its divider: the first field row under it does not draw a second one */
+.edit-body .editor .collapsible > .sec-fields > :is(label[data-cap], label.check, .sex-field):first-child { border-top: 0; }
+/* the addresses of the citations as the file holds them: person, under it the event, under it the citation with its address */
+.cite-person + .cite-person { margin-top: 10px; }
+.cite-head { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 10px; font-weight: 600; overflow-wrap: anywhere; }
+.cite-head .icon { width: var(--icon-sm); height: var(--icon-sm); flex: none; color: var(--c-src); }
+.cite-head.sub { padding-left: 28px; font-size: 13px; font-weight: 400; color: var(--muted); }
+.edit-body .editor .cite-event label.cite-link { margin-left: 28px; padding-right: 36px; }
+.edit-body .editor label.cite-link > .icon-btn { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); }
+/* the citations of an opened source in the Sources panel use the same person, event, link layout, without the window's padding */
+.sp-group .cite-head { padding: 0; min-height: 24px; }
+.sp-group .cite-head.sub { padding-left: 14px; }
+.sp-group .cite-event .src-links { margin: 0 0 4px 14px; }
+.sp-cites > li + li { margin-top: 6px; }
