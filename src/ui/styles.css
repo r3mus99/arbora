@@ -274,9 +274,9 @@ footer a { color: var(--accent); }
 .src-list { display: grid; gap: 8px; }
 .src-title { font-weight: 600; overflow-wrap: anywhere; }
 .src-line, .src-note { color: var(--muted); overflow-wrap: anywhere; }
-.src-entries a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.src-entries a, .sp-group a.src-chip { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .src-links { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-top: 3px; }
-.src-entries a.src-chip { display: inline-flex; gap: 4px; align-items: center; border: 1px solid var(--border); border-radius: var(--radius);
+.src-entries a.src-chip, .sp-group a.src-chip { display: inline-flex; gap: 4px; align-items: center; border: 1px solid var(--border); border-radius: var(--radius);
   padding: 0 8px; min-height: var(--ctl-h-sm); text-decoration: none; white-space: nowrap; }
 .src-chip span { color: var(--muted); }
 .src-chip .icon { width: var(--icon-sm); height: var(--icon-sm); }
@@ -545,7 +545,7 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .sp-edit:disabled { opacity: .5; cursor: default; }
 .sp-edit .icon { width: var(--icon-sm); height: var(--icon-sm); }
 .sp-people { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 2px; }
-.sp-people button.link { text-align: left; }
+.sp-people button.link, .sp-cites button.link { text-align: left; }
 .sp-none { padding: var(--pad); color: var(--muted); list-style: none; }
 
 /* unsaved changes: a record title with its lines below, old value struck through, new value after the arrow */
@@ -848,4 +848,8 @@ button.chip[aria-pressed="true"] { border-color: var(--accent); background: var(
 .edit-body .part-group { margin: 6px 2px -4px; padding-top: 4px; }
 .edit-body .part-group:not(:first-child) { margin-top: 22px; padding-top: 14px; border-top: 2px solid var(--border); }
 .edit-body .part-group h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text); }
-.edit-body .part-group p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+/* an opened source in the Sources panel: two blocks, the source itself and its citations */
+.sp-group + .sp-group { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); }
+.sp-group a.src-chip { text-decoration: none; }
+.sp-group-title { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.sp-cites { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }

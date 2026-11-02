@@ -32,7 +32,7 @@ interface Props {
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
 }
 
-const EVENT_LABEL: Record<CiteEvent, StringKey> = {
+export const EVENT_LABEL: Record<CiteEvent, StringKey> = {
   "": "srcCitePerson", BIRT: "thBirth", CHR: "christening", DEAT: "thDeath", BURI: "burial", MARR: "marriage", DIV: "divorce", RESI: "residence",
 };
 const EVENTS = Object.keys(EVENT_LABEL) as CiteEvent[];
@@ -46,9 +46,9 @@ function AddAct({ children, onAdd, expanded }: { children: ReactNode; onAdd: () 
     {children}</button>;
 }
 
-/** The heading of a group of parts: what the parts below it are about, in one line. */
+/** The heading of a group of parts; what the parts below it are about is its tooltip (no always-visible hint text). */
 function Group({ title, hint }: { title: string; hint: string }) {
-  return <div className="part-group"><h3>{title}</h3><p>{hint}</p></div>;
+  return <div className="part-group" title={hint}><h3>{title}</h3></div>;
 }
 
 /** A collapsible part of the window, built like the parts of the person's edit window. */

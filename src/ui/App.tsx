@@ -614,6 +614,7 @@ export function App() {
               </aside>}
               {showSources && srcOverview && <aside className="rail-wrap sp-wrap" aria-label={t("srcNotes")}>
                 <SourcesPanel key={selectedId ?? ""} overview={srcOverview} data={data} onPerson={(id) => pick(id)} personId={selectedId} t={t}
+                              citationsOf={(xref) => ({ cites: sourceCites(doc!.records, xref), links: citationLinkLines(doc!.records, xref) })}
                               onEdit={(xref) => setSourceWin({ xref })} editDisabled={!!windowId} />
               </aside>}
               {listOpen && <aside className="rail-wrap" aria-label={t("thName")}>
