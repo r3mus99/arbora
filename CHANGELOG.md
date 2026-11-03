@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.127.0 – 2026-11-03
+
+- **The home person is the first, bold step of the path under the tree.** The house chip is gone; one "Set as home person" button on the right makes the open person the home person.
+
 ## 2.126.0 – 2026-11-03
 
 - **The line from the home person to the open ancestor is shown under the tree.** One bar there also holds Back and Forward and the home person (the top bar and the detail no longer show them), and "Prababka" under the name is gone.
