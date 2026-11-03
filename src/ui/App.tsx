@@ -24,6 +24,8 @@ import { ChangesPanel } from "./ChangesPanel";
 import { CheckPanel } from "./CheckPanel";
 import { FileDrop } from "./FileDrop";
 import { NO_MARKS, fileKey, marksOf, setHome as changeHome, toggleFav, visited, withMarks, listing, type Marks } from "./marks";
+import { NO_TRAIL, startTrail, stepTrail, visit, type Trail } from "./trail";
+import { NavArrows } from "./NavArrows";
 import { RecentPanel } from "./RecentPanel";
 import { LanguageMenu } from "./LanguageMenu";
 import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./theme";
@@ -107,6 +109,7 @@ export function App() {
   const [last, setLast] = useState<{ name: string | null } | null>(null);
   const [restoring, setRestoring] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [trail, setTrail] = useState<Trail>(NO_TRAIL);
   const [scrollKey, setScrollKey] = useState(0);
   // person shown in the detail panel next to the on-screen chart
   const [treeScroll, setTreeScroll] = useState(0);
@@ -267,6 +270,7 @@ export function App() {
     // the chart shows at once: last chosen person, else the first one in the file
     const root = stored && parsed.people[stored] ? stored : Object.keys(parsed.people)[0];
     setSelectedId(root);
+    setTrail(startTrail(root));
     setMarks(visited(marksOf(readStore().marks, fileKey(name)), root));
     setMarkedFor(root);
     setJumpRow(null);
@@ -311,7 +315,7 @@ export function App() {
     setEdits(NO_EDITS);
     setRestored(0);
     setSelectedId(null);
-    setSelectedId(null);
+    setTrail(NO_TRAIL);
     setQuery("");
     setTool(null);
     resetResult();
@@ -464,8 +468,9 @@ export function App() {
   const homeId = marks.home && data?.people[marks.home] ? marks.home : null;
   const recent = useMemo(() => (data ? listing(marks, (id) => !!data.people[id]) : []), [marks, data]);
 
-  const select = (id: string) => {
+  const select = (id: string, track = true) => {
     setSelectedId(id);
+    if (track) setTrail((t) => visit(t, id));
     setJumpRow(null);
     setTreeScroll((k) => k + 1);
     updateStore({ root: id });
@@ -494,6 +499,16 @@ export function App() {
       statusText += " " + t("shrunk", { size: status.vars.shrunkSize });
     }
   }
+
+  /** Back (-1) or forward (1) to the person opened before or after this one */
+  const stepBy = (step: -1 | 1) => {
+    if (!data) return;
+    const to = stepTrail(trail, step, (id) => !!data.people[id]);
+    if (!to) return;
+    setTrail(to.trail);
+    select(to.id, false);
+  };
+  const canStep = (step: -1 | 1) => !!data && !!stepTrail(trail, step, (id) => !!data.people[id]);
 
   const pick = (id: string) => {
     select(id);
@@ -651,6 +666,7 @@ export function App() {
             </aside> : <>
             {!narrow && <div className="mid">
               <div className="chart-bar">
+                <NavArrows onBack={canStep(-1) ? () => stepBy(-1) : undefined} onForward={canStep(1) ? () => stepBy(1) : undefined} t={t} />
                 <h2>{t("treeTitle")}</h2>
                 <button type="button" className="chart-summary" title={t("settings")} onClick={() => setShowSettings(true)}>
                   {desc ? t("desc") : t("anc")} · {gensSummary(Number(form.generations) || 0, lang, t("genTipAll"))}
@@ -665,7 +681,8 @@ export function App() {
             {selectedId && <PersonDetail key={selectedId} data={data} id={selectedId} homeId={homeId}
                                       record={recordOf.get(selectedId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(selectedId) || []} lang={lang} labels={form.labels}
                                       onFocus={pick} onChange={commit} suggest={suggest}
-                                      onEdit={() => setWindowId(selectedId)} onSource={showSource} t={t} />}
+                                      onEdit={() => setWindowId(selectedId)} onSource={showSource}
+                                      onBack={narrow && canStep(-1) ? () => stepBy(-1) : undefined} onForward={narrow && canStep(1) ? () => stepBy(1) : undefined} t={t} />}
             </>}
         </div>}
       </section>

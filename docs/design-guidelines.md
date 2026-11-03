@@ -178,6 +178,7 @@ Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexi
 ## 8. Tree view and detail
 
 - Tree rows are 24px with zebra tint; name 600, spouse `--muted`; event letters coloured with the event tokens; selection = accent fill on the name only.
+- **Back / Forward** (`NavArrows`, `.nav-arrows`): two `.tools .icon-btn` (ChevronLeft, ChevronRight) at the left of the chart heading, before "Family tree"; they step through the people opened before, disabled (35% opacity) when there is none. On a narrow screen, where there is no chart, they sit at the left of the detail heading instead. A click on a relative opens a person and adds a step; going back and forward does not.
 - Fold control: − only on hover, + always with the hidden count.
 - Timeline rows: line 1 is the date, then the place (the person or the address for a residence) separated by " · "; line 2 is what happened and the age. A residence puts its address on line 1 beside the date, never on line 2. The source count icon stays at the right.
 - The sections of the detail are inset cards (`.facts > .section`: `--bg` fill on the `--panel`, 1px `--border`, `--radius-lg`, padding `10px 12px`, 10px apart), like the parts of the edit window; the icons that cut the timeline line use `--bg` too.

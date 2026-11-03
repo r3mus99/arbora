@@ -206,6 +206,10 @@ footer a { color: var(--accent); }
                margin: 0 calc(-1 * var(--pad)) 8px; padding: 0 var(--pad); border-bottom: 1px solid var(--border);
                position: sticky; top: 0; z-index: 1; background: var(--panel); }
 .detail-head .tools { display: flex; gap: 4px; flex: none; margin-top: var(--tool-top); }
+.nav-arrows { display: flex; gap: 2px; flex: none; }
+.chart-bar .nav-arrows { margin-right: -6px; }
+.detail-head .nav-arrows { margin-top: var(--tool-top); }
+.nav-arrows .icon-btn:disabled { opacity: .35; cursor: default; }
 .detail .life { margin: 0 0 4px; font-variant-numeric: tabular-nums; }
 .detail .life .lifespan { font-weight: 600; }
 .detail .life .life-age { color: var(--muted); }
