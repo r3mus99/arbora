@@ -33,6 +33,7 @@ interface Props {
   /** another person is merged into this one (the caller closes the window) */
   onMerge: (dropId: string, pick: MergePick) => void;
   onAddFamily: () => void;
+  onAddSource?: (event: "BIRT" | "CHR" | "DEAT" | "BURI") => void;
   onDeleteFamily: (id: string) => void;
   t: (key: StringKey, vars?: Record<string, string | number>) => string;
   /** a part of the window the user may not reach now, e.g. a wide tool panel is open */
@@ -44,7 +45,7 @@ interface Props {
  * the tree stays visible on the left; the pencil in the person detail opens it. The form is split into the parts of
  * a person (name, basic facts, events, …); Esc, the X and Cancel ask before they drop changes.
  */
-export function EditWindow({ data, name, record, families, lang, suggest, recordOf, onSave, allocate, onClose, onDeletePerson, records, onMerge, onAddFamily, onDeleteFamily, t, hidden }: Props) {
+export function EditWindow({ data, name, record, families, lang, suggest, recordOf, onSave, allocate, onClose, onDeletePerson, records, onMerge, onAddFamily, onAddSource, onDeleteFamily, t, hidden }: Props) {
   const [changes, setChanges] = useState(0);
   const dirty = changes > 0;
   const [merging, setMerging] = useState(false);
@@ -66,21 +67,21 @@ export function EditWindow({ data, name, record, families, lang, suggest, record
     <section className="edit-window" aria-label={name}>
       <PanelHead title={name}>
         <div className="tools">
-          <button type="button" className="icon-btn" title={t("mergeWith")} aria-label={t("mergeWith")} aria-pressed={merging}
-                  onClick={() => { if (!merging && dirty && !window.confirm(t("discard"))) return; setChanges(0); setMerging(!merging); }}>
-            <GitMerge className="icon" aria-hidden="true" /></button>
-          <button type="button" className="icon-btn" title={t("deletePerson")} aria-label={t("deletePerson")}
-                  onClick={() => { if (window.confirm(t("confirmDeletePerson", { name }))) onDeletePerson(); }}>
-            <Trash2 className="icon" aria-hidden="true" /></button>
           <button type="button" className="icon-btn" onClick={close} title={`${t("editClose")} (Esc)`} aria-label={t("editClose")}>
             <X className="icon" aria-hidden="true" /></button>
         </div>
       </PanelHead>
       <div className="panel-body edit-body" ref={body} onScroll={(e) => { scrolled.current = e.currentTarget.scrollTop; }}>
         {merging ? <MergePanel data={data} records={records} keepId={record.xref!} lang={lang} onMerge={onMerge} onCancel={() => setMerging(false)} t={t} /> : <PersonEditor key={formKey} open={open} onToggleSection={setOpen} data={data} record={record} families={families} lang={lang} suggest={suggest} recordOf={recordOf}
-                      onSave={onSave} allocate={allocate} onCancel={close} onAddFamily={onAddFamily} onDeleteFamily={onDeleteFamily} onDirty={setChanges} t={t} />}
+                      onSave={onSave} allocate={allocate} onCancel={close} onAddFamily={onAddFamily} onAddSource={onAddSource} onDeleteFamily={onDeleteFamily} onDirty={setChanges} t={t} />}
       </div>
-      {!merging && <div className="edit-foot">
+      {!merging && <div className="edit-foot stacked">
+        <button type="button" className="foot-delete" title={t("deletePerson")}
+                onClick={() => { if (window.confirm(t("confirmDeletePerson", { name }))) onDeletePerson(); }}>
+          <Trash2 className="icon" aria-hidden="true" />{t("footDelete")}</button>
+        <button type="button" title={t("mergeWith")} aria-pressed={merging}
+                onClick={() => { if (!merging && dirty && !window.confirm(t("discard"))) return; setChanges(0); setMerging(!merging); }}>
+          <GitMerge className="icon" aria-hidden="true" />{t("footMerge")}</button>
         <span className="bulk-sum" role="status">{dirty ? `${t("unsaved")} (${changes})` : ""}</span>
         <button type="button" onClick={close}>{t("cancel")}</button>
         <button type="submit" form={EDITOR_FORM} className="primary" disabled={!dirty} title="Ctrl+Enter">
