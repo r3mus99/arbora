@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.117.0 – 2026-11-03
+
+- **A residence in the timeline shows its address next to the date.** "1930 · Mill Road 4" on the first line, like the birth shows its place, and "Residence · aged 42" below.
+
 ## 2.116.0 – 2026-11-03
 
 - **The timeline no longer has a note button.** An event note is always written under the event, so the note icon and the click to unfold it are gone; the sources button stays.
