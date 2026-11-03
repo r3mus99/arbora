@@ -4,6 +4,7 @@ import { describe, expect, test } from "vitest";
 import { suggestions } from "../core/edit";
 import { parseGedcom, readRecords } from "../core/gedcom";
 import { STRINGS, type StringKey } from "./i18n";
+import { formatAgeLong } from "../core/texts";
 import { PersonDetail } from "./PersonDetail";
 
 const GED = `0 HEAD
@@ -80,10 +81,12 @@ describe("person detail timeline", () => {
       }));
     };
     const exact = render("0 HEAD\n0 @I1@ INDI\n1 NAME Alice /Sample/\n1 BIRT\n2 DATE 17 AUG 1887\n1 DEAT\n2 DATE 1 APR 1922\n");
-    expect(exact).toContain('<span class="life-age"> · 34 y.</span>');
+    expect(exact).toContain('<span class="life-age"> · 34 years</span>');
     expect(exact).not.toContain('class="id"');
-    expect(render("0 HEAD\n0 @I1@ INDI\n1 NAME Alice /Sample/\n1 BIRT\n2 DATE ABT 1518\n1 DEAT\n2 DATE 1564\n")).toContain("· ~46 y.");
+    expect(render("0 HEAD\n0 @I1@ INDI\n1 NAME Alice /Sample/\n1 BIRT\n2 DATE ABT 1518\n1 DEAT\n2 DATE 1564\n")).toContain("· abt 46 years");
     expect(render("0 HEAD\n0 @I1@ INDI\n1 NAME Alice /Sample/\n1 BIRT\n2 DATE 1575\n")).not.toContain("life-age");
+    expect([1, 2, 5].map((n) => formatAgeLong({ n, unit: "y" }, "sk"))).toEqual(["1 rok", "2 roky", "5 rokov"]);
+    expect(formatAgeLong({ n: 1, unit: "y" }, "en")).toBe("1 year");
     const aka = render("0 HEAD\n0 @I1@ INDI\n1 NAME Alice /Sample/\n1 NAME Ally /Sample/\n2 TYPE aka\n1 NAME Lisa /Other/\n2 TYPE aka\n");
     expect(aka.match(/class="aka"/g)?.length).toBe(2);
     expect(aka).not.toContain("aka Ally");

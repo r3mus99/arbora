@@ -11,7 +11,7 @@ import { nameDetails } from "../core/names";
 import { ageBetween, dateParts, formatAge, yearsBetween } from "../core/date";
 import { fmt, formatDate, weekdayTip } from "../core/format";
 import { childOf, childrenOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
-import { TEXTS, type Lang } from "../core/texts";
+import { formatAgeLong, TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, marriageAnnotations, mergeAnnotations, type Lookup } from "../core/sources";
 import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
@@ -177,13 +177,14 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
     const d = q.death ? formatDate(q.death.date, false, lang) : "";
     return d ? `${b}–${d}` : b;
   };
-  /** age at death shown after the years; "~" when a date is uncertain (abt, bef, ...) */
+  /** age at death shown after the years; "abt" / "cca" in front when a date is uncertain */
   const lifeAge = (() => {
     if (!p.birth?.date || !p.death?.date) return "";
     const age = ageBetween(p.birth.date, p.death.date);
     if (!age) return "";
     const uncertain = /\b(ABT|CAL|EST|BEF|AFT|BET|FROM|TO)\b/i.test(`${p.birth.date} ${p.death.date}`);
-    return `${uncertain ? "~" : ""}${formatAge(age, TEXTS[lang].ageUnits)}`;
+    const text = formatAgeLong(age, lang);
+    return uncertain ? TEXTS[lang].qual.ABT.replace("{d}", text) : text;
   })();
   /** a reference to a person: name, optionally followed by birth year and municipality */
   const link = (pid: string | null, withDetails = true) => {
