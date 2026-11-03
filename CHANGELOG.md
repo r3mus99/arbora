@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.128.0 – 2026-11-03
+
+- **The "Set as home person" button under the tree is only an icon once a home person is set.** The words show only the first time, while no home person is chosen.
+
 ## 2.127.0 – 2026-11-03
 
 - **The home person is the first, bold step of the path under the tree.** The house chip is gone; one "Set as home person" button on the right makes the open person the home person.
