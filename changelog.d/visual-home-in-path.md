@@ -1,0 +1,1 @@
+- **The home person is the first, bold step of the path under the tree.** The house chip is gone; one "Set as home person" button on the right makes the open person the home person.

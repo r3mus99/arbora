@@ -31,7 +31,8 @@ const render = (selectedId: string, homeId: string | null) => renderToStaticMark
 describe("relation bar", () => {
   test("an ancestor of the home person shows the line from the home person", () => {
     const html = render("@I3@", "@I1@");
-    expect(html).toContain("<strong>Home Person</strong>");
+    expect(html).toContain(">Home Person</button>");
+    expect(html).not.toContain("home-chip");
     expect(html).toContain(">Father</button>");
     expect(html).toContain('<strong title="Grandpa Person">Grandpa</strong>');
   });
