@@ -23,22 +23,24 @@ interface Props {
 const MAX_CRUMBS = 6;
 
 /**
- * The bar under the chart: Back and Forward, the home person (one click returns to them, a second small button makes the open
+ * The bar under the chart: Back and Forward, the home person (one click returns to them, a second button makes the open
  * person the home person) and, for an ancestor of the home person, the line from the home person down to the open one.
  */
 export function RelationBar({ data, selectedId, homeId, onBack, onForward, onOpen, onSetHome, t }: Props) {
   const paths = useMemo(() => ancestry(data, homeId).paths, [data, homeId]);
   const home = homeId ? data.people[homeId] : null;
-  // [home, ..., open person]; the home person is the chip itself, so the crumbs start after them
+  // [home, ..., open person]; the home person is the first (bold) step, so the crumbs start after them
   const line = selectedId && homeId && selectedId !== homeId ? [...(paths.get(selectedId) || [])].reverse().slice(1) : [];
   const crumbs: (string | null)[] = line.length > MAX_CRUMBS ? [line[0], null, ...line.slice(-(MAX_CRUMBS - 2))] : line;
   const name = home?.name || "?";
   return (
     <div className="relation-bar">
       <NavArrows onBack={onBack} onForward={onForward} t={t} />
-      {home ? <button type="button" className="home-chip" onClick={() => onOpen(home.id)} disabled={selectedId === home.id}
-                      title={t("returnHome", { name })} aria-label={t("returnHome", { name })}>
-          <Home className="icon" aria-hidden="true" /><strong>{name}</strong></button>
+      {home ? <span className="crumb home-crumb">
+          {selectedId === home.id ? <strong>{name}</strong>
+            : <button type="button" className="link" onClick={() => onOpen(home.id)}
+                      title={t("returnHome", { name })} aria-label={t("returnHome", { name })}>{name}</button>}
+        </span>
         : <button type="button" className="home-chip empty" onClick={onSetHome} disabled={!selectedId}
                   title={t("homeSet")} aria-label={t("homeSet")}>
           <User className="icon" aria-hidden="true" /><strong>{t("homeSet")}</strong></button>}
@@ -50,9 +52,9 @@ export function RelationBar({ data, selectedId, homeId, onBack, onForward, onOpe
               : <button type="button" className="link" title={data.people[id]?.name} onClick={() => onOpen(id)}>{shortName(data.people[id])}</button>}
         </span>)}
       </nav>}
-      {home && selectedId && selectedId !== homeId && <button type="button" className="icon-btn set-home" onClick={onSetHome}
-                                                                 title={t("homeSet")} aria-label={t("homeSet")}>
-        <User className="icon" aria-hidden="true" /></button>}
+      {home && selectedId && selectedId !== homeId && <button type="button" className="set-home" onClick={onSetHome}
+                                                                 title={t("homeSet")}>
+        <Home className="icon" aria-hidden="true" />{t("homeSet")}</button>}
     </div>
   );
 }
