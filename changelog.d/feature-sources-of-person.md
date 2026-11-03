@@ -1,0 +1,1 @@
+- **A source button on a person's event now shows that person's sources.** The Sources panel lists only the sources cited for that person (with a × to show all again), and the clicked source stays opened.

@@ -342,11 +342,11 @@ export function App() {
   const issues = useMemo(() => (doc ? checkGedcom(doc.records) : []), [doc]);
   const problems = issues.length;
   // a source button in the detail: the Sources panel opens, the source is marked in its list and opened in the window
-  const [reveal, setReveal] = useState<{ key: string; n: number } | null>(null);
+  const [reveal, setReveal] = useState<{ key: string; n: number; person?: string } | null>(null);
   const showSource = (key: string) => {
     if (key.startsWith("@") && sourceWin?.xref !== key && sourceDirty.current && !window.confirm(t("discard"))) return;
     setTool("sources");
-    setReveal((r) => ({ key, n: (r?.n ?? 0) + 1 }));
+    setReveal((r) => ({ key, n: (r?.n ?? 0) + 1, person: selectedId || undefined }));
     if (key.startsWith("@")) setSourceWin({ xref: key });
   };
   const sourceEntry = useMemo(() => (doc && sourceWin?.xref ? sourceOverview(doc.records).sources.find((s) => s.key === sourceWin.xref) : undefined), [doc, sourceWin]);

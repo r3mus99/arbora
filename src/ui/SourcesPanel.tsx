@@ -1,4 +1,4 @@
-import { BookMarked, ExternalLink, Plus, Search, StickyNote } from "lucide-react";
+import { BookMarked, ExternalLink, Plus, Search, StickyNote, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GedcomData } from "../core/gedcom";
 import { fold } from "../core/gedcom";
@@ -18,8 +18,8 @@ interface Props {
   onEdit?: (xref: string | null) => void;
   /** the source whose window is open on the right: its row is marked in the list */
   activeXref?: string | null;
-  /** a source asked for from outside (the source button of an event): its row is shown, marked and scrolled into view; `n` counts the asks */
-  reveal?: { key: string; n: number } | null;
+  /** a source asked for from outside (the source button of an event): its row is shown, marked and scrolled into view; `n` counts the asks; `person` is whose event it came from: the list then shows only that person's sources */
+  reveal?: { key: string; n: number; person?: string } | null;
   /** a window of the person is open, so a source cannot be edited now */
   editDisabled?: boolean;
   /** where a source is cited and the web addresses written in those citations, for the citations part of an opened source */
@@ -77,17 +77,19 @@ export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, a
   const [tab, setTab] = useState<Tab>("sources");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<string | null>(null);
+  // only the sources of this person (set by the source button of one of their events, cleared by the chip)
+  const [scope, setScope] = useState<string | null>(null);
   const root = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!reveal) return;
-    setTab("sources"); setQuery("");
+    setTab("sources"); setQuery(""); setScope(reveal.person ?? null);
     // a source written as text has no window: its row unfolds instead
     setOpen(reveal.key.startsWith("@") ? null : reveal.key);
     requestAnimationFrame(() => [...(root.current?.querySelectorAll<HTMLElement>("[data-key]") ?? [])].find((e) => e.dataset.key === reveal.key)?.scrollIntoView({ block: "nearest" }));
   }, [reveal?.n]);  // eslint-disable-line react-hooks/exhaustive-deps
   const q = fold(query.trim());
-  const sources = useMemo(() => overview.sources.filter((s) => !q
-    || fold([s.citation.title, s.citation.author, s.citation.publication, s.citation.repository].join(" ")).includes(q)), [overview, q]);
+  const sources = useMemo(() => overview.sources.filter((s) => (!scope || s.people.includes(scope)) && (!q
+    || fold([s.citation.title, s.citation.author, s.citation.publication, s.citation.repository].join(" ")).includes(q))), [overview, q, scope]);
   const notes = useMemo(() => overview.notes.filter((n) => !q || fold(n.text).includes(q)), [overview, q]);
   const toggle = (key: string) => setOpen(open === key ? null : key);
   const shown = tab === "sources" ? sources.length : notes.length;
@@ -114,6 +116,10 @@ export function SourcesPanel({ overview, data, onPerson, onEdit, editDisabled, a
           <input type="search" placeholder={t("srcFilter")} autoComplete="off" value={query}
                  onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Escape") setQuery(""); }} />
         </div>
+        {tab === "sources" && scope && data.people[scope] && <div className="sp-scope">
+          <span className="sp-scope-name">{t("srcScope", { name: data.people[scope].name || "?" })}</span>
+          <button type="button" className="icon-btn" title={t("srcScopeClear")} aria-label={t("srcScopeClear")} onClick={() => setScope(null)}><X className="icon" aria-hidden="true" /></button>
+        </div>}
         <ul className="sp-list panel-body">
           {tab === "sources" && sources.map((s) => (
             <li key={s.key} data-key={s.key} className={open === s.key || activeXref === s.key ? "open" : undefined}>
