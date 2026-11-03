@@ -25,6 +25,7 @@ import { CheckPanel } from "./CheckPanel";
 import { FileDrop } from "./FileDrop";
 import { NO_MARKS, fileKey, marksOf, setHome as changeHome, toggleFav, visited, withMarks, listing, type Marks } from "./marks";
 import { NO_TRAIL, startTrail, stepTrail, visit, type Trail } from "./trail";
+import { NavArrows } from "./NavArrows";
 import { RecentPanel } from "./RecentPanel";
 import { LanguageMenu } from "./LanguageMenu";
 import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./theme";
@@ -665,6 +666,7 @@ export function App() {
             </aside> : <>
             {!narrow && <div className="mid">
               <div className="chart-bar">
+                <NavArrows onBack={canStep(-1) ? () => stepBy(-1) : undefined} onForward={canStep(1) ? () => stepBy(1) : undefined} t={t} />
                 <h2>{t("treeTitle")}</h2>
                 <button type="button" className="chart-summary" title={t("settings")} onClick={() => setShowSettings(true)}>
                   {desc ? t("desc") : t("anc")} · {gensSummary(Number(form.generations) || 0, lang, t("genTipAll"))}
@@ -680,7 +682,7 @@ export function App() {
                                       record={recordOf.get(selectedId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(selectedId) || []} lang={lang}
                                       onFocus={pick} onChange={commit} suggest={suggest}
                                       onEdit={() => setWindowId(selectedId)} onSource={showSource}
-                                      onBack={canStep(-1) ? () => stepBy(-1) : undefined} onForward={canStep(1) ? () => stepBy(1) : undefined} t={t} />}
+                                      onBack={narrow && canStep(-1) ? () => stepBy(-1) : undefined} onForward={narrow && canStep(1) ? () => stepBy(1) : undefined} t={t} />}
             </>}
         </div>}
       </section>

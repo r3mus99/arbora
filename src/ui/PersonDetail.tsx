@@ -1,5 +1,5 @@
 import {
-  Baby, Briefcase, Church, Cross, Droplets, Flower2, ChevronLeft, ChevronRight, Handshake, History, Heart, HeartCrack, Home, Pencil,
+  Baby, Briefcase, Church, Cross, Droplets, Flower2, Handshake, History, Heart, HeartCrack, Home, Pencil,
   StickyNote, Users, type LucideIcon,
 } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
@@ -18,6 +18,7 @@ import type { StringKey } from "./i18n";
 import { dateHint, givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
 import { InlineName, InlineText } from "./Inline";
 import { Row, Section } from "./Section";
+import { NavArrows } from "./NavArrows";
 import { EventSources, Linked } from "./Sources";
 
 interface Props {
@@ -41,7 +42,7 @@ interface Props {
   onEdit: () => void;
   /** opens a source of an event (its xref, or its text) in the Sources panel */
   onSource: (key: string) => void;
-  /** the person opened before / after this one; undefined when there is none */
+  /** back / forward arrows in the heading, given only on a narrow screen (else they are above the chart); undefined when there is none */
   onBack?: () => void;
   onForward?: () => void;
   /** back to the list of people, shown only on a narrow screen */
@@ -247,12 +248,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
   return (
     <aside className="detail" aria-live="polite">
       <div className="detail-head">
-        <div className="tools detail-nav">
-          <button type="button" className="icon-btn" onClick={onBack} disabled={!onBack} title={t("back")} aria-label={t("back")}>
-            <ChevronLeft className="icon" aria-hidden="true" /></button>
-          <button type="button" className="icon-btn" onClick={onForward} disabled={!onForward} title={t("forward")} aria-label={t("forward")}>
-            <ChevronRight className="icon" aria-hidden="true" /></button>
-        </div>
+        {(onBack || onForward) && <NavArrows onBack={onBack} onForward={onForward} t={t} />}
         <div className="detail-name">
         <h3><span className="detail-title">
           {live && f ? <InlineName key={`${id}|${f.given}|${f.surname}`} given={f.given} surname={f.surname} label={t("edit")}
