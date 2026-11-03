@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useMemo, useRef } from "react";
 import { Plus, Search } from "lucide-react";
-import { findPeople, fold, matchedAka, type Person } from "../core/gedcom";
+import { findPeople, matchedAka, type Person } from "../core/gedcom";
+import { compareByListName } from "../core/listName";
 import type { Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 import { PanelHead } from "./PanelHead";
@@ -31,7 +32,7 @@ export const PersonRail = forwardRef<HTMLInputElement, Props>(function PersonRai
   const sorted = useMemo(() => {
     const q = query.trim();
     const found = q ? findPeople(q, people) : Object.values(people);
-    return found.sort((a, b) => fold(a.name).localeCompare(fold(b.name)));
+    return found.sort(compareByListName);
   }, [people, query]);
 
   useEffect(() => {
