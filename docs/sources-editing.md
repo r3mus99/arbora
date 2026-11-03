@@ -48,7 +48,7 @@ Citation fields (page, quality) stay in the edit window: they belong to the even
 
 Since the sources are edited in the source window, the timeline no longer lists them: the sources button of an event
 (`EventSources`) opens the (first) source of that event in the Sources panel, marked in the list and opened in the window.
-The notes of an event still unfold under it.
+The note of an event is not behind a button: it is always written under the event.
 
 ## Smallest first step (one PR, ~1 day)
 
