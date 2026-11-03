@@ -1,1 +1,0 @@
-- **The line from the home person to the open ancestor is shown under the tree.** One bar there also holds Back and Forward and the home person (the top bar and the detail no longer show them), and "Prababka" under the name is gone.
