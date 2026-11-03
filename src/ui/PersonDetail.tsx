@@ -10,6 +10,7 @@ import { municipality } from "../core/places";
 import { nameDetails } from "../core/names";
 import { ageBetween, dateParts, formatAge, yearsBetween } from "../core/date";
 import { eventMark, fmt, formatDate, weekdayTip, type ChartOptions } from "../core/format";
+import { ancestry } from "../core/ancestry";
 import { childOf, childrenOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { formatAgeLong, TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, marriageAnnotations, mergeAnnotations, type Lookup } from "../core/sources";
@@ -68,28 +69,7 @@ const besideDate = (e: TimelineItem) => e.kind === "residence" && !!e.detail;
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
 export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, labels, onFocus, onChange, suggest, onEdit, onSource, onBack, onForward, t }: Props) {
   const p = data.people[id];
-  const homeAncestors = useMemo(() => {
-    const generations = new Map<string, number>();
-    const paths = new Map<string, string[]>();
-    if (!homeId) return { generations, paths };
-    const queue: [string, number][] = [[homeId, 0]];
-    const seen = new Set([homeId]);
-    paths.set(homeId, [homeId]);
-    for (let i = 0; i < queue.length; i++) {
-      const [personId, generation] = queue[i];
-      for (const familyId of data.people[personId]?.famc || []) {
-        const family = data.families[familyId];
-        for (const parent of [family?.husb, family?.wife]) {
-          if (!parent || seen.has(parent) || !data.people[parent]) continue;
-          seen.add(parent);
-          generations.set(parent, generation + 1);
-          paths.set(parent, [parent, ...(paths.get(personId) || [personId])]);
-          queue.push([parent, generation + 1]);
-        }
-      }
-    }
-    return { generations, paths };
-  }, [data, homeId]);
+  const homeAncestors = useMemo(() => ancestry(data, homeId), [data, homeId]);
   const ancestorTitle = (personId: string) => {
     const generation = homeAncestors.generations.get(personId);
     if (!generation) return undefined;
@@ -268,8 +248,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
       {(years(p) || lifeAge) && <p className="life">
         {years(p) && <span className="lifespan">{years(p)}</span>}
         {lifeAge && <span className="life-age"> · {lifeAge}</span>}</p>}
-      {(homeAncestors.generations.has(id) || (f && f.aliases.length > 0)) && <div className="id">
-        {homeAncestors.generations.has(id) && <div className="ancestor-relation">{ancestorTitle(id)}</div>}
+      {f && f.aliases.length > 0 && <div className="id">
         {/* other forms of the name, quietly under the years, one per line */}
         {f && f.aliases.map((a) => {
           const text = [a.given, a.surname].filter(Boolean).join(" ");

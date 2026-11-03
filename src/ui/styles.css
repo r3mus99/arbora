@@ -207,7 +207,17 @@ footer a { color: var(--accent); }
                position: sticky; top: 0; z-index: 1; background: var(--panel); }
 .detail-head .tools { display: flex; gap: 4px; flex: none; margin-top: var(--tool-top); }
 .nav-arrows { display: flex; gap: 2px; flex: none; }
-.chart-bar .nav-arrows { margin-right: -6px; }
+/* the bar under the chart: back/forward, the home person, the line from them to the open person */
+.relation-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; flex: none; min-height: var(--head-h); padding: 6px var(--pad);
+                border-top: 1px solid var(--border); }
+.relation-bar .home-chip { min-height: var(--ctl-h-sm); }
+.relation-bar .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; min-width: 0; font-size: 14px; }
+.relation-bar .crumb { display: inline-flex; align-items: center; gap: 6px; }
+.relation-bar .crumb-sep { color: var(--muted); }
+.relation-bar .crumb button.link { font: inherit; text-decoration: none; }
+.relation-bar .crumb button.link:hover { text-decoration: underline; }
+.relation-bar .crumb strong { font-weight: 600; }
+.relation-bar .set-home { margin-left: auto; }
 .detail-head .nav-arrows { margin-top: var(--tool-top); }
 .nav-arrows .icon-btn:disabled { opacity: .35; cursor: default; }
 .detail .life { margin: 0 0 4px; font-variant-numeric: tabular-nums; }

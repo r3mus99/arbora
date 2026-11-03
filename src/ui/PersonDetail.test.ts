@@ -103,7 +103,7 @@ describe("person detail timeline", () => {
     }));
     expect(html).toContain('class="ancestor"');
     expect(html).toMatch(/title="Father(?:&#10;|\n)→ Bob Sample \(1902\)(?:&#10;|\n)→ Child Sample \(1920\)"/);
-    expect(html).toContain('<div class="ancestor-relation">Mother</div>');
+    expect(html).not.toContain("ancestor-relation");
     expect(html).toContain('class="link person" type="button">Child Sample</button>');
   });
 

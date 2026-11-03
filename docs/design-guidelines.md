@@ -170,6 +170,13 @@ Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexi
 - **Settings panel** (`SettingsPanel`): one `.set-group` on the `--bg` panel body, no headings and no legend: every setting applies to the chart on the screen, the PDF and the SVG poster alike, so none says where it applies. Order: the Ancestors / Descendants switch (`.chart-switch.set-kind`), the generations (segmented 3 to 10 and "all", `.set-gens`, with a one-line `.set-hint` that the poster draws at most 10), then the numbering (it depends on the chart kind), labels, dates and the places checkbox. A choice of a few numbers is the segmented switch, not a select. A checkbox label is a short phrase; its explanation is the tooltip. The tree toolbar above the chart has no controls of its own, only `.chart-summary` ("Ancestors · 4 generations", `--radius-pill`, a sliders icon) which opens the Settings panel. Options that only make sense for a bigger poster (end the branch at a repeated person, corner lists: five generations or more) are hidden below that, and ignored there.
 - **Tree poster**: not a mini-app. Its download is the SVG button in the top bar after GED and PDF (same `.icon-btn.save-btn`, a file-image icon, tooltip = title plus hint). Its few settings (generations, end branch at a repeated person, corner lists) are the last group of the settings panel; every click draws new branches.
 
+### The relation bar
+
+Under the chart sits one bar (`.relation-bar`, `RelationBar.tsx`): Back and Forward, the home person as a chip (a click returns to them),
+for an ancestor of the home person the line from them down to the open person (short names, the open one in bold, a long line shows
+`…` in the middle), and a small user button that makes the open person the home person. The home person is not set anywhere else on
+the desktop layout. A narrow screen has no chart and keeps the old chip in the top bar.
+
 ## 7b. Motion
 
 - **Motion** is short and only helps the eye follow what changed: a tool panel slides in from the left, the edit window and the wide tool panels from the right, the detail fades in when another person is chosen (`--motion`, .16 s, opacity and a few pixels of movement). Never animate the width of a column or the rows of the tree and the lists. Every animation uses `--motion`, and under `prefers-reduced-motion: reduce` the token is 0 and the animations are off. The busy spinner keeps turning, because it says "working".
