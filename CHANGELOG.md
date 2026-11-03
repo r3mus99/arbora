@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.125.0 – 2026-11-03
+
+- **The name of a child or spouse is always on the second line.** The timeline shows the dates first, then the name, then the relation, also for marriages and for children without dates.
+
 ## 2.124.0 – 2026-11-03
 
 - **Add a source straight from an event.** Next to a birth, christening, death or burial that has a date, a "+ Source" row opens a new source already filled in with the event title, the person and the event; the edit window comes back after saving. The note of an event is always visible, and all "add" actions in the person edit window (christening, burial, residence, occupation, family, spouse, child, parent, godparent, another name) are muted rows at the end of their group, while Delete and Merge moved to the footer.
