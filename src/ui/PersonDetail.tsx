@@ -321,20 +321,17 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
               <div className={`tl-body${src ? " has-src" : ""}`}>
                 {/* Line 1: when and who/where; line 2: what happened, age and extras. */}
                 {e.date || e.other || e.place || besideDate(e) ? <div className="tl-date">
-                  {e.kind === "child" ? <>
-                    {/* a child: birth (bold) and death (muted) on the first line, the name under it */}
-                    {(e.date || e.childDeath !== null && e.childDeath !== undefined) && <div>
-                      {e.date && <span>{eventMark("birt", labels, lang).trim()} {dated(e.date)}</span>}
-                      {e.childDeath !== null && e.childDeath !== undefined && <span className="muted">{e.date && " "}{eventMark("deat", labels, lang).trim()} {e.childDeath ? dated(e.childDeath) : "?"}</span>}
-                    </div>}
+                  {e.other ? <>
+                    {/* a line with a person: the dates on the first line, always the name on the second */}
+                    <div>{e.kind === "child" ? <>
+                      <span>{eventMark("birt", labels, lang).trim()} {e.date ? dated(e.date) : <span className="muted">?</span>}</span>
+                      {e.childDeath !== null && e.childDeath !== undefined && <span className="muted"> {eventMark("deat", labels, lang).trim()} {e.childDeath ? dated(e.childDeath) : "?"}</span>}
+                    </> : e.date ? <span>{editable(e) ? dateField(e) : dated(e.date)}</span> : <span className="muted">?</span>}</div>
                     <div className="tl-kid">{link(e.other, false)}</div>
                   </> : <>
-                  {e.date && <span>{editable(e) ? dateField(e) : dated(e.date)}</span>}
-                  {e.other ? <>{e.date && " · "}{link(e.other, false)}</>
-                    : <>
-                      {e.place && <span className="muted">{e.date && " · "}{editable(e) ? placeField(e) : municipality(e.place)}</span>}
-                      {besideDate(e) && <span className="muted">{(e.date || e.place) && " · "}{e.detail}</span>}
-                    </>}
+                    {e.date && <span>{editable(e) ? dateField(e) : dated(e.date)}</span>}
+                    {e.place && <span className="muted">{e.date && " · "}{editable(e) ? placeField(e) : municipality(e.place)}</span>}
+                    {besideDate(e) && <span className="muted">{(e.date || e.place) && " · "}{e.detail}</span>}
                   </>}
                 </div> : null}
                 <div className="tl-what">

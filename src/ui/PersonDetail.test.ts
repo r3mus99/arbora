@@ -48,7 +48,7 @@ describe("person detail timeline", () => {
     }));
 
     expect(html).toContain(
-      'class="tl-date"><span>1918</span> · <span class="person-ref"><button class="link person" type="button">Bob Sample</button></span></div><div class="tl-what">Marriage<span> · at 18 y.</span><span> · Children: 1</span></div>',
+      'class="tl-date"><div><span>1918</span></div><div class="tl-kid"><span class="person-ref"><button class="link person" type="button">Bob Sample</button></span></div></div><div class="tl-what">Marriage<span> · at 18 y.</span><span> · Children: 1</span></div>',
     );
     expect(html).toContain(
       'class="tl-date"><div><span>* 1920</span></div><div class="tl-kid"><span class="person-ref"><button class="link person" type="button">Child Sample</button></span></div></div><div class="tl-what">Child born<span> · at 20 y.</span></div>',
@@ -224,6 +224,19 @@ describe("children on the timeline", () => {
   test("a death without a date shows a question mark; no death shows none", () => {
     expect(render("1 DEAT\n2 PLAC Brno\n")).toContain('<span class="muted"> † ?</span>');
     expect(render("")).not.toContain("†");
+  });
+  test("the name is always on the second line, also when the child has no dates", () => {
+    const html = render("").replace("DATE 1920", "");
+    expect(html).toContain('<div class="tl-kid">');
+    const records = parseGedcom(GED.replace("1 BIRT\n2 DATE 1920\n", ""));
+    const data = readRecords(records);
+    const bare = renderToStaticMarkup(createElement(PersonDetail, {
+      data, id: "@I1@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
+      homeId: null, lang: "en", labels: "symbols", onFocus: () => {}, onChange: () => {},
+      suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
+      t: (key: StringKey) => STRINGS.en[key] ?? key,
+    }));
+    expect(bare).toContain('<div><span>* <span class="muted">?</span></span></div><div class="tl-kid">');
   });
   test("the marks follow the abbreviations setting", () => {
     expect(render("1 DEAT\n2 DATE 1925\n", "abbr")).toContain('<span>b. 1920</span><span class="muted"> d. 1925</span>');

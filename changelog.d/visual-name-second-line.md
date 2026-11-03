@@ -1,0 +1,1 @@
+- **The name of a child or spouse is always on the second line.** The timeline shows the dates first, then the name, then the relation, also for marriages and for children without dates.
