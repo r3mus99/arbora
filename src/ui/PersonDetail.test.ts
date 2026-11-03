@@ -42,16 +42,16 @@ describe("person detail timeline", () => {
     const recordOf = (xref: string) => records.find((r) => r.xref === xref);
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I1@", lookup: recordOf, inbound: [],
-      homeId: null, lang: "en", onFocus: () => {}, onChange: () => {},
+      homeId: null, lang: "en", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.en[key] ?? key,
     }));
 
     expect(html).toContain(
-      'class="tl-date"><span>1918</span> · <span class="person-ref"><button class="link person" type="button">Bob Sample</button></span></div><div class="tl-what">Marriage<span> · at 18 y.</span></div>',
+      'class="tl-date"><span>1918</span> · <span class="person-ref"><button class="link person" type="button">Bob Sample</button></span></div><div class="tl-what">Marriage<span> · at 18 y.</span><span> · Children: 1</span></div>',
     );
     expect(html).toContain(
-      'class="tl-date"><span>1920</span> · <span class="person-ref"><button class="link person" type="button">Child Sample</button></span></div><div class="tl-what">Child born<span> · at 20 y.</span></div>',
+      'class="tl-date"><div><span>* 1920</span></div><div class="tl-kid"><span class="person-ref"><button class="link person" type="button">Child Sample</button></span></div></div><div class="tl-what">Child born<span> · at 20 y.</span></div>',
     );
   });
 
@@ -60,7 +60,7 @@ describe("person detail timeline", () => {
     const data = readRecords(records);
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I3@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
-      homeId: null, lang: "en", onFocus: () => {}, onChange: () => {},
+      homeId: null, lang: "en", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.en[key] ?? key,
     }));
@@ -75,7 +75,7 @@ describe("person detail timeline", () => {
       const records = parseGedcom(ged);
       return renderToStaticMarkup(createElement(PersonDetail, {
         data: readRecords(records), id: "@I1@", record: records.find((r) => r.xref === "@I1@"), lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
-        homeId: null, lang: "en", onFocus: () => {}, onChange: () => {},
+        homeId: null, lang: "en", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
         suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
         t: (key: StringKey) => STRINGS.en[key] ?? key,
       }));
@@ -97,7 +97,7 @@ describe("person detail timeline", () => {
     const data = readRecords(records);
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I1@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
-      homeId: "@I3@", lang: "en", onFocus: () => {}, onChange: () => {},
+      homeId: "@I3@", lang: "en", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.en[key] ?? key,
     }));
@@ -172,21 +172,21 @@ describe("person detail timeline", () => {
     const data = readRecords(records);
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I5@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
-      homeId: "@I1@", lang: "sk", onFocus: () => {}, onChange: () => {},
+      homeId: "@I1@", lang: "sk", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.sk[key] ?? key,
     }));
     expect(html).toMatch(/title="Prababka(?:&#10;|\n)→ Great-grandparent Person(?:&#10;|\n)→ Grandparent Person(?:&#10;|\n)→ Parent Person(?:&#10;|\n)→ Home Person \(2000\)"/);
     const secondGreatGrandmotherHtml = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I9@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
-      homeId: "@I1@", lang: "sk", onFocus: () => {}, onChange: () => {},
+      homeId: "@I1@", lang: "sk", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.sk[key] ?? key,
     }));
     expect(secondGreatGrandmotherHtml).toMatch(/title="2\. prababka(?:&#10;|\n)→ Another ancestor Person(?:&#10;|\n)→ Great-grandparent Person(?:&#10;|\n)→ Grandparent Person(?:&#10;|\n)→ Parent Person(?:&#10;|\n)→ Home Person \(2000\)"/);
     const distantHtml = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I6@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
-      homeId: "@I1@", lang: "sk", onFocus: () => {}, onChange: () => {},
+      homeId: "@I1@", lang: "sk", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.sk[key] ?? key,
     }));
@@ -198,11 +198,34 @@ describe("person detail timeline", () => {
     const data = readRecords(records);
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I1@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
-      homeId: null, lang: "en", onFocus: () => {}, onChange: () => {},
+      homeId: null, lang: "en", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.en[key] ?? key,
     }));
     expect(html).toMatch(/title="Sunday, [^"]*1918"/);
     expect(html).not.toMatch(/title="[A-Z][a-z]+day, [^"]*1900"/);
+  });
+});
+
+describe("children on the timeline", () => {
+  const render = (childLines: string, labels: "symbols" | "abbr" = "symbols") => {
+    const records = parseGedcom(GED.replace("1 BIRT\n2 DATE 1920\n", `1 BIRT\n2 DATE 1920\n${childLines}`));
+    const data = readRecords(records);
+    return renderToStaticMarkup(createElement(PersonDetail, {
+      data, id: "@I1@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
+      homeId: null, lang: "en", labels, onFocus: () => {}, onChange: () => {},
+      suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
+      t: (key: StringKey) => STRINGS.en[key] ?? key,
+    }));
+  };
+  test("a child with a death date shows it muted after the birth", () => {
+    expect(render("1 DEAT\n2 DATE 1925\n")).toContain('<span>* 1920</span><span class="muted"> † 1925</span>');
+  });
+  test("a death without a date shows a question mark; no death shows none", () => {
+    expect(render("1 DEAT\n2 PLAC Brno\n")).toContain('<span class="muted"> † ?</span>');
+    expect(render("")).not.toContain("†");
+  });
+  test("the marks follow the abbreviations setting", () => {
+    expect(render("1 DEAT\n2 DATE 1925\n", "abbr")).toContain('<span>b. 1920</span><span class="muted"> d. 1925</span>');
   });
 });
