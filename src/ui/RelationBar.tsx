@@ -23,7 +23,7 @@ interface Props {
 const MAX_CRUMBS = 6;
 
 /**
- * The bar under the chart: Back and Forward, the home person (one click returns to them, a second button makes the open
+ * The bar under the chart: Back and Forward, the home person (one click returns to them, a second icon button (the words only appear while no home person is set) makes the open
  * person the home person) and, for an ancestor of the home person, the line from the home person down to the open one.
  */
 export function RelationBar({ data, selectedId, homeId, onBack, onForward, onOpen, onSetHome, t }: Props) {
@@ -52,9 +52,9 @@ export function RelationBar({ data, selectedId, homeId, onBack, onForward, onOpe
               : <button type="button" className="link" title={data.people[id]?.name} onClick={() => onOpen(id)}>{shortName(data.people[id])}</button>}
         </span>)}
       </nav>}
-      {home && selectedId && selectedId !== homeId && <button type="button" className="set-home" onClick={onSetHome}
-                                                                 title={t("homeSet")}>
-        <Home className="icon" aria-hidden="true" />{t("homeSet")}</button>}
+      {home && selectedId && selectedId !== homeId && <button type="button" className="icon-btn set-home" onClick={onSetHome}
+                                                                 title={t("homeSet")} aria-label={t("homeSet")}>
+        <Home className="icon" aria-hidden="true" /></button>}
     </div>
   );
 }
