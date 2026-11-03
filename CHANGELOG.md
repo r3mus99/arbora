@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.120.0 – 2026-11-03
+
+- **A person reference in the detail is one button.** In the marriage row of the parents and in associations, the age or birth year in brackets is part of the clickable name.
+
 ## 2.119.0 – 2026-11-03
 
 - **Teal accent colour.** Buttons, links, the logo, selected rows and the active tab and rail icon are teal instead of purple, in both light and dark mode.
