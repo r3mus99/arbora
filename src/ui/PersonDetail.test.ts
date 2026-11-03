@@ -66,7 +66,7 @@ describe("person detail timeline", () => {
     expect(html).toContain("<span>1900 · </span>");
     expect(html).toContain('<div class="tl-what">Mother<span> · Brno</span></div>');
     expect(html).toContain('<div class="tl-what">Father</div>');
-    expect(html).toContain("Bob</button> (16y)</span> &amp; <span class=\"person-ref\"><button class=\"link person\" type=\"button\">Alice</button> (18y)");
+    expect(html).toContain("Bob (16y)</button></span> &amp; <span class=\"person-ref\"><button class=\"link person\" type=\"button\">Alice (18y)</button>");
   });
 
   test("only direct ancestors of the home person are bold in the timeline", () => {
@@ -78,7 +78,7 @@ describe("person detail timeline", () => {
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.en[key] ?? key,
     }));
-    expect(html).toContain('class="link person ancestor"');
+    expect(html).toContain('class="ancestor"');
     expect(html).toMatch(/title="Father(?:&#10;|\n)→ Bob Sample \(1902\)(?:&#10;|\n)→ Child Sample \(1920\)"/);
     expect(html).toContain('<span class="ancestor-relation">Mother</span>');
     expect(html).toContain('class="link person" type="button">Child Sample</button>');

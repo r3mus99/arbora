@@ -181,9 +181,10 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
     const year = withDetails && q.birth ? formatDate(q.birth.date, false, lang) : "";
     const place = withDetails && q.birth ? municipality(q.birth.place) : "";
     return <span className="person-ref">
-      <button className={`link person${homeAncestors.generations.has(q.id) ? " ancestor" : ""}`} type="button"
-              title={ancestorTooltip(q.id)} onClick={() => onFocus(q.id)}>{q.name || "?"}</button>
-      {(year || place) && <span> (<span className="s-birt">{year}</span>{year && place && " "}<span className="s-place">{place}</span>)</span>}
+      <button className="link person" type="button" title={ancestorTooltip(q.id)} onClick={() => onFocus(q.id)}>
+        {homeAncestors.generations.has(q.id) ? <span className="ancestor">{q.name || "?"}</span> : (q.name || "?")}
+        {(year || place) && <> (<span className="s-birt">{year}</span>{year && place && " "}<span className="s-place">{place}</span>)</>}
+      </button>
     </span>;
   };
 
@@ -194,8 +195,9 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
     if (!q) return null;
     const age = yearsBetween(q.birth?.date, birthFam?.marriage?.date);
     return <span className="person-ref">
-      <button className="link person" type="button" onClick={() => onFocus(q.id)}>{q.given || q.name || "?"}</button>
-      {age !== null && ` (${age}${t("yearsShort")})`}
+      <button className="link person" type="button" onClick={() => onFocus(q.id)}>
+        {q.given || q.name || "?"}{age !== null && ` (${age}${t("yearsShort")})`}
+      </button>
     </span>;
   };
   const parents = birthFam ? [birthFam.husb, birthFam.wife].filter((x): x is string => !!x) : [];

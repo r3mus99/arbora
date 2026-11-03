@@ -1,0 +1,1 @@
+- **A person reference in the detail is one button.** In the marriage row of the parents and in associations, the age or birth year in brackets is part of the clickable name.
