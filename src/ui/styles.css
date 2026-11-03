@@ -512,8 +512,9 @@ section.check { margin: 0 0 14px; }
 .sp-tabs { padding: var(--pad); }
 .sp-tabs .chart-switch { display: flex; width: 100%; }
 .sp-tabs .chart-switch button { flex: 1; min-width: 0; }
-.sp-scope { padding-top: 0; }
-.sp-scope-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sp-scope { flex: none; display: flex; align-items: center; gap: var(--gap); padding: 0 var(--pad); min-height: var(--ctl-h-sm); background: var(--accent-soft); border-bottom: 1px solid var(--border); font-size: 12px; color: var(--accent); }
+.sp-scope-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.sp-scope .icon-btn { width: var(--ctl-h-sm); height: var(--ctl-h-sm); border: 0; background: none; color: inherit; }
 .sp .finder { border-top: 1px solid var(--border); }
 .sp-tabs { flex: none; }
 .sp-list { list-style: none; margin: 0; padding: 4px 0; }
