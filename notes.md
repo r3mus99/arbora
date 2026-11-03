@@ -1,1 +1,1 @@
-- **A residence in the timeline shows its address next to the date.** "1930 · Mill Road 4" on the first line, like the birth shows its place, and "Residence · aged 42" below.
+- **A source button on a person's event now shows that person's sources.** The Sources panel lists only the sources cited for that person (with a × to show all again), and the clicked source stays opened.
