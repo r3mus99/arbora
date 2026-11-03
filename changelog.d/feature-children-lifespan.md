@@ -1,1 +1,0 @@
-- **Children on the timeline show their death.** A child's line has the birth in bold and the death muted, with the marks from Settings, the name under it, and a marriage shows how many children it had.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.122.0 – 2026-11-03
+
+- **Children on the timeline show their death.** A child's line has the birth in bold and the death muted, with the marks from Settings, the name under it, and a marriage shows how many children it had.
+
 ## 2.121.0 – 2026-11-03
 
 - **The person detail shows the years in bold with the age at death, and other names under them.** A line such as "1887–1922 · 34 years" (with "abt" in front of the age when a date is uncertain) replaces the small years in front of the ID; the ID is no longer shown, and each other name (aka) has its own line without the "aka" word.
