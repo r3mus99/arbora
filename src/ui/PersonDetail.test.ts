@@ -97,7 +97,7 @@ describe("person detail timeline", () => {
     const data = readRecords(records);
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I1@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
-      homeId: "@I3@", lang: "en", onFocus: () => {}, onChange: () => {},
+      homeId: "@I3@", lang: "en", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.en[key] ?? key,
     }));
@@ -172,21 +172,21 @@ describe("person detail timeline", () => {
     const data = readRecords(records);
     const html = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I5@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
-      homeId: "@I1@", lang: "sk", onFocus: () => {}, onChange: () => {},
+      homeId: "@I1@", lang: "sk", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.sk[key] ?? key,
     }));
     expect(html).toMatch(/title="Prababka(?:&#10;|\n)→ Great-grandparent Person(?:&#10;|\n)→ Grandparent Person(?:&#10;|\n)→ Parent Person(?:&#10;|\n)→ Home Person \(2000\)"/);
     const secondGreatGrandmotherHtml = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I9@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
-      homeId: "@I1@", lang: "sk", onFocus: () => {}, onChange: () => {},
+      homeId: "@I1@", lang: "sk", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.sk[key] ?? key,
     }));
     expect(secondGreatGrandmotherHtml).toMatch(/title="2\. prababka(?:&#10;|\n)→ Another ancestor Person(?:&#10;|\n)→ Great-grandparent Person(?:&#10;|\n)→ Grandparent Person(?:&#10;|\n)→ Parent Person(?:&#10;|\n)→ Home Person \(2000\)"/);
     const distantHtml = renderToStaticMarkup(createElement(PersonDetail, {
       data, id: "@I6@", lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
-      homeId: "@I1@", lang: "sk", onFocus: () => {}, onChange: () => {},
+      homeId: "@I1@", lang: "sk", labels: "symbols" as const, onFocus: () => {}, onChange: () => {},
       suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
       t: (key: StringKey) => STRINGS.sk[key] ?? key,
     }));
