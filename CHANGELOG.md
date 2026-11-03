@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.121.0 – 2026-11-03
+
+- **The person detail shows the years in bold with the age at death, and other names under them.** A line such as "1887–1922 · 34 years" (with "abt" in front of the age when a date is uncertain) replaces the small years in front of the ID; the ID is no longer shown, and each other name (aka) has its own line without the "aka" word.
+
 ## 2.120.0 – 2026-11-03
 
 - **A person reference in the detail is one button.** In the marriage row of the parents and in associations, the age or birth year in brackets is part of the clickable name.
