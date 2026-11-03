@@ -1,0 +1,1 @@
+- **A residence in the timeline shows its address next to the date.** "1930 · Mill Road 4" on the first line, like the birth shows its place, and "Residence · aged 42" below.
