@@ -219,8 +219,7 @@ footer a { color: var(--accent); }
 .relation-bar .home-crumb { font-size: 14px; font-weight: 700; }
 .relation-bar .home-crumb button.link { font: inherit; text-decoration: none; }
 .relation-bar .home-crumb button.link:hover { text-decoration: underline; }
-.relation-bar .set-home { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: var(--ctl-h-sm); font-size: 14px; background: var(--panel); }
-.relation-bar .set-home > .icon { color: var(--accent); }
+.relation-bar .set-home { margin-left: auto; }
 .detail-head .nav-arrows { margin-top: var(--tool-top); }
 .nav-arrows .icon-btn:disabled { opacity: .35; cursor: default; }
 .detail .life { margin: 0 0 4px; font-variant-numeric: tabular-nums; }

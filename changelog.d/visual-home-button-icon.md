@@ -1,0 +1,1 @@
+- **The "Set as home person" button under the tree is only an icon once a home person is set.** The words show only the first time, while no home person is chosen.
