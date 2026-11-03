@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.116.0 – 2026-11-03
+
+- **The timeline no longer has a note button.** An event note is always written under the event, so the note icon and the click to unfold it are gone; the sources button stays.
+
 ## 2.115.0 – 2026-11-03
 
 - **People and Recent lists show "Surname, Given name" and the People list is sorted by surname.** Sorting follows Slovak letter order (Č after C, Ch after H); people without a surname are listed last.
