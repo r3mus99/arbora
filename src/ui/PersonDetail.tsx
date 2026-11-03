@@ -56,6 +56,9 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
   birth: Baby, christening: Droplets, residence: Home, famEvent: Heart, marriage: Heart, child: Baby, death: Cross, burial: Flower2,
 };
 
+/** a residence tells its address on the date line, next to the date and place, like the birth tells its place */
+const besideDate = (e: TimelineItem) => e.kind === "residence" && !!e.detail;
+
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
 export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, onFocus, onChange, suggest, onEdit, onSource, t }: Props) {
   const p = data.people[id];
@@ -299,15 +302,18 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
             return <Row key={e.key} icon={Icon} tone={`tl-${e.kind}${childSex ? ` tl-sex-${childSex}` : ""}`}>
               <div className={`tl-body${src ? " has-src" : ""}`}>
                 {/* Line 1: when and who/where; line 2: what happened, age and extras. */}
-                {e.date || e.other || e.place ? <div className="tl-date">
+                {e.date || e.other || e.place || besideDate(e) ? <div className="tl-date">
                   {e.date && <span>{editable(e) ? dateField(e) : dated(e.date)}</span>}
                   {e.other ? <>{e.date && " · "}{link(e.other, false)}</>
-                    : e.place && <span className="muted">{e.date && " · "}{editable(e) ? placeField(e) : municipality(e.place)}</span>}
+                    : <>
+                      {e.place && <span className="muted">{e.date && " · "}{editable(e) ? placeField(e) : municipality(e.place)}</span>}
+                      {besideDate(e) && <span className="muted">{(e.date || e.place) && " · "}{e.detail}</span>}
+                    </>}
                 </div> : null}
                 <div className="tl-what">
                   {label(e.kind, !!e.date, e.other, e.tag)}
                   {e.age !== null && <span> · {fmt(t("ageAt"), { n: formatAge(e.age, TEXTS[lang].ageUnits) })}</span>}
-                  {e.detail && <> · {e.detail}</>}
+                  {e.detail && !besideDate(e) && <> · {e.detail}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
                 </div>
                 {e.details && <div className="tl-details">{e.details.map((d) => {

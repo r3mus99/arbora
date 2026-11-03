@@ -179,6 +179,7 @@ Grid: a subsection is a grid with a 100px first column (dates, ages) and a flexi
 
 - Tree rows are 24px with zebra tint; name 600, spouse `--muted`; event letters coloured with the event tokens; selection = accent fill on the name only.
 - Fold control: − only on hover, + always with the hidden count.
+- Timeline rows: line 1 is the date, then the place (the person or the address for a residence) separated by " · "; line 2 is what happened and the age. A residence puts its address on line 1 beside the date, never on line 2. The source count icon stays at the right.
 - The sections of the detail are inset cards (`.facts > .section`: `--bg` fill on the `--panel`, 1px `--border`, `--radius-lg`, padding `10px 12px`, 10px apart), like the parts of the edit window; the icons that cut the timeline line use `--bg` too.
 - Detail is built from `Section` and `Row` (`src/ui/Section.tsx`): section title 12px uppercase, icon column `--d-col`, one coloured icon per event. Detail layout tokens (`--d-icon`, `--d-icon-row`, `--d-col`, `--d-gap`, `--d-section-gap`) stay as documented in `styles.css`.
 
