@@ -1,0 +1,1 @@
+- **The timeline no longer has a note button.** An event note is always written under the event, so the note icon and the click to unfold it are gone; the sources button stays.

@@ -12,7 +12,7 @@ import { dateParts, formatAge, yearsBetween } from "../core/date";
 import { fmt, formatDate, weekdayTip } from "../core/format";
 import { childOf, childrenOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
-import { annotations, eventAnnotations, hasAnnotations, marriageAnnotations, mergeAnnotations, type Lookup } from "../core/sources";
+import { annotations, eventAnnotations, marriageAnnotations, mergeAnnotations, type Lookup } from "../core/sources";
 import { timeline, type TimelineItem, type TimelineKind } from "../core/timeline";
 import type { StringKey } from "./i18n";
 import { dateHint, givenList, PLACES, RELIGIONS, surnameList, SuggestLists } from "./PersonEditor";
@@ -294,7 +294,7 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
           {life.map((e) => {
             const Icon = e.tag === "DIV" ? HeartCrack : ICONS[e.kind];
             const found = extras(e.kind, e.key, e.node, e.other);
-            const src = found && hasAnnotations(found) ? found : null;
+            const src = found && found.sources.length > 0 ? found : null;
             const childSex = e.kind === "child" && e.other ? data.people[e.other]?.sex : "";
             return <Row key={e.key} icon={Icon} tone={`tl-${e.kind}${childSex ? ` tl-sex-${childSex}` : ""}`}>
               <div className={`tl-body${src ? " has-src" : ""}`}>
