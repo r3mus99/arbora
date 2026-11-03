@@ -9,7 +9,7 @@ import { recordInfo } from "../core/info";
 import { municipality } from "../core/places";
 import { nameDetails } from "../core/names";
 import { ageBetween, dateParts, formatAge, yearsBetween } from "../core/date";
-import { fmt, formatDate, weekdayTip } from "../core/format";
+import { eventMark, fmt, formatDate, weekdayTip, type ChartOptions } from "../core/format";
 import { childOf, childrenOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { formatAgeLong, TEXTS, type Lang } from "../core/texts";
 import { annotations, eventAnnotations, marriageAnnotations, mergeAnnotations, type Lookup } from "../core/sources";
@@ -33,6 +33,8 @@ interface Props {
   /** the home person: the people on the way from them to this one are marked */
   homeId: string | null;
   lang: Lang;
+  /** birth and death marks: symbols or abbreviations (the Settings choice) */
+  labels: ChartOptions["labels"];
   onFocus: (id: string) => void;
   /** inline edits: the changed records, one undo step each */
   onChange: (changed: GedNode[]) => void;
@@ -64,7 +66,7 @@ const ICONS: Record<TimelineKind, LucideIcon> = {
 const besideDate = (e: TimelineItem) => e.kind === "residence" && !!e.detail;
 
 /** Facts and close family of one person, with their life as a timeline; relatives are links. */
-export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, onFocus, onChange, suggest, onEdit, onSource, onBack, onForward, t }: Props) {
+export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, labels, onFocus, onChange, suggest, onEdit, onSource, onBack, onForward, t }: Props) {
   const p = data.people[id];
   const homeAncestors = useMemo(() => {
     const generations = new Map<string, number>();
@@ -319,18 +321,28 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
               <div className={`tl-body${src ? " has-src" : ""}`}>
                 {/* Line 1: when and who/where; line 2: what happened, age and extras. */}
                 {e.date || e.other || e.place || besideDate(e) ? <div className="tl-date">
+                  {e.kind === "child" ? <>
+                    {/* a child: birth (bold) and death (muted) on the first line, the name under it */}
+                    {(e.date || e.childDeath !== null && e.childDeath !== undefined) && <div>
+                      {e.date && <span>{eventMark("birt", labels, lang).trim()} {dated(e.date)}</span>}
+                      {e.childDeath !== null && e.childDeath !== undefined && <span className="muted">{e.date && " "}{eventMark("deat", labels, lang).trim()} {e.childDeath ? dated(e.childDeath) : "?"}</span>}
+                    </div>}
+                    <div className="tl-kid">{link(e.other, false)}</div>
+                  </> : <>
                   {e.date && <span>{editable(e) ? dateField(e) : dated(e.date)}</span>}
                   {e.other ? <>{e.date && " · "}{link(e.other, false)}</>
                     : <>
                       {e.place && <span className="muted">{e.date && " · "}{editable(e) ? placeField(e) : municipality(e.place)}</span>}
                       {besideDate(e) && <span className="muted">{(e.date || e.place) && " · "}{e.detail}</span>}
                     </>}
+                  </>}
                 </div> : null}
                 <div className="tl-what">
                   {label(e.kind, !!e.date, e.other, e.tag)}
                   {e.age !== null && <span> · {fmt(t("ageAt"), { n: formatAge(e.age, TEXTS[lang].ageUnits) })}</span>}
                   {e.detail && !besideDate(e) && <> · {e.detail}</>}
                   {e.divorced && <span className="muted"> · {TEXTS[lang].divorced}</span>}
+                  {!!e.childCount && <span> · {t("children")}: {e.childCount}</span>}
                 </div>
                 {e.details && <div className="tl-details">{e.details.map((d) => {
                   const line = live && d.key === "cause" ? eventLine(e) : null;

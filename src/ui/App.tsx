@@ -679,7 +679,7 @@ export function App() {
                         onJump={jump} t={t} />
             </div>}
             {selectedId && <PersonDetail key={selectedId} data={data} id={selectedId} homeId={homeId}
-                                      record={recordOf.get(selectedId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(selectedId) || []} lang={lang}
+                                      record={recordOf.get(selectedId)} lookup={(x) => recordOf.get(x)} inbound={inbound.get(selectedId) || []} lang={lang} labels={form.labels}
                                       onFocus={pick} onChange={commit} suggest={suggest}
                                       onEdit={() => setWindowId(selectedId)} onSource={showSource}
                                       onBack={narrow && canStep(-1) ? () => stepBy(-1) : undefined} onForward={narrow && canStep(1) ? () => stepBy(1) : undefined} t={t} />}
