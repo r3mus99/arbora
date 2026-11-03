@@ -17,6 +17,10 @@ export interface TimelineItem {
   other: string | null;
   /** a marriage that ended in divorce */
   divorced: boolean;
+  /** a child: the death date as written ("" when the death is recorded without a date), null without any death */
+  childDeath?: string | null;
+  /** a marriage: how many of its children are in the file */
+  childCount?: number;
   /** the family of a marriage or a child, for React keys */
   key: string;
   /** the GEDCOM tag of a family event (DIV) */
@@ -111,6 +115,7 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
     const spouse = fam.husb === id ? fam.wife : fam.husb;
     const other = spouse && spouse in data.people ? spouse : null;
     add("marriage", fam.marriage, fid, other, fam.divorced, true);
+    items[items.length - 1].childCount = fam.children.filter((c) => c in data.people).length;
     const famRec = family?.(fid);
     if (famRec) {
       const marr = items[items.length - 1];
@@ -131,7 +136,10 @@ export function timeline(data: GedcomData, id: string, fields: PersonFields | nu
       });
     }
     for (const c of fam.children) {
-      if (c in data.people) add("child", data.people[c].birth, `${fid}${c}`, c, false, true);
+      if (!(c in data.people)) continue;
+      add("child", data.people[c].birth, `${fid}${c}`, c, false, true);
+      const death = data.people[c].death;
+      items[items.length - 1].childDeath = death ? death.date : null;
     }
   }
   const deceased = fields ? fields.deceased : !!p.death;

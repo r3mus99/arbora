@@ -256,6 +256,8 @@ footer a { color: var(--accent); }
 .tl-date { font-weight: 600; font-variant-numeric: tabular-nums; }
 .tl-date .tl-label { font-weight: 400; color: var(--muted); }
 .tl-date .muted { font-weight: 400; }
+.tl-kid { font-weight: 400; }
+.tl-kid .link { text-align: left; }
 .tl-what { color: var(--muted); }
 .tl-birth { --row-color: var(--c-birth); } .tl-christening { --row-color: var(--c-bapt); } .tl-marriage { --row-color: var(--c-marr); }
 .tl-residence { --row-color: var(--c-res); } .tl-event { --row-color: var(--c-event); }

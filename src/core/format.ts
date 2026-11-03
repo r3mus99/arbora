@@ -94,7 +94,12 @@ export function formatPlace(raw: string): string {
 }
 
 export function label(kind: EventKind, o: ChartOptions): string {
-  return o.labels === "symbols" ? SYMBOLS[kind] : TEXTS[o.lang].abbr[kind];
+  return eventMark(kind, o.labels, o.lang);
+}
+
+/** The mark of an event (birth, marriage, death): a symbol, or the abbreviation of the language. */
+export function eventMark(kind: EventKind, labels: ChartOptions["labels"], lang: Lang): string {
+  return labels === "symbols" ? SYMBOLS[kind] : TEXTS[lang].abbr[kind];
 }
 
 /** A piece of a person's line; the screen and the PDF style each kind (bold, italic, colour). */
