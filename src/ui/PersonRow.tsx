@@ -1,6 +1,7 @@
 import { Star } from "lucide-react";
 import { formatDate } from "../core/format";
 import type { Person } from "../core/gedcom";
+import { listName } from "../core/listName";
 import type { Lang } from "../core/texts";
 import type { StringKey } from "./i18n";
 
@@ -30,7 +31,7 @@ export function PersonRow({ person: p, lang, selected, favourite, aka, onSelect,
   return (
     <li className={selected ? "sel" : undefined} onClick={() => onSelect(p.id)}>
       <span className={`dot sex-${p.sex === "M" || p.sex === "F" ? p.sex : "U"}`} aria-hidden="true" />
-      <span className="rname">{p.name || "?"}{aka && <span className="aka"> · aka {aka}</span>}</span>
+      <span className="rname">{listName(p)}{aka && <span className="aka"> · aka {aka}</span>}</span>
       <span className="ryears">{years(p, lang)}</span>
       <button type="button" className={`row-star${favourite ? " on" : ""}`} aria-pressed={favourite} title={label} aria-label={label}
               onClick={(e) => { e.stopPropagation(); onStar(p.id); }}><Star className="icon" aria-hidden="true" /></button>
