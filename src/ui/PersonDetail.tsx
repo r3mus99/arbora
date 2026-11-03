@@ -8,7 +8,7 @@ import { associationsOf, type Association } from "../core/associations";
 import { recordInfo } from "../core/info";
 import { municipality } from "../core/places";
 import { nameDetails } from "../core/names";
-import { dateParts, formatAge, yearsBetween } from "../core/date";
+import { ageBetween, dateParts, formatAge, yearsBetween } from "../core/date";
 import { fmt, formatDate, weekdayTip } from "../core/format";
 import { childOf, childrenOf, type GedNode, type GedcomData, type Person } from "../core/gedcom";
 import { TEXTS, type Lang } from "../core/texts";
@@ -177,6 +177,14 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
     const d = q.death ? formatDate(q.death.date, false, lang) : "";
     return d ? `${b}–${d}` : b;
   };
+  /** age at death shown after the years; "~" when a date is uncertain (abt, bef, ...) */
+  const lifeAge = (() => {
+    if (!p.birth?.date || !p.death?.date) return "";
+    const age = ageBetween(p.birth.date, p.death.date);
+    if (!age) return "";
+    const uncertain = /\b(ABT|CAL|EST|BEF|AFT|BET|FROM|TO)\b/i.test(`${p.birth.date} ${p.death.date}`);
+    return `${uncertain ? "~" : ""}${formatAge(age, TEXTS[lang].ageUnits)}`;
+  })();
   /** a reference to a person: name, optionally followed by birth year and municipality */
   const link = (pid: string | null, withDetails = true) => {
     const q = pid ? data.people[pid] : null;
@@ -249,19 +257,19 @@ export function PersonDetail({ data, id, record, lookup, inbound, homeId, lang, 
         </div>
       </div>
       {live && <SuggestLists suggest={suggest} lang={lang} />}
-      <p className="id">
-        {years(p) && <span className="lifespan">{years(p)} · </span>}
-        {homeAncestors.generations.has(id) && <><span className="ancestor-relation">{ancestorTitle(id)}</span> · </>}
-        {/* other forms of the name (aka), quietly before the ID */}
-        {f && f.aliases.length > 0 && <span className="aka" title={t("aka")}>
-          aka {f.aliases.map((a, i) => {
-            const text = [a.given, a.surname].filter(Boolean).join(" ");
-            return <span key={a.origin}>{i > 0 && ", "}{live ? <InlineName key={`${id}|${a.given}|${a.surname}`} given={a.given}
-              surname={a.surname} label={t("aka")} givenLabel={t("givenName")} surnameLabel={t("surname")} givens={givenList(f.sex)} surnames={surnameList(f.sex)}
-              onCommit={(given, surname) => change({ aliases: f.aliases.map((x) => (x === a ? { ...x, given, surname } : x)) })}>{text}</InlineName>
-              : text}</span>;
-          })} · </span>}
-        {p.id.replace(/@/g, "")}</p>
+      {(years(p) || lifeAge) && <p className="life">
+        {years(p) && <span className="lifespan">{years(p)}</span>}
+        {lifeAge && <span className="life-age"> · {lifeAge}</span>}</p>}
+      {(homeAncestors.generations.has(id) || (f && f.aliases.length > 0)) && <div className="id">
+        {homeAncestors.generations.has(id) && <div className="ancestor-relation">{ancestorTitle(id)}</div>}
+        {/* other forms of the name, quietly under the years, one per line */}
+        {f && f.aliases.map((a) => {
+          const text = [a.given, a.surname].filter(Boolean).join(" ");
+          return <div key={a.origin} className="aka" title={t("aka")}>{live ? <InlineName key={`${id}|${a.given}|${a.surname}`} given={a.given}
+            surname={a.surname} label={t("aka")} givenLabel={t("givenName")} surnameLabel={t("surname")} givens={givenList(f.sex)} surnames={surnameList(f.sex)}
+            onCommit={(given, surname) => change({ aliases: f.aliases.map((x) => (x === a ? { ...x, given, surname } : x)) })}>{text}</InlineName>
+            : text}</div>;
+        })}</div>}
       <div className="facts">
         {(() => {
           const names = record ? nameDetails(record) : null;

@@ -69,6 +69,26 @@ describe("person detail timeline", () => {
     expect(html).toContain("Bob (16y)</button></span> &amp; <span class=\"person-ref\"><button class=\"link person\" type=\"button\">Alice (18y)</button>");
   });
 
+  test("the years are followed by the age at death, with ~ when a date is uncertain; no ID is shown", () => {
+    const render = (ged: string) => {
+      const records = parseGedcom(ged);
+      return renderToStaticMarkup(createElement(PersonDetail, {
+        data: readRecords(records), id: "@I1@", record: records.find((r) => r.xref === "@I1@"), lookup: (x: string) => records.find((r) => r.xref === x), inbound: [],
+        homeId: null, lang: "en", onFocus: () => {}, onChange: () => {},
+        suggest: suggestions(records), onEdit: () => {}, onSource: () => {},
+        t: (key: StringKey) => STRINGS.en[key] ?? key,
+      }));
+    };
+    const exact = render("0 HEAD\n0 @I1@ INDI\n1 NAME Alice /Sample/\n1 BIRT\n2 DATE 17 AUG 1887\n1 DEAT\n2 DATE 1 APR 1922\n");
+    expect(exact).toContain('<span class="life-age"> · 34 y.</span>');
+    expect(exact).not.toContain('class="id"');
+    expect(render("0 HEAD\n0 @I1@ INDI\n1 NAME Alice /Sample/\n1 BIRT\n2 DATE ABT 1518\n1 DEAT\n2 DATE 1564\n")).toContain("· ~46 y.");
+    expect(render("0 HEAD\n0 @I1@ INDI\n1 NAME Alice /Sample/\n1 BIRT\n2 DATE 1575\n")).not.toContain("life-age");
+    const aka = render("0 HEAD\n0 @I1@ INDI\n1 NAME Alice /Sample/\n1 NAME Ally /Sample/\n2 TYPE aka\n1 NAME Lisa /Other/\n2 TYPE aka\n");
+    expect(aka.match(/class="aka"/g)?.length).toBe(2);
+    expect(aka).not.toContain("aka Ally");
+  });
+
   test("only direct ancestors of the home person are bold in the timeline", () => {
     const records = parseGedcom(GED);
     const data = readRecords(records);
@@ -80,7 +100,7 @@ describe("person detail timeline", () => {
     }));
     expect(html).toContain('class="ancestor"');
     expect(html).toMatch(/title="Father(?:&#10;|\n)→ Bob Sample \(1902\)(?:&#10;|\n)→ Child Sample \(1920\)"/);
-    expect(html).toContain('<span class="ancestor-relation">Mother</span>');
+    expect(html).toContain('<div class="ancestor-relation">Mother</div>');
     expect(html).toContain('class="link person" type="button">Child Sample</button>');
   });
 
