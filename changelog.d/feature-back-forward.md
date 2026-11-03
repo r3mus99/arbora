@@ -1,1 +1,0 @@
-- **Back and Forward buttons in the person detail.** Two arrows next to the name step through the people you opened, like in a browser.

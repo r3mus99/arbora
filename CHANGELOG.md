@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.123.0 – 2026-11-03
+
+- **Back and Forward buttons in the person detail.** Two arrows next to the name step through the people you opened, like in a browser.
+
 ## 2.122.0 – 2026-11-03
 
 - **Children on the timeline show their death.** A child's line has the birth in bold and the death muted, with the marks from Settings, the name under it, and a marriage shows how many children it had.
