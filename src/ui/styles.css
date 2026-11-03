@@ -146,7 +146,7 @@ footer a { color: var(--accent); }
 /* the name of a person in the detail: bold and in the text colour like in the tree, underlined on hover */
 .detail .person-ref { color: var(--text); }
 .detail button.link.person { color: inherit; font-size: inherit; font-weight: 400; text-decoration: none; }
-.detail button.link.person.ancestor { font-weight: 700; }
+.detail button.link.person .ancestor { font-weight: 700; }
 .detail button.link.person:hover { text-decoration: underline; }
 .detail .s-birt { color: var(--c-birth); }
 .detail .s-place { font-style: italic; color: var(--muted); }
