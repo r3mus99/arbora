@@ -1,0 +1,1 @@
+- **Teal accent colour.** Buttons, links, the logo, selected rows and the active tab and rail icon are teal instead of purple, in both light and dark mode.
