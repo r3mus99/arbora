@@ -14,7 +14,7 @@ import { decode, parseGedcom, readRecords, type GedNode, type GedcomData } from 
 import type { Fonts } from "../core/pdf";
 import { sourceOverview } from "../core/sources";
 import { addCitationAddresses, citationLinkLines, citationPageLines, setCitationLinks, setCitationPages } from "../core/citationLinks";
-import { deleteSource, saveSource, sourceCites } from "../core/sourceLinks";
+import { deleteSource, saveSource, sourceCites, type SourceCite } from "../core/sourceLinks";
 import { SourceWindow } from "./SourceWindow";
 import { type Lang } from "../core/texts";
 import { NO_EDITS, canRedo, canUndo, changeCount, discardUnsaved, edited, isDirty, replay, startEdits, stepEdits, unsavedChanges, withRecords, type Doc, type Edits, type Op } from "./history";
@@ -100,7 +100,7 @@ export function App() {
   // the edit window: the person it edits (it stays on that person while others are shown)
   const [windowId, setWindowId] = useState<string | null>(null);
   /** the source window: a source record (xref) or a new source (null); never open together with the window of a person */
-  const [sourceWin, setSourceWin] = useState<{ xref: string | null } | null>(null);
+  const [sourceWin, setSourceWin] = useState<{ xref: string | null; first?: SourceCite; returnTo?: string } | null>(null);
   const sourceDirty = useRef(false);
   const markSourceDirty = useCallback((d: boolean) => { sourceDirty.current = d; }, []);
   // file name, or null for the sample
@@ -649,17 +649,18 @@ export function App() {
                                  onSave={(fields, after, linkChanges, addresses, pageChanges) => {
                                    const saved = saveSource(setCitationPages(setCitationLinks(doc.records, linkChanges), pageChanges), sourceWin.xref, fields, sourceWin.xref ? sourceCites(doc.records, sourceWin.xref) : [], after);
                                    replaceRecords(addCitationAddresses(saved.records, saved.xref, addresses));
-                                   setSourceWin(null);
+                                   setSourceWin(null); if (sourceWin.returnTo) setWindowId(sourceWin.returnTo);
                                  }}
                                  onDelete={() => { if (sourceWin.xref) replaceRecords(deleteSource(doc.records, sourceWin.xref)); setSourceWin(null); }}
-                                 onClose={() => setSourceWin(null)} onDirty={markSourceDirty} onPerson={(id) => pick(id)} hidden={showCheck || !!windowId} t={t} />}
+                                 onClose={() => { setSourceWin(null); if (sourceWin.returnTo) setWindowId(sourceWin.returnTo); }} first={sourceWin.first} onDirty={markSourceDirty} onPerson={(id) => pick(id)} hidden={showCheck || !!windowId} t={t} />}
             {windowId && recordOf.has(windowId) && data.people[windowId] && <EditWindow key={windowId} data={data} name={data.people[windowId].name || "?"}
                                  record={recordOf.get(windowId)!} families={data.people[windowId].fams.map((f) => recordOf.get(f)).filter((r) => !!r)}
                                  lang={lang} suggest={suggest} recordOf={(id) => recordOf.get(id)} onSave={(changed, added) => { setWindowId(null); commit(changed, added); }}
                                  allocate={(tag, pending) => (tag === "FAM" ? freeXref(doc!.records, "FAM", "F", pending) : freeXref(doc!.records, "INDI", "I", pending))}
                                  onClose={() => setWindowId(null)} onDeletePerson={() => removePerson(windowId)}
                                  records={doc!.records} onMerge={(drop, pick) => mergeInto(windowId, drop, pick)}
-                                 onAddFamily={() => newFamily(windowId)} onDeleteFamily={removeFamily} hidden={showCheck} t={t} />}
+                                 onAddFamily={() => newFamily(windowId)}
+                                 onAddSource={(event) => { const id = windowId; setWindowId(null); setSourceWin({ xref: null, first: { event, person: id, family: "" }, returnTo: id }); }} onDeleteFamily={removeFamily} hidden={showCheck} t={t} />}
             {showCheck ? <aside className="check-wide" aria-label={t("check")}>
               <CheckPanel issues={issues} data={data} t={t} onFix={(i) => doc && replaceRecords(fixIssue(doc.records, i))}
                           onFocus={pick} />

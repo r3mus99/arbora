@@ -4,6 +4,8 @@ import type { GedcomData } from "../core/gedcom";
 import type { CitationAddress, CitationLinkChange, CitationLinkLine, CitationPageChange, CitationPageLine } from "../core/citationLinks";
 import { citeKey, isWebAddress, type CiteEvent, type SourceCite } from "../core/sourceLinks";
 import type { SourceFields } from "../core/sources";
+import { formatDate } from "../core/format";
+import type { Lang } from "../core/texts";
 import { mayClose } from "./editWindow";
 import { sourceTitle } from "../core/sources";
 import type { StringKey } from "./i18n";
@@ -34,6 +36,8 @@ interface Props {
   onDirty?: (dirty: boolean) => void;
   /** a click on a person's name in a citation selects that person in the tree */
   onPerson?: (id: string) => void;
+  /** a citation the new source starts with (the shortcut next to an event of the person edit window) */
+  first?: SourceCite;
   /** the person selected in the tree: offered as the first citation of a new source */
   person: string | null;
   /** the language of the generated source title */
@@ -69,9 +73,9 @@ function Part({ icon, title, extra, children }: { icon: LucideIcon; title: strin
  * The edit window of a source (docs/design-guidelines.md, section 7): the text of the source record, its web links and notes,
  * and the people and events it is cited for. It is the one place where sources are edited; the Sources panel and the timeline show what it saves.
  */
-export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, cited, person: selected, lang, onSave, onDelete, onClose, onDirty, onPerson, hidden, t }: Props) {
+export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, cited, person: selected, first, lang, onSave, onDelete, onClose, onDirty, onPerson, hidden, t }: Props) {
   const [form, setForm] = useState<SourceFields>(fields);
-  const [list, setList] = useState<SourceCite[]>(cites);
+  const [list, setList] = useState<SourceCite[]>(first ? [first] : cites);
   // the address of each citation line as the window has it (key of the line to text)
   const [urls, setUrls] = useState<Record<string, string>>({});
   const urlOf = (l: CitationLinkLine) => urls[l.key] ?? l.url;
@@ -95,7 +99,7 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
   const generatedTitle = () => {
     const c = list.find((x) => x.event && ["BIRT", "CHR", "DEAT", "BURI", "MARR", "DIV"].includes(x.event)) ?? list[0];
     if (!c) return "";
-    const year = (date?: string) => /\d{4}/.exec(date ?? "")?.[0] ?? "";
+    const year = (date?: string) => (date?.trim() ? formatDate(date.trim(), true, lang as Lang) : "");
     const kind = ({ BIRT: "birth", CHR: "christening", DEAT: "death", BURI: "burial", MARR: "marriage", DIV: "divorce" } as const)[c.event as "BIRT"];
     if (!kind) return "";
     if (c.family) {
