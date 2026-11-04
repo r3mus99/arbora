@@ -1,1 +1,1 @@
-- **The "Set as home person" button under the tree is only an icon once a home person is set.** The words show only the first time, while no home person is chosen.
+- **The Recent tool is gone from the icon rail.** Favourites, the home person and the star in lists and in the tree stay.
