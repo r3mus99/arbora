@@ -1,0 +1,1 @@
+- **The Recent tool is gone from the icon rail.** Favourites, the home person and the star in lists and in the tree stay.
