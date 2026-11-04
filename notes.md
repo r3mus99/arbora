@@ -1,1 +1,1 @@
-- **The Recent tool is gone from the icon rail.** Favourites, the home person and the star in lists and in the tree stay.
+- **Phone layout has a bottom tab bar.** People (search), Person (detail) and More (file, PDF, dark mode, language) are always one tap away, and the top bar no longer overflows the screen.
