@@ -1,0 +1,1 @@
+- **The edit window footer fits one row on a phone.** Delete and Merge are icons, the X in the heading cancels, and Save sits on the right.

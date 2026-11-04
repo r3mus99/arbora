@@ -515,7 +515,7 @@ export function App() {
   return (
     <main className={data ? "loaded" : undefined}>
       {/* one frame: the top bar on top, below it the welcome screen or the viewer, see docs/design-guidelines.md */}
-      <section className="panel chart">
+      <section className={`panel chart${narrow && (windowId || sourceWin) ? " no-tabs" : ""}`}>
         <header className="frame-bar">
           <h1><button type="button" className="home" onClick={goHome}
                                 title={data ? t("home") : undefined}><TreeDeciduous className="logo" aria-hidden="true" />Arbora</button></h1>
