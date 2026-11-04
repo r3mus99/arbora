@@ -33,6 +33,10 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
   scrolls inside. Columns are divided by 1px `--border` lines, not by cards or shadows.
 - **Narrow screens** (up to 900px, phones and small tablets): only the list of people and the detail of one person, one at a time. The chart, the tool bar
   and the tool panels are not shown; the edit window fills the width; the poster (SVG) button is hidden.
+  **Tab bar** (`.tabbar`, 62px, fixed at the bottom, three equal tabs with a 24px icon and a 12px label: People, Person, More; the active one is `--accent`):
+  People is the list with the search (it keeps the query and the position), Person is the detail of the selected person (picking a row jumps here),
+  More holds the rest as inset groups (`.more-page`): open another file, download the GEDCOM, PDF, home person, dark mode, language. The top bar keeps only the
+  logo and undo/redo. The back/forward arrows in the detail heading step through history; the tabs say where you are. The tab bar is hidden while the edit window is open.
 
 ## 2. Tokens
 
