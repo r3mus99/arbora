@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.131.0 – 2026-11-04
+
+- **The edit window footer fits one row on a phone.** Delete and Merge are icons, the X in the heading cancels, and Save sits on the right.
+
 ## 2.130.0 – 2026-11-04
 
 - **Phone layout has a bottom tab bar.** People (search), Person (detail) and More (file, PDF, dark mode, language) are always one tap away, and the top bar no longer overflows the screen.
