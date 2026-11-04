@@ -828,6 +828,7 @@ section.check { margin: 0 0 14px; }
   footer { display: none; }
   /* three tabs at the bottom say which screen is shown; the top bar keeps only the logo and undo/redo, the rest lives in More */
   main.loaded .panel.chart { height: calc(100dvh - var(--tabbar-h)); }
+  main.loaded .panel.chart.no-tabs { height: 100dvh; }
   main.loaded .frame-bar .tools[role="toolbar"] > :nth-child(n+3), main.loaded .frame-bar .head-tools > .tools:not([role]),
   main.loaded .frame-bar .head-tools > .lang, main.loaded .frame-bar .home-chip, main.loaded .frame-bar > .icon-btn { display: none; }
   .viewer[data-mtab="people"] > .detail, .viewer[data-mtab="more"] > .detail { display: none; }
@@ -839,6 +840,10 @@ section.check { margin: 0 0 14px; }
                    border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 12px; height: auto; padding: 0; }
   .tabbar button.on { color: var(--accent); font-weight: 600; }
   .tabbar .icon { width: var(--icon-lg, 24px); height: var(--icon-lg, 24px); }
+  /* the footer of the edit window is one row: delete and merge as icons, the X in the heading cancels, Save on the right */
+  .edit-foot.stacked .foot-cancel, .edit-foot .lbl { display: none; }
+  .edit-foot.stacked > .primary { margin-left: auto; }
+  .edit-foot.stacked > button { min-height: var(--ctl-h); min-width: var(--ctl-h); }
   .more-page { grid-column: 1; overflow: auto; padding: 8px 0 var(--pad); }
   .more-page h3 { margin: 14px var(--pad) 6px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
   .more-page .grp { margin: 0 var(--pad); border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); overflow: hidden; }

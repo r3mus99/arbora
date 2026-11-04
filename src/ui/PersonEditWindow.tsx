@@ -76,14 +76,14 @@ export function EditWindow({ data, name, record, families, lang, suggest, record
                       onSave={onSave} allocate={allocate} onCancel={close} onAddFamily={onAddFamily} onAddSource={onAddSource} onDeleteFamily={onDeleteFamily} onDirty={setChanges} t={t} />}
       </div>
       {!merging && <div className="edit-foot stacked">
-        <button type="button" className="foot-delete" title={t("deletePerson")}
+        <button type="button" className="foot-delete" title={t("deletePerson")} aria-label={t("footDelete")}
                 onClick={() => { if (window.confirm(t("confirmDeletePerson", { name }))) onDeletePerson(); }}>
-          <Trash2 className="icon" aria-hidden="true" />{t("footDelete")}</button>
-        <button type="button" title={t("mergeWith")} aria-pressed={merging}
+          <Trash2 className="icon" aria-hidden="true" /><span className="lbl">{t("footDelete")}</span></button>
+        <button type="button" title={t("mergeWith")} aria-pressed={merging} aria-label={t("footMerge")}
                 onClick={() => { if (!merging && dirty && !window.confirm(t("discard"))) return; setChanges(0); setMerging(!merging); }}>
-          <GitMerge className="icon" aria-hidden="true" />{t("footMerge")}</button>
+          <GitMerge className="icon" aria-hidden="true" /><span className="lbl">{t("footMerge")}</span></button>
         <span className="bulk-sum" role="status">{dirty ? `${t("unsaved")} (${changes})` : ""}</span>
-        <button type="button" onClick={close}>{t("cancel")}</button>
+        <button type="button" className="foot-cancel" onClick={close}>{t("cancel")}</button>
         <button type="submit" form={EDITOR_FORM} className="primary" disabled={!dirty} title="Ctrl+Enter">
           <Check className="icon" aria-hidden="true" />{t("save")}</button>
       </div>}

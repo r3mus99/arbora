@@ -36,7 +36,7 @@ The code follows these rules since 1.20.0 (the top bar is part of the frame sinc
   **Tab bar** (`.tabbar`, 62px, fixed at the bottom, three equal tabs with a 24px icon and a 12px label: People, Person, More; the active one is `--accent`):
   People is the list with the search (it keeps the query and the position), Person is the detail of the selected person (picking a row jumps here),
   More holds the rest as inset groups (`.more-page`): open another file, download the GEDCOM, PDF, home person, dark mode, language. The top bar keeps only the
-  logo and undo/redo. The back/forward arrows in the detail heading step through history; the tabs say where you are. The tab bar is hidden while the edit window is open.
+  logo and undo/redo. The back/forward arrows in the detail heading step through history; the tabs say where you are. The tab bar is hidden while the edit window is open, and its footer is one row: Delete and Merge as icons only (the `lbl` text is hidden), no Cancel button (the X in the heading does the same), Save on the right.
 
 ## 2. Tokens
 
