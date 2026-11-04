@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.131.1 – 2026-11-04
+
+- **The bottom tab bar on a phone is always visible.** It no longer hides behind the browser's bottom toolbar in iOS Safari.
+
 ## 2.131.0 – 2026-11-04
 
 - **The edit window footer fits one row on a phone.** Delete and Merge are icons, the X in the heading cancels, and Save sits on the right.

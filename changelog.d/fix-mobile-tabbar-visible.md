@@ -1,1 +1,0 @@
-- **The bottom tab bar on a phone is always visible.** It no longer hides behind the browser's bottom toolbar in iOS Safari.
