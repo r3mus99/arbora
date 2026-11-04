@@ -1,1 +1,1 @@
-- **The bottom tab bar on a phone is always visible.** It no longer hides behind the browser's bottom toolbar in iOS Safari.
+- **Arbora opens .ged files from an iPhone.** The file picker no longer filters by file type, because iOS does not know ".ged" and showed the file greyed out; a file that is not a family tree still gets the same clear message.

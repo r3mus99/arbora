@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.131.2 – 2026-11-04
+
+- **Arbora opens .ged files from an iPhone.** The file picker no longer filters by file type, because iOS does not know ".ged" and showed the file greyed out; a file that is not a family tree still gets the same clear message.
+
 ## 2.131.1 – 2026-11-04
 
 - **The bottom tab bar on a phone is always visible.** It no longer hides behind the browser's bottom toolbar in iOS Safari.

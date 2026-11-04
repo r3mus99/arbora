@@ -1,1 +1,0 @@
-- **Arbora opens .ged files from an iPhone.** The file picker no longer filters by file type, because iOS does not know ".ged" and showed the file greyed out; a file that is not a family tree still gets the same clear message.
