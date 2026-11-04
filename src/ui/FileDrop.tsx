@@ -8,6 +8,12 @@ interface Props {
   children: ReactNode;
 }
 
+/**
+ * No `accept` filter on purpose: iOS knows no ".ged" type, so any filter greys the file out in the Files app.
+ * What the user picks is checked by its content when it loads (a file without people gives a clear message).
+ */
+export const FILE_ACCEPT: string | undefined = undefined;
+
 /** A box that takes a GEDCOM file by click (the file dialog) or by dropping it. */
 export function FileDrop({ className, title, onFile, children }: Props) {
   const [over, setOver] = useState(false);
@@ -16,7 +22,7 @@ export function FileDrop({ className, title, onFile, children }: Props) {
     <label className={over ? `${className} over` : className} title={title}
            onDragEnter={(e) => drag(e, true)} onDragOver={(e) => drag(e, true)} onDragLeave={(e) => drag(e, false)}
            onDrop={(e) => { drag(e, false); onFile(e.dataTransfer.files[0]); }}>
-      <input type="file" accept=".ged,.GED,.gedcom,text/plain" hidden
+      <input type="file" accept={FILE_ACCEPT} hidden
              onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ""; }} />
       {children}
     </label>
