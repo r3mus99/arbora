@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileImage, FileUp, Home, User,
-         Loader2, BookMarked, History, Trash2, Clock, ListChecks, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, BookMarked, History, Trash2, ListChecks, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
 import { checkGedcom, fixIssue } from "../core/check";
@@ -23,10 +23,9 @@ import { gensSummary, storedOptions, toForm, toOptions, withOption, type Form } 
 import { ChangesPanel } from "./ChangesPanel";
 import { CheckPanel } from "./CheckPanel";
 import { FileDrop } from "./FileDrop";
-import { NO_MARKS, fileKey, marksOf, setHome as changeHome, toggleFav, visited, withMarks, listing, type Marks } from "./marks";
+import { NO_MARKS, fileKey, marksOf, setHome as changeHome, toggleFav, withMarks, type Marks } from "./marks";
 import { NO_TRAIL, startTrail, stepTrail, visit, type Trail } from "./trail";
 import { RelationBar } from "./RelationBar";
-import { RecentPanel } from "./RecentPanel";
 import { LanguageMenu } from "./LanguageMenu";
 import { applyTheme, chosenTheme, saveTheme, systemTheme, type Theme } from "./theme";
 import { SourcesPanel } from "./SourcesPanel";
@@ -116,7 +115,7 @@ export function App() {
   // row to scroll to and highlight after "see no. X"
   const [jumpRow, setJumpRow] = useState<number | null>(null);
   const [query, setQuery] = useState("");
-  // recently visited, favourite and home people of this file, kept in the browser only
+  // favourite and home people of this file, kept in the browser only
   const [marks, setMarks] = useState<Marks>(NO_MARKS);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
@@ -131,15 +130,14 @@ export function App() {
     mq.addEventListener("change", on);
     return () => mq.removeEventListener("change", on);
   }, []);
-  const [chosenTool, setTool] = useState<"people" | "check" | "sources" | "recent" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
+  const [chosenTool, setTool] = useState<"people" | "check" | "sources" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
   const tool = narrow ? "people" : chosenTool;
-  const listOpen = tool === "people", showCheck = tool === "check", showSources = tool === "sources", showRecent = tool === "recent", showSettings = tool === "settings", showChanges = tool === "changes";
+  const listOpen = tool === "people", showCheck = tool === "check", showSources = tool === "sources", showSettings = tool === "settings", showChanges = tool === "changes";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
   const setShowCheck = (on: boolean) => setTool(on ? "check" : listOpen ? "people" : null);
   const setShowSettings = (on: boolean) => setTool(on ? "settings" : listOpen ? "people" : null);
   const setShowSources = (on: boolean) => setTool(on ? "sources" : listOpen ? "people" : null);
   const setShowChanges = (on: boolean) => setTool(on ? "changes" : listOpen ? "people" : null);
-  const setShowRecent = (on: boolean) => setTool(on ? "recent" : listOpen ? "people" : null);
   useEffect(() => { if (listOpen && !narrow) finderRef.current?.focus(); }, [listOpen, narrow]);
   const fonts = useRef<Promise<Fonts> | null>(null);
 
@@ -271,8 +269,7 @@ export function App() {
     const root = stored && parsed.people[stored] ? stored : Object.keys(parsed.people)[0];
     setSelectedId(root);
     setTrail(startTrail(root));
-    setMarks(visited(marksOf(readStore().marks, fileKey(name)), root));
-    setMarkedFor(root);
+    setMarks(marksOf(readStore().marks, fileKey(name)));
     setJumpRow(null);
     setScrollKey((k) => k + 1);
     setTreeScroll((k) => k + 1);
@@ -454,19 +451,13 @@ export function App() {
     return () => window.removeEventListener("beforeunload", onLeave);
   }, [dirty]);
 
-  // a person shown in the detail counts as visited; the marks are saved per file
+  // the marks are saved per file
   const markKey = fileKey(loadedName);
-  const [markedFor, setMarkedFor] = useState(selectedId);
-  if (markedFor !== selectedId) {
-    setMarkedFor(selectedId);
-    if (selectedId) setMarks((m) => visited(m, selectedId));
-  }
   useEffect(() => {
     if (data) updateStore({ marks: withMarks(readStore().marks, markKey, marks) });
   }, [marks, markKey, data]);
   const favourites = useMemo(() => new Set(marks.fav), [marks]);
   const homeId = marks.home && data?.people[marks.home] ? marks.home : null;
-  const recent = useMemo(() => (data ? listing(marks, (id) => !!data.people[id]) : []), [marks, data]);
 
   const select = (id: string, track = true) => {
     setSelectedId(id);
@@ -603,9 +594,6 @@ export function App() {
                 <button type="button" className={listOpen ? "on" : undefined} aria-pressed={listOpen}
                         title={listOpen ? t("hideList") : t("showList")} aria-label={t(listOpen ? "hideList" : "showList")}
                         onClick={() => showList(!listOpen)}><Search className="icon" aria-hidden="true" /></button>
-                <button type="button" className={showRecent ? "on" : undefined} aria-pressed={showRecent}
-                        title={t("recent")} aria-label={t("recent")} onClick={() => setShowRecent(!showRecent)}>
-                  <Clock className="icon" aria-hidden="true" /></button>
                 <button type="button" className={`${showCheck ? "on " : ""}${problems ? "warn" : ""}`.trim() || undefined}
                         aria-pressed={showCheck} title={problems ? t("checkCount", { n: problems }) : t("checkOk")}
                         aria-label={t("check")} onClick={() => setShowCheck(!showCheck)}>
@@ -621,10 +609,6 @@ export function App() {
                         title={t("settings")} aria-label={t("settings")} onClick={() => setShowSettings(!showSettings)}>
                   <SlidersHorizontal className="icon" aria-hidden="true" /></button>
               </nav>
-              {showRecent && <aside className="rail-wrap" aria-label={t("recent")}>
-                <RecentPanel entries={recent} data={data} lang={lang} selectedId={selectedId}
-                             onPerson={pickListed} onStar={star} t={t} />
-              </aside>}
               {showChanges && <aside className="rail-wrap sp-wrap" aria-label={t("changes")}>
                 <ChangesPanel changes={unsaved} data={data} lang={lang} onPerson={(id) => pick(id)} t={t} />
               </aside>}
