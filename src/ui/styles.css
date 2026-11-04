@@ -811,7 +811,7 @@ section.check { margin: 0 0 14px; }
    bar and the tool panels are not shown. Last in the file so that it wins over the desktop rules above. */
 @media (max-width: 900px) {
   main.loaded { padding: 0; }
-  .panel.chart { height: 100dvh; min-height: 0; border-radius: 0; border-left: 0; border-right: 0; }
+  .panel.chart { height: 100dvh; height: 100svh; min-height: 0; border-radius: 0; border-left: 0; border-right: 0; }
   .viewer, .viewer.no-detail, .viewer.has-detail { grid-template-columns: minmax(0, 1fr); }
   .viewer > .side, .viewer > .detail, .viewer > .check-wide { grid-column: 1; }
   .edit-layer { grid-column: 1; }
@@ -827,14 +827,15 @@ section.check { margin: 0 0 14px; }
   .tools .save-btn .badge { font-size: 12px; }
   footer { display: none; }
   /* three tabs at the bottom say which screen is shown; the top bar keeps only the logo and undo/redo, the rest lives in More */
-  main.loaded .panel.chart { height: calc(100dvh - var(--tabbar-h)); }
-  main.loaded .panel.chart.no-tabs { height: 100dvh; }
+  /* svh = the viewport with the browser's toolbars shown (iOS Safari's floating bar): the content and the tab bar always end above them */
+  main.loaded .panel.chart { height: calc(100dvh - var(--tabbar-h)); height: calc(100svh - var(--tabbar-h)); }
+  main.loaded .panel.chart.no-tabs { height: 100dvh; height: 100svh; }
   main.loaded .frame-bar .tools[role="toolbar"] > :nth-child(n+3), main.loaded .frame-bar .head-tools > .tools:not([role]),
   main.loaded .frame-bar .head-tools > .lang, main.loaded .frame-bar .home-chip, main.loaded .frame-bar > .icon-btn { display: none; }
   .viewer[data-mtab="people"] > .detail, .viewer[data-mtab="more"] > .detail { display: none; }
   .viewer[data-mtab="person"] > .side, .viewer[data-mtab="more"] > .side { display: none; }
   .viewer.viewer[data-mtab="people"] > .side { display: flex; }
-  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; height: var(--tabbar-h);
+  .tabbar { position: fixed; left: 0; right: 0; top: calc(100dvh - var(--tabbar-h)); top: calc(100svh - var(--tabbar-h)); z-index: 20; display: flex; height: var(--tabbar-h);
             padding-bottom: env(safe-area-inset-bottom); background: var(--panel); border-top: 1px solid var(--border); }
   .tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
                    border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 12px; height: auto; padding: 0; }
