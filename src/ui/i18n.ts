@@ -46,7 +46,7 @@ const STRINGS_RAW = {
    
     srcOpen: "Otvoriť zdroj v paneli Zdroje",
    
-    back: "Späť", forward: "Vpred", recent: "Naposledy navštívení", recentEmpty: "Zatiaľ nikto. Osoby, ktoré otvoríš, sa objavia tu.", starAdd: "Pridať medzi obľúbených", starRemove: "Odobrať z obľúbených", favourite: "Obľúbený",
+    back: "Späť", forward: "Vpred", starAdd: "Pridať medzi obľúbených", starRemove: "Odobrať z obľúbených", favourite: "Obľúbený",
     ovPeople: "Osoby",
     treeTitle: "Rodokmeň",
     settings: "Nastavenia", labels: "Popisky", symbols: "symboly", abbr: "skratky",
@@ -155,7 +155,7 @@ const STRINGS_RAW = {
    
     srcOpen: "Open the source in the Sources panel",
    
-    back: "Back", forward: "Forward", recent: "Recent", recentEmpty: "Nobody yet. People you open will appear here.", starAdd: "Add to favourites", starRemove: "Remove from favourites", favourite: "Favourite",
+    back: "Back", forward: "Forward", starAdd: "Add to favourites", starRemove: "Remove from favourites", favourite: "Favourite",
     ovPeople: "People",
     treeTitle: "Family tree",
     settings: "Settings", labels: "Labels", symbols: "symbols", abbr: "abbreviations",

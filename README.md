@@ -10,8 +10,7 @@ Everything runs in your browser; the file is never uploaded anywhere.
 ## What it does
 
 - **View** the ancestors or descendants of anyone, as a tree,
-  with a searchable list of people, a timeline of each person, recent people and
-  favourites.
+  with a searchable list of people, a timeline of each person and favourites.
 - **Edit** about 40 GEDCOM tags in one edit window: names, events, occupations
   and facts, marriages, children, parents, associations, notes, sources and
   other details. Add, delete and merge people and families. Everything is one
@@ -91,7 +90,7 @@ between relatives) is written out only once; later occurrences refer to it.
    downloads (**GED**, **PDF**, **SVG** tree poster), the light/dark switch and
    the language.
 2. The icon rail opens one tool at a time: the list of **people** with a search
-   by name, place or year; **recent** people and favourites (the star next to a
+   by name, place or year; favourites (the star next to a
    name); the **file check**; the **changes** made since the file was opened;
    **sources and notes**; and **settings**.
 3. The chart is laid out the same way as the PDF. Switch between **Ancestors**

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.129.0 – 2026-11-04
+
+- **The Recent tool is gone from the icon rail.** Favourites, the home person and the star in lists and in the tree stay.
+
 ## 2.128.0 – 2026-11-03
 
 - **The "Set as home person" button under the tree is only an icon once a home person is set.** The words show only the first time, while no home person is chosen.
