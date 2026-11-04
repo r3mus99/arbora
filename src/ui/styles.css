@@ -1,4 +1,5 @@
 :root {
+  --tabbar-h: 62px;
   --bg: #f6f5f1; --panel: #ffffff; --text: #1d1f1c; --muted: #62675f;
   --border: #dcdad2; --accent: #0f766e; --accent-text: #ffffff; --accent-soft: #d5eeea;
   --danger: #a8322a; --focus: color-mix(in srgb, var(--accent) 35%, transparent); --warn: #b7791f; --warn-soft: #f3e3c3; --warn-text: #7a4f0e; --warn-on: #fff;
@@ -825,6 +826,28 @@ section.check { margin: 0 0 14px; }
   .tools .save-btn { padding: 5px; gap: 0; font-size: 0; }
   .tools .save-btn .badge { font-size: 12px; }
   footer { display: none; }
+  /* three tabs at the bottom say which screen is shown; the top bar keeps only the logo and undo/redo, the rest lives in More */
+  main.loaded .panel.chart { height: calc(100dvh - var(--tabbar-h)); }
+  main.loaded .frame-bar .tools[role="toolbar"] > :nth-child(n+3), main.loaded .frame-bar .head-tools > .tools:not([role]),
+  main.loaded .frame-bar .head-tools > .lang, main.loaded .frame-bar .home-chip, main.loaded .frame-bar > .icon-btn { display: none; }
+  .viewer[data-mtab="people"] > .detail, .viewer[data-mtab="more"] > .detail { display: none; }
+  .viewer[data-mtab="person"] > .side, .viewer[data-mtab="more"] > .side { display: none; }
+  .viewer.viewer[data-mtab="people"] > .side { display: flex; }
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; height: var(--tabbar-h);
+            padding-bottom: env(safe-area-inset-bottom); background: var(--panel); border-top: 1px solid var(--border); }
+  .tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+                   border: 0; border-radius: 0; background: none; color: var(--muted); font-size: 12px; height: auto; padding: 0; }
+  .tabbar button.on { color: var(--accent); font-weight: 600; }
+  .tabbar .icon { width: var(--icon-lg, 24px); height: var(--icon-lg, 24px); }
+  .more-page { grid-column: 1; overflow: auto; padding: 8px 0 var(--pad); }
+  .more-page h3 { margin: 14px var(--pad) 6px; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .more-page .grp { margin: 0 var(--pad); border: 1px solid var(--border); border-radius: var(--radius); background: var(--panel); overflow: hidden; }
+  .more-page .row { display: flex; width: 100%; align-items: center; justify-content: flex-start; gap: 12px; min-height: 46px; padding: 0 12px;
+                    border: 0; border-top: 1px solid var(--border); border-radius: 0; background: none; font-size: 15px; text-align: left; cursor: pointer; }
+  .more-page .grp > :first-child { border-top: 0; }
+  .more-page .row .icon { width: var(--icon-sm); height: var(--icon-sm); flex: none; color: var(--muted); }
+  .more-page .row .badge { margin-left: auto; }
+  .more-page div.row { cursor: default; justify-content: space-between; }
 }
 
 /* Motion: short, only opacity and a few pixels of movement, never the size of a column. One duration token; people who ask the

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
 import { FileDown, FileText, FileImage, FileUp, Home, User,
-         Loader2, BookMarked, History, Trash2, ListChecks, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users } from "lucide-react";
+         Loader2, BookMarked, History, Trash2, ListChecks, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users, MoreHorizontal } from "lucide-react";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
 import { checkGedcom, fixIssue } from "../core/check";
@@ -131,6 +131,8 @@ export function App() {
     return () => mq.removeEventListener("change", on);
   }, []);
   const [chosenTool, setTool] = useState<"people" | "check" | "sources" | "settings" | "changes" | null>(() => readStore().listOpen === true ? "people" : null);
+  // on a phone the three tabs at the bottom say which one screen is shown: people (search), person (detail), more (file, app)
+  const [mtab, setMtab] = useState<"people" | "person" | "more">("person");
   const tool = narrow ? "people" : chosenTool;
   const listOpen = tool === "people", showCheck = tool === "check", showSources = tool === "sources", showSettings = tool === "settings", showChanges = tool === "changes";
   const showList = (on: boolean) => { setTool(on ? "people" : null); updateStore({ listOpen: on }); };
@@ -507,7 +509,7 @@ export function App() {
   };
   /** a click on the selected person in the chart or in a list of people deselects it, which closes the detail */
   // one selection: a click on the selected person changes nothing; any other person is selected
-  const pickListed = (id: string) => { if (id !== selectedId) pick(id); };
+  const pickListed = (id: string) => { if (narrow) setMtab("person"); if (id !== selectedId) pick(id); };
   const star = (id: string) => setMarks((m) => toggleFav(m, id));
 
   return (
@@ -587,7 +589,7 @@ export function App() {
             <button type="button" onClick={loadSample}>{t("sample")}</button>
           </div>
         </div>}
-        {data && chosen && <div className={`viewer${selectedId || showCheck ? " has-detail" : " no-detail"}`}>
+        {data && chosen && <div className={`viewer${selectedId || showCheck ? " has-detail" : " no-detail"}`} data-mtab={narrow ? (!selectedId && mtab === "person" ? "people" : mtab) : undefined}>
             {/* one sidebar: a narrow bar of tools and, next to it, the panel of the active tool (second click closes it) */}
             <div className="side">
               <nav className="toolbar" aria-label={t("showList")}>
@@ -625,6 +627,25 @@ export function App() {
                             favourites={favourites} onStar={star} query={query} onQuery={setQuery} onSelect={pickListed} onAdd={newPerson} t={t} />
               </aside>}
             </div>
+            {narrow && mtab === "more" && <div className="more-page">
+              <h3>{t("moreFile")}</h3>
+              <div className="grp">
+                <FileDrop className="row" onFile={openFile}><FileUp className="icon" aria-hidden="true" /><span>{t("openOther")}</span></FileDrop>
+                <button type="button" className="row" onClick={downloadGedcom}><FileDown className="icon" aria-hidden="true" /><span>{t("exportGed")}</span>
+                  {dirty && <span className="badge">{changes > 99 ? "99+" : changes}</span>}</button>
+                <button type="button" className="row" disabled={busy} onClick={() => create()}><FileText className="icon" aria-hidden="true" /><span>{t("go")}</span></button>
+              </div>
+              <h3>{t("moreApp")}</h3>
+              <div className="grp">
+                {homeId && <button type="button" className="row" onClick={() => { makeRoot(homeId); setMtab("person"); }}><Home className="icon" aria-hidden="true" />
+                  <span>{t("returnHome", { name: data.people[homeId].name || "?" })}</span></button>}
+                <button type="button" className="row" disabled={!selectedId} onClick={() => { if (selectedId) setMarks((m) => changeHome(m, selectedId)); }}>
+                  <User className="icon" aria-hidden="true" /><span>{t("homeSet")}</span></button>
+                <button type="button" className="row" onClick={toggleTheme}>{theme === "dark" ? <Sun className="icon" aria-hidden="true" /> : <Moon className="icon" aria-hidden="true" />}
+                  <span>{t(theme === "dark" ? "themeLight" : "themeDark")}</span></button>
+                <div className="row"><span>{t("language")}</span><LanguageMenu lang={lang} label={t("language")} onChange={changeLang} /></div>
+              </div>
+            </div>}
             {sourceWin && doc && (!sourceWin.xref || sourceEntry) && <SourceWindow key={sourceWin.xref ?? "new"} data={data} xref={sourceWin.xref} person={selectedId} lang={lang}
                                  fields={sourceEntry?.fields ?? { title: "", author: "", publication: "", notes: [], links: [] }}
                                  cites={sourceWin.xref ? sourceCites(doc.records, sourceWin.xref) : []} cited={sourceEntry?.citations ?? 0}
@@ -673,7 +694,13 @@ export function App() {
             </>}
         </div>}
       </section>
-
+      {data && chosen && narrow && !windowId && !sourceWin && <nav className="tabbar" aria-label={t("tabMore")}>
+        {([["people", Search, "tabPeople"], ["person", User, "tabPerson"], ["more", MoreHorizontal, "tabMore"]] as const).map(([k, Icon, label]) => {
+          const on = (!selectedId && mtab === "person" ? "people" : mtab) === k;
+          return <button key={k} type="button" className={on ? "on" : undefined} aria-current={on ? "page" : undefined}
+                         onClick={() => setMtab(k)}><Icon className="icon" aria-hidden="true" /><span>{t(label)}</span></button>;
+        })}
+      </nav>}
 
       <footer>Open source · <a href="https://github.com/r3mus99/arbora">GitHub</a> · <span>{t("license")}</span></footer>
     </main>
