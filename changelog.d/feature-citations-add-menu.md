@@ -1,1 +1,0 @@
-- **One Add menu for citations.** The Add button of a source's citations opens a menu with the person, their parents and "Another person…"; the "Add also" buttons under each citation are gone, and a person who is already cited can be added again for another event.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.133.0 – 2026-11-06
+
+- **One Add menu for citations.** The Add button of a source's citations opens a menu with the person, their parents and "Another person…"; the "Add also" buttons under each citation are gone, and a person who is already cited can be added again for another event.
+
 ## 2.132.1 – 2026-11-06
 
 - **Deleting a person no longer blanks the app.** After a delete (or an undo that removes the selected person) the chart and detail move to a relative, or to anyone left, instead of showing an empty page.
