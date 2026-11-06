@@ -470,6 +470,7 @@ button.link { display: inline; }
 .welcome-in { width: min(520px, 100%); display: flex; flex-direction: column; align-items: stretch; gap: 12px; }
 .welcome-in .note { text-align: center; margin: 0; }
 .welcome-in > button { align-self: center; }
+.welcome-in .actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
 /* "Continue with <file>" and the small forget button, above the drop zone */
 .welcome-in .resume { display: flex; gap: 8px; justify-content: center; }
 .welcome-in .resume .primary { min-width: 0; max-width: 100%; }

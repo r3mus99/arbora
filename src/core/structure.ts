@@ -122,3 +122,10 @@ export function lineage(data: GedcomData, id: string, direction: "up" | "down"):
   }
   return found;
 }
+
+/** The name a new family tree is kept and downloaded under. */
+export const NEW_TREE_FILE = "new-family-tree.ged";
+
+/** A new family tree without a file: a GEDCOM with one nameless person (@I1@), whom the editor opens first. */
+export const newTreeText = (eol = "\n") =>
+  ["0 HEAD", "1 CHAR UTF-8", "0 @I1@ INDI", "1 NAME //", "0 TRLR"].join(eol) + eol;

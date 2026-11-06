@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { inboundAssociations } from "../core/associations";
 import { chartRows } from "../core/chart";
-import { FileDown, FileText, FileImage, FileUp, Home, User,
+import { FilePlus, FileDown, FileText, FileImage, FileUp, Home, User,
          Loader2, BookMarked, History, Trash2, ListChecks, Redo2, Search, SlidersHorizontal, ShieldAlert, ShieldCheck, Sun, X, Moon, TreeDeciduous, Undo2, Users, MoreHorizontal } from "lucide-react";
 import { type ChartKind } from "../core/format";
 import { version } from "../../package.json";
 import { checkGedcom, fixIssue } from "../core/check";
+import { NEW_TREE_FILE, newTreeText } from "../core/structure";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
 import { addFamily, addPerson, appended, deleteFamily, deletePerson, freeXref } from "../core/structure";
 import { mergePeople, type MergePick } from "../core/merge";
@@ -327,6 +328,14 @@ export function App() {
 
   const forget = () => { setLast(null); void forgetFile(); };
 
+  /** a new tree without a file: one nameless person, opened in the edit window; the browser keeps it like any opened file */
+  const startTree = () => {
+    if (!keepEdits()) return;
+    void clearLog();
+    loadBytes(new TextEncoder().encode(newTreeText()).buffer as ArrayBuffer, NEW_TREE_FILE);
+    setWindowId("@I1@");
+  };
+
   const loadSample = async () => {
     if (!keepEdits()) return;
     try {
@@ -586,7 +595,10 @@ export function App() {
               <div dangerouslySetInnerHTML={{ __html: t("drop") }} />
             </FileDrop>
             <p className="note">{t("privacy")}</p>
-            <button type="button" onClick={loadSample}>{t("sample")}</button>
+            <div className="actions">
+              <button type="button" onClick={startTree}><FilePlus className="icon" aria-hidden="true" />{t("newTree")}</button>
+              <button type="button" onClick={loadSample}>{t("sample")}</button>
+            </div>
           </div>
         </div>}
         {data && chosen && <div className={`viewer${selectedId || showCheck ? " has-detail" : " no-detail"}`} data-mtab={narrow ? (!selectedId && mtab === "person" ? "people" : mtab) : undefined}>
