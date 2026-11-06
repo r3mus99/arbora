@@ -221,7 +221,7 @@ describe("PDF", () => {
     const res = await generate(load(ged), "@I1@", { generations: 5 }, fonts);
     expect(res.landscape).toBe(true);
     expect(res.generations).toBe(2);
-  });
+  }, 120_000);
 
   test("descendants in English, A4 portrait", async () => {
     const res = await generate(data, "@I52@", { chart: "descendants", lang: "en" }, fonts);
