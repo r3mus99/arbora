@@ -208,6 +208,21 @@ describe("PDF", () => {
     expect(doc.getTitle()).toBe("Predkovia: Charles I of Austria");
   });
 
+  test("the generations reported are the ones printed, also when the setting asks for more or the page is landscape", async () => {
+    for (const [chart, id, asked] of [["ancestors", "@I1@", 3], ["ancestors", "@I1@", 0], ["descendants", "@I52@", 3]] as const) {
+      const o = { chart, generations: asked, lang: "en" as const };
+      const res = await generate(data, id, o, fonts);
+      expect(res.generations).toBe(Math.max(...chartRows(data, id, o).map((r) => r.gen)));
+      expect(res.generations).toBeLessThanOrEqual(asked || Infinity);
+    }
+    // a name too long for a portrait page makes the pages landscape, and the count stays the same
+    const long = `${"Fictional ".repeat(22)}/Person/`;
+    const ged = `0 HEAD\n0 @I1@ INDI\n1 NAME ${long}\n1 FAMC @F1@\n0 @I2@ INDI\n1 NAME Dad /Person/\n0 @F1@ FAM\n1 HUSB @I2@\n1 CHIL @I1@\n0 TRLR\n`;
+    const res = await generate(load(ged), "@I1@", { generations: 5 }, fonts);
+    expect(res.landscape).toBe(true);
+    expect(res.generations).toBe(2);
+  }, 120_000);
+
   test("descendants in English, A4 portrait", async () => {
     const res = await generate(data, "@I52@", { chart: "descendants", lang: "en" }, fonts);
     expect(res.title).toBe("Descendants of Francis I, Holy Roman Emperor");

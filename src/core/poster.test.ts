@@ -78,12 +78,24 @@ describe("poster layout", () => {
   });
 
   test("the generations are limited to 3..10 and a person without parents has just the plate", () => {
-    expect(buildPoster(full(3), ROOT, { generations: 99 }).generations).toBe(10);
-    expect(buildPoster(data, ROOT, { generations: 1 }).generations).toBe(3);
-    expect(buildPoster(data, ROOT, { generations: 0 }).generations).toBe(10); // all
+    expect(buildPoster(full(10), ROOT, { generations: 99 }).generations).toBe(10);
+    expect(buildPoster(full(10), ROOT, { generations: 0 }).generations).toBe(10); // all
+    expect(buildPoster(full(4), ROOT, { generations: 1 }).generations).toBe(3); // the poster has at least 3
     const lone = Object.values(data.people).find((x) => !x.famc.length)!;
     const p = buildPoster(data, lone.id, { generations: 5 });
     expect(p.people).toBe(1);
+    expect(p.generations).toBe(1);
+  });
+
+  test("the generations of the poster are the ones really drawn, in the number, the title and the file name", () => {
+    // asked for 7 (or all), but the tree has only 4 generations
+    for (const asked of [7, 0]) {
+      const p = buildPoster(full(4), ROOT, { generations: asked, lang: "en" });
+      expect(p.generations).toBe(4);
+      expect(Math.max(...p.plates.map((q) => q.gen))).toBe(4);
+      expect(p.texts.some((t) => t.text.startsWith("4 generations"))).toBe(true);
+    }
+    expect(buildPoster(full(4), ROOT, { generations: 3, lang: "en" }).generations).toBe(3);
   });
 
   test("an unknown father leaves the mother's side in place", () => {
