@@ -215,7 +215,7 @@ describe("PDF", () => {
         const res = await generate(data, chart === "ancestors" ? "@I1@" : "@I52@", o, fonts);
         const printed = Math.max(...chartRows(data, chart === "ancestors" ? "@I1@" : "@I52@", o).map((r) => r.gen));
         expect(res.generations).toBe(printed);
-        if (asked) expect(res.generations).toBeLessThanOrEqual(asked);
+        expect(res.generations).toBeLessThanOrEqual(asked || Infinity);
       }
     }
     // a name too long for a portrait page makes the pages landscape, and the count stays the same
