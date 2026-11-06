@@ -1,5 +1,5 @@
-import { BookMarked, Check, Plus, Trash2, Users, WandSparkles, X, type LucideIcon } from "lucide-react";
-import { useEffect, useEffectEvent, useMemo, useState, type ReactNode } from "react";
+import { BookMarked, Check, ChevronDown, Plus, Search, Trash2, Users, WandSparkles, X, type LucideIcon } from "lucide-react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState, type ReactNode } from "react";
 import type { GedcomData } from "../core/gedcom";
 import type { CitationAddress, CitationLinkChange, CitationLinkLine, CitationPageChange, CitationPageLine } from "../core/citationLinks";
 import { citeKey, isWebAddress, type CiteEvent, type SourceCite } from "../core/sourceLinks";
@@ -177,13 +177,30 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
     }
     return out;
   }, [list, cites, citeLinks, citePages, data]);
-  // the parents of the person a birth or christening is cited for: offered as one click each; a parent already cited stays in place, marked, so the buttons do not move under the pointer
-  const parentsOf = (c: SourceCite | null) => {
-    if (!c || c.family || (c.event !== "BIRT" && c.event !== "CHR")) return [];
-    const fam = data.families[data.people[c.person]?.famc[0] ?? ""];
+  // the person the menu cites for: the one the source was opened from, else the one selected in the tree, else the last person cited here
+  const subject = [first?.person, selected, ...list.filter((c) => !c.family).map((c) => c.person).reverse()].find((id) => !!id && !!data.people[id]) ?? "";
+  const parentsOfSubject = (() => {
+    const fam = data.families[data.people[subject]?.famc[0] ?? ""];
     return [fam?.husb, fam?.wife].filter((id): id is string => !!id && !!data.people[id]);
+  })();
+  const yearOf = (id: string) => /\d{4}/.exec(data.people[id]?.birth?.date ?? "")?.[0];
+  const [menu, setMenu] = useState(false);
+  const menuRoot = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!menu) return;
+    const outside = (e: MouseEvent) => { if (!menuRoot.current?.contains(e.target as Node)) setMenu(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setMenu(false); } };
+    document.addEventListener("click", outside);
+    document.addEventListener("keydown", esc, true);
+    return () => { document.removeEventListener("click", outside); document.removeEventListener("keydown", esc, true); };
+  }, [menu]);
+  // a person who is already cited stays in the menu: the same source may be cited for several events, so the new citation takes the first event still free
+  const citeFor = (id: string) => {
+    const free = EVENTS.find((ev) => ev !== "MARR" && ev !== "DIV" && !list.some((x) => !x.family && x.person === id && x.event === ev));
+    if (free !== undefined) setList([...list, { event: free, person: id, family: "" }]);
+    setMenu(false);
   };
-  const citedPerson = (id: string) => list.some((x) => !x.family && x.event === "" && x.person === id);
+  const chooseOther = () => { setMenu(false); setPerson(""); setAdding(true); };
   // a citation added in this window has nothing written yet, so its event can still be chosen; saved citations keep theirs (their page and address belong to it)
   const eventChoices = (c: SourceCite) => EVENTS.filter((ev) => (c.family ? ev === "" || ev === "MARR" || ev === "DIV" : ev !== "MARR" && ev !== "DIV")
     && (ev === c.event || !list.some((x) => x !== c && !x.family === !c.family && x.person === c.person && x.family === c.family && x.event === ev)));
@@ -252,7 +269,23 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
               </div>
             ))}
           </Part>
-          <Part icon={Users} title={t("srcCitedFor")} extra={<AddAct expanded={adding} onAdd={() => setAdding(!adding)}>{ico(Plus)}{t("srcAddCite")}</AddAct>}>
+          <Part icon={Users} title={t("srcCitedFor")} extra={<span className="cite-menu-host" ref={menuRoot}>
+            <AddAct expanded={menu} onAdd={() => setMenu(!menu)}>{ico(Plus)}{t("srcAddCite")}{ico(ChevronDown)}</AddAct>
+            {menu && <div className="cite-menu" role="menu" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+              {subject && <>
+                <div className="menu-sec">{t("srcCiteFor")}</div>
+                <button type="button" role="menuitem" className="menu-item" onClick={() => citeFor(subject)}>
+                  <span className="nm" title={nameOf(subject)}>{nameOf(subject)}</span>{yearOf(subject) && <span className="yr">{yearOf(subject)}</span>}</button>
+                {parentsOfSubject.length > 0 && <>
+                  <div className="menu-sec">{t("parents")}</div>
+                  {parentsOfSubject.map((id) => <button type="button" role="menuitem" className="menu-item" key={id} onClick={() => citeFor(id)}>
+                    <span className="nm" title={nameOf(id)}>{nameOf(id)}</span>{yearOf(id) && <span className="yr">{yearOf(id)}</span>}</button>)}
+                </>}
+                <div className="menu-sep" />
+              </>}
+              <button type="button" role="menuitem" className="menu-item" onClick={chooseOther}>{ico(Search)}<span className="nm">{t("srcCiteAnother")}</span></button>
+            </div>}
+          </span>}>
             <fieldset className="list">
               {adding && <div className="new-child">
                 <div className="card-head">{ico(Users)}{t("srcCiteFor")}</div>
@@ -270,9 +303,6 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
                   <button type="button" className="primary" disabled={!person || (onFamily && !chosenFamily)} onClick={addCite}>{t("srcCiteAdd")}</button>
                 </div>
               </div>}
-              {!xref && !list.length && !adding && selected && data.people[selected] && <label data-cap={t("srcCiteForPerson")}>
-                <span className="head-acts"><button type="button" className="head-act" onClick={() => { setPerson(selected); setAdding(true); }}>
-                  {ico(Plus)}{nameOf(selected)}</button></span></label>}
               {citeTree.flatMap((p) => p.places.map((pl) => {
                 const where = `${holderName(p.holder)} · ${eventName(pl.event)}`;
                 return <div className="cite-block" key={`${p.holder}|${pl.event}`}>
@@ -292,12 +322,6 @@ export function SourceWindow({ data, xref, fields, cites, citeLinks, citePages, 
                              onChange={(e) => setUrls({ ...urls, [l.key]: e.target.value })} />
                     </label>
                   ))}
-                  {parentsOf(pl.cite).some((id) => !citedPerson(id)) && <label data-cap={t("srcCiteParents")}>
-                    <span className="head-acts">{parentsOf(pl.cite).map((id) => (
-                      <button type="button" key={id} className="head-act" disabled={citedPerson(id)}
-                              onClick={(e) => { e.preventDefault(); if (!citedPerson(id)) setList([...list, { event: "", person: id, family: "" }]); }}>
-                        {ico(citedPerson(id) ? Check : Plus)}{nameOf(id)}</button>))}</span>
-                  </label>}
                   {pl.pages.map((pg) => (
                     <label key={pg.key} data-cap={t("srcCitationPage")}>
                       <input type="text" autoComplete="off" placeholder={t("srcCitationPage")} aria-label={where} title={t("srcCitationPage")} value={pageOf(pg)}
