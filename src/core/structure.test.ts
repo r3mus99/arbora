@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { NEW_TREE_FILE, newTreeText, addFamily, addPerson, deleteFamily, deletePerson, lineage, parseGedcom, readRecords, writeGedcom } from "./index";
+import { NEW_TREE_FILE, newTreeText, addFamily, addPerson, deleteFamily, deletePerson, personAfterDelete, lineage, parseGedcom, readRecords, writeGedcom } from "./index";
 
 const FILE = [
   "0 HEAD", "1 CHAR UTF-8",
@@ -109,5 +109,18 @@ describe("a new family tree", () => {
     const { records: next, id } = addFamily(records, "@I1@");
     expect(readRecords(next).families[id].husb).toBe("@I1@");
     expect(newTreeText("\r\n")).toContain("\r\n0 TRLR");
+  });
+});
+
+describe("whom to show after a person is deleted", () => {
+  const data = readRecords(parseGedcom(FILE));
+  test("a child, spouse, parent or sibling is preferred", () => {
+    expect(personAfterDelete(data, "@I1@")).toBe("@I3@");
+    expect(personAfterDelete(data, "@I3@")).toBe("@I1@");
+  });
+  test("an unnamed person without links gives the first person left", () => {
+    const lone = readRecords(addPerson(parseGedcom(FILE)).records);
+    expect(personAfterDelete(lone, "@I4@")).toBe("@I1@");
+    expect(personAfterDelete(readRecords(parseGedcom("0 HEAD\n0 @I1@ INDI\n1 NAME //\n0 TRLR\n")), "@I1@")).toBeNull();
   });
 });

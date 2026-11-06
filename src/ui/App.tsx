@@ -8,7 +8,7 @@ import { version } from "../../package.json";
 import { checkGedcom, fixIssue } from "../core/check";
 import { NEW_TREE_FILE, newTreeText } from "../core/structure";
 import { lineEnding, suggestions, writeGedcom } from "../core/edit";
-import { addFamily, addPerson, appended, deleteFamily, deletePerson, freeXref } from "../core/structure";
+import { addFamily, addPerson, appended, deleteFamily, deletePerson, freeXref, personAfterDelete } from "../core/structure";
 import { mergePeople, type MergePick } from "../core/merge";
 import { outputFileName } from "../core/fileName";
 import { decode, parseGedcom, readRecords, type GedNode, type GedcomData } from "../core/gedcom";
@@ -391,10 +391,15 @@ export function App() {
     setWindowId(id);
   };
   const removePerson = (id: string) => {
-    if (!doc) return;
+    if (!doc || !data) return;
     setWindowId(null);
-    replaceRecords(deletePerson(doc.records, id));
-    if (selectedId === id) setSelectedId(null);
+    // the chart and the detail need a selected person, so the selection moves to a relative or, failing that, to anyone left
+    const after = personAfterDelete(data, id);
+    let records = deletePerson(doc.records, id);
+    let show = after;
+    if (!show) { const blank = addPerson(records); records = blank.records; show = blank.id; } // the last person: the file keeps one empty person to edit
+    replaceRecords(records);
+    if (selectedId === id || !selectedId) select(show);
   };
   const mergeInto = (keep: string, drop: string, pick: MergePick) => {
     if (!doc) return;
@@ -410,6 +415,11 @@ export function App() {
     setEdits(stepped.edits);
     setDoc(stepped.doc);
     resetResult();
+    // undoing the creation of the selected person leaves no one selected, which would blank the chart
+    if (selectedId && !readRecords(stepped.doc.records).people[selectedId]) {
+      const other = personAfterDelete(data!, selectedId);
+      if (other) select(other, false);
+    }
   };
 
   const gedName = (loadedName || "sample").replace(/\.(ged|gedcom)$/i, "") + ".ged";
