@@ -1,1 +1,0 @@
-- **The ancestors poster says how many generations it really shows.** When the tree ends earlier than the generations setting (or "All" is chosen), the poster's statistics line and the file name (`..._4g.svg`) now give the real number instead of the number asked for.

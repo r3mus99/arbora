@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.133.1 – 2026-11-06
+
+- **The ancestors poster says how many generations it really shows.** When the tree ends earlier than the generations setting (or "All" is chosen), the poster's statistics line and the file name (`..._4g.svg`) now give the real number instead of the number asked for.
+
 ## 2.133.0 – 2026-11-06
 
 - **One Add menu for citations.** The Add button of a source's citations opens a menu with the person, their parents and "Another person…"; the "Add also" buttons under each citation are gone, and a person who is already cited can be added again for another event.
