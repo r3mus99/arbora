@@ -281,6 +281,8 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const shift = 20 + leftReach + (W - content) / 2;
   for (const q of plates) q.x += shift;
 
+  // the generations really on the poster; the setting is only the most it may have (a tree can stop earlier)
+  const depth = Math.max(...plates.map((q) => q.gen));
   const appearances = new Map<string, number>();
   for (const plate of plates) appearances.set(plate.id, (appearances.get(plate.id) ?? 0) + 1);
   const title = TEXTS[o.lang].title.replace("{name}", root.name || "?");
@@ -290,7 +292,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   const plural = new Intl.PluralRules(o.lang);
   const counted = (n: number, forms: string[]) => `${n} ${forms[{ one: 0, few: 1 }[plural.select(n) as "one" | "few"] ?? 2]}`;
   // "6 generations · 62 ancestors · 1722–1887": the range runs from the oldest birth to the main person's
-  const stats = [counted(gens, TEXTS[o.lang].generations), counted(appearances.size - 1, TEXTS[o.lang].ancestors),
+  const stats = [counted(depth, TEXTS[o.lang].generations), counted(appearances.size - 1, TEXTS[o.lang].ancestors),
     rootYear !== null && born.length > 1 ? `${Math.min(...born)}\u2013${rootYear}` : ""].filter(Boolean).join(" \u00B7 ");
   const frameW = Math.max(measure(title, 58, true), measure(stats, 26, false)) + 120, frameH = 150;
 
@@ -510,7 +512,7 @@ export function buildPoster(data: GedcomData, rootId: string, options: Partial<C
   addCredit(texts, credit, o, measure, W, H);
   shapes.push({ d: `M${-margin},${-margin}L${W + margin},${-margin}L${W + margin},${H + margin}L${-margin},${H + margin}Z`, fill: C.paper, stroke: null, strokeWidth: 0 },
               ...frameShapes, ...branches, ...leaves, ...symbols, ...plateShapes);
-  return { width: W, height: H, margin, shapes, texts, generations: gens, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
+  return { width: W, height: H, margin, shapes, texts, generations: depth, people: plates.length, plates: plates.map(({ id, gen, x, y, w, h }) => ({ id, gen, x, y, w, h })), seed, title };
 }
 
 /**
