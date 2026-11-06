@@ -108,6 +108,22 @@ export function deletePerson(records: GedNode[], id: string): GedNode[] {
   return out;
 }
 
+/**
+ * Whom to show once a person is deleted: a child, a spouse, a parent or a sibling when there is one, else the first person
+ * left in the file; null when nobody is left. `data` is the file as it was before the delete.
+ */
+export function personAfterDelete(data: GedcomData, id: string): string | null {
+  const p = data.people[id];
+  const near: (string | null | undefined)[] = [];
+  if (p) {
+    for (const f of p.fams) near.push(...(data.families[f]?.children ?? []));
+    for (const f of p.fams) near.push(data.families[f]?.husb, data.families[f]?.wife);
+    for (const f of p.famc) near.push(data.families[f]?.husb, data.families[f]?.wife, ...(data.families[f]?.children ?? []));
+  }
+  const ok = (x?: string | null): x is string => !!x && x !== id && !!data.people[x];
+  return near.find(ok) ?? Object.keys(data.people).find(ok) ?? null;
+}
+
 /** Everyone above (`up`: parents, their parents, …) or below (`down`: children, their children, …) a person; the person is not in it, and a loop in the links ends the walk. */
 export function lineage(data: GedcomData, id: string, direction: "up" | "down"): Set<string> {
   const found = new Set<string>();
