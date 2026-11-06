@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.132.1 – 2026-11-06
+
+- **Deleting a person no longer blanks the app.** After a delete (or an undo that removes the selected person) the chart and detail move to a relative, or to anyone left, instead of showing an empty page.
+
 ## 2.132.0 – 2026-11-06
 
 - **A new family tree can be started without a GEDCOM file.** The welcome screen has a "Start a new family tree" button: it opens an empty tree with one person in the edit window, ready for the first name; the tree is downloaded as a GEDCOM file like any other.

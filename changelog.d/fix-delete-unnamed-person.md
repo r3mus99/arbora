@@ -1,1 +1,0 @@
-- **Deleting a person no longer blanks the app.** After a delete (or an undo that removes the selected person) the chart and detail move to a relative, or to anyone left, instead of showing an empty page.
