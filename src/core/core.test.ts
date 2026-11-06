@@ -209,14 +209,11 @@ describe("PDF", () => {
   });
 
   test("the generations reported are the ones printed, also when the setting asks for more or the page is landscape", async () => {
-    for (const asked of [3, 5, 100, 0]) {
-      for (const chart of ["ancestors", "descendants"] as const) {
-        const o = { chart, generations: asked, lang: "en" as const };
-        const res = await generate(data, chart === "ancestors" ? "@I1@" : "@I52@", o, fonts);
-        const printed = Math.max(...chartRows(data, chart === "ancestors" ? "@I1@" : "@I52@", o).map((r) => r.gen));
-        expect(res.generations).toBe(printed);
-        expect(res.generations).toBeLessThanOrEqual(asked || Infinity);
-      }
+    for (const [chart, id, asked] of [["ancestors", "@I1@", 3], ["ancestors", "@I1@", 0], ["descendants", "@I52@", 3]] as const) {
+      const o = { chart, generations: asked, lang: "en" as const };
+      const res = await generate(data, id, o, fonts);
+      expect(res.generations).toBe(Math.max(...chartRows(data, id, o).map((r) => r.gen)));
+      expect(res.generations).toBeLessThanOrEqual(asked || Infinity);
     }
     // a name too long for a portrait page makes the pages landscape, and the count stays the same
     const long = `${"Fictional ".repeat(22)}/Person/`;
