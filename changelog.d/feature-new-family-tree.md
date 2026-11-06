@@ -1,1 +1,0 @@
-- **A new family tree can be started without a GEDCOM file.** The welcome screen has a "Start a new family tree" button: it opens an empty tree with one person in the edit window, ready for the first name; the tree is downloaded as a GEDCOM file like any other.
