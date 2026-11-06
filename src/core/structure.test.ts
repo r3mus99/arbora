@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { addFamily, addPerson, deleteFamily, deletePerson, lineage, parseGedcom, readRecords, writeGedcom } from "./index";
+import { NEW_TREE_FILE, newTreeText, addFamily, addPerson, deleteFamily, deletePerson, lineage, parseGedcom, readRecords, writeGedcom } from "./index";
 
 const FILE = [
   "0 HEAD", "1 CHAR UTF-8",
@@ -97,5 +97,17 @@ describe("the line of a person", () => {
   test("a loop in the links ends the walk", () => {
     const loop = readRecords(parseGedcom(FILE.replace("1 FAMS @F1@\n0 @I2@", "1 FAMS @F1@\n1 FAMC @F1@\n0 @I2@")));
     expect([...lineage(loop, "@I1@", "up")]).toEqual(["@I2@"]);
+  });
+});
+
+describe("a new family tree", () => {
+  test("is a valid file with one nameless person, who can be given a family", () => {
+    const records = parseGedcom(newTreeText());
+    const data = readRecords(records);
+    expect(Object.keys(data.people)).toEqual(["@I1@"]);
+    expect(NEW_TREE_FILE).toMatch(/\.ged$/);
+    const { records: next, id } = addFamily(records, "@I1@");
+    expect(readRecords(next).families[id].husb).toBe("@I1@");
+    expect(newTreeText("\r\n")).toContain("\r\n0 TRLR");
   });
 });
